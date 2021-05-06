@@ -1,0 +1,72 @@
+
+buildscript {
+    ext.kotestVersion = '4.3.0'
+    ext.jvmTarget = '1.8'
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
+    id 'jacoco'
+}
+
+group 'com.xrpn'
+version '0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+compileJava {
+    options.fork = true
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileKotlin {
+   jvmTarget = '1.8'
+}
+
+task printSourceSetInformation(){
+    doLast{
+        sourceSets.each { srcSet ->
+            println "["+srcSet.name+"]"
+            print "-->Source directories: "+srcSet.allJava.srcDirs+"\n"
+            print "-->Output directories: "+srcSet.output.classesDirs.files+"\n"
+            println ""
+        }
+    }
+}
+
+test {
+    maxHeapSize = '1G'
+    useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+jacocoTestReport {
+    dependsOn "test"
+    reports {
+        xml.enabled = false
+        html.destination layout.buildDirectory.dir('reports/coverage').get().asFile
+        csv.enabled = false
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        allWarningsAsErrors = true
+        verbose = true
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.2"
+    testImplementation "io.kotest:kotest-runner-junit5:$kotestVersion" // for kotest framework
+    testImplementation "io.kotest:kotest-assertions-core:$kotestVersion" // for kotest core jvm assertions
+    testImplementation "io.kotest:kotest-property:$kotestVersion" // for kotest property test
+}
