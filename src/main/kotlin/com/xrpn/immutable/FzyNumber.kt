@@ -1,26 +1,16 @@
 package com.xrpn.immutable
 
-sealed class FzyNumber<out A : Number> {
-    abstract override fun equals(other: Any?): Boolean
-    abstract override fun hashCode(): Int
-}
-
-abstract class FzyDbl(val qty: Double, val tol: Double): FzyNumber<Double>(), Comparable<FzyDbl> {
-    override fun compareTo(other: FzyDbl): Int = when {
+abstract class Fuzzy<Q>(val qty: Q, val tol: Q): Comparable<Fuzzy<Q>> where Q: Comparable<Q> {
+    override fun compareTo(other: Fuzzy<Q>): Int = when {
         this.equal(other) -> 0
         qty < other.qty -> -1
         else -> 1
     }
-    internal abstract fun equal(rhs: FzyDbl): Boolean
-    internal abstract fun equal(rhs: Double): Boolean
-}
-
-abstract class FzyFlt(val qty: Float, val tol: Float): FzyNumber<Float>(), Comparable<FzyFlt> {
-    override fun compareTo(other: FzyFlt): Int = when {
-        this.equal(other) -> 0
-        qty < other.qty -> -1
-        else -> 1
-    }
-    internal abstract fun equal(rhs: FzyFlt): Boolean
-    internal abstract fun equal(rhs: Float): Boolean
+    override fun toString() = "${this::class.simpleName}($qty, $tol)"
+    override fun equals(other: Any?): Boolean = TODO()
+    override fun hashCode(): Int = TODO()
+    abstract fun isZero(): Boolean
+    abstract fun isUnity(): Boolean
+    internal abstract fun equal(rhs: Fuzzy<Q>): Boolean
+    internal abstract fun equal(rhs: Q): Boolean
 }

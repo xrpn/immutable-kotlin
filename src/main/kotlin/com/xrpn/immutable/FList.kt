@@ -384,7 +384,7 @@ data class FLCons<out A: Any>(
     // the data class built-in toString is not stack safe
     override fun toString(): String = (foldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size())
 
-    // the data class built-in toString is not stack safe
+    // the data class built-in hashCode is not stack safe
     override fun hashCode(): Int {
         val aux = foldLeft(0L) { code, h -> (h.hashCode() + code * 3L) }
         return if (Int.MIN_VALUE < aux && aux < Int.MAX_VALUE) aux.toInt()
