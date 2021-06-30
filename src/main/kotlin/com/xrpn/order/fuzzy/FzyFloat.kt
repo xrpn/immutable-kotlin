@@ -31,12 +31,10 @@ class FzyFloat(
         when {
             this === other -> true
             other == null -> false
-            other is FzyFloat -> other.equal(this)
-            other is Float -> this.equal(other)
+            other is FzyFloat -> fEqual(other)
+            other is Float -> fEqual(other)
             else -> false
         }
-    override fun equal(rhs: Fuzzy<Float>): Boolean = fEqual(rhs as FzyFloat)
-    override fun equal(rhs: Float): Boolean = fEqual(rhs.asFzyFloat(tol))
 
     companion object {
         fun zero(tol: Float = defaultFloatTol): FzyFloat = FzyFloat(0.0f, tol)

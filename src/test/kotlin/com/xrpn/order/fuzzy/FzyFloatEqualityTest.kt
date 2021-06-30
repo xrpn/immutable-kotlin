@@ -27,12 +27,12 @@ class FzyFloatEqualityTest : FunSpec({
         Float.NEGATIVE_INFINITY.fzyEqual(Float.POSITIVE_INFINITY) shouldBe false
         Float.POSITIVE_INFINITY.fzyEqual(Float.NEGATIVE_INFINITY) shouldBe false
         Float.NEGATIVE_INFINITY.fzyEqual(Float.NEGATIVE_INFINITY) shouldBe true
-        FzyFloat(Float.NaN).equal(Float.NaN) shouldBe false
-        FzyFloat(Float.NaN).equal(FzyFloat(Float.NaN)) shouldBe false
-        FzyFloat(Float.POSITIVE_INFINITY).equal(Float.POSITIVE_INFINITY) shouldBe true
-        FzyFloat(Float.NEGATIVE_INFINITY).equal(Float.POSITIVE_INFINITY) shouldBe false
-        FzyFloat(Float.POSITIVE_INFINITY).equal(Float.NEGATIVE_INFINITY) shouldBe false
-        FzyFloat(Float.NEGATIVE_INFINITY).equal(Float.NEGATIVE_INFINITY) shouldBe true
+        FzyFloat(Float.NaN).equals(Float.NaN) shouldBe false
+        (FzyFloat(Float.NaN) == FzyFloat(Float.NaN)) shouldBe false
+        FzyFloat(Float.POSITIVE_INFINITY).equals(Float.POSITIVE_INFINITY) shouldBe true
+        FzyFloat(Float.NEGATIVE_INFINITY).equals(Float.POSITIVE_INFINITY) shouldBe false
+        FzyFloat(Float.POSITIVE_INFINITY).equals(Float.NEGATIVE_INFINITY) shouldBe false
+        FzyFloat(Float.NEGATIVE_INFINITY).equals(Float.NEGATIVE_INFINITY) shouldBe true
         Float.MAX_VALUE.fzyEqual(Float.MAX_VALUE) shouldBe true
     }
 
@@ -85,17 +85,17 @@ class FzyFloatEqualityTest : FunSpec({
     }
 
     test("bounds") {
-        FzyFloat(Float.MAX_VALUE).equal(FzyFloat(Float.MAX_VALUE)) shouldBe true
-        FzyFloat(-Float.MAX_VALUE).equal(FzyFloat(-Float.MAX_VALUE)) shouldBe true
-        FzyFloat(Float.MAX_VALUE).equal(Float.MAX_VALUE) shouldBe true
-        FzyFloat(-Float.MAX_VALUE).equal(-Float.MAX_VALUE) shouldBe true
+        (FzyFloat(Float.MAX_VALUE) == FzyFloat(Float.MAX_VALUE)) shouldBe true
+        (FzyFloat(-Float.MAX_VALUE) == FzyFloat(-Float.MAX_VALUE)) shouldBe true
+        FzyFloat(Float.MAX_VALUE).equals(Float.MAX_VALUE) shouldBe true
+        FzyFloat(-Float.MAX_VALUE).equals(-Float.MAX_VALUE) shouldBe true
 
-        FzyFloat(Float.MIN_VALUE).equal(FzyFloat(Float.MIN_VALUE)) shouldBe true
-        FzyFloat(Float.MIN_VALUE).equal(FzyFloat(-Float.MIN_VALUE)) shouldBe true
-        FzyFloat(-Float.MIN_VALUE).equal(FzyFloat(-Float.MIN_VALUE)) shouldBe true
-        FzyFloat(Float.MIN_VALUE).equal(Float.MIN_VALUE) shouldBe true
-        FzyFloat(Float.MIN_VALUE).equal(-Float.MIN_VALUE) shouldBe true
-        FzyFloat(-Float.MIN_VALUE).equal(-Float.MIN_VALUE) shouldBe true
+        (FzyFloat(Float.MIN_VALUE) == FzyFloat(Float.MIN_VALUE)) shouldBe true
+        (FzyFloat(Float.MIN_VALUE) == FzyFloat(-Float.MIN_VALUE)) shouldBe true
+        (FzyFloat(-Float.MIN_VALUE) == FzyFloat(-Float.MIN_VALUE)) shouldBe true
+        FzyFloat(Float.MIN_VALUE).equals(Float.MIN_VALUE) shouldBe true
+        FzyFloat(Float.MIN_VALUE).equals(-Float.MIN_VALUE) shouldBe true
+        FzyFloat(-Float.MIN_VALUE).equals(-Float.MIN_VALUE) shouldBe true
 
         Float.MAX_VALUE.fzyEqual(Float.MAX_VALUE) shouldBe true
         (-Float.MAX_VALUE).fzyEqual(-Float.MAX_VALUE) shouldBe true
@@ -125,16 +125,16 @@ class FzyFloatEqualityTest : FunSpec({
             f1.fzyEqual(f1) shouldBe !f1.isNaN()
             f1.fzyEqual(ff1a) shouldBe !f1.isNaN()
             f1.fzyEqual(ff1b) shouldBe !f1.isNaN()
-            ff1a.equal(f1) shouldBe !f1.isNaN()
-            ff1b.equal(f1) shouldBe !f1.isNaN()
+            ff1a.equals(f1) shouldBe !f1.isNaN()
+            ff1b.equals(f1) shouldBe !f1.isNaN()
 
-            ff1a.equal(ff1b) shouldBe !f1.isNaN()
-            ff1b.equal(ff1a) shouldBe !f1.isNaN()
+            (ff1a == ff1b) shouldBe !f1.isNaN()
+            (ff1b == ff1a) shouldBe !f1.isNaN()
 
-            ff2a.equal(f2) shouldBe true
-            ff2b.equal(f2) shouldBe true
-            ff2a.equal(ff2b) shouldBe true
-            ff2b.equal(ff2a) shouldBe true
+            ff2a.equals(f2) shouldBe true
+            ff2b.equals(f2) shouldBe true
+            (ff2a == ff2b) shouldBe true
+            (ff2b == ff2a) shouldBe true
         }
     }
 
@@ -148,30 +148,30 @@ class FzyFloatEqualityTest : FunSpec({
             val ff2d = FzyFloat(f2d)
 
             (!ff1.equals(f1d) && f1.fzyIsZero()) shouldBe false
-            (f1.fzyIsZero() && !ff1.equals(ff1d)) shouldBe false
+            (f1.fzyIsZero() && ff1 != ff1d) shouldBe false
 
             f1.fzyEqual(f1d) shouldBe !f1.isNaN()
             f1.fzyEqual(ff1d) shouldBe !f1.isNaN()
             f1d.fzyEqual(f1) shouldBe !f1.isNaN()
             f1d.fzyEqual(ff1) shouldBe !f1.isNaN()
 
-            ff1.equal(f1d) shouldBe !f1.isNaN()
-            ff1d.equal(ff1) shouldBe !f1.isNaN()
-            ff1d.equal(f1) shouldBe !f1.isNaN()
-            ff1.equal(f1d) shouldBe !f1.isNaN()
+            ff1.equals(f1d) shouldBe !f1.isNaN()
+            (ff1d == ff1) shouldBe !f1.isNaN()
+            ff1d.equals(f1) shouldBe !f1.isNaN()
+            ff1.equals(f1d) shouldBe !f1.isNaN()
 
             (!ff2.equals(f2d) && f2.fzyIsZero()) shouldBe false
-            (f2.fzyIsZero() && !ff2.equals(ff2d)) shouldBe false
+            (f2.fzyIsZero() && ff2 != ff2d) shouldBe false
 
             f2.fzyEqual(f2d) shouldBe true
             f2.fzyEqual(ff2d) shouldBe true
             f2d.fzyEqual(f2) shouldBe true
             f2d.fzyEqual(ff2) shouldBe true
 
-            ff2.equal(f2d) shouldBe true
-            ff2d.equal(ff2) shouldBe true
-            ff2d.equal(f2) shouldBe true
-            ff2.equal(f2d) shouldBe true
+            ff2.equals(f2d) shouldBe true
+            (ff2d == ff2) shouldBe true
+            ff2d.equals(f2) shouldBe true
+            ff2.equals(f2d) shouldBe true
         }
     }
 
@@ -190,9 +190,9 @@ class FzyFloatEqualityTest : FunSpec({
             val ff2b = FzyFloat(f2b)
 
             (!ff1.equals(f1a) && f1.fzyIsZero()) shouldBe false
-            (f1.fzyIsZero() && !ff1.equals(ff1a)) shouldBe false
+            (f1.fzyIsZero() && ff1 != ff1a) shouldBe false
             (!ff1.equals(f1b) && f1.fzyIsZero()) shouldBe false
-            (f1.fzyIsZero() && !ff1.equals(ff1b)) shouldBe false
+            (f1.fzyIsZero() && ff1 != ff1b) shouldBe false
 
             // f1 == f1a, f1a == f1b => f1 == f1b
             f1.fzyEqual(f1a) shouldBe !f1.isNaN()
@@ -202,17 +202,17 @@ class FzyFloatEqualityTest : FunSpec({
             f1b.fzyEqual(f1) shouldBe !f1.isNaN()
             f1b.fzyEqual(ff1) shouldBe !f1.isNaN()
 
-            ff1.equal(f1a) shouldBe !f1.isNaN()
-            ff1.equal(ff1a) shouldBe !f1.isNaN()
-            ff1a.equal(f1b) shouldBe !f1.isNaN()
-            ff1a.equal(ff1b) shouldBe !f1.isNaN()
-            ff1b.equal(f1) shouldBe !f1.isNaN()
-            ff1b.equal(ff1) shouldBe !f1.isNaN()
+            ff1.equals(f1a) shouldBe !f1.isNaN()
+            (ff1 == ff1a) shouldBe !f1.isNaN()
+            ff1a.equals(f1b) shouldBe !f1.isNaN()
+            (ff1a == ff1b) shouldBe !f1.isNaN()
+            ff1b.equals(f1) shouldBe !f1.isNaN()
+            (ff1b == ff1) shouldBe !f1.isNaN()
 
             (!ff2.equals(f2a) && f2.fzyIsZero()) shouldBe false
-            (f2.fzyIsZero() && !ff2.equals(ff2a)) shouldBe false
+            (f2.fzyIsZero() && ff2 != ff2a) shouldBe false
             (!ff2.equals(f2b) && f2.fzyIsZero()) shouldBe false
-            (f2.fzyIsZero() && !ff2.equals(ff2b)) shouldBe false
+            (f2.fzyIsZero() && ff2 != ff2b) shouldBe false
 
             // f2 == f2a, f2a == f2b => f2 == f2b
             f2.fzyEqual(f2a) shouldBe true
@@ -222,12 +222,12 @@ class FzyFloatEqualityTest : FunSpec({
             f2b.fzyEqual(f2) shouldBe true
             f2b.fzyEqual(ff2) shouldBe true
 
-            ff2.equal(f2a) shouldBe true
-            ff2.equal(ff2a) shouldBe true
-            ff2a.equal(f2b) shouldBe true
-            ff2a.equal(ff2b) shouldBe true
-            ff2b.equal(f2) shouldBe true
-            ff2b.equal(ff2) shouldBe true
+            ff2.equals(f2a) shouldBe true
+            (ff2 == ff2a) shouldBe true
+            ff2a.equals(f2b) shouldBe true
+            (ff2a == ff2b) shouldBe true
+            ff2b.equals(f2) shouldBe true
+            (ff2b == ff2) shouldBe true
         }
     }
 })

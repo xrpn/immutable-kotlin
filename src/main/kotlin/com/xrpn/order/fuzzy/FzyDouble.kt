@@ -8,7 +8,6 @@ import com.xrpn.order.fuzzy.FzyDoubleEquality.fuzzyDoubleIsUnity
 import com.xrpn.order.fuzzy.FzyDoubleEquality.equal as dEqual
 import com.xrpn.order.fuzzy.FzyDoubleEquality.fuzzyDoubleIsZero
 
-
 class FzyDouble(
     qty: Double,
     tol: Double = defaultDoubleTol,
@@ -32,12 +31,10 @@ class FzyDouble(
         when {
             this === other -> true
             other == null -> false
-            other is FzyDouble -> other.equal(this)
-            other is Double -> this.equal(other)
+            other is FzyDouble -> dEqual(other)
+            other is Double -> dEqual(other)
             else -> false
         }
-    override fun equal(rhs: Fuzzy<Double>): Boolean = dEqual(rhs as FzyDouble)
-    override fun equal(rhs: Double): Boolean = dEqual(rhs.asFzyDouble())
 
     companion object {
         fun zero(tol: Double = defaultDoubleTol): FzyDouble = FzyDouble(0.0, tol)
