@@ -110,6 +110,34 @@ class FzyDoubleEqualityTest : FunSpec({
         (-Double.MIN_VALUE).fzyEqual(FzyDouble(-Double.MIN_VALUE)) shouldBe true
     }
 
+    test("underflow") {
+        (FzyDouble(Double.MAX_VALUE) == FzyDouble(1E-20)) shouldBe false
+        (FzyDouble(-Double.MAX_VALUE) == FzyDouble(-1E-20)) shouldBe false
+        FzyDouble(Double.MAX_VALUE).equals(1E-20) shouldBe false
+        FzyDouble(-Double.MAX_VALUE).equals(-1E-20) shouldBe false
+    }
+
+    test("overflow") {
+        (FzyDouble(1E-20) == FzyDouble(Double.MAX_VALUE)) shouldBe false
+        (FzyDouble(-1E-20) == FzyDouble(-Double.MAX_VALUE)) shouldBe false
+        FzyDouble(1E-20).equals(Double.MAX_VALUE) shouldBe false
+        FzyDouble(-1E-20).equals(-Double.MAX_VALUE) shouldBe false
+    }
+
+    test("same zeroes") {
+        val fd0a = FzyDouble.zero()
+        val fd0b = FzyDouble.zero()
+        val fd00 = FzyDouble.zero(defaultDoubleTol*2.0)
+        val fd1 = FzyDouble.unity()
+        FzyDoubleEquality.isSameZeroes(fd0a, fd0a) shouldBe true
+        FzyDoubleEquality.isSameZeroes(fd0a, fd0b) shouldBe true
+        FzyDoubleEquality.isSameZeroes(fd0b, fd0a) shouldBe true
+        FzyDoubleEquality.isSameZeroes(fd0a, fd00) shouldBe false
+        FzyDoubleEquality.isSameZeroes(fd00, fd0a) shouldBe false
+        FzyDoubleEquality.isSameZeroes(fd0a, fd1) shouldBe false
+        FzyDoubleEquality.isSameZeroes(fd1, fd0a) shouldBe false
+    }
+
     test("double properties, reflexive") {
         checkAll(Arb.double(), Arb.numericDoubles()) { f1, f2 ->
             val ff1a = FzyDouble(f1)

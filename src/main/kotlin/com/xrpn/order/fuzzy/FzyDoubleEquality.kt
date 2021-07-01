@@ -3,17 +3,15 @@ package com.xrpn.order.fuzzy
 const val defaultDoubleTol: Double = 1E-15
 const val doubleEps: Double = Double.MIN_VALUE
 
+// after
+// https://adtmag.com/Articles/2000/03/16/Comparing-Floats-How-To-Determine-if-Floating-Quantities-Are-Close-Enough-Once-a-Tolerance-Has-Been.aspx?Page=2
+
 internal object FzyDoubleEquality {
 
-    internal fun fuzzyDoubleIsZero(
+    private fun fuzzyDoubleIsZero(
         fp1: Double,
-        tol: Double = doubleEps,
+        tol: Double,
     ): Boolean = -tol <= fp1 && fp1 <= tol
-
-    internal fun fuzzyDoubleIsUnity(
-        fp1: Double,
-        tol: Double = doubleEps,
-    ): Boolean = fuzzyDoubleEq(fp1, 1.0, tol)
 
     private fun fuzzyDoubleEq(
         fp1: Double,
@@ -22,11 +20,11 @@ internal object FzyDoubleEquality {
         maxVal: Double = Double.MAX_VALUE,
         minPosVal: Double = doubleEps
     ): Boolean {
-        if (fp1 == fp2) return true // according to IEEE 754
+        if (fp1 == fp2) return !tol.isNaN() // according to IEEE 754
         if (fp1.isNaN() || fp2.isNaN() || tol.isNaN()) return false
         if (!(fp1.isFinite() && fp2.isFinite() && tol.isFinite())) return false
-        val fp1z = fuzzyDoubleIsZero(fp1, tol)
-        val fp2z = fuzzyDoubleIsZero(fp2, tol)
+        val fp1z = fuzzyDoubleIsZero(fp1, doubleEps)
+        val fp2z = fuzzyDoubleIsZero(fp2, doubleEps)
         if (fp1z && fp2z) return true
         if (fp1z || fp2z) return false
         val afp1 = kotlin.math.abs(fp1)
@@ -52,19 +50,27 @@ internal object FzyDoubleEquality {
         }
     }
 
-    internal fun doubleFuzzyIsZero(d: Double) = d.isFinite() && !d.isNaN() && fuzzyDoubleIsZero(d)
+    internal fun dFzyIsZero(d: Double, tol: Double = doubleEps) =
+        d.isFinite() && !d.isNaN() && tol.isFinite() && !tol.isNaN() && fuzzyDoubleIsZero(d, tol)
 
-    internal fun doubleFuzzyIsUnity(d: Double) = d.isFinite() && !d.isNaN() && fuzzyDoubleIsUnity(d)
+    internal fun dFzyIsUnity(d: Double, tol: Double = defaultDoubleTol) = fuzzyDoubleEq(d, 1.0, tol)
 
-    internal fun doubleFzyEqual(lhs: Double, rhs: Double, tol: Double = defaultDoubleTol) = fuzzyDoubleEq(lhs, rhs, tol)
+    internal fun dFzyEqual(lhs: Double, rhs: Double, tol: Double = defaultDoubleTol) = fuzzyDoubleEq(lhs, rhs, tol)
 
-    internal fun doubleFzyEqual(lhs: Double, rhs: FzyDouble) = fuzzyDoubleEq(lhs, rhs.qty, rhs.tol)
+    internal fun dFzyEqual(lhs: Double, rhs: FzyDouble) = fuzzyDoubleEq(lhs, rhs.qty, rhs.tol)
 
-    internal fun FzyDouble.equal(rhs: Double): Boolean = fuzzyDoubleEq(qty, rhs, tol)
+    fun FzyDouble.fzyEqual(rhs: Double): Boolean = fuzzyDoubleEq(qty, rhs, tol)
 
-    internal fun FzyDouble.equal(rhs: FzyDouble): Boolean {
-        if (this === rhs) return true
+    fun FzyDouble.fzyEqual(rhs: FzyDouble): Boolean {
+        if (this === rhs) return !(qty.isNaN() || tol.isNaN())
         return if (this.tol.toBits() == rhs.tol.toBits()) fuzzyDoubleEq(this.qty, rhs.qty, tol) else false
     }
 
+    fun isSameZeroes(lhsZero: FzyDouble, rhsZero: FzyDouble): Boolean {
+        val isLhsZero = dFzyIsZero(lhsZero.qty, lhsZero.tol)
+        if ((lhsZero === rhsZero) && isLhsZero) return true
+        return if (isLhsZero && dFzyIsZero(rhsZero.qty, rhsZero.tol)) {
+            lhsZero.tol.toBits() == rhsZero.tol.toBits()
+        } else false
+    }
 }

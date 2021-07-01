@@ -1,22 +1,21 @@
 package com.xrpn.order.fuzzy
 
 import com.xrpn.immutable.Fuzzy
-import com.xrpn.order.fuzzy.FzyDoubleEquality.doubleFuzzyIsUnity
-import com.xrpn.order.fuzzy.FzyDoubleEquality.doubleFuzzyIsZero
-import com.xrpn.order.fuzzy.FzyDoubleEquality.doubleFzyEqual
-import com.xrpn.order.fuzzy.FzyDoubleEquality.fuzzyDoubleIsUnity
-import com.xrpn.order.fuzzy.FzyDoubleEquality.equal as dEqual
-import com.xrpn.order.fuzzy.FzyDoubleEquality.fuzzyDoubleIsZero
+import com.xrpn.immutable.TypeSafeFuzzyEquality
+import com.xrpn.order.fuzzy.FzyDoubleEquality.dFzyIsUnity
+import com.xrpn.order.fuzzy.FzyDoubleEquality.dFzyIsZero
+import com.xrpn.order.fuzzy.FzyDoubleEquality.dFzyEqual
+import com.xrpn.order.fuzzy.FzyDoubleEquality.fzyEqual
 
 class FzyDouble(
     qty: Double,
     tol: Double = defaultDoubleTol,
-    defeat: Boolean = false,
-) : Fuzzy<Double>(qty, tol) {
+    defeatOk: Boolean = false,
+) : Fuzzy<Double>(qty, tol), TypeSafeFuzzyEquality<Double> {
 
     init {
         if (tol < 0.0) throw IllegalArgumentException("tol must be non-negative")
-        if ((1.0 - tol == 1.0 + tol) && !defeat) throw IllegalArgumentException("tolerance $tol is unrepresentable")
+        if ((1.0 - tol == 1.0 + tol) && !defeatOk) throw IllegalArgumentException("tolerance $tol is unrepresentable")
     }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)
@@ -25,24 +24,25 @@ class FzyDouble(
         result = 31 * result + tol.hashCode()
         return result
     }
-    override fun isZero() = fuzzyDoubleIsZero(qty, tol)
-    override fun isUnity() = fuzzyDoubleIsUnity(qty, tol)
+    override fun isZero() = dFzyIsZero(qty, tol)
+    override fun isUnity() = dFzyIsUnity(qty, tol)
+    override fun equal(rhs: Fuzzy<Double>): Boolean = fzyEqual(rhs as FzyDouble)
     private fun equalsImpl(other: Any?): Boolean =
         when {
             this === other -> true
             other == null -> false
-            other is FzyDouble -> dEqual(other)
-            other is Double -> dEqual(other)
+            other is FzyDouble -> fzyEqual(other)
+            other is Double -> fzyEqual(other)
             else -> false
         }
 
     companion object {
         fun zero(tol: Double = defaultDoubleTol): FzyDouble = FzyDouble(0.0, tol)
         fun unity(tol: Double = defaultDoubleTol): FzyDouble = FzyDouble(1.0, tol)
-        fun Double.fzyIsZero() = doubleFuzzyIsZero(this)
-        fun Double.fzyIsUnity() = doubleFuzzyIsUnity(this)
-        fun Double.fzyEqual(rhs: Double, tol: Double = defaultDoubleTol) = doubleFzyEqual(this,rhs,tol)
-        fun Double.fzyEqual(rhs: FzyDouble) = doubleFzyEqual(this,rhs)
+        fun Double.fzyIsZero() = dFzyIsZero(this)
+        fun Double.fzyIsUnity() = dFzyIsUnity(this)
+        fun Double.fzyEqual(rhs: Double, tol: Double = defaultDoubleTol) = dFzyEqual(this,rhs,tol)
+        fun Double.fzyEqual(rhs: FzyDouble) = dFzyEqual(this,rhs)
         fun Double.asFzyDouble(tol: Double = defaultDoubleTol): FzyDouble = FzyDouble(this, tol)
     }
 }

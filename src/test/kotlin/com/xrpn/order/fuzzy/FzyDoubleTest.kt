@@ -2,10 +2,14 @@ package com.xrpn.order.fuzzy
 
 import com.xrpn.order.fuzzy.FzyDouble.Companion.asFzyDouble
 import com.xrpn.order.fuzzy.FzyDouble.Companion.fzyEqual
+import com.xrpn.order.fuzzy.FzyDouble.Companion.unity
+import com.xrpn.order.fuzzy.FzyDouble.Companion.zero
+import com.xrpn.order.fuzzy.FzyDoubleEquality.fzyEqual
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.*
 import io.kotest.property.arbitrary.arbitrary
+import io.kotest.property.arbitrary.double
 import io.kotest.property.arbitrary.numericDoubles
 
 class FzyDoubleTest : FunSpec({
@@ -64,11 +68,19 @@ class FzyDoubleTest : FunSpec({
         }
     }
 
-    test("equal mixed") {
+    test("equals mixed") {
         checkAll(fzyDoubleDefaultArb, fzyDoubleAlterArb) { fzd1, fzda1 ->
             fzd1.equals(fzda1) shouldBe false
             fzda1.equals(fzda1.qty) shouldBe true
         }
+    }
+
+    test("equal (zeroes)") {
+        zero().equal(zero()) shouldBe true
+        zero().equal(unity()) shouldBe false
+        unity().equal(zero()) shouldBe false
+        doubleEps.fzyEqual(zero()) shouldBe true
+        zero().equals(doubleEps) shouldBe true
     }
 
     test("hashCode") {
@@ -105,6 +117,31 @@ class FzyDoubleTest : FunSpec({
             nd1.fzyEqual(nf2.asFzyDouble()) shouldBe false
             nd1.fzyEqual(nf2, defaultDoubleTol) shouldBe false
             nd1.fzyEqual(nf2, alterDoubleTol) shouldBe false
+        }
+    }
+
+    test("Double.fzyEqual qty pathology") {
+        checkAll(Arb.double()) { nf1 ->
+            val nf1fzy = nf1.asFzyDouble()
+            nf1.fzyEqual(nf1fzy) shouldBe !nf1.isNaN()
+            nf1.fzyEqual(nf1.asFzyDouble(alterDoubleTol)) shouldBe !nf1.isNaN()
+            nf1.fzyEqual(nf1, defaultDoubleTol) shouldBe !nf1.isNaN()
+            nf1.fzyEqual(nf1, alterDoubleTol) shouldBe !nf1.isNaN()
+            nf1fzy.fzyEqual(nf1) shouldBe !nf1.isNaN()
+            nf1fzy.fzyEqual(nf1fzy) shouldBe !nf1.isNaN()
+
+        }
+    }
+
+    test("Double.fzyEqual tol pathology") {
+        checkAll(Arb.numericDoubles(), Arb.double()) { nfQty, nfTol ->
+            val tol = Math.abs(nfTol)
+            val nf1fzy = FzyDouble(nfQty, tol, defeatOk = true)
+            nfQty.fzyEqual(nf1fzy) shouldBe !tol.isNaN()
+            nfQty.fzyEqual(nfQty.asFzyDouble(alterDoubleTol)) shouldBe true
+            nfQty.fzyEqual(nfQty, tol) shouldBe !tol.isNaN()
+            nf1fzy.fzyEqual(nfQty) shouldBe !tol.isNaN()
+            nf1fzy.fzyEqual(nf1fzy) shouldBe !tol.isNaN()
         }
     }
 

@@ -110,6 +110,34 @@ class FzyFloatEqualityTest : FunSpec({
         (-Float.MIN_VALUE).fzyEqual(FzyFloat(-Float.MIN_VALUE)) shouldBe true
     }
 
+    test("underflow") {
+        (FzyFloat(Float.MAX_VALUE) == FzyFloat(1E-10f)) shouldBe false
+        (FzyFloat(-Float.MAX_VALUE) == FzyFloat(-1E-10f)) shouldBe false
+        FzyFloat(Float.MAX_VALUE).equals(1E-10f) shouldBe false
+        FzyFloat(-Float.MAX_VALUE).equals(-1E-10f) shouldBe false
+    }
+
+    test("overflow") {
+        (FzyFloat(1E-10f) == FzyFloat(Float.MAX_VALUE)) shouldBe false
+        (FzyFloat(-1E-10f) == FzyFloat(-Float.MAX_VALUE)) shouldBe false
+        FzyFloat(1E-10f).equals(Float.MAX_VALUE) shouldBe false
+        FzyFloat(-1E-10f).equals(-Float.MAX_VALUE) shouldBe false
+    }
+
+    test("same zeroes") {
+        val fd0a = FzyFloat.zero()
+        val fd0b = FzyFloat.zero()
+        val fd00 = FzyFloat.zero(defaultFloatTol*2.0f)
+        val fd1 = FzyFloat.unity()
+        FzyFloatEquality.isSameZeroes(fd0a, fd0a) shouldBe true
+        FzyFloatEquality.isSameZeroes(fd0a, fd0b) shouldBe true
+        FzyFloatEquality.isSameZeroes(fd0b, fd0a) shouldBe true
+        FzyFloatEquality.isSameZeroes(fd0a, fd00) shouldBe false
+        FzyFloatEquality.isSameZeroes(fd00, fd0a) shouldBe false
+        FzyFloatEquality.isSameZeroes(fd0a, fd1) shouldBe false
+        FzyFloatEquality.isSameZeroes(fd1, fd0a) shouldBe false
+    }
+
     test("float properties, reflexive") {
         checkAll(Arb.float(), Arb.numericFloats()) { f1, f2 ->
             val ff1a = FzyFloat(f1)

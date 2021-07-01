@@ -1,18 +1,17 @@
 package com.xrpn.order.fuzzy
 
 import com.xrpn.immutable.Fuzzy
-import com.xrpn.order.fuzzy.FzyFloatEquality.floatFuzzyIsUnity
-import com.xrpn.order.fuzzy.FzyFloatEquality.fuzzyFloatIsZero
-import com.xrpn.order.fuzzy.FzyFloatEquality.floatFzyEqual
-import com.xrpn.order.fuzzy.FzyFloatEquality.equal as fEqual
-import com.xrpn.order.fuzzy.FzyFloatEquality.floatFuzzyIsZero
-import com.xrpn.order.fuzzy.FzyFloatEquality.fuzzyFloatIsUnity
+import com.xrpn.immutable.TypeSafeFuzzyEquality
+import com.xrpn.order.fuzzy.FzyFloatEquality.fFzyIsUnity
+import com.xrpn.order.fuzzy.FzyFloatEquality.fFzyEqual
+import com.xrpn.order.fuzzy.FzyFloatEquality.fzyEqual
+import com.xrpn.order.fuzzy.FzyFloatEquality.fFzyIsZero
 
 class FzyFloat(
     qty: Float,
     tol: Float = defaultFloatTol,
     defeatOk: Boolean = false,
-) : Fuzzy<Float>(qty, tol) {
+) : Fuzzy<Float>(qty, tol), TypeSafeFuzzyEquality<Float> {
 
     init {
         if (tol < 0.0f) throw IllegalArgumentException("tol must be non-negative")
@@ -25,26 +24,25 @@ class FzyFloat(
         result = 31 * result + tol.hashCode()
         return result
     }
-    override fun isZero() = fuzzyFloatIsZero(qty, tol)
-    override fun isUnity() = fuzzyFloatIsUnity(qty, tol)
+    override fun isZero() = fFzyIsZero(qty, tol)
+    override fun isUnity() = fFzyIsUnity(qty, tol)
+    override fun equal(rhs: Fuzzy<Float>): Boolean = fzyEqual(rhs as FzyFloat)
     private fun equalsImpl(other: Any?): Boolean =
         when {
             this === other -> true
             other == null -> false
-            other is FzyFloat -> fEqual(other)
-            other is Float -> fEqual(other)
+            other is FzyFloat -> fzyEqual(other)
+            other is Float -> fzyEqual(other)
             else -> false
         }
 
     companion object {
         fun zero(tol: Float = defaultFloatTol): FzyFloat = FzyFloat(0.0f, tol)
         fun unity(tol: Float = defaultFloatTol): FzyFloat = FzyFloat(1.0f, tol)
-        fun Float.fzyIsZero() = floatFuzzyIsZero(this)
-        fun Float.fzyIsUnity() = floatFuzzyIsUnity(this)
-        fun Float.fzyEqual(rhs: Float, tol: Float = defaultFloatTol) = floatFzyEqual(this, rhs, tol)
-        fun Float.fzyEqual(rhs: FzyFloat) = floatFzyEqual(this, rhs)
+        fun Float.fzyIsZero() = fFzyIsZero(this)
+        fun Float.fzyIsUnity() = fFzyIsUnity(this)
+        fun Float.fzyEqual(rhs: Float, tol: Float = defaultFloatTol) = fFzyEqual(this, rhs, tol)
+        fun Float.fzyEqual(rhs: FzyFloat) = fFzyEqual(this, rhs)
         fun Float.asFzyFloat(tol: Float = defaultFloatTol): FzyFloat = FzyFloat(this, tol)
     }
 }
-
-
