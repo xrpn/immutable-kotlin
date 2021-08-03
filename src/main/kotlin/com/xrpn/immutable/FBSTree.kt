@@ -594,17 +594,21 @@ internal data class FBSTNode<out A: Any, out B: Any>(
 
     internal fun isLeaf(): Boolean = bLeft is FBSTNil && bRight is FBSTNil
 
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FBSTNode<*,*>) this.entry::class == other.entry::class && equal(this, other)
-        else false
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FBSTNode<*, *> -> when {
+            this.entry::class == other.entry::class -> equal(this, other)
+            else -> false
+        }
+        else -> false
+    }
 
     override fun hashCode(): Int {
         var aux: Long = entry.hashCode().toLong()
         aux = 3L * aux + bLeft.preorder().hashCode()
         aux = 3L * aux + bRight.preorder().hashCode()
-        return if (Int.MIN_VALUE < aux && aux < Int.MAX_VALUE) aux.toInt()
+        return if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else /* may it even theoretically get here? */ TODO("must reduce range of FBSTNode.hashcode to Int")
     }
 

@@ -45,13 +45,9 @@ sealed class FList<out A: Any> {
         return getLast(this, FLNil)
     }
 
-    fun len(): Int {
-        return if (this is FLNil) 0 else this.foldLeft(0, {b, _ -> b+1})
-    }
+    fun len(): Int = if (this is FLNil) 0 else this.foldLeft(0) { b, _ -> b + 1 }
 
-    fun size(): Int {
-        return this.len()
-    }
+    fun size(): Int = this.len()
 
     fun isEmpty(): Boolean = this is FLNil
 
@@ -156,9 +152,9 @@ sealed class FList<out A: Any> {
         return go(this, z, f)
     }
 
-    fun copy(): FList<A> = this.foldRight(emptyFList(), { a, b -> FLCons(a,b)})
+    fun copy(): FList<A> = this.foldRight(emptyFList()) { a, b -> FLCons(a, b) }
 
-    fun reverse(): FList<A> = this.foldLeft(emptyFList(), { b, a -> FLCons(a,b)})
+    fun reverse(): FList<A> = this.foldLeft(emptyFList()) { b, a -> FLCons(a, b) }
 
     fun <B: Any> map(f: (A) -> B): FList<B> {
 
@@ -314,9 +310,11 @@ sealed class FList<out A: Any> {
 
             val ll = lhs.len()
             val rl = rhs.len()
-            return if (ll != rl) false
-            else if (0 == ll) true // i.e. they are both empty
-            else go(lhs, rhs, FLNil).foldLeft(true,{ predicate, pair -> predicate && (pair.first == pair.second)})
+            return when {
+                ll != rl -> false
+                0 == ll -> true // i.e. they are both empty
+                else -> go(lhs, rhs, FLNil).foldLeft(true) { predicate, pair -> predicate && (pair.first == pair.second) }
+            }
         }
 
         fun <A: Any> FList<A>.equal(rhs: FList<A>): Boolean = equal2(this, rhs)
@@ -371,23 +369,25 @@ data class FLCons<out A: Any>(
 ) : FList<A>() {
 
     // the data class built-in equals is not stack safe for recursive data structures
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FLCons<*>) {
-            if (this.isEmpty() && other.isEmpty()) true
-            else if (this.isEmpty() || other.isEmpty()) false
-            else (this.head()!!::class == other.head()!!::class) && equal2(this, other)
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FLCons<*> -> when {
+            this.isEmpty() && other.isEmpty() -> true
+            this.isEmpty() || other.isEmpty() -> false
+            this.head()!!::class == other.head()!!::class -> equal2(this, other)
+            else -> false
         }
-        else false
+        else -> false
+    }
 
     // the data class built-in toString is not stack safe
-    override fun toString(): String = (foldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size())
+    override fun toString(): String = (foldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString() + (")".repeat(size()))
 
     // the data class built-in hashCode is not stack safe
     override fun hashCode(): Int {
-        val aux = foldLeft(0L) { code, h -> (h.hashCode() + code * 3L) }
-        return if (Int.MIN_VALUE < aux && aux < Int.MAX_VALUE) aux.toInt()
+        val aux: Long = foldLeft(0L) { code, h -> (h.hashCode() + code * 3L) }
+        return if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else /* may it even theoretically get here? */ TODO("must reduce range of FList.hashcode to Int")
     }
 

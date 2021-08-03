@@ -27,14 +27,13 @@ class FzyFloat(
     override fun isZero() = fFzyIsZero(qty, tol)
     override fun isUnity() = fFzyIsUnity(qty, tol)
     override fun equal(rhs: Fuzzy<Float>): Boolean = fzyEqual(rhs as FzyFloat)
-    private fun equalsImpl(other: Any?): Boolean =
-        when {
-            this === other -> true
-            other == null -> false
-            other is FzyFloat -> fzyEqual(other)
-            other is Float -> fzyEqual(other)
-            else -> false
-        }
+    private fun equalsImpl(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FzyFloat -> fzyEqual(other)
+        other is Float -> fzyEqual(other)
+        else -> false
+    }
 
     companion object {
         fun zero(tol: Float = defaultFloatTol): FzyFloat = FzyFloat(0.0f, tol)

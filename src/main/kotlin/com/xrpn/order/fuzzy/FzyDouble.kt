@@ -27,14 +27,13 @@ class FzyDouble(
     override fun isZero() = dFzyIsZero(qty, tol)
     override fun isUnity() = dFzyIsUnity(qty, tol)
     override fun equal(rhs: Fuzzy<Double>): Boolean = fzyEqual(rhs as FzyDouble)
-    private fun equalsImpl(other: Any?): Boolean =
-        when {
-            this === other -> true
-            other == null -> false
-            other is FzyDouble -> fzyEqual(other)
-            other is Double -> fzyEqual(other)
-            else -> false
-        }
+    private fun equalsImpl(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FzyDouble -> fzyEqual(other)
+        other is Double -> fzyEqual(other)
+        else -> false
+    }
 
     companion object {
         fun zero(tol: Double = defaultDoubleTol): FzyDouble = FzyDouble(0.0, tol)

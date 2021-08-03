@@ -23,8 +23,8 @@ internal object FzyFloatEquality {
         if (fp1 == fp2) return !tol.isNaN() // according to IEEE 754
         if (fp1.isNaN() || fp2.isNaN() || tol.isNaN()) return false
         if (!(fp1.isFinite() && fp2.isFinite() && tol.isFinite())) return false
-        val fp1z = fuzzyFloatIsZero(fp1, floatEps)
-        val fp2z = fuzzyFloatIsZero(fp2, floatEps)
+        val fp1z = fuzzyFloatIsZero(fp1, minPosVal)
+        val fp2z = fuzzyFloatIsZero(fp2, minPosVal)
         if (fp1z && fp2z) return true
         if (fp1z || fp2z) return false
         val afp1 = kotlin.math.abs(fp1)

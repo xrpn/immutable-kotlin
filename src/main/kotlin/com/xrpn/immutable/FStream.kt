@@ -169,12 +169,13 @@ sealed class FStream<out A: Any> {
         unfold(this, {stream -> stream.head()?.let { Pair(f(it), stream.tail()) } })
 
     fun <B: Any> flatMap(f: (A) -> FStream<B>): FStream<B> =
-        foldRight({ emptyFStream() },
-            { item_a, to_sb ->
-              fsCons( { f(item_a).head()!! },
-                  { f(item_a).tail().foldRight( to_sb,
-                                        { item_b, sb ->
-                                          fsCons( { item_b }, sb ) })})})
+        foldRight({ emptyFStream() }) { item_a, to_sb ->
+            fsCons({ f(item_a).head()!! }) {
+                f(item_a).tail().foldRight(to_sb) { item_b, sb ->
+                    fsCons({ item_b }, sb)
+                }
+            }
+        }
 
 //    fun filterX(p: (A) -> Boolean): FStream<A> {
 //

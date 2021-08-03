@@ -1,37 +1,8 @@
 package com.xrpn.immutable
 
-data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
-        Comparable<TKVEntryK<A,B>>,
-        TKVEntry<A,B> {
+// Tree Key-Value entry
 
-    override fun compareTo(other: TKVEntryK<A, B>): Int = k.compareTo(other.k)
-
-    override fun toString(): String = "[ $k:$v ]"
-
-    override fun hashCode(): Int = when {
-        k is Int -> k
-        else -> k.hashCode()
-    }
-
-    private inline fun <reified Self: TKVEntryK<@UnsafeVariance A, @UnsafeVariance B>> equalsImpl(other: Any?): Boolean =
-        when {
-            this === other -> true
-            other == null -> false
-            other is Self -> 0 == other.compareTo(this)
-            else -> false
-        }
-
-    override fun equals(other: Any?): Boolean = equalsImpl<TKVEntryK<A,B>>(other)
-
-
-    override fun getk(): A = k
-    override fun getkc(): Comparable<A> = k
-    override fun getv(): B = v
-    override fun copy(): TKVEntry<A, B> = /* TODO */ this.copy(k=k, v=v)
-
-}
-
-interface TKVEntry<out A: Any, out B: Any> {
+sealed interface TKVEntry<out A: Any, out B: Any> {
     fun getk(): A
     fun getkc(): Comparable<@UnsafeVariance A>
     fun getv(): B
@@ -62,8 +33,10 @@ interface BTreeTraversable<out A: Any, out B: Any> {
     fun breadthFirst(reverse: Boolean = false): FList<TKVEntry<A, B>>
 
     companion object {
+        // content of tree is the same
         fun <A: Any, B: Any> equal(rhs: BTreeTraversable<A, B>, lhs: BTreeTraversable<A, B>): Boolean =
             rhs.inorder() == lhs.inorder()
+        // content and shape of three is the same
         fun <A: Any, B: Any> strongEqual(rhs: BTreeTraversable<A, B>, lhs: BTreeTraversable<A, B>): Boolean =
             rhs.preorder() == lhs.preorder() &&
                 rhs.inorder() == lhs.inorder() &&
@@ -84,4 +57,35 @@ interface BTreeTraversable<out A: Any, out B: Any> {
     fun inorderValueIterator(reverse: Boolean = false): FListIterator<B> = FListIterator(inorderValues(reverse))
     fun postorderValueIterator(reverse: Boolean = false): FListIterator<B> = FListIterator(postorderValues(reverse))
     fun breadthFirstValueIterator(reverse: Boolean = false): FListIterator<B> = FListIterator(breadthFirstValues(reverse))
+}
+
+// Tree Key-Value entry "private" implementation
+
+internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
+    Comparable<TKVEntryK<A,B>>,
+    TKVEntry<A,B> {
+
+    override fun compareTo(other: TKVEntryK<A, B>): Int = k.compareTo(other.k)
+
+    override fun toString(): String = "[ $k:$v ]"
+
+    override fun hashCode(): Int = when {
+        k is Int -> k
+        else -> k.hashCode()
+    }
+
+    private inline fun <reified Self: TKVEntryK<@UnsafeVariance A, @UnsafeVariance B>> equalsImpl(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is Self -> 0 == other.compareTo(this)
+        else -> false
+    }
+
+    override fun equals(other: Any?): Boolean = equalsImpl<TKVEntryK<A,B>>(other)
+
+    override fun getk(): A = k
+    override fun getkc(): Comparable<A> = k
+    override fun getv(): B = v
+    override fun copy(): TKVEntry<A, B> = /* TODO */ this.copy(k=k, v=v)
+
 }

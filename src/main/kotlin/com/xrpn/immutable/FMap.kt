@@ -70,15 +70,17 @@ internal class FMapBody<A: Any, out B: Any> internal constructor (
     val body: FRBTree<A, B>
 ): FMap<A, B>() {
 
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FMapBody<*, *>) {
-            if (this.isEmpty() && other.body.isEmpty()) true
-            else if (this.body.isEmpty() || other.body.isEmpty()) false
-            else (this.body.root()!!::class == other.body.root()!!::class) &&
-                equal(this.body, other.body)
-        } else false
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FMapBody<*, *> -> when {
+            this.isEmpty() && other.body.isEmpty() -> true
+            this.body.isEmpty() || other.body.isEmpty() -> false
+            this.body.root()!!::class == other.body.root()!!::class -> equal(this.body, other.body)
+            else -> false
+        }
+        else -> false
+    }
 
     override fun hashCode(): Int = TODO("forbidden")
 
