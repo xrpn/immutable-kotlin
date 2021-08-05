@@ -30,6 +30,23 @@ val hdThree: () -> Int = { 3 }
 val tailStr: () -> FStream<String> = { emptyFStream() }
 val hdB: () -> String = { "b" }
 
+private val intListOfNone = FList.of(*arrayOf<Int>())
+private val intListOfOneA = FList.of(*arrayOf<Int>(0))
+private val intListOfOne = FList.of(*arrayOf<Int>(1))
+private val intListOfOneB = FList.of(*arrayOf<Int>(2))
+private val intListOfOneC = FList.of(*arrayOf<Int>(3))
+private val intListOfOneD = FList.of(*arrayOf<Int>(4))
+private val intListOfTwoA = FList.of(*arrayOf<Int>(1,3))
+private val intListOfTwo = FList.of(*arrayOf<Int>(1,2))
+private val intListOfTwoB = FList.of(*arrayOf<Int>(0,2))
+private val intListOfTwoC = FList.of(*arrayOf<Int>(1,4))
+private val intListOfThree = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFive = FList.of(*arrayOf<Int>(1,2,3,2,1))
+private val intListOfSix = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val strListOfNone = FList.of(*arrayOf<String>())
+private val strListOfOne = FList.of(*arrayOf<String>("a"))
+private val strListOfTwo = FList.of(*arrayOf<String>("a","b"))
+private val strListOfThree = FList.of(*arrayOf<String>("a","b","c"))
 
 class FStreamTest : FunSpec({
 
@@ -350,10 +367,11 @@ class FStreamTest : FunSpec({
   }
 
   test("co.of FListIterator") {
-    FStream.of(FList.of(arrayOf<Int>().iterator()).iterator()) shouldBe FSNil
-    FStream.of(FList.of(arrayOf<Int>(1).iterator()).iterator()).toFList() shouldBe FLCons(1,FLNil)
-    FStream.of(FList.of(arrayOf<Int>(1,2).iterator()).iterator()).toFList() shouldBe FLCons(1,FLCons(2,FLNil))
-    FStream.of(FList.of(arrayOf<Int>(1,2,3).iterator()).iterator()).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
+      TODO()
+//    FStream.of(FList.of(arrayOf<Int>().iterator()).iterator()) shouldBe FSNil
+//    FStream.of(FList.of(arrayOf<Int>(1).iterator()).iterator()).toFList() shouldBe FLCons(1,FLNil)
+//    FStream.of(FList.of(arrayOf<Int>(1,2).iterator()).iterator()).toFList() shouldBe FLCons(1,FLCons(2,FLNil))
+//    FStream.of(FList.of(arrayOf<Int>(1,2,3).iterator()).iterator()).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
   }
 
   test("co.prepend") {

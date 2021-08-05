@@ -1,9 +1,11 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.BTreeTraversable.Companion.equal
+import com.xrpn.imapi.BTree
+import com.xrpn.imapi.BTreeTraversable
+import com.xrpn.imapi.BTreeTraversable.Companion.equal
 import java.lang.IllegalStateException
 
-sealed class FBSTree<out A: Any, out B: Any>: BTree<A,B>, BTreeTraversable<A, B> {
+sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B> {
 
     /*
         A Binary search tree allows duplicates, but may become pathologically unbalanced.  In the latter case,
@@ -220,26 +222,26 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A,B>, BTreeTraversable<A, B>
 //    fun <A, B> fold(ta: FBTree<A, B>, l: (A) -> B, b: (B, B) -> B): B = TODO()
 
     fun <C: Any> mapi(f: (B) -> C): FBSTree<Int, C> =
-        this.preorder(reverse = true).foldLeft(nul(),
+        this.preorder(reverse = true).ffoldLeft(nul(),
             { t: FBSTree<Int, C>, e: TKVEntry<A, B> ->
               mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())))(t, e)
             }
         )
 
     fun <C: Any> maps(f: (B) -> C): FBSTree<String, C> =
-        this.preorder(reverse = true).foldLeft(nul(),
+        this.preorder(reverse = true).ffoldLeft(nul(),
             { t: FBSTree<String, C>, e: TKVEntry<A, B> ->
                 mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())))(t, e)
             }
         )
 
-    fun <C: Any> mapiDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<Int, C>) = { f ->  this.preorder(reverse = true).foldLeft(nul(),
+    fun <C: Any> mapiDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<Int, C>) = { f ->  this.preorder(reverse = true).ffoldLeft(nul(),
         { t: FBSTree<Int, C>, e: TKVEntry<A, B> ->
             mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())), allowDups)(t, e)
         }
     )}
 
-    fun <C: Any> mapsDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<String, C>) = { f ->  this.preorder(reverse = true).foldLeft(nul(),
+    fun <C: Any> mapsDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<String, C>) = { f ->  this.preorder(reverse = true).ffoldLeft(nul(),
         { t: FBSTree<String, C>, e: TKVEntry<A, B> ->
             mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())), allowDups)(t, e)
         }
@@ -424,12 +426,12 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A,B>, BTreeTraversable<A, B>
             trace: FList<Trace<A, B>>,
             op: (FBSTNode<A, B>, Trace<A, B>) -> FBSTNode<A, B>): FBSTree<A, B> =
             when (cur) {
-                is FBSTNil -> trace.foldLeft(item, op)
+                is FBSTNil -> trace.ffoldLeft(item, op)
                 is FBSTNode -> {
                     val pos = fitKey(item.entry.getk(), cur)
                     val dup = cur.entry == item.entry
                     when (cur.branch(pos)) {
-                        is FBSTNil -> FLCons(Trace(cur, pos, dup), trace).foldLeft(item, op)
+                        is FBSTNil -> FLCons(Trace(cur, pos, dup), trace).ffoldLeft(item, op)
                         is FBSTNode -> reassemble(item, cur.branch(pos), FLCons(Trace(cur, pos, dup), trace), op)
                     }
                 }
@@ -501,7 +503,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A,B>, BTreeTraversable<A, B>
 
             tailrec fun splice(item: TKVEntry<A, B>, current: FBSTree<A, B>, trace: FList<Trace<A, B>>): FBSTree<A, B> =
                 when (current) {
-                    is FBSTNil -> trace.foldLeft(FBSTNode(item), ::enrichNode)
+                    is FBSTNil -> trace.ffoldLeft(FBSTNode(item), ::enrichNode)
                     is FBSTNode -> {
                         when (val last = findLast(current, item)) {
                             is FBSTNode -> {
@@ -567,13 +569,13 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A,B>, BTreeTraversable<A, B>
         }
 
         fun <A: Comparable<A>, B: Any> of(fl: FList<TKVEntry<A, B>>, allowDups: Boolean = false): FBSTree<A, B> =
-            fl.foldLeft(nul(), appender(allowDups))
+            fl.ffoldLeft(nul(), appender(allowDups))
 
         fun <A: Comparable<A>, B: Any> of(fl: Iterator<TKVEntry<A, B>>, allowDups: Boolean = false): FBSTree<A, B> =
-            FList.of(fl).foldLeft(nul(), appender(allowDups))
+            FList.of(fl).ffoldLeft(nul(), appender(allowDups))
 
         fun <A: Comparable<A>, B: Any> ofValues(fl: Iterator<B>, allowDups: Boolean = false): FBSTree<Int, B> =
-            FList.of(fl).map{TKVEntry.ofIntKey(it)}.foldLeft(nul(), appender(allowDups))
+            FList.of(fl).fmap{TKVEntry.ofIntKey(it)}.ffoldLeft(nul(), appender(allowDups))
     }
 }
 

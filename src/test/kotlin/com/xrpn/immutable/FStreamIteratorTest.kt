@@ -6,11 +6,7 @@ import io.kotest.matchers.shouldBe
 
 class FStreamIteratorTest : FunSpec({
 
-    beforeTest {
-    }
-
-//  afterTest { (testCase, result) ->
-//  }
+    beforeTest {}
 
     test("hasNext") {
         FStreamIterator(FSNil).hasNext() shouldBe false

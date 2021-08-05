@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.BTreeTraversable
 import com.xrpn.immutable.FRBTree.Companion.insertIntKey
 
 sealed class FSet<out A: Any> {
@@ -8,7 +9,7 @@ sealed class FSet<out A: Any> {
     fun size(): Int = (this as FSetBody).body.size()
     fun enumerate(): FList<A> = when {
         isEmpty() -> FLNil
-        else -> (this as FSetBody).body.preorder(reverse = true).map { it.getv() }
+        else -> (this as FSetBody).body.preorder(reverse = true).fmap { it.getv() }
     }
 
     companion object {
@@ -32,7 +33,7 @@ sealed class FSet<out A: Any> {
 //        fun <A: Any> add(dest: FSet<A>, item: A): FSet<A> = TODO()
 //        fun <A: Any> remove(dest: FSet<A>, item: A): FSet<A> = TODO()
 //
-        fun <A: Any> of(fl: FList<A>): FSet<A> = FSetBody(fl.foldLeft(FRBTree.nul(), ::insertIntKey))
+        fun <A: Any> of(fl: FList<A>): FSet<A> = FSetBody(fl.ffoldLeft(FRBTree.nul(), ::insertIntKey))
         fun <A: Any> of(iter: Iterator<A>): FSet<A> = of(FList.of(iter))
 
     }

@@ -1,6 +1,6 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.BTreeTraversable.Companion.equal
+import com.xrpn.imapi.BTreeTraversable.Companion.equal
 import com.xrpn.immutable.FRBTree.Companion.findKey
 import com.xrpn.immutable.FRBTree.Companion.insert
 import com.xrpn.immutable.FRBTree.Companion.inserts
@@ -13,14 +13,14 @@ sealed class FMap<out A: Any, out B: Any> {
         isEmpty() -> FSet.emptyFSet()
         else -> {
             this as FMapBody
-            FSet.of(this.body.preorder(reverse = true).map { it.getk() })
+            FSet.of(this.body.preorder(reverse = true).fmap { it.getk() })
         }
     }
     fun values(): FList<B> = when {
         isEmpty() -> FLNil
         else -> {
             this as FMapBody
-            this.body.preorder(reverse = true).map { it.getv() }
+            this.body.preorder(reverse = true).fmap { it.getv() }
         }
     }
     fun entries(): FList<TKVEntry<A,B>> = when {
@@ -56,7 +56,7 @@ sealed class FMap<out A: Any, out B: Any> {
 
         fun<A: Comparable<A>, B: Any> FMap<A,B>.add(p: Pair<A, B>): FMap<A,B> = FMapBody(insert((this as FMapBody).body, TKVEntry.of(p)))
 
-        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(ps: FList<Pair<A, B>>): FMap<A,B> = FMapBody(inserts((this as FMapBody).body, ps.map { TKVEntry.of(it) }))
+        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(ps: FList<Pair<A, B>>): FMap<A,B> = FMapBody(inserts((this as FMapBody).body, ps.fmap { TKVEntry.of(it) }))
 
         fun <A: Comparable<A>, B: Any> of(_body: FList<TKVEntry<A,B>>): FMap<A, B> =
             if (_body is FLNil) FMapBody.empty else FMapBody(FRBTree.of(_body))

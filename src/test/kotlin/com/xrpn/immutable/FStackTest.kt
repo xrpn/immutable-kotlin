@@ -9,9 +9,6 @@ class FStackTest : FunSpec({
     beforeTest {
     }
 
-//    afterTest { (testCase, result) ->
-//    }
-
     test("isEmpty") {
         FStack.emptyFStack<Int>().isEmpty() shouldBe true
         FStackBody.of(FLCons("a", FLNil)).isEmpty() shouldBe false

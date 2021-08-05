@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FList.Companion.emptyFList
 import com.xrpn.immutable.FStack.Companion.emptyFStack
 import com.xrpn.immutable.FStack.Companion.push
@@ -169,13 +170,12 @@ sealed class FStream<out A: Any> {
         unfold(this, {stream -> stream.head()?.let { Pair(f(it), stream.tail()) } })
 
     fun <B: Any> flatMap(f: (A) -> FStream<B>): FStream<B> =
-        foldRight({ emptyFStream() }) { item_a, to_sb ->
-            fsCons({ f(item_a).head()!! }) {
-                f(item_a).tail().foldRight(to_sb) { item_b, sb ->
-                    fsCons({ item_b }, sb)
-                }
-            }
-        }
+        foldRight({ emptyFStream() },
+            { item_a, to_sb ->
+              fsCons( { f(item_a).head()!! },
+                  { f(item_a).tail().foldRight( to_sb,
+                                        { item_b, sb ->
+                                          fsCons( { item_b }, sb ) })})})
 
 //    fun filterX(p: (A) -> Boolean): FStream<A> {
 //
@@ -282,7 +282,11 @@ sealed class FStream<out A: Any> {
             if (xs.isEmpty()) emptyFStream()
             else fsCons({ xs[0] }, { of(*xs.sliceArray(1 until xs.size)) })
 
-        fun <A: Any> of(xs: FListIterator<A>): FStream<A> =
+        fun <A: Any> of(xs: Iterator<A>): FStream<A> =
+            if (!xs.hasNext()) emptyFStream()
+            else fsCons({ xs.next() }, { of(xs) })
+
+        fun <A: Any> of(xs: FListIteratorFwd<A>): FStream<A> =
             xs.nullableNext()?.let{fsCons({ it }, { of( xs )}) } ?: emptyFStream()
 
         @ExperimentalStdlibApi

@@ -24,14 +24,7 @@ private const val verbose = false
 
 class FBHeapTest : FunSpec({
 
-    beforeTest {
-    }
-
-    test("sanity") {
-    }
-
-//    afterTest { (testCase, result) ->
-//    }
+    beforeTest {}
 
     test("root") {
         FBHMinNil.top() shouldBe null
@@ -450,36 +443,36 @@ class FBHeapTest : FunSpec({
     test("co.enumerate wikiMinHeap") {
         val wikiMinHeap = minHeapOf(wikiPreorder)
         heapSane(wikiMinHeap) shouldBe true
-        val ary = toArray(enumerate(wikiMinHeap).map { it.getk() })
+        val ary = toArray(enumerate(wikiMinHeap).fmap { it.getk() })
         ary.sort()
-        val ora = toArray(wikiInorder.map { it.getk() })
+        val ora = toArray(wikiInorder.fmap { it.getk() })
         ary shouldBe ora
     }
 
     test("co.enumerate wikiMaxHeap") {
         val wikiMaxHeap = maxHeapOf(frbWikiBreadthFirst)
         heapSane(wikiMaxHeap) shouldBe true
-        val ary = toArray(enumerate(wikiMaxHeap).map { it.getk() })
+        val ary = toArray(enumerate(wikiMaxHeap).fmap { it.getk() })
         ary.sort()
-        val ora = toArray(wikiInorder.map { it.getk() })
+        val ora = toArray(wikiInorder.fmap { it.getk() })
         ary shouldBe ora
     }
 
     test("co.enumerate ssMinHeap") {
         val ssMinHeap = minHeapOf(slideSharePreorder)
         heapSane(ssMinHeap) shouldBe true
-        val ary = toArray(enumerate(ssMinHeap).map { it.getk() })
+        val ary = toArray(enumerate(ssMinHeap).fmap { it.getk() })
         ary.sort()
-        val ora = toArray(slideShareInorder.map { it.getk() })
+        val ora = toArray(slideShareInorder.fmap { it.getk() })
         ary shouldBe ora
     }
 
     test("co.enumerate ssMaxHeap") {
         val ssMaxHeap = maxHeapOf(frbSlideShareBreadthFirst)
         heapSane(ssMaxHeap) shouldBe true
-        val ary = toArray(enumerate(ssMaxHeap).map { it.getk() })
+        val ary = toArray(enumerate(ssMaxHeap).fmap { it.getk() })
         ary.sort()
-        val ora = toArray(slideShareInorder.map { it.getk() })
+        val ora = toArray(slideShareInorder.fmap { it.getk() })
         ary shouldBe ora
     }
 
@@ -492,7 +485,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -504,7 +497,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -520,7 +513,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val aut = toArray(enumerate(heapo).map{ it.getk() })
+            val aut = toArray(enumerate(heapo).fmap{ it.getk() })
             aut.sort()
             aut shouldBe oracle
             var heapi: FBHeap<Int, Int> =
@@ -532,7 +525,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -547,7 +540,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -559,7 +552,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -575,7 +568,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val aut = toArray(enumerate(heapo).map{ it.getk() })
+            val aut = toArray(enumerate(heapo).fmap{ it.getk() })
             aut.sort()
             aut shouldBe oracle
             var heapi: FBHeap<Int, Int> =
@@ -587,7 +580,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -601,7 +594,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -613,7 +606,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -628,7 +621,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val aut = toArray(enumerate(heapo).map{ it.getk() })
+            val aut = toArray(enumerate(heapo).fmap{ it.getk() })
             aut.sort()
             aut shouldBe oracle
             var heapi: FBHeap<Int, Int> =
@@ -640,7 +633,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -658,7 +651,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -670,7 +663,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -688,7 +681,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -700,7 +693,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }
@@ -717,7 +710,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapo, n)
             heapSane(heapo) shouldBe true
             heapo.size() shouldBe n
-            val auto = toArray(enumerate(heapo).map{ it.getk() })
+            val auto = toArray(enumerate(heapo).fmap{ it.getk() })
             auto.sort()
             auto shouldBe oracle
 
@@ -729,7 +722,7 @@ class FBHeapTest : FunSpec({
             displayHeapOnVerbose(heapi, n)
             heapSane(heapi) shouldBe true
             heapi.size() shouldBe n
-            val auti = toArray(enumerate(heapi).map{ it.getk() })
+            val auti = toArray(enumerate(heapi).fmap{ it.getk() })
             auti.sort()
             auti shouldBe oracle
         }

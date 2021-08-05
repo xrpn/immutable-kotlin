@@ -25,14 +25,11 @@ class FBSTreeTest : FunSpec({
     beforeTest {
     }
 
-//    afterTest { (testCase, result) ->
-//    }
-
     test("root") {
         FBSTNil.root() shouldBe null
         for (size in IntRange(1, 20)) {
             val ary: IntArray = IntArray(size) {nextInt()}
-            FBSTree.of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).root() shouldBe TKVEntry.ofIntKey(ary[0])
+            FBSTree.of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).root() shouldBe TKVEntry.ofIntKey(ary[0])
         }
     }
 
@@ -49,8 +46,8 @@ class FBSTreeTest : FunSpec({
             val ary: IntArray = IntArray(size) {nextInt()}
             val max = ary.maxOrNull()!!
             val min = ary.minOrNull()!!
-            FBSTree.of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).leftMost() shouldBe TKVEntry.ofIntKey(min)
-            FBSTree.of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).rightMost() shouldBe TKVEntry.ofIntKey(max)
+            FBSTree.of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).leftMost() shouldBe TKVEntry.ofIntKey(min)
+            FBSTree.of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).rightMost() shouldBe TKVEntry.ofIntKey(max)
         }
     }
 
@@ -316,16 +313,16 @@ class FBSTreeTest : FunSpec({
     test("map") {
         FBSTNil.mapi { 2 } shouldBe FBSTNil
 
-        depthOneRight.mapi { s -> "z$s" }.inorder() shouldBe depthOneRight.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        depthOneRight.maps { s -> "z$s" }.inorder() shouldBe depthOneRight.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        depthOneLeft.mapi { s -> "z$s" }.inorder() shouldBe depthOneLeft.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        depthOneLeft.maps { s -> "z$s" }.inorder() shouldBe depthOneLeft.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        depthOneFull.mapi { s -> "z$s" }.inorder() shouldBe depthOneFull.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        depthOneFull.maps { s -> "z$s" }.inorder() shouldBe depthOneFull.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        wikiTree.mapi { s -> "z$s" }.inorder() shouldBe wikiTree.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        wikiTree.maps { s -> "z$s" }.inorder() shouldBe wikiTree.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        slideShareTree.mapi { s -> "z$s" }.inorder() shouldBe slideShareTree.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        slideShareTree.maps { s -> "z$s" }.inorder() shouldBe slideShareTree.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
+        depthOneRight.mapi { s -> "z$s" }.inorder() shouldBe depthOneRight.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        depthOneRight.maps { s -> "z$s" }.inorder() shouldBe depthOneRight.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        depthOneLeft.mapi { s -> "z$s" }.inorder() shouldBe depthOneLeft.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        depthOneLeft.maps { s -> "z$s" }.inorder() shouldBe depthOneLeft.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        depthOneFull.mapi { s -> "z$s" }.inorder() shouldBe depthOneFull.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        depthOneFull.maps { s -> "z$s" }.inorder() shouldBe depthOneFull.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        wikiTree.mapi { s -> "z$s" }.inorder() shouldBe wikiTree.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        wikiTree.maps { s -> "z$s" }.inorder() shouldBe wikiTree.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        slideShareTree.mapi { s -> "z$s" }.inorder() shouldBe slideShareTree.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        slideShareTree.maps { s -> "z$s" }.inorder() shouldBe slideShareTree.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
     }
 
     //
@@ -885,7 +882,7 @@ class FBSTreeTest : FunSpec({
             bst.size() shouldBe n
             val aut = bst.inorder()
             values.sort()
-            val testOracle = FList.of(values.iterator()).map { TKVEntry.ofIntKey(it) }
+            val testOracle = FList.of(values.iterator()).fmap { TKVEntry.ofIntKey(it) }
             aut shouldBe testOracle
         }
     }
@@ -900,7 +897,7 @@ class FBSTreeTest : FunSpec({
             println          (", min depth "+bst.minDepth())
             val aut = bst.inorder()
             values.sort()
-            val testOracle = FList.of(values.iterator()).map { TKVEntry.ofIntKey(it) }
+            val testOracle = FList.of(values.iterator()).fmap { TKVEntry.ofIntKey(it) }
             aut shouldBe testOracle
         }
     }
@@ -938,7 +935,7 @@ class FBSTreeTest : FunSpec({
                 is FLCons -> {
                     when (val deleted = delete(t, acc.head)) {
                         is FBSTNode -> {
-                            deleted.inorder() shouldBe inorder.filterNot { it == acc.head }
+                            deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
                         }
                         is FBSTNil -> true shouldBe false
                     }
@@ -951,7 +948,7 @@ class FBSTreeTest : FunSpec({
                 is FLNil -> FLNil
                 is FLCons -> {
                     val deleted = delete(t, acc.head)
-                    val oracle = inorder.filterNot { it == acc.head }
+                    val oracle = inorder.ffilterNot { it == acc.head }
                     when (deleted) {
                         is FBSTNode -> {
                             deleted.inorder() shouldBe oracle
@@ -1001,7 +998,7 @@ class FBSTreeTest : FunSpec({
                 is FLNil -> FLNil
                 is FLCons -> {
                     when (val deleted = delete(t, acc.head)) {
-                        is FBSTNode -> deleted.inorder() shouldBe inorder.filterNot { it == acc.head }
+                        is FBSTNode -> deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
                         is FBSTNil -> true shouldBe false
                     }
                     go(t, acc.tail, inorder)
@@ -1034,7 +1031,7 @@ class FBSTreeTest : FunSpec({
                 is FLNil -> FLNil
                 is FLCons -> {
                     when (val deleted = delete(t, acc.head, onlyOneIfDuplicate = true)) {
-                        is FBSTNode -> deleted.inorder() shouldBe inorder.dropFirst { it == acc.head }
+                        is FBSTNode -> deleted.inorder() shouldBe inorder.fdropFirst { it == acc.head }
                         is FBSTNil -> true shouldBe false
                     }
                     go(t, acc.tail, inorder)

@@ -6,7 +6,7 @@ sealed class FQueue<out A: Any> {
 
     fun isEmpty(): Boolean = this === FQueueBody.EMPTY
 
-    fun len(): Int = if (this.isEmpty()) 0 else (this.getFront().size() + this.getBack().size())
+    fun len(): Int = if (this.isEmpty()) 0 else (this.getFront().size + this.getBack().size)
 
     fun size(): Int = this.len()
 
@@ -79,7 +79,7 @@ sealed class FQueue<out A: Any> {
                     is FLCons -> this.front.head
                     is FLNil -> when (this.back) {
                         is FLNil -> null
-                        is FLCons -> this.back.last()
+                        is FLCons -> this.back.flast()
                     }
                 }
             }
@@ -204,15 +204,17 @@ internal class FQueueBody<out A: Any> private constructor(
     val front: FList<A>, // the ordering is so, that "head" is the next item to be dequeued -- First Out
     val back: FList<A>   // the ordering is so, that "head" is the last one enqueued -- Last In
 ) : FQueue<A>() {
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FQueueBody<*>) {
-            if (this.isEmpty() && other.isEmpty()) true
-            else if (this.isEmpty() || other.isEmpty()) false
-            else (this.peek()!!::class == other.peek()!!::class) && equal2(this, other)
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FQueueBody<*> -> when {
+            this.isEmpty() && other.isEmpty() -> true
+            this.isEmpty() || other.isEmpty() -> false
+            this.peek()!!::class == other.peek()!!::class -> equal2(this, other)
+            else -> false
         }
-        else false
+        else -> false
+    }
 
     override fun hashCode(): Int {
         var result = front.hashCode()

@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.BTreeTraversable
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
 import com.xrpn.immutable.FRBTree.Companion.find
@@ -60,7 +61,7 @@ class FRBTreeTest : FunSpec({
     test("root") {
         FRBTNil.root() shouldBe null
         val ary = IntArray(1) { nextInt() }
-        of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).root() shouldBe TKVEntry.ofIntKey(ary[0])
+        of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).root() shouldBe TKVEntry.ofIntKey(ary[0])
         val itemAry = Array(1) { TKVEntry.ofIntKey(nextInt()) }
         of(itemAry.iterator()).root() shouldBe itemAry[0]
     }
@@ -78,8 +79,8 @@ class FRBTreeTest : FunSpec({
             val ary = IntArray(size) { nextInt() }
             val max = ary.maxOrNull()!!
             val min = ary.minOrNull()!!
-            of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).leftMost() shouldBe TKVEntry.ofIntKey(min)
-            of(FList.of(ary.iterator()).map { TKVEntry.ofIntKey(it) }).rightMost() shouldBe TKVEntry.ofIntKey(max)
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).leftMost() shouldBe TKVEntry.ofIntKey(min)
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).rightMost() shouldBe TKVEntry.ofIntKey(max)
         }
     }
 
@@ -267,17 +268,17 @@ class FRBTreeTest : FunSpec({
     test("map") {
         FRBTNil.mapi { 2 } shouldBe FRBTNil
 
-        frbDepthOneLeft.mapi { s -> "z$s" }.inorder() shouldBe frbDepthOneLeft.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        frbDepthOneLeft.maps { s -> "z$s" }.inorder() shouldBe frbDepthOneLeft.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
+        frbDepthOneLeft.mapi { s -> "z$s" }.inorder() shouldBe frbDepthOneLeft.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        frbDepthOneLeft.maps { s -> "z$s" }.inorder() shouldBe frbDepthOneLeft.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
         FRBTree.map(frbDepthOneLeft, {it + 2}, { "F$it"} ) shouldBe FRBTNode(TKVEntry.of(mEntry.getk() + 2, "F${mEntry.getv()}"), FRBTree.BLACK,
                                                                         FRBTNode(TKVEntry.of(lEntry.getk() + 2, "F${lEntry.getv()}")),
                                                                         FRBTNil)
-        frbDepthOneFull.mapi { s -> "z$s" }.inorder() shouldBe frbDepthOneFull.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        frbDepthOneFull.maps { s -> "z$s" }.inorder() shouldBe frbDepthOneFull.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        frbWikiTree.mapi { s -> "z$s" }.inorder() shouldBe frbWikiTree.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        frbWikiTree.maps { s -> "z$s" }.inorder() shouldBe frbWikiTree.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
-        frbSlideShareTree.mapi { s -> "z$s" }.inorder() shouldBe frbSlideShareTree.inorder().map { TKVEntry.ofIntKey("z${it.getv()}") }
-        frbSlideShareTree.maps { s -> "z$s" }.inorder() shouldBe frbSlideShareTree.inorder().map { TKVEntry.ofStrKey("z${it.getv()}") }
+        frbDepthOneFull.mapi { s -> "z$s" }.inorder() shouldBe frbDepthOneFull.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        frbDepthOneFull.maps { s -> "z$s" }.inorder() shouldBe frbDepthOneFull.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        frbWikiTree.mapi { s -> "z$s" }.inorder() shouldBe frbWikiTree.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        frbWikiTree.maps { s -> "z$s" }.inorder() shouldBe frbWikiTree.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
+        frbSlideShareTree.mapi { s -> "z$s" }.inorder() shouldBe frbSlideShareTree.inorder().fmap { TKVEntry.ofIntKey("z${it.getv()}") }
+        frbSlideShareTree.maps { s -> "z$s" }.inorder() shouldBe frbSlideShareTree.inorder().fmap { TKVEntry.ofStrKey("z${it.getv()}") }
     }
 
     //
@@ -667,7 +668,7 @@ class FRBTreeTest : FunSpec({
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
-                            val oracle = inorder.filterNot { it == acc.head }
+                            val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
                             BTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
                         }
@@ -689,7 +690,7 @@ class FRBTreeTest : FunSpec({
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
-                            val oracle = inorder.filterNot { it == acc.head }
+                            val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
                             BTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
                         }
@@ -707,7 +708,7 @@ class FRBTreeTest : FunSpec({
                 is FLCons -> {
                     rbDeleted.rbDelete(acc.head)
                     val deleted = delete(t, acc.head)
-                    val oracle = inorder.filterNot { it == acc.head }
+                    val oracle = inorder.ffilterNot { it == acc.head }
                     when (deleted) {
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
@@ -787,7 +788,7 @@ class FRBTreeTest : FunSpec({
             aut.size() shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
-                .filterNot { it == TKVEntry.ofIntKey(ix1) }
+                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
             aut.inorder() shouldBe testOracle
         }
     }
@@ -803,7 +804,7 @@ class FRBTreeTest : FunSpec({
             aut.size() shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
-                .filterNot { it == TKVEntry.ofIntKey(ix1) }
+                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
             aut.inorder() shouldBe testOracle
         }
     }
@@ -825,9 +826,9 @@ class FRBTreeTest : FunSpec({
             aut.size() shouldBe n - 3
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
-                .filterNot { it == TKVEntry.ofIntKey(ix1) }
-                .filterNot { it == TKVEntry.ofIntKey(ix2) }
-                .filterNot { it == TKVEntry.ofIntKey(ix3) }
+                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
+                .ffilterNot { it == TKVEntry.ofIntKey(ix2) }
+                .ffilterNot { it == TKVEntry.ofIntKey(ix3) }
             aut.inorder() shouldBe testOracle
         }
     }

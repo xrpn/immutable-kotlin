@@ -10,11 +10,7 @@ private const val verbose = false
 
 class RBTreeTest : FunSpec({
 
-    beforeTest {
-    }
-
-//    afterTest { (testCase, result) ->
-//    }
+    beforeTest {}
 
     test("co.insert items sorted asc") {
         var rbt = RBTree<Int, Int>()

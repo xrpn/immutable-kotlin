@@ -1,5 +1,7 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.BTree
+import com.xrpn.imapi.BTreeTraversable
 import kotlin.math.log2
 
 sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B> {
@@ -159,7 +161,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
     }
 
     fun <C: Any> mapi(f: (B) -> C): FRBTree<Int, C> =
-        this.preorder(reverse = true).foldLeft(
+        this.preorder(reverse = true).ffoldLeft(
             nul(),
             { t: FRBTree<Int, C>, e: TKVEntry<A, B> ->
                 mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())))(t, e)
@@ -167,7 +169,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
         )
 
     fun <C: Any> maps(f: (B) -> C): FRBTree<String, C> =
-        this.preorder(reverse = true).foldLeft(
+        this.preorder(reverse = true).ffoldLeft(
             nul(),
             { t: FRBTree<String, C>, e: TKVEntry<A, B> ->
                 mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())))(t, e)
@@ -579,20 +581,20 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
             { treeStub: FRBTree<C, D>, item: TKVEntry<A, B> -> insert(treeStub, TKVEntryK(kf(item.getk()), vf(item.getv()))) }
 
         fun <A: Comparable<A>, B: Any, C: Comparable<C>, D: Any> map(tree: FRBTree<A, B>, fk: (A) -> (C), fv: (B) -> D): FRBTree<C, D> =
-            tree.preorder(reverse = true).foldLeft(nul(), mapKvAppender(fk, fv))
+            tree.preorder(reverse = true).ffoldLeft(nul(), mapKvAppender(fk, fv))
 
         private fun <A: Any, B: Any, C: Comparable<C>, D: Any> mapAppender(
             mappedItem: TKVEntry<C, D>): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D> =
             { treeStub: FRBTree<C, D>, _: TKVEntry<A, B> -> insert(treeStub, mappedItem) }
 
         fun <A: Comparable<A>, B: Any> of(fl: FList<TKVEntry<A,B>>): FRBTree<A,B> =
-            fl.foldLeft(nul(), ::insert)
+            fl.ffoldLeft(nul(), ::insert)
 
         fun <A: Comparable<A>, B: Any> of(iter: Iterator<TKVEntry<A,B>>): FRBTree<A, B> =
-            FList.of(iter).foldLeft(nul(), ::insert)
+            FList.of(iter).ffoldLeft(nul(), ::insert)
 
         fun <A: Comparable<A>, B: Any> ofValues(iter: Iterator<B>): FRBTree<Int, B> =
-            FList.of(iter).map{TKVEntry.ofIntKey(it)}.foldLeft(nul(), ::insert)
+            FList.of(iter).fmap{TKVEntry.ofIntKey(it)}.ffoldLeft(nul(), ::insert)
 
     }
 }
@@ -618,21 +620,22 @@ internal data class FRBTNode<A: Any, B: Any>(
         return if (leaf()) "($entry@$col)" else "($entry@$col, <$bLeft, >$bRight)"
     }
 
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FRBTNode<*,*>)
-            this.color == other.color &&
-            this.entry::class == other.entry::class &&
-            BTreeTraversable.equal(this, other)
-        else false
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FRBTNode<*, *> -> when {
+            this.color == other.color && this.entry::class == other.entry::class ->                 BTreeTraversable.equal(this, other)
+            else -> false
+        }
+        else -> false
+    }
 
     override fun hashCode(): Int {
         var aux: Long = entry.hashCode().toLong()
         aux = 3L * aux + color.hashCode()
         aux = 3L * aux + bLeft.preorder().hashCode()
         aux = 3L * aux + bRight.preorder().hashCode()
-        return if (Int.MIN_VALUE < aux && aux < Int.MAX_VALUE) aux.toInt()
+        return if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else /* may it even theoretically get here? */ TODO("must reduce range of FRBTNode.hashcode to Int")
     }
 

@@ -9,9 +9,6 @@ class FQueueTest : FunSpec({
   beforeTest {
   }
 
-//  afterTest { (testCase, result) ->
-//  }
-
   test("nullableDequeue (concise)") {
     FQueue.emptyFQueue<Int>().nullableDequeue() shouldBe Pair(null, FQueue.emptyFQueue<Int>())
   }
@@ -112,13 +109,13 @@ class FQueueTest : FunSpec({
   }
 
   test("asList") {
-    FQueue.emptyFQueue<Int>().asList().head() shouldBe null
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).asList().head() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).asList().head() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).asList().tail().head() shouldBe 2
-    FQueue.of(*arrayOf<Int>(1)).asList().head() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2)).asList().head() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2)).asList().tail().head() shouldBe 2
+    FQueue.emptyFQueue<Int>().asList().fhead() shouldBe null
+    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).asList().fhead() shouldBe 1
+    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).asList().fhead() shouldBe 1
+    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).asList().ftail().fhead() shouldBe 2
+    FQueue.of(*arrayOf<Int>(1)).asList().fhead() shouldBe 1
+    FQueue.of(*arrayOf<Int>(1, 2)).asList().fhead() shouldBe 1
+    FQueue.of(*arrayOf<Int>(1, 2)).asList().ftail().fhead() shouldBe 2
   }
 
   //

@@ -4,7 +4,7 @@ sealed class FStack<out A: Any> {
 
     fun nullableTop(): A? = when (this.isEmpty()) {
         true -> null
-        false -> (this as FStackBody).body.head()
+        false -> (this as FStackBody).body.fhead()
     }
 
     fun top(): A = when (this.isEmpty()) {
@@ -22,7 +22,7 @@ sealed class FStack<out A: Any> {
         true -> Pair(null, this)
         false -> {
             this as FStackBody
-            Pair(body.head(), FStackBody.of(body.tail()))
+            Pair(body.fhead(), FStackBody.of(body.ftail()))
         }
     }
 
@@ -30,13 +30,13 @@ sealed class FStack<out A: Any> {
         true -> throw IllegalStateException("pop from empty stack")
         false ->{
             (this as FStackBody).body as FLCons
-            Pair(body.head()!!, FStackBody.of(body.tail()))
+            Pair(body.fhead()!!, FStackBody.of(body.ftail()))
         }
     }
 
     fun isEmpty(): Boolean = this === FStackBody.EMPTY
 
-    fun depth(): Int = if (this.isEmpty()) 0 else (this as FStackBody).body.size()
+    fun depth(): Int = if (this.isEmpty()) 0 else (this as FStackBody).body.size
 
     // the head of the list is the first item out (i.e. the top of the stack)
     fun asFList(): FList<A> = (this as FStackBody).body
@@ -83,16 +83,17 @@ sealed class FStack<out A: Any> {
 internal class FStackBody<out A: Any> internal constructor (
     val body: FList<A>
 ): FStack<A>() {
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true
-        else if (other == null) false
-        else if (other is FStackBody<*>) {
-            if (this.isEmpty() && other.isEmpty()) true
-            else if (this.isEmpty() || other.isEmpty()) false
-            else (this.nullableTop()!!::class == other.nullableTop()!!::class) &&
-                equal2(this, other)
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FStackBody<*> -> when {
+            this.isEmpty() && other.isEmpty() -> true
+            this.isEmpty() || other.isEmpty() -> false
+            this.nullableTop()!!::class == other.nullableTop()!!::class -> equal2(this, other)
+            else -> false
         }
-        else false
+        else -> false
+    }
 
     override fun hashCode(): Int {
         return body.hashCode()

@@ -1,10 +1,13 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FListIteratorFwd
+import com.xrpn.imapi.BTreeTraversable
+
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
  */
 
-open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B>{
+open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B> {
 
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
@@ -271,13 +274,14 @@ open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B>{
             it.isDepthInvariant() &&
             it.is23()
         }
+        // TODO
         return true
     }
 
     companion object {
         const val RED: Boolean = true
         const val BLACK: Boolean = false
-        fun <A: Comparable<A>, B: Any> of(fl: FList<TKVEntry<A,B>>): RBTree<A,B> = of(FListIterator(fl))
+        fun <A: Comparable<A>, B: Any> of(fl: FList<TKVEntry<A,B>>): RBTree<A,B> = of(FListIteratorFwd(fl))
         fun <A: Comparable<A>, B: Any> of(iter: Iterator<TKVEntry<A,B>>): RBTree<A, B> {
             val tree = RBTree<A, B>()
             while(iter.hasNext())

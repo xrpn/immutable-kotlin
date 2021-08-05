@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FMap.Companion.of
 import com.xrpn.immutable.FMap.Companion.add
 import com.xrpn.immutable.FMap.Companion.contains
@@ -19,23 +20,20 @@ class FMapTest : FunSpec({
     beforeTest {
     }
 
-//    afterTest { (testCase, result) ->
-//    }
-
     test("keys, values, entries") {
         val bulkMapWiki = of(frbWikiPreorder)
-        val szw = frbWikiPreorder.size()
+        val szw = frbWikiPreorder.size
         val bkw = bulkMapWiki.keys()
         bkw.size() shouldBe szw
-        for(key in FListIterator(frbWikiPreorder.map { it.getk() })) bkw.contains(key) shouldBe true
-        bulkMapWiki.values() shouldBe frbWikiPreorder.map { it.getv() }.reverse()
+        for(key in FListIteratorFwd(frbWikiPreorder.fmap { it.getk() })) bkw.contains(key) shouldBe true
+        bulkMapWiki.values() shouldBe frbWikiPreorder.fmap { it.getv() }.reverse()
         bulkMapWiki.entries() shouldBe frbWikiPreorder.reverse()
         val bulkMapSs = of(frbSlideSharePreorder)
-        val szss = frbSlideSharePreorder.size()
+        val szss = frbSlideSharePreorder.size
         val bkss = bulkMapSs.keys()
         bkss.size() shouldBe szss
-        for(key in FListIterator(frbSlideSharePreorder.map { it.getk() })) bkss.contains(key) shouldBe true
-        bulkMapSs.values() shouldBe frbSlideSharePreorder.map { it.getv() }.reverse()
+        for(key in FListIteratorFwd(frbSlideSharePreorder.fmap { it.getk() })) bkss.contains(key) shouldBe true
+        bulkMapSs.values() shouldBe frbSlideSharePreorder.fmap { it.getv() }.reverse()
         bulkMapSs.entries() shouldBe frbSlideSharePreorder.reverse()
     }
 
@@ -60,7 +58,7 @@ class FMapTest : FunSpec({
             val bulkMap = of(shuffled.iterator())
             var mapkv = emptyFMap<Int, Int>()
             var mapp = emptyFMap<Int, Int>()
-            val mapv = emptyFMap<Int, Int>().add(FList.of(shuffled.iterator()).map { Pair(it.getk(), it.getv()) })
+            val mapv = emptyFMap<Int, Int>().add(FList.of(shuffled.iterator()).fmap { Pair(it.getk(), it.getv()) })
             for (item in sorted) {
                 mapkv = mapkv.add(item.getk(), item.getv())
                 mapp = mapp.add(Pair(item.getk(), item.getv()))
@@ -106,7 +104,7 @@ class FMapTest : FunSpec({
             val bulkMap = of(shuffled.iterator())
             var mapkv = emptyFMap<String, String>()
             var mapp = emptyFMap<String, String>()
-            val mapv = emptyFMap<String, String>().add(FList.of(shuffled.iterator()).map { Pair(it.getk(), it.getv()) })
+            val mapv = emptyFMap<String, String>().add(FList.of(shuffled.iterator()).fmap { Pair(it.getk(), it.getv()) })
             for (item in sorted) {
                 mapkv = mapkv.add(item.getk(), item.getv())
                 mapp = mapp.add(Pair(item.getk(), item.getv()))
