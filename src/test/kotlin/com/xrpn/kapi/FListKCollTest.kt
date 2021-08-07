@@ -39,7 +39,7 @@ class FListKCollTest : FunSpec({
 
   test("FList equals") {
     (intListOfNone == FList.of(*arrayOf<Int>())) shouldBe true
-    (intListOfNone == emptyList<Int>()) shouldBe true
+    (intListOfNone.equals(emptyList<Int>())) shouldBe true
     (intListOfNone == emptyList<Int>()) shouldBe true
     (intListOfNone == emptyList<Int>().toFList()) shouldBe true
     (intListOfNone == FList.of(*arrayOf(1))) shouldBe false
@@ -436,8 +436,8 @@ class FListKCollTest : FunSpec({
   test("reversed") {
     intListOfNone.reversed().toFList() shouldBe FLNil
     intListOfOne.reversed().toFList() shouldBe intListOfOne
-    intListOfTwo.reversed().toFList() shouldBe (intListOfTwo as FList<Int>).reverse()
-    intListOfThree.reversed().toFList() shouldBe (intListOfThree as FList<Int>).reverse()
+    intListOfTwo.reversed().toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.reversed().toFList() shouldBe (intListOfThree as FList<Int>).freverse()
   }
 
   test("sorted") {
@@ -452,8 +452,8 @@ class FListKCollTest : FunSpec({
   test("sortedDescending") {
     intListOfNone.sortedDescending().toFList() shouldBe FLNil
     intListOfOne.sortedDescending().toFList() shouldBe intListOfOne
-    intListOfTwo.sortedDescending().toFList() shouldBe  (intListOfTwo as FList<Int>).reverse()
-    intListOfThree.sortedDescending().toFList() shouldBe (intListOfThree as FList<Int>).reverse()
+    intListOfTwo.sortedDescending().toFList() shouldBe  (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedDescending().toFList() shouldBe (intListOfThree as FList<Int>).freverse()
     intListOfSix.sortedDescending().toFList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }
@@ -464,8 +464,8 @@ class FListKCollTest : FunSpec({
 
     intListOfNone.sortedBy(::reverseNumerical).toFList() shouldBe FLNil
     intListOfOne.sortedBy(::reverseNumerical).toFList() shouldBe intListOfOne
-    intListOfTwo.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).reverse()
-    intListOfThree.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).reverse()
+    intListOfTwo.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).freverse()
     intListOfSix.sortedBy(::reverseNumerical).toFList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }
@@ -494,8 +494,8 @@ class FListKCollTest : FunSpec({
 
     intListOfNone.sortedWith(reverseNumerical).toFList() shouldBe FLNil
     intListOfOne.sortedWith(reverseNumerical).toFList() shouldBe intListOfOne
-    intListOfTwo.sortedWith(reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).reverse()
-    intListOfThree.sortedWith(reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).reverse()
+    intListOfTwo.sortedWith(reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedWith(reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).freverse()
     intListOfSix.sortedWith(reverseNumerical).toFList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }

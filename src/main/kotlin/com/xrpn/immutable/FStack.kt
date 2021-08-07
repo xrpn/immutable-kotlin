@@ -54,7 +54,7 @@ sealed class FStack<out A: Any> {
         fun <A: Any> emptyFStack(): FStack<A> = FStackBody.EMPTY
 
         fun <A: Any> reverse(s: FStack<A>): FStack<A> = when (s) {
-            is FStackBody -> s.reverse()
+            is FStackBody -> s.freverse()
         }
 
         fun <A: Any> push(s: FStack<A>, item: A): FStack<A> = when (s.isEmpty()) {
@@ -104,7 +104,7 @@ internal class FStackBody<out A: Any> internal constructor (
         else this::class.simpleName+"("+body.toString()+")"
     }
 
-    fun reverse(): FStack<A> = FStackBody(this.body.reverse())
+    fun freverse(): FStack<A> = FStackBody(this.body.freverse())
 
     companion object {
         val EMPTY: FStackBody<Nothing> = FStackBody(FLNil)

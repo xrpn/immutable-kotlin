@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
+import com.xrpn.hash.DigestHash
 import kotlin.collections.List
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
@@ -39,12 +40,12 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun iterator(): Iterator<A> = FListIteratorFwd(this)
 
-    // from List <A>
-
     override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
         elements.forEach { if (!contains(it)) return false }
         return true
     }
+
+    // from List <A>
 
     override fun get(index: Int): A = atWantedIxPosition(index, this.size,this, 0) ?: throw IndexOutOfBoundsException("index $index")
 
@@ -54,7 +55,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     }
 
     override fun lastIndexOf(element: @UnsafeVariance A): Int =
-        when (val rix = this.reverse().indexOf(element)) {
+        when (val rix = this.freverse().indexOf(element)) {
             NOT_FOUND -> rix
             else -> size - rix - 1
         }
@@ -75,7 +76,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // filtering
 
-    override fun fdistinct(): FList<A> {
+    override fun fdistinct(): FSet<A> {
         TODO("Not yet implemented")
     }
 
@@ -124,7 +125,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             is FLCons -> go(xs.tail, if (isMatch(xs.head)) FLCons(xs.head,acc) else acc)
         }
 
-        return go(this, FLNil).reverse()
+        return go(this, FLNil).freverse()
     }
 
     override fun ffilterNot(isMatch: (A) -> Boolean): FList<A> {
@@ -134,7 +135,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             is FLCons -> go(xs.tail, if (isMatch(xs.head)) acc else FLCons(xs.head,acc))
         }
 
-        return go(this, FLNil).reverse()
+        return go(this, FLNil).freverse()
     }
 
     override fun ffindFromLeft(isMatch: (A) -> Boolean): A? {
@@ -151,7 +152,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     }
 
     override fun ffindFromRight(isMatch: (A) -> Boolean): A? {
-        return this.reverse().ffindFromLeft(isMatch)
+        return this.freverse().ffindFromLeft(isMatch)
     }
 
     override fun fgetOrNull(ix: Int): A? = atWantedIxPosition(ix, this.size,this, 0)
@@ -182,7 +183,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             }
         }
 
-        return go(atIxs, FLNil).reverse()
+        return go(atIxs, FLNil).freverse()
     }
 
     override fun ftail(): FList<A> = when (this) {
@@ -201,7 +202,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return when {
             n < 0 -> FLNil
             size <= n -> this
-            else -> takeNext(1, this, FLNil).reverse()
+            else -> takeNext(1, this, FLNil).freverse()
         }
     }
 
@@ -221,7 +222,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             }
         }
 
-        return takeIfIsMatch(isMatch, this, FLNil).reverse()
+        return takeIfIsMatch(isMatch, this, FLNil).freverse()
     }
 
     // grouping
@@ -236,8 +237,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this, 0)
     }
 
-    override fun fenumerate(offset: Int): FList<Pair<A, Int>> = fzipWith(IntRange(offset, Int.MAX_VALUE).iterator())
-
     override fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ FList<A>, A?, /* after */ FList<A>> {
 
         tailrec fun traverseToMatch(
@@ -246,7 +245,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             acc: FList<A>): Triple<FList<A>, A?, FList<A>> = when (pos) {
                 is FLNil -> /* not found */ Triple(this, null, FLNil)
                 is FLCons -> when {
-                    match(pos.head) -> Triple(acc.reverse(), pos.head, pos.tail)
+                    match(pos.head) -> Triple(acc.freverse(), pos.head, pos.tail)
                     else -> traverseToMatch(match, pos.tail, FLCons(pos.head, acc))
                 }
             }
@@ -269,12 +268,12 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                 }
             }
 
-        return go(this.reverse(), emptyMap<B, FList<A>>() as MutableMap<B, FList<A>>)
+        return go(this.freverse(), emptyMap<B, FList<A>>() as MutableMap<B, FList<A>>)
         */
 
         fun f4fl(acc: MutableMap<B, FList<A>>, element: A): MutableMap<B, FList<A>> {
             val key = f(element)
-            acc[key] = FLCons(element, acc.getOrDefault(key, emptyFList()))
+            acc[key] = FLCons(element, acc.getOrDefault(key, emptyIMList()))
             return acc
         }
 
@@ -282,14 +281,16 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         TODO("need FMap done to make this happen")
     }
 
+    override fun findexed(offset: Int): FList<Pair<A, Int>> = fzipWith(IntRange(offset, Int.MAX_VALUE).iterator())
+
     override fun fpartition(isMatch: (A) -> Boolean): Pair<FList<A>, FList<A>> {
 
         fun f4fl(acc: Pair<FList<A>, FList<A>>, current: A): Pair<FList<A>, FList<A>> =
             if (isMatch(current)) Pair(FLCons(current, acc.first), acc.second)
             else Pair(acc.first, FLCons(current, acc.second))
 
-        val p = ffoldLeft(Pair(emptyFList(), emptyFList()), ::f4fl)
-        return Pair(p.first.reverse(), p.second.reverse())
+        val p = ffoldLeft(Pair(emptyIMList(), emptyIMList()), ::f4fl)
+        return Pair(p.first.freverse(), p.second.freverse())
 
     }
 
@@ -306,7 +307,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return when {
             size < 1 -> FLNil
             step < 1 -> FLNil
-            else -> go(this, FLNil).reverse()
+            else -> go(this, FLNil).freverse()
         }
     }
 
@@ -326,7 +327,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return when {
             size < 1 -> FLNil
             step < 1 -> FLNil
-            else -> go(this, FLNil).reverse()
+            else -> go(this, FLNil).freverse()
         }
     }
 
@@ -334,7 +335,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
         tailrec fun traverseToIndex(pos: FList<A>, acc: FList<A>, ix: Int): Triple<FList<A>, A?, FList<A>> = when {
             index < 0 || size <= index -> Triple(this, null, FLNil)
-            ix == index -> Triple(acc.reverse(), pos.fhead(), pos.ftail())
+            ix == index -> Triple(acc.freverse(), pos.fhead(), pos.ftail())
             else -> traverseToIndex(pos.ftail(), FLCons(pos.fhead()!!, acc), ix+1)
         }
 
@@ -348,8 +349,8 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             return Pair(FLCons(pair.first, acc.first), FLCons(pair.second, acc.second))
         }
 
-        val p = ffoldLeft(Pair(emptyFList(), emptyFList()), ::f4fl)
-        return Pair(p.first.reverse(), p.second.reverse())
+        val p = ffoldLeft(Pair(emptyIMList(), emptyIMList()), ::f4fl)
+        return Pair(p.first.freverse(), p.second.freverse())
     }
 
     override fun <B: Any, C: Any> fzipWith(xs: IMList<B>, f: (A, B) -> C): FList<C> {
@@ -360,7 +361,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                     xsb.ftail(),
                     FLCons(f(xsa.head, xsb.fhead()!!), acc))
 
-        return go(this, xs, FLNil).reverse()
+        return go(this, xs, FLNil).freverse()
     }
 
     override fun <B: Any> fzipWith(xs: Iterator<B>): FList<Pair<A,B>> {
@@ -370,12 +371,12 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             else go((xsa as FLCons).tail, xsi,
                     FLCons(Pair(xsa.head, xsi.next()), acc))
 
-        return go(this, xs, FLNil).reverse()
+        return go(this, xs, FLNil).freverse()
     }
 
-    override fun fzipWithIndex(): FList<Pair<A, Int>> = fenumerate()
+    override fun fzipWithIndex(): FList<Pair<A, Int>> = findexed()
 
-    override fun fzipWithIndex(startIndex: Int): FList<Pair<A, Int>> = fdrop(startIndex).fenumerate()
+    override fun fzipWithIndex(startIndex: Int): FList<Pair<A, Int>> = fdrop(startIndex).findexed()
 
     // transforming
 
@@ -387,7 +388,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                 is FLCons -> go(xs.tail, f(xs.head).ffoldLeft(out) { list, element -> FLCons(element, list) })
             }
 
-        return go(this, emptyFList<B>()).reverse()
+        return go(this, emptyIMList<B>()).freverse()
     }
 
     override fun <B> ffoldLeft(z: B, f: (acc: B, A) -> B): B {
@@ -404,7 +405,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun <B> ffoldRight(z: B, f: (A, acc: B) -> B): B {
 
         val g: (B, A) -> B = { b, a -> f(a, b)}
-        val reversed = this.reverse()
+        val reversed = this.freverse()
         return reversed.ffoldLeft(z, g)
     }
 
@@ -416,33 +417,33 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                 is FLCons -> go(xs.tail, FLCons<B>(f(xs.head), out))
             }
 
-        return go(this, emptyFList<B>()).reverse()
+        return go(this, emptyIMList<B>()).freverse()
     }
 
     override fun freduceLeft(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(this, f)
 
     override fun freduceRight(f: (A, acc: A) -> @UnsafeVariance A): A? {
-        val xsar = this.reverse()
+        val xsar = this.freverse()
         fun g(acc:A, a:A) = f(a, acc)
         return freduceLeft(xsar, ::g)
     }
 
+    fun freverse(): FList<A> = this.ffoldLeft(emptyIMList(), { b, a -> FLCons(a,b)})
+
     // =====
 
-    fun copy(): FList<A> = this.ffoldRight(emptyFList(), { a, b -> FLCons(a,b)})
+    fun copy(): FList<A> = this.ffoldRight(emptyIMList(), { a, b -> FLCons(a,b)})
 
     fun copyToList(): List<A> = this.ffoldRight<MutableList<A>>(mutableListOf()) { a, b ->
         b.add(a)
         b
     }.reversed()
 
-    fun reverse(): FList<A> = this.ffoldLeft(emptyFList(), { b, a -> FLCons(a,b)})
-
     companion object: IMListCompanion {
 
         val NOT_FOUND: Int = -1
 
-        override fun <A: Any> emptyFList(): FList<A> = FLNil
+        override fun <A: Any> emptyIMList(): FList<A> = FLNil
 
         override fun <A: Any> of(vararg items: A): FList<A> {
             if (items.isEmpty()) return FLNil
@@ -460,7 +461,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             items.forEach {
                 acc = FLCons(it, acc)
             }
-            return acc.reverse()
+            return acc.freverse()
         }
 
         override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FList<A> {
@@ -469,7 +470,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             items.forEach {
                 acc = FLCons(f(it), acc)
             }
-            return acc.reverse()
+            return acc.freverse()
         }
 
         override fun <A: Any> of(items: List<A>): FList<A> {
@@ -613,6 +614,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
 object FLNil: FList<Nothing>() {
     override fun toString(): String = "FLNil"
+    override fun hashCode(): Int = toString().hashCode()
 }
 
 data class FLCons<out A: Any>(
@@ -647,17 +649,21 @@ data class FLCons<out A: Any>(
         else -> false
     }
 
-    // the data class built-in toString is not stack safe
-    override fun toString(): String = (ffoldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size)
+    val show: String by lazy { (ffoldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size) }
 
-    // the data class built-in hashCode is not stack safe
-    override fun hashCode(): Int {
-        val aux: Long = ffoldLeft(0L) { code, h -> (h.hashCode() + code * 3L) }
-        return if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
-               else (aux % Int.MAX_VALUE.toLong()).toInt()
+    // the data class built-in toString is not stack safe
+    override fun toString(): String = show
+
+    val hash: Int by lazy {
+        val aux: Long = ffoldLeft(0L) { code, h -> (h.hashCode() * 3 + code) }
+        if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
+        else DigestHash.crc32ci(aux.toBigInteger().toByteArray())
     }
 
+    // the data class built-in hashCode is not stack safe
+    override fun hashCode(): Int = hash
+
     companion object {
-        fun <A: Any> hashCode(cons: FLCons<A>) = cons.hashCode()
+        fun <A: Any> hashCode(cons: FLCons<A>) = cons.hash
     }
 }

@@ -29,20 +29,6 @@ class FListGroupingTest : FunSpec({
     }
   }
 
-  test("fenumerate") {
-    Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.fenumerate() shouldBe fl.zip(0..fl.size)
-    }
-  }
-
-  test("fenumerate offset") {
-    Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      for (n in (0..10)) {
-        fl.fenumerate(n) shouldBe fl.zip(n..(fl.size+n))
-      }
-    }
-  }
-
   test("ffindFirst") {
     // Arb.flist<Int, Int>(Arb.int()).checkAll(PropTestConfig(iterations = 1, seed = -3295811929144312111)) { fl ->
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
@@ -56,6 +42,20 @@ class FListGroupingTest : FunSpec({
   test("fgroupBy") {
     fail("need FMap done to make this happen")
     // intListOfNone.fgroupBy { a -> a.toString() } shouldBe emptyMap()
+  }
+
+  test("findexed") {
+    Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
+      fl.findexed() shouldBe fl.zip(0..fl.size)
+    }
+  }
+
+  test("findexed offset") {
+    Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
+      for (n in (0..10)) {
+        fl.findexed(n) shouldBe fl.zip(n..(fl.size+n))
+      }
+    }
   }
 
   test("fpartition") {
@@ -93,7 +93,7 @@ class FListGroupingTest : FunSpec({
 
   test("funzip") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val zipped: FList<Pair<Int, Int>> = fl.fenumerate()
+      val zipped: FList<Pair<Int, Int>> = fl.findexed()
       zipped.funzip { p -> p } shouldBe zipped.unzip()
     }
   }

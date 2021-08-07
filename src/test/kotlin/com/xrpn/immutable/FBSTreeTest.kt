@@ -83,12 +83,12 @@ class FBSTreeTest : FunSpec({
 
         depthOneRight.preorder(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.preorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
-        depthOneFull.preorder(reverse = true) shouldBe depthOneFullPreorder.reverse()
+        depthOneFull.preorder(reverse = true) shouldBe depthOneFullPreorder.freverse()
 
-        depthTwoLeftRight.preorder(reverse = true) shouldBe depthTwoLeftRightPreorder.reverse()
-        depthTwoLeftLeft.preorder(reverse = true) shouldBe depthTwoLeftLeftPreorder.reverse()
-        depthTwoRightRight.preorder(reverse = true) shouldBe depthTwoRightRightPreorder.reverse()
-        depthTwoRightLeft.preorder(reverse = true) shouldBe depthTwoRightLeftPreorder.reverse()
+        depthTwoLeftRight.preorder(reverse = true) shouldBe depthTwoLeftRightPreorder.freverse()
+        depthTwoLeftLeft.preorder(reverse = true) shouldBe depthTwoLeftLeftPreorder.freverse()
+        depthTwoRightRight.preorder(reverse = true) shouldBe depthTwoRightRightPreorder.freverse()
+        depthTwoRightLeft.preorder(reverse = true) shouldBe depthTwoRightLeftPreorder.freverse()
 
         wikiTree.preorder(reverse = true) shouldBe
             FLCons(hEntry,
@@ -100,7 +100,7 @@ class FBSTreeTest : FunSpec({
                                     FLCons(aEntry,
                                         FLCons(bEntry,
                                             FLCons(fEntry, FLNil)))))))))
-        slideShareTree.preorder(reverse = true) shouldBe slideSharePreorder.reverse()
+        slideShareTree.preorder(reverse = true) shouldBe slideSharePreorder.freverse()
     }
 
     test("inorder") {
@@ -131,16 +131,16 @@ class FBSTreeTest : FunSpec({
 
     test("inorder reverse") {
         FBSTNil.inorder(reverse = true) shouldBe FLNil
-        fbtAssert(FBSTNode(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).reverse()
+        fbtAssert(FBSTNode(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
 
-        depthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).reverse()
-        depthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).reverse()
-        depthOneFull.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLNil))).reverse()
+        depthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).freverse()
+        depthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).freverse()
+        depthOneFull.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLNil))).freverse()
 
-        depthTwoLeftRight.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).reverse()
-        depthTwoLeftLeft.inorder(reverse = true) shouldBe FLCons(eEntry, FLCons(lEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).reverse()
-        depthTwoRightRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLCons(uEntry, FLNil)))).reverse()
-        depthTwoRightLeft.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(rEntry, FLCons(sEntry, FLNil)))).reverse()
+        depthTwoLeftRight.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).freverse()
+        depthTwoLeftLeft.inorder(reverse = true) shouldBe FLCons(eEntry, FLCons(lEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).freverse()
+        depthTwoRightRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLCons(uEntry, FLNil)))).freverse()
+        depthTwoRightLeft.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(rEntry, FLCons(sEntry, FLNil)))).freverse()
 
         wikiTree.inorder(reverse = true) shouldBe
             FLCons(aEntry,
@@ -151,8 +151,8 @@ class FBSTreeTest : FunSpec({
                                 FLCons(fEntry,
                                     FLCons(gEntry,
                                         FLCons(hEntry,
-                                            FLCons(iEntry, FLNil))))))))).reverse()
-        slideShareTree.inorder(reverse = true) shouldBe slideShareInorder.reverse()
+                                            FLCons(iEntry, FLNil))))))))).freverse()
+        slideShareTree.inorder(reverse = true) shouldBe slideShareInorder.freverse()
     }
 
     test("postorder") {
@@ -187,12 +187,12 @@ class FBSTreeTest : FunSpec({
 
         depthOneRight.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
-        depthOneFull.postorder(reverse = true) shouldBe depthOneFullPostorder.reverse()
+        depthOneFull.postorder(reverse = true) shouldBe depthOneFullPostorder.freverse()
 
-        depthTwoLeftRight.postorder(reverse = true) shouldBe depthTwoLeftRightPostorder.reverse()
-        depthTwoLeftLeft.postorder(reverse = true) shouldBe depthTwoLeftLeftPostorder.reverse()
-        depthTwoRightRight.postorder(reverse = true) shouldBe depthTwoRightRightPostorder.reverse()
-        depthTwoRightLeft.postorder(reverse = true) shouldBe depthTwoRightLeftPostorder.reverse()
+        depthTwoLeftRight.postorder(reverse = true) shouldBe depthTwoLeftRightPostorder.freverse()
+        depthTwoLeftLeft.postorder(reverse = true) shouldBe depthTwoLeftLeftPostorder.freverse()
+        depthTwoRightRight.postorder(reverse = true) shouldBe depthTwoRightRightPostorder.freverse()
+        depthTwoRightLeft.postorder(reverse = true) shouldBe depthTwoRightLeftPostorder.freverse()
 
         wikiTree.postorder(reverse = true) shouldBe // reverse of A, C, E, D, B, H, I, G, F.
             FLCons(fEntry,
@@ -204,7 +204,7 @@ class FBSTreeTest : FunSpec({
                                     FLCons(eEntry,
                                         FLCons(cEntry,
                                             FLCons(aEntry, FLNil)))))))))
-        slideShareTree.postorder(reverse = true) shouldBe slideSharePostorder.reverse()
+        slideShareTree.postorder(reverse = true) shouldBe slideSharePostorder.freverse()
     }
 
     test("breadthFirst") {
@@ -239,12 +239,12 @@ class FBSTreeTest : FunSpec({
 
         depthOneRight.breadthFirst(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.breadthFirst(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
-        depthOneFull.breadthFirst(reverse = true) shouldBe depthOneFullBreadthFirst.reverse()
+        depthOneFull.breadthFirst(reverse = true) shouldBe depthOneFullBreadthFirst.freverse()
 
-        depthTwoLeftRight.breadthFirst(reverse = true) shouldBe depthTwoLeftRightBreadthFirst.reverse()
-        depthTwoLeftLeft.breadthFirst(reverse = true) shouldBe depthTwoLeftLeftBreadthFirst.reverse()
-        depthTwoRightRight.breadthFirst(reverse = true) shouldBe depthTwoRightRightBreadthFirst.reverse()
-        depthTwoRightLeft.breadthFirst(reverse = true) shouldBe depthTwoRightLeftBreadthFirst.reverse()
+        depthTwoLeftRight.breadthFirst(reverse = true) shouldBe depthTwoLeftRightBreadthFirst.freverse()
+        depthTwoLeftLeft.breadthFirst(reverse = true) shouldBe depthTwoLeftLeftBreadthFirst.freverse()
+        depthTwoRightRight.breadthFirst(reverse = true) shouldBe depthTwoRightRightBreadthFirst.freverse()
+        depthTwoRightLeft.breadthFirst(reverse = true) shouldBe depthTwoRightLeftBreadthFirst.freverse()
 
         wikiTree.breadthFirst(reverse = true) shouldBe
             FLCons(hEntry,
@@ -256,7 +256,7 @@ class FBSTreeTest : FunSpec({
                                     FLCons(gEntry,
                                         FLCons(bEntry,
                                             FLCons(fEntry, FLNil)))))))))
-        slideShareTree.breadthFirst(reverse = true) shouldBe slideShareBreadthFirst.reverse()
+        slideShareTree.breadthFirst(reverse = true) shouldBe slideShareBreadthFirst.freverse()
     }
 
     test("size") {
@@ -962,34 +962,34 @@ class FBSTreeTest : FunSpec({
         goAll(wikiTree, wikiPreorder, wikiInorder)
         goAll(wikiTree, wikiInorder, wikiInorder)
         goAll(wikiTree, wikiPostorder, wikiInorder)
-        goAll(wikiTree, wikiPreorder.reverse(), wikiInorder)
-        goAll(wikiTree, wikiInorder.reverse(), wikiInorder)
-        goAll(wikiTree, wikiPostorder.reverse(), wikiInorder)
+        goAll(wikiTree, wikiPreorder.freverse(), wikiInorder)
+        goAll(wikiTree, wikiInorder.freverse(), wikiInorder)
+        goAll(wikiTree, wikiPostorder.freverse(), wikiInorder)
         delete(wikiTree, zEntry) shouldBe wikiTree
         goTele(wikiTree, wikiPreorder, wikiInorder)
         goTele(wikiTree, wikiInorder, wikiInorder)
         goTele(wikiTree, wikiPostorder, wikiInorder)
-        goTele(wikiTree, wikiPreorder.reverse(), wikiInorder)
-        goTele(wikiTree, wikiInorder.reverse(), wikiInorder)
-        goTele(wikiTree, wikiPostorder.reverse(), wikiInorder)
+        goTele(wikiTree, wikiPreorder.freverse(), wikiInorder)
+        goTele(wikiTree, wikiInorder.freverse(), wikiInorder)
+        goTele(wikiTree, wikiPostorder.freverse(), wikiInorder)
 
         goAll(slideShareTree, slideSharePreorder, slideShareInorder)
         goAll(slideShareTree, slideShareInorder, slideShareInorder)
         goAll(slideShareTree, slideSharePostorder, slideShareInorder)
         goAll(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-        goAll(slideShareTree, slideSharePreorder.reverse(), slideShareInorder)
-        goAll(slideShareTree, slideShareInorder.reverse(), slideShareInorder)
-        goAll(slideShareTree, slideSharePostorder.reverse(), slideShareInorder)
-        goAll(slideShareTree, slideShareBreadthFirst.reverse(), slideShareInorder)
+        goAll(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
+        goAll(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
+        goAll(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
+        goAll(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
         delete(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe slideShareTree
         goTele(slideShareTree, slideSharePreorder, slideShareInorder)
         goTele(slideShareTree, slideShareInorder, slideShareInorder)
         goTele(slideShareTree, slideSharePostorder, slideShareInorder)
         goTele(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-        goTele(slideShareTree, slideSharePreorder.reverse(), slideShareInorder)
-        goTele(slideShareTree, slideShareInorder.reverse(), slideShareInorder)
-        goTele(slideShareTree, slideSharePostorder.reverse(), slideShareInorder)
-        goTele(slideShareTree, slideShareBreadthFirst.reverse(), slideShareInorder)
+        goTele(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
+        goTele(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
+        goTele(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
+        goTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
     }
 
     test("co.delete with dups (all dups)") {

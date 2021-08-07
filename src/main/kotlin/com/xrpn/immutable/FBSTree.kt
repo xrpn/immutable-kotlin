@@ -143,7 +143,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
         }
 
         return if (this.isEmpty()) FLNil else when(reverse) {
-            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue).reverse()
+            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue).freverse()
             true -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue)
         }
 
@@ -182,7 +182,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
         }
 
         return if (this.isEmpty()) FLNil else when(reverse) {
-            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue).reverse()
+            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue).freverse()
             true -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue)
         }
 
@@ -199,7 +199,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
         return if (this.isEmpty()) FLNil else when(reverse) {
             false -> unwindStack(FStack.push(FStack.emptyFStack(), this as FBSTNode), FLNil, ::accrue)
-            true -> unwindStack(FStack.push(FStack.emptyFStack(), this as FBSTNode), FLNil, ::accrue).reverse()
+            true -> unwindStack(FStack.push(FStack.emptyFStack(), this as FBSTNode), FLNil, ::accrue).freverse()
         }
 
     }
@@ -215,7 +215,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
         return if (this.isEmpty()) FLNil else when(reverse) {
             true -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), FLNil, ::accrue)
-            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), FLNil, ::accrue).reverse()
+            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), FLNil, ::accrue).freverse()
         }
     }
 
@@ -581,6 +581,7 @@ sealed class FBSTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
 internal object FBSTNil: FBSTree<Nothing, Nothing>() {
     override fun toString(): String = "FBSTNil"
+    override fun hashCode(): Int = toString().hashCode()
 }
 
 internal data class FBSTNode<out A: Any, out B: Any>(

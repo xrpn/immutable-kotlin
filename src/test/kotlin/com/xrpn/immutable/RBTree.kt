@@ -94,7 +94,7 @@ open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B> {
 
         return when(reverse) {
             true -> traverse(root, FLNil)
-            false -> traverse(root, FLNil).reverse()
+            false -> traverse(root, FLNil).freverse()
         }
     }
 
@@ -109,7 +109,7 @@ open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B> {
 
         return when(reverse) {
             true -> traverse(root, FLNil)
-            false -> traverse(root, FLNil).reverse()
+            false -> traverse(root, FLNil).freverse()
         }
     }
 

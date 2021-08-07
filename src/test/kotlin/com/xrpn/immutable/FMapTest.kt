@@ -8,7 +8,6 @@ import com.xrpn.immutable.FMap.Companion.emptyFMap
 import com.xrpn.immutable.FMap.Companion.equal
 import com.xrpn.immutable.FMap.Companion.get
 import com.xrpn.immutable.FMap.Companion.getOrElse
-import com.xrpn.immutable.FSet.Companion.contains
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -24,17 +23,17 @@ class FMapTest : FunSpec({
         val bulkMapWiki = of(frbWikiPreorder)
         val szw = frbWikiPreorder.size
         val bkw = bulkMapWiki.keys()
-        bkw.size() shouldBe szw
+        bkw.size shouldBe szw
         for(key in FListIteratorFwd(frbWikiPreorder.fmap { it.getk() })) bkw.contains(key) shouldBe true
-        bulkMapWiki.values() shouldBe frbWikiPreorder.fmap { it.getv() }.reverse()
-        bulkMapWiki.entries() shouldBe frbWikiPreorder.reverse()
+        bulkMapWiki.values() shouldBe frbWikiPreorder.fmap { it.getv() }.freverse()
+        bulkMapWiki.entries() shouldBe frbWikiPreorder.freverse()
         val bulkMapSs = of(frbSlideSharePreorder)
         val szss = frbSlideSharePreorder.size
         val bkss = bulkMapSs.keys()
-        bkss.size() shouldBe szss
+        bkss.size shouldBe szss
         for(key in FListIteratorFwd(frbSlideSharePreorder.fmap { it.getk() })) bkss.contains(key) shouldBe true
-        bulkMapSs.values() shouldBe frbSlideSharePreorder.fmap { it.getv() }.reverse()
-        bulkMapSs.entries() shouldBe frbSlideSharePreorder.reverse()
+        bulkMapSs.values() shouldBe frbSlideSharePreorder.fmap { it.getv() }.freverse()
+        bulkMapSs.entries() shouldBe frbSlideSharePreorder.freverse()
     }
 
     //

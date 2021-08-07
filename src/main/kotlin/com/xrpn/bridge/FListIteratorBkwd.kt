@@ -7,7 +7,7 @@ import com.xrpn.immutable.FList
 class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val resettable: Boolean = true): ListIterator<A> {
 
     // iterator are inescapably stateful, mutable creatures
-    private var current: FList<A> = seed.reverse()
+    private var current: FList<A> = seed.freverse()
     private var currentIx = seed.size
 
     // not thread safe
@@ -49,7 +49,7 @@ class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val
     }
 
     private fun doReset() = if (resettable) {
-        current = seed.reverse()
+        current = seed.freverse()
         currentIx = seed.size
         true
     } else false

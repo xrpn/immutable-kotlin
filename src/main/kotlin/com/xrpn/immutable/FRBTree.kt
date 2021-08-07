@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.BTree
 import com.xrpn.imapi.BTreeTraversable
 import kotlin.math.log2
@@ -96,7 +97,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
         return when(reverse) {
             true -> traverse(this, FLNil)
-            false -> traverse(this, FLNil).reverse()
+            false -> traverse(this, FLNil).freverse()
         }
     }
 
@@ -132,7 +133,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
         return when(reverse) {
             true -> traverse(this, FLNil)
-            false -> traverse(this, FLNil).reverse()
+            false -> traverse(this, FLNil).freverse()
         }
     }
 
@@ -156,7 +157,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
         return if (this.isEmpty()) FLNil else when(reverse) {
             true -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FRBTNode), FLNil, ::accrue)
-            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FRBTNode), FLNil, ::accrue).reverse()
+            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FRBTNode), FLNil, ::accrue).freverse()
         }
     }
 
@@ -574,7 +575,13 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
                 } else FRBTNil
             }
         }
-        
+
+        tailrec fun <A: Comparable<A>, B: Any> deletes(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B> =
+            when (items) {
+                is FLNil -> treeStub
+                is FLCons -> deletes(delete(treeStub, items.head), items.tail)
+            }
+
         private fun <A: Comparable<A>, B: Any, C: Comparable<C>, D: Any> mapKvAppender(
             kf: (A) -> (C),
             vf: (B) -> (D)): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D> =
@@ -601,6 +608,7 @@ sealed class FRBTree<out A: Any, out B: Any>: BTree<A, B>, BTreeTraversable<A, B
 
 internal object FRBTNil: FRBTree<Nothing, Nothing>() {
     override fun toString(): String = "*"
+    override fun hashCode(): Int = FLNil.toString().hashCode()
 }
 
 internal data class FRBTNode<A: Any, B: Any>(
@@ -609,16 +617,19 @@ internal data class FRBTNode<A: Any, B: Any>(
     val bLeft: FRBTree<A, B> = FRBTNil,
     val bRight: FRBTree<A, B> = FRBTNil,
 ): FRBTree<A, B>() {
+
     internal fun leaf() = bLeft is FRBTNil && bRight is FRBTNil
 
-    override fun toString(): String {
+    val show: String by lazy {
         val sz: String = when (val ns = size()) {
             0 -> ""
             else -> "{$ns}"
         }
         val col = if(color) "r$sz" else "b$sz"
-        return if (leaf()) "($entry@$col)" else "($entry@$col, <$bLeft, >$bRight)"
+        if (leaf()) "($entry@$col)" else "($entry@$col, <$bLeft, >$bRight)"
     }
+
+    override fun toString(): String = show
 
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -630,16 +641,18 @@ internal data class FRBTNode<A: Any, B: Any>(
         else -> false
     }
 
-    override fun hashCode(): Int {
+    val hash: Int by lazy {
         var aux: Long = entry.hashCode().toLong()
-        aux = 3L * aux + color.hashCode()
-        aux = 3L * aux + bLeft.preorder().hashCode()
-        aux = 3L * aux + bRight.preorder().hashCode()
-        return if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
-        else /* may it even theoretically get here? */ TODO("must reduce range of FRBTNode.hashcode to Int")
+        aux += 3L * color.hashCode().toLong()
+        aux += 3L * bLeft.preorder().hashCode().toLong()
+        aux += 3L * bRight.preorder().hashCode().toLong()
+        if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
+        else DigestHash.crc32ci(aux.toBigInteger().toByteArray())
     }
 
+    override fun hashCode(): Int = hash
+
     companion object {
-        fun <A: Any, B: Any> hashCode(n: FRBTNode<A,B>) = n.hashCode()
+        fun <A: Any, B: Any> hashCode(n: FRBTNode<A,B>) = n.hash
     }
 }

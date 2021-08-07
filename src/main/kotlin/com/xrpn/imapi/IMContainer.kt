@@ -5,6 +5,7 @@ import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 
 interface IMList<out A:Any>: IMListFiltering<A>, IMListGrouping<A>, IMListTransforming<A>
+interface IMSet<out A:Any>: IMSetFiltering<A>, IMSetGrouping<A>, IMSetTransforming<A>
 
 interface BTree<out A: Any, out B: Any> {
     fun isEmpty(): Boolean

@@ -33,20 +33,6 @@ class FListGroupingTest : FunSpec({
     intListOfTwo.fcount { _ -> false } shouldBe 0
   }
 
-  test("fenumerate") {
-    FList.of(*arrayOf<String>()).fenumerate() shouldBe FLNil
-    strListOfOne.fenumerate() shouldBe FLCons(Pair("a",0),FLNil)
-    strListOfTwo.fenumerate() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLNil))
-    strListOfThree.fenumerate() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLCons(Pair("c",2),FLNil)))
-  }
-
-  test("fenumerate offset") {
-    FList.of(*arrayOf<String>()).fenumerate(10) shouldBe FLNil
-    strListOfOne.fenumerate(10) shouldBe FLCons(Pair("a",10),FLNil)
-    strListOfTwo.fenumerate(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLNil))
-    strListOfThree.fenumerate(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLCons(Pair("c",12),FLNil)))
-  }
-
   test("ffindFirst") {
     intListOfNone.ffindFirst { it > 1 } shouldBe Triple(FLNil, null, FLNil)
     intListOfOne.ffindFirst { it > 1 }  shouldBe Triple(FLCons(1,FLNil), null, FLNil)
@@ -59,6 +45,20 @@ class FListGroupingTest : FunSpec({
   test("fgroupBy") {
     fail("need FMap done to make this happen")
     // intListOfNone.fgroupBy { a -> a.toString() } shouldBe emptyMap()
+  }
+
+  test("findexed") {
+    FList.of(*arrayOf<String>()).findexed() shouldBe FLNil
+    strListOfOne.findexed() shouldBe FLCons(Pair("a",0),FLNil)
+    strListOfTwo.findexed() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLNil))
+    strListOfThree.findexed() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLCons(Pair("c",2),FLNil)))
+  }
+
+  test("findexed offset") {
+    FList.of(*arrayOf<String>()).findexed(10) shouldBe FLNil
+    strListOfOne.findexed(10) shouldBe FLCons(Pair("a",10),FLNil)
+    strListOfTwo.findexed(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLNil))
+    strListOfThree.findexed(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLCons(Pair("c",12),FLNil)))
   }
 
   test("fpartition") {

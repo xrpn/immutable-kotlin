@@ -1,7 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.immutable.FList.Companion.emptyFList
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FStack.Companion.emptyFStack
 import com.xrpn.immutable.FStack.Companion.push
 //import kotlinx.coroutines.GlobalScope
@@ -47,7 +47,7 @@ sealed class FStream<out A: Any> {
         }
     }
 
-    fun toFList(): FList<A> = this.foldLeftX({ emptyFList<A>() },{ flist, item -> FLCons(item(), flist)}).reverse()
+    fun toFList(): FList<A> = this.foldLeftX({ emptyIMList<A>() },{ flist, item -> FLCons(item(), flist)}).freverse()
 
     fun <B> foldRight(
         z: () -> B,

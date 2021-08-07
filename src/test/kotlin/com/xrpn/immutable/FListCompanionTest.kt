@@ -3,7 +3,6 @@ package com.xrpn.immutable
 import com.xrpn.immutable.FList.Companion.equal
 import com.xrpn.immutable.FList.Companion.toFList
 import com.xrpn.immutable.FList.Companion.toIMList
-import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -39,8 +38,8 @@ class FListCompanionTest : FunSpec({
   beforeTest {}
 
   test("co.emptyFList") {
-    FList.emptyFList<Int>().isEmpty() shouldBe true
-    FList.emptyFList<Int>().fempty() shouldBe true
+    FList.emptyIMList<Int>().isEmpty() shouldBe true
+    FList.emptyIMList<Int>().fempty() shouldBe true
   }
 
   test("co.of varargs") {
@@ -58,7 +57,7 @@ class FListCompanionTest : FunSpec({
   }
 
   test("co.ofMap iterator") {
-    strListOfNone shouldBe FList.ofMap(arrayOf<Int>().iterator()) { a -> a }
+    strListOfNone shouldBe FList.ofMap(arrayOf<Int>().iterator(), ::fidentity)
     strListOfOne shouldBe FList.ofMap(arrayOf(0).iterator()) { a -> (a+'a'.code).toChar().toString() }
     strListOfTwo shouldBe FList.ofMap(arrayOf(0, 1).iterator()) { a -> (a+'a'.code).toChar().toString() }
     strListOfThree shouldBe FList.ofMap(arrayOf(0, 1, 2).iterator()) { a -> (a+'a'.code).toChar().toString() }
@@ -110,7 +109,7 @@ class FListCompanionTest : FunSpec({
     FList.hasSubsequence(intListOfTwo, intListOfOne) shouldBe true
     FList.hasSubsequence(intListOfTwo, FLCons(2, FLNil)) shouldBe true
     FList.hasSubsequence(intListOfTwo, intListOfTwo) shouldBe true
-    FList.hasSubsequence(intListOfTwo, intListOfTwo.reverse()) shouldBe false
+    FList.hasSubsequence(intListOfTwo, intListOfTwo.freverse()) shouldBe false
     FList.hasSubsequence(intListOfTwo, intListOfThree) shouldBe false
 
     FList.hasSubsequence(intListOfThree, intListOfNone) shouldBe true
@@ -120,8 +119,8 @@ class FListCompanionTest : FunSpec({
     FList.hasSubsequence(intListOfThree, intListOfTwo) shouldBe true
     FList.hasSubsequence(intListOfThree, FLCons(2, FLCons(3, FLNil))) shouldBe true
     FList.hasSubsequence(intListOfThree, FLCons(1, FLCons(3, FLNil))) shouldBe false
-    FList.hasSubsequence(intListOfThree, intListOfTwo.reverse()) shouldBe false
-    FList.hasSubsequence(intListOfThree, intListOfThree.reverse()) shouldBe false
+    FList.hasSubsequence(intListOfThree, intListOfTwo.freverse()) shouldBe false
+    FList.hasSubsequence(intListOfThree, intListOfThree.freverse()) shouldBe false
     FList.hasSubsequence(intListOfThree, intListOfThree) shouldBe true
   }
 
@@ -150,7 +149,7 @@ class FListCompanionTest : FunSpec({
     intListOfOne.equal(intListOfTwo) shouldBe false
     intListOfTwo.equal(intListOfOne) shouldBe false
     intListOfTwo.equal(FLCons(1, FLCons(2, FLNil))) shouldBe true
-    intListOfTwo.equal(intListOfTwo.reverse()) shouldBe false
+    intListOfTwo.equal(intListOfTwo.freverse()) shouldBe false
     intListOfTwo.equal(intListOfTwo) shouldBe true
 
     intListOfThree.equal(intListOfTwo) shouldBe false

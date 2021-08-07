@@ -3,10 +3,11 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FList
 
 interface IMListGrouping<out A: Any> {
+
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
-    fun fenumerate(offset: Int = 0): IMList<Pair<A, Int>> // Each and all element contained in a tuple along with its offset-based index
     fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ IMList<A>, A?, /* after */ IMList<A>> // Split the list at first match
     fun <B> fgroupBy(f: (A) -> B): Map<B, IMList<A>> //	A map of collections created by the function f
+    fun findexed(offset: Int = 0): IMList<Pair<A, Int>> // Each and all element contained in a tuple along with its offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMList<A>, /* false */ IMList<A>> // Two collections created by the predicate p
     fun fslidingWindow(size: Int, step: Int): IMList<IMList<A>> // Group elements into fixed size blocks by passing a sliding window of size, with step
     fun fslidingFullWindow(size: Int, step: Int): IMList<IMList<A>> // Group elements into fixed size blocks by passing a sliding window of size, with step
@@ -16,4 +17,12 @@ interface IMListGrouping<out A: Any> {
     fun <B: Any> fzipWith(xs: Iterator<B>): FList<Pair<A,B>> // A collection of pairs by matching the list with the elements of the iterator
     fun fzipWithIndex(): IMList<Pair<A, Int>> // Each and all element contained in a tuple along with its 0-based index
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
+}
+
+interface IMSetGrouping<out A: Any> {
+
+    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
+    fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f
+    fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
+    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
 }

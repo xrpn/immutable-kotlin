@@ -245,7 +245,7 @@ class FListKListTest : FunSpec({
     intListOfSix.subList(0, 1).toFList() shouldBe (intListOfOne as FList<*>)
     intListOfSix.subList(0, 2).toFList() shouldBe (intListOfTwo as FList<*>)
     intListOfSix.subList(0, 3).toFList() shouldBe (intListOfThree as FList<*>)
-    intListOfSix.subList(3, 6).toFList() shouldBe (intListOfThree as FList<*>).reverse()
+    intListOfSix.subList(3, 6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
   }
 
   // typeclass
@@ -433,10 +433,10 @@ class FListKListTest : FunSpec({
     intListOfSix.slice(0 until 2).toFList() shouldBe (intListOfTwo as FList<*>)
     intListOfSix.slice(0..2).toFList() shouldBe (intListOfThree as FList<*>)
     intListOfSix.slice(0 until 3).toFList() shouldBe (intListOfThree as FList<*>)
-    intListOfSix.slice(3 until 6).toFList() shouldBe (intListOfThree as FList<*>).reverse()
+    intListOfSix.slice(3 until 6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
     // noteworthy
-    intListOfSix.slice(3..6).toFList() shouldBe (intListOfThree as FList<*>).reverse()
-    intListOfSix.slice(3..100).toFList() shouldBe (intListOfThree as FList<*>).reverse()
+    intListOfSix.slice(3..6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
+    intListOfSix.slice(3..100).toFList() shouldBe (intListOfThree as FList<*>).freverse()
   }
 
   test("slice of iterable") {

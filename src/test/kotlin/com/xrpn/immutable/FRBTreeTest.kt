@@ -104,15 +104,15 @@ class FRBTreeTest : FunSpec({
 
         ttDepthOneRight.preorder(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         frbDepthOneLeft.preorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
-        frbDepthOneFull.preorder(reverse = true) shouldBe frbDepthOneFullPreorder.reverse()
+        frbDepthOneFull.preorder(reverse = true) shouldBe frbDepthOneFullPreorder.freverse()
 
-        ttDepthTwoLeftRight.preorder(reverse = true) shouldBe ttDepthTwoLeftRightPreorder.reverse()
-        frbDepthTwoLeftLeft.preorder(reverse = true) shouldBe frbDepthTwoLeftLeftPreorder.reverse()
-        frbDepthTwoRightRight.preorder(reverse = true) shouldBe frbDepthTwoRightRightPreorder.reverse()
-        frbDepthTwoRightLeft.preorder(reverse = true) shouldBe frbDepthTwoRightLeftPreorder.reverse()
+        ttDepthTwoLeftRight.preorder(reverse = true) shouldBe ttDepthTwoLeftRightPreorder.freverse()
+        frbDepthTwoLeftLeft.preorder(reverse = true) shouldBe frbDepthTwoLeftLeftPreorder.freverse()
+        frbDepthTwoRightRight.preorder(reverse = true) shouldBe frbDepthTwoRightRightPreorder.freverse()
+        frbDepthTwoRightLeft.preorder(reverse = true) shouldBe frbDepthTwoRightLeftPreorder.freverse()
 
-        frbWikiTree.preorder(reverse = true) shouldBe frbWikiPreorder.reverse()
-        frbSlideShareTree.preorder(reverse = true) shouldBe frbSlideSharePreorder.reverse()
+        frbWikiTree.preorder(reverse = true) shouldBe frbWikiPreorder.freverse()
+        frbSlideShareTree.preorder(reverse = true) shouldBe frbSlideSharePreorder.freverse()
     }
 
     test("inorder") {
@@ -134,19 +134,19 @@ class FRBTreeTest : FunSpec({
 
     test("inorder reverse") {
         FRBTNil.inorder(reverse = true) shouldBe FLNil
-        frbtPartAssert(FRBTNode(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).reverse()
+        frbtPartAssert(FRBTNode(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
 
-        ttDepthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).reverse()
-        frbDepthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).reverse()
-        frbDepthOneFull.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLNil))).reverse()
+        ttDepthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).freverse()
+        frbDepthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).freverse()
+        frbDepthOneFull.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLNil))).freverse()
 
-        ttDepthTwoLeftRight.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).reverse()
-        frbDepthTwoLeftLeft.inorder(reverse = true) shouldBe FLCons(eEntry, FLCons(lEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).reverse()
-        frbDepthTwoRightRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLCons(uEntry, FLNil)))).reverse()
-        frbDepthTwoRightLeft.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(rEntry, FLCons(sEntry, FLNil)))).reverse()
+        ttDepthTwoLeftRight.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).freverse()
+        frbDepthTwoLeftLeft.inorder(reverse = true) shouldBe FLCons(eEntry, FLCons(lEntry, FLCons(nEntry, FLCons(sEntry, FLNil)))).freverse()
+        frbDepthTwoRightRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(sEntry, FLCons(uEntry, FLNil)))).freverse()
+        frbDepthTwoRightLeft.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLCons(rEntry, FLCons(sEntry, FLNil)))).freverse()
 
-        frbWikiTree.inorder(reverse = true) shouldBe frbWikiInorder.reverse()
-        frbSlideShareTree.inorder(reverse = true) shouldBe frbSlideShareInorder.reverse()
+        frbWikiTree.inorder(reverse = true) shouldBe frbWikiInorder.freverse()
+        frbSlideShareTree.inorder(reverse = true) shouldBe frbSlideShareInorder.freverse()
     }
 
     test("postorder") {
@@ -169,15 +169,15 @@ class FRBTreeTest : FunSpec({
 
         ttDepthOneRight.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         frbDepthOneLeft.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
-        frbDepthOneFull.postorder(reverse = true) shouldBe frbDepthOneFullPostorder.reverse()
+        frbDepthOneFull.postorder(reverse = true) shouldBe frbDepthOneFullPostorder.freverse()
 
-        ttDepthTwoLeftRight.postorder(reverse = true) shouldBe ttDepthTwoLeftRightPostorder.reverse()
-        frbDepthTwoLeftLeft.postorder(reverse = true) shouldBe frbDepthTwoLeftLeftPostorder.reverse()
-        frbDepthTwoRightRight.postorder(reverse = true) shouldBe frbDepthTwoRightRightPostorder.reverse()
-        frbDepthTwoRightLeft.postorder(reverse = true) shouldBe frbDepthTwoRightLeftPostorder.reverse()
+        ttDepthTwoLeftRight.postorder(reverse = true) shouldBe ttDepthTwoLeftRightPostorder.freverse()
+        frbDepthTwoLeftLeft.postorder(reverse = true) shouldBe frbDepthTwoLeftLeftPostorder.freverse()
+        frbDepthTwoRightRight.postorder(reverse = true) shouldBe frbDepthTwoRightRightPostorder.freverse()
+        frbDepthTwoRightLeft.postorder(reverse = true) shouldBe frbDepthTwoRightLeftPostorder.freverse()
 
-        frbWikiTree.postorder(reverse = true) shouldBe frbWikiPostorder.reverse()
-        frbSlideShareTree.postorder(reverse = true) shouldBe frbSlideSharePostorder.reverse()
+        frbWikiTree.postorder(reverse = true) shouldBe frbWikiPostorder.freverse()
+        frbSlideShareTree.postorder(reverse = true) shouldBe frbSlideSharePostorder.freverse()
     }
 
     test("breadthFirst") {
@@ -203,15 +203,15 @@ class FRBTreeTest : FunSpec({
 
         ttDepthOneRight.breadthFirst(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         frbDepthOneLeft.breadthFirst(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
-        frbDepthOneFull.breadthFirst(reverse = true) shouldBe frbDepthOneFullBreadthFirst.reverse()
+        frbDepthOneFull.breadthFirst(reverse = true) shouldBe frbDepthOneFullBreadthFirst.freverse()
 
-        ttDepthTwoLeftRight.breadthFirst(reverse = true) shouldBe ttDepthTwoLeftRightBreadthFirst.reverse()
-        frbDepthTwoLeftLeft.breadthFirst(reverse = true) shouldBe frbDepthTwoLeftLeftBreadthFirst.reverse()
-        frbDepthTwoRightRight.breadthFirst(reverse = true) shouldBe frbDepthTwoRightRightBreadthFirst.reverse()
-        frbDepthTwoRightLeft.breadthFirst(reverse = true) shouldBe frbDepthTwoRightLeftBreadthFirst.reverse()
+        ttDepthTwoLeftRight.breadthFirst(reverse = true) shouldBe ttDepthTwoLeftRightBreadthFirst.freverse()
+        frbDepthTwoLeftLeft.breadthFirst(reverse = true) shouldBe frbDepthTwoLeftLeftBreadthFirst.freverse()
+        frbDepthTwoRightRight.breadthFirst(reverse = true) shouldBe frbDepthTwoRightRightBreadthFirst.freverse()
+        frbDepthTwoRightLeft.breadthFirst(reverse = true) shouldBe frbDepthTwoRightLeftBreadthFirst.freverse()
 
-        frbWikiTree.breadthFirst(reverse = true) shouldBe frbWikiBreadthFirst.reverse()
-        frbSlideShareTree.breadthFirst(reverse = true) shouldBe frbSlideShareBreadthFirst.reverse()
+        frbWikiTree.breadthFirst(reverse = true) shouldBe frbWikiBreadthFirst.freverse()
+        frbSlideShareTree.breadthFirst(reverse = true) shouldBe frbSlideShareBreadthFirst.freverse()
     }
 
     test("size") {
@@ -728,10 +728,10 @@ class FRBTreeTest : FunSpec({
         goAllWiki(frbWikiTree, frbWikiPostorder, frbWikiInorder)
         goAllWiki(frbWikiTree, frbWikiInorder, frbWikiInorder)
         goAllWiki(frbWikiTree, frbWikiBreadthFirst, frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiPreorder.reverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiPostorder.reverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiInorder.reverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiBreadthFirst.reverse(), frbWikiInorder)
+        goAllWiki(frbWikiTree, frbWikiPreorder.freverse(), frbWikiInorder)
+        goAllWiki(frbWikiTree, frbWikiPostorder.freverse(), frbWikiInorder)
+        goAllWiki(frbWikiTree, frbWikiInorder.freverse(), frbWikiInorder)
+        goAllWiki(frbWikiTree, frbWikiBreadthFirst.freverse(), frbWikiInorder)
         var rbMutable = rbWikiTree.copy()
         goTele(frbWikiTree, rbMutable, frbWikiPreorder, frbWikiInorder)
         rbMutable = rbWikiTree.copy()
@@ -741,13 +741,13 @@ class FRBTreeTest : FunSpec({
         rbMutable = rbWikiTree.copy()
         goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst, frbWikiInorder)
         rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPreorder.reverse(), frbWikiInorder)
+        goTele(frbWikiTree, rbMutable, frbWikiPreorder.freverse(), frbWikiInorder)
         rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPostorder.reverse(), frbWikiInorder)
+        goTele(frbWikiTree, rbMutable, frbWikiPostorder.freverse(), frbWikiInorder)
         rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiInorder.reverse(), frbWikiInorder)
+        goTele(frbWikiTree, rbMutable, frbWikiInorder.freverse(), frbWikiInorder)
         rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst.reverse(), frbWikiInorder)
+        goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst.freverse(), frbWikiInorder)
 
         delete(frbWikiTree, zEntry) shouldBe frbWikiTree
         
@@ -755,10 +755,10 @@ class FRBTreeTest : FunSpec({
         goAllSS(frbSlideShareTree, frbSlideSharePostorder, frbSlideShareInorder)
         goAllSS(frbSlideShareTree, frbSlideShareInorder, frbSlideShareInorder)
         goAllSS(frbSlideShareTree, frbSlideShareBreadthFirst, frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideSharePreorder.reverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideSharePostorder.reverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareInorder.reverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareBreadthFirst.reverse(), frbSlideShareInorder)
+        goAllSS(frbSlideShareTree, frbSlideSharePreorder.freverse(), frbSlideShareInorder)
+        goAllSS(frbSlideShareTree, frbSlideSharePostorder.freverse(), frbSlideShareInorder)
+        goAllSS(frbSlideShareTree, frbSlideShareInorder.freverse(), frbSlideShareInorder)
+        goAllSS(frbSlideShareTree, frbSlideShareBreadthFirst.freverse(), frbSlideShareInorder)
         var rbMutableSs = rbSlideShareTree.copy()
         goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePreorder, frbSlideShareInorder)
         rbMutableSs = rbSlideShareTree.copy()
@@ -768,13 +768,13 @@ class FRBTreeTest : FunSpec({
         rbMutableSs = rbSlideShareTree.copy()
         goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst, frbSlideShareInorder)
         rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePreorder.reverse(), frbSlideShareInorder)
+        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePreorder.freverse(), frbSlideShareInorder)
         rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePostorder.reverse(), frbSlideShareInorder)
+        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePostorder.freverse(), frbSlideShareInorder)
         rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareInorder.reverse(), frbSlideShareInorder)
+        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareInorder.freverse(), frbSlideShareInorder)
         rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst.reverse(), frbSlideShareInorder)
+        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst.freverse(), frbSlideShareInorder)
 
         delete(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe frbSlideShareTree
     }

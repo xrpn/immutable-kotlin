@@ -301,9 +301,9 @@ class FListKListPropertyTest : FunSpec({
 //  }
 //
 //  test("reverse") {
-//    intListOfNone.reverse() shouldBe FLNil
-//    intListOfOne.reverse() shouldBe FLCons(1,FLNil)
-//    intListOfTwo.reverse() shouldBe FLCons(2,FLCons(1,FLNil))
+//    intListOfNone.freverse() shouldBe FLNil
+//    intListOfOne.freverse() shouldBe FLCons(1,FLNil)
+//    intListOfTwo.freverse() shouldBe FLCons(2,FLCons(1,FLNil))
 //  }
 //
 //  test("foldLeft sum") {

@@ -14,9 +14,9 @@ sealed class FQueue<out A: Any> {
         true -> emptyFQueue()
         false -> {
             this as FQueueBody<A>
-            if (merge) FQueueBody.of(FList.append(this.front, this.back.reverse()), FLNil)
+            if (merge) FQueueBody.of(FList.append(this.front, this.back.freverse()), FLNil)
             else when (this.front) {
-                is FLNil -> FQueueBody.of(this.back.reverse(), FLNil)
+                is FLNil -> FQueueBody.of(this.back.freverse(), FLNil)
                 is FLCons -> this
             }
         }
@@ -28,9 +28,9 @@ sealed class FQueue<out A: Any> {
         true -> emptyFQueue()
         false -> {
             this as FQueueBody<A>
-            if (merge) FQueueBody.of(FLNil, FList.append(this.back, this.front.reverse()))
+            if (merge) FQueueBody.of(FLNil, FList.append(this.back, this.front.freverse()))
             else when (this.back) {
-                is FLNil -> FQueueBody.of(FLNil, this.front.reverse())
+                is FLNil -> FQueueBody.of(FLNil, this.front.freverse())
                 is FLCons -> this
             }
         }
@@ -183,15 +183,15 @@ sealed class FQueue<out A: Any> {
                ) return when (lhs.getFront()) {
                 // yes!
                 // AND tested before, so => XOR (front|back) is empty.  Hence all items must be at the other end
-                is FLNil -> rhs.getBack().isEmpty() && rhs.getFront() == lhs.getBack().reverse()
-                is FLCons -> rhs.getFront().isEmpty() && rhs.getBack() == lhs.getFront().reverse()
+                is FLNil -> rhs.getBack().isEmpty() && rhs.getFront() == lhs.getBack().freverse()
+                is FLCons -> rhs.getFront().isEmpty() && rhs.getBack() == lhs.getFront().freverse()
             }
 
             // in the weeds, sigh. Expensive
             // we have the same amount of elements spread unevenly between front and back
             // this represents the order in which they would be processed by "dequeue"
-            val dequeueLhs = FList.append(lhs.getFront(),lhs.getBack().reverse())
-            val dequeueRhs = FList.append(rhs.getFront(),rhs.getBack().reverse())
+            val dequeueLhs = FList.append(lhs.getFront(),lhs.getBack().freverse())
+            val dequeueRhs = FList.append(rhs.getFront(),rhs.getBack().freverse())
             return dequeueLhs == dequeueRhs
         }
 
