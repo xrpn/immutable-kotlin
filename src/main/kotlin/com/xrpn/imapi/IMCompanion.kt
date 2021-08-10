@@ -43,7 +43,8 @@ interface IMSetCompanion {
     fun <A: Any> of(items: Iterator<A>): IMSet<A>
     fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): IMSet<A>
     fun <A: Any> of(items: IMList<A>): IMSet<A>
-    fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMSet<A>
+    fun <B: Any, A: Any> ofMap(items: IMList<B>, f: (B) -> A): FSet<A>
+    fun <B, A: Any> ofMap(items: List<B>, f: (B) -> A): FSet<A>
 
     fun <A: Any> IMSet<A>.add(item: A): IMSet<A>
     fun <A: Any> IMSet<A>.addAll(elements: Collection<A>): IMSet<A>

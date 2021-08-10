@@ -17,6 +17,21 @@ import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 
 sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
+    @Deprecated("Set has no ordering.", ReplaceWith("ffilterNot"))
+    fun dropWhile(predicate: (A) -> Boolean): List<A> = throw RuntimeException(predicate.toString())
+    @Deprecated("Set has no ordering.", ReplaceWith("ffilter()"))
+    fun takeWhile(predicate: (A) -> Boolean): List<A> = throw RuntimeException(predicate.toString())
+    @Deprecated("Set has no ordering.", ReplaceWith("fpermutations() or fcombinations()"))
+    fun windowed(size: Int, step: Int = 1, partialWindows: Boolean = false): List<List<A>> = throw RuntimeException("$size $step $partialWindows")
+    @Deprecated("Set has no ordering.", ReplaceWith("(no replacement)"))
+    fun <B> runningFold(initial: B, operation: (acc: B, A) -> B): List<B> = throw RuntimeException("$initial $operation")
+    @Deprecated("Set has no ordering.", ReplaceWith("(no replacement)"))
+    fun runningReduce(operation: (acc: A, A) -> @UnsafeVariance A): List<A> = throw RuntimeException("$operation")
+    @Deprecated("Set has no ordering.", ReplaceWith("withIndex()"))
+    fun <B, C> zip(other: Array<out B>, transform: (a: A, b: B) -> C): List<C> = throw RuntimeException("$other, $transform")
+    @Deprecated("Set has no ordering.", ReplaceWith("withIndex()"))
+    fun <B> zip(other: Iterable<B>): List<Pair<A, B>> = throw RuntimeException("$other")
+
     // from Collection<A>
 
     override fun isEmpty(): Boolean = this === FSetBody.empty
@@ -33,10 +48,6 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     override fun iterator(): Iterator<A> = FSetIterator(this)
 
     override fun fpick(): A? = this.toFRBTree().fpick()?.getv()
-
-    override fun fdropWhen(isMatch: (A) -> Boolean): FSet<A> {
-        TODO("Not yet implemented")
-    }
 
     override fun ffilter(isMatch: (A) -> Boolean): FSet<A> {
         TODO("Not yet implemented")
@@ -74,6 +85,16 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         TODO("Not yet implemented")
     }
 
+    override fun fpermutations(size: Int): IMSet<IMList<A>> {
+        // all groups of "size" members from this set; order does matter
+        TODO("Not yet implemented")
+    }
+
+    override fun fcombinations(size: Int): IMSet<IMSet<A>> {
+        // all groups of "size" members from this set; order does not matter
+        TODO("Not yet implemented")
+    }
+
     override fun <B : Any> fflatMap(f: (A) -> IMSet<B>): FSet<B> {
         TODO("Not yet implemented")
     }
@@ -107,29 +128,65 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
         override fun<A: Any> emptyIMSet(): FSet<A> = FSetBody.empty
 
-        override fun <A: Any> of(vararg items: A): FSet<A> = of(FList.of(*items))
+        override fun <A: Any> of(vararg items: A): FSet<A> = of(items.iterator())
 
-        override fun <A: Any> of(items: Iterator<A>): FSet<A> = of(FList.of(items))
+        override fun <A: Any> of(items: Iterator<A>): FSet<A> {
+            if (!items.hasNext()) return FSetBody.empty
+            var acc: FRBTree<Int, A> = FRBTNil
+            items.forEach {
+                acc = FRBTree.insert(acc, it.toIAEntry())
+            }
+            return FSetBody(acc)
+        }
 
-        override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FSet<A> = of(FList.ofMap(items, f))
+        override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FSet<A> {
+            if (!items.hasNext()) return FSetBody.empty
+            var acc: FRBTree<Int, A> = FRBTNil
+            items.forEach {
+                acc = FRBTree.insert(acc, f(it).toIAEntry())
+            }
+            return if (acc.isEmpty()) FSetBody.empty else FSetBody(acc)
+        }
 
-        override fun <A: Any> of(items: IMList<A>): FSet<A> = FSetBody(items.ffoldLeft(FRBTree.nul(), ::insertIntKey))
+        override fun <A: Any> of(items: IMList<A>): FSet<A> =
+            if (items.fempty()) FSetBody.empty else {
+                val aux = items.ffoldLeft(FRBTree.nul(), ::insertIntKey)
+                if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+            }
 
-        override fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): FSet<A> =  of(FList.ofMap(items, f))
+        override fun <B: Any, A: Any> ofMap(items: IMList<B>, f: (B) -> A): FSet<A> = if (items.fempty()) FSetBody.empty else {
+            val mapInsert: (FRBTree<Int, A>, B) -> FRBTree<Int, A> = { stub, it -> insertIntKey(stub, f(it)) }
+            val aux = items.ffoldLeft(FRBTree.nul(), mapInsert)
+            if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
+
+        override fun <B, A: Any> ofMap(items: List<B>, f: (B) -> A): FSet<A> = if (items.isEmpty()) FSetBody.empty else {
+            val mapInsert: (FRBTree<Int, A>, B) -> FRBTree<Int, A> = { stub, it -> insertIntKey(stub, f(it)) }
+            val aux = items.fold(FRBTree.nul(), mapInsert)
+            if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
         // ==========
 
-        override fun <A: Any> IMSet<A>.add(item: A): IMSet<A> =
-            FSetBody(FRBTree.insert(this.toFRBTree(), item.toIAEntry()))
+        override fun <A: Any> IMSet<A>.add(item: A): IMSet<A> {
+            val aux = FRBTree.insert(this.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override fun <A: Any> IMSet<A>.addAll(elements: Collection<A>): IMSet<A> =
-            FSetBody(FRBTree.inserts(this.toFRBTree(), elements.toIAEntries()))
+        override fun <A: Any> IMSet<A>.addAll(elements: Collection<A>): IMSet<A> {
+            val aux = FRBTree.inserts(this.toFRBTree(), elements.toIAEntries())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override fun <A: Any> IMSet<A>.remove(item: A): IMSet<A> =
-            FSetBody(FRBTree.delete(this.toFRBTree(), item.toIAEntry()))
+        override fun <A: Any> IMSet<A>.remove(item: A): IMSet<A> {
+            val aux = FRBTree.delete(this.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override fun <A: Any> IMSet<A>.removeAll(elements: Collection<A>): IMSet<A> =
-            FSetBody(FRBTree.deletes(this.toFRBTree(), elements.toIAEntries()))
+        override fun <A: Any> IMSet<A>.removeAll(elements: Collection<A>): IMSet<A>  {
+            val aux = FRBTree.deletes(this.toFRBTree(), elements.toIAEntries())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
         override fun<A: Any> IMSet<A>.holds(item: A): Boolean = FRBTree.containsIntKey(this.toFRBTree(), item)
 
@@ -154,17 +211,25 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
         override fun <A : Any> Collection<A>.toIMSet(): IMSet<A> = of(this.iterator())
 
-        override fun <A: Any> finsertOrReplace(src: IMSet<A>, item: A): IMSet<A> =
-            FSetBody(FRBTree.insert(src.toFRBTree(), item.toIAEntry()))
+        override fun <A: Any> finsertOrReplace(src: IMSet<A>, item: A): IMSet<A> {
+            val aux = FRBTree.insert(src.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override fun <A: Any> finsertsOrReplace(src: IMSet<A>, items: IMSet<A>): IMSet<A> =
-            FSetBody(FRBTree.inserts(src.toFRBTree(), items.toFSet().toIAEntries()))
+        override fun <A: Any> finsertsOrReplace(src: IMSet<A>, items: IMSet<A>): IMSet<A> {
+            val aux = FRBTree.inserts(src.toFRBTree(), items.toFSet().toIAEntries())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override  fun <A: Any> fdelete(src: IMSet<A>, item: A): IMSet<A> =
-            FSetBody(FRBTree.delete(src.toFRBTree(), item.toIAEntry()))
+        override  fun <A: Any> fdelete(src: IMSet<A>, item: A): IMSet<A> {
+            val aux = FRBTree.delete(src.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
-        override fun <A: Any> fdeletes(src: IMSet<A>, items: IMSet<A>): IMSet<A> =
-            FSetBody(FRBTree.deletes(src.toFRBTree(), items.toFSet().toIAEntries()))
+        override fun <A: Any> fdeletes(src: IMSet<A>, items: IMSet<A>): IMSet<A>  {
+            val aux = FRBTree.deletes(src.toFRBTree(), items.toFSet().toIAEntries())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
 
         override fun <A: Any> fretain(src: IMSet<A>, items: IMSet<A>): IMSet<A> {
 
@@ -176,8 +241,13 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
                 }
             }
 
-            return if (src.fsize() < items.fsize()) FSetBody(go(src.toFSet().toIAEntries(), items, FRBTNil))
-                   else FSetBody(go(items.toFSet().toIAEntries(), src, FRBTNil))
+            return if (src.fsize() < items.fsize()) {
+                val aux = go(src.toFSet().toIAEntries(), items, FRBTNil)
+                if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+            } else {
+                val aux = go(items.toFSet().toIAEntries(), src, FRBTNil)
+                if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+            }
         }
 
         override fun <A: Any> fxordiff(src1: IMSet<A>, src2: IMSet<A>,): IMSet<A> {
@@ -226,22 +296,27 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
             return if (symmetricDifference) {
                 val partial = goXor(examinanda, FRBTNil)
                 val simDiff = goXor(inventory, partial)
-                FSetBody(simDiff)
-            } else {
-                FSetBody(bothHave)
-            }
+                if (simDiff.isEmpty()) FSetBody.empty else FSetBody(simDiff)
+            } else if (bothHave.isEmpty()) FSetBody.empty else FSetBody(bothHave)
+
         }
 
         // ==========
 
         // TODO make this extensible
-        private fun <A: Any> IMSet<A>.toFSet(): FSet<A> = when (this) {
+        internal fun <A: Any> Collection<A>.toFSet(): FSet<A> = when (this) {
+            is FSet<A> -> this
+            else -> of(this.iterator())
+        }
+
+        // TODO make this extensible
+        internal fun <A: Any> IMSet<A>.toFSet(): FSet<A> = when (this) {
             is FSet<A> -> this
             else -> throw RuntimeException("cannot cast ${this::class.simpleName} to FSet")
         }
 
         // TODO make this extensible
-        private fun <A: Any> IMSet<A>.toFRBTree(): FRBTree<Int, A> = (this.toFSet() as FSetBody).body
+        internal fun <A: Any> IMSet<A>.toFRBTree(): FRBTree<Int, A> = (this.toFSet() as FSetBody).body
 
     }
 
@@ -292,6 +367,8 @@ internal class FSetBody<out A: Any> internal constructor (
     }
 
     override fun toString(): String = show
+
+    override val size: Int by lazy { body.size }
 
     companion object {
         val empty = FSetBody(FRBTNil)

@@ -4,14 +4,9 @@ import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.FList.Companion.toFList
-import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.property.Arb
-import io.kotest.property.arbitrary.char
-import io.kotest.property.checkAll
-import io.kotest.xrpn.flistAsCollection
 
 private val intListOfNone: Collection<Int> = FList.of(*arrayOf<Int>())
 private val intListOfOneA: Collection<Int> = FList.of(*arrayOf<Int>(0))
@@ -289,7 +284,7 @@ class FListKCollTest : FunSpec({
     intListOfTwo.findLast(matchEqual(3)) shouldBe null
   }
 
-  test("sindle") {
+  test("single") {
     shouldThrow<NoSuchElementException> {
       intListOfNone.single()
     }
@@ -370,7 +365,9 @@ class FListKCollTest : FunSpec({
     intListOfOne.dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
     FList.of(*arrayOf<Int>(2,1)).dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
     FList.of(*arrayOf<Int>(3,2,1)).dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1,0)).dropWhile { it > 1 }.toFList() shouldBe FLCons(1,FLCons(0,FLNil))
+    val a1 = FList.of(*arrayOf<Int>(3,2,1,0,3))
+    a1.dropWhile { it > 1 }.toFList() shouldBe FLCons(1,FLCons(0, FLCons(3,FLNil)))
+    a1.dropWhile { it > 2 }.toFList() shouldBe FLCons(2,FLCons(1,FLCons(0, FLCons(3,FLNil))))
   }
 
   test("filter") {

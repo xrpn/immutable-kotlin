@@ -1,51 +1,26 @@
 package com.xrpn.bridge
 
-import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FSet.Companion.toFRBTree
 
 class FSetIterator<out A: Any> internal constructor(val seed: FSet<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
 
-    // iterator are inescapably stateful, mutable creatures
-    private var current: FSet<A> = seed
+    private val iter = FTreeIterator(seed.toFRBTree())
 
     // not thread safe
-    override fun hasNext(): Boolean = synchronized(current) {
-        0 < current.size
-    }
+    override fun hasNext(): Boolean = iter.hasNext()
 
     // not thread safe
-    override fun next(): A = synchronized(current){
-        // must ALSO check (under the same lock) hasNext before calling (see nullableNext)
-        return getNext()
+    override fun next(): A {
+        val aux: A = iter.next().getv()
+        return aux
     }
 
-    fun reset(): Boolean = synchronized(current) {
-        doReset()
-    }
+    fun reset(): Boolean = iter.reset()
 
-    fun resetIfEmpty():Boolean = synchronized(current) {
-        if (current.isEmpty()) doReset() else false
-    }
+    fun resetIfEmpty():Boolean = iter.resetIfEmpty()
 
-    fun nullableNext(): A? = synchronized(current) {
-        if (current.isEmpty()) null else {
-            val aux: Pair<A?, IMSet<A>> = current.popAndReminder()
-            current = aux.second as FSet<A>
-            aux.first
-        }
-    }
-
-    private fun getNext(): A {
-        if (current.isEmpty()) throw NoSuchElementException(MSG_EMPTY_ITERATOR)
-        val aux: Pair<A?, IMSet<A>> = current.popAndReminder()
-        current = aux.second as FSet<A>
-        return aux.first!!
-    }
-
-    private fun doReset() = if (resettable) {
-        current = seed
-        true
-    } else false
+    fun nullableNext(): A? = iter.nullableNext()?.getv()
 
     override fun iterator(): Iterator<A> = this
 

@@ -31,6 +31,8 @@ interface IMSetGrouping<out A: Any> {
     fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
+    fun fpermutations(size: Int): IMSet<IMList<A>> // all groups of "size" members from this set; order does matter
+    fun fcombinations(size: Int): IMSet<IMSet<A>> // all groups of "size" members from this set; order does not matter
 }
 
 interface IMTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{

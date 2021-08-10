@@ -36,7 +36,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         return true
     }
 
-    override fun iterator(): Iterator<B> = FListIteratorFwd(this.inorder().map { kv -> kv.getv() } as FList<B>)
+    override fun iterator(): Iterator<B> = FListIteratorFwd(this.inorder().fmap { kv -> kv.getv() })
 
     /*
         A balanced Red-Black binary search tree shall not allow duplicate keys, but provides guarantees on the
@@ -55,7 +55,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         That paper retrieved from https://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf on Dec, 2020
      */
 
-    override fun reverseIterator(): Iterator<B> = FListIteratorFwd(this.inorder(reverse = false).map { kv -> kv.getv() } as FList<B>)
+    override fun reverseIterator(): Iterator<B> = FListIteratorFwd(this.inorder(reverse = false).fmap { kv -> kv.getv() })
 
     override fun fsize(): Int = size
 
@@ -70,7 +70,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         is FRBTNode -> this.entry
     }
 
-    override fun fpick(): TKVEntry<A,B>? = this.root()
+    override fun fpick(): TKVEntry<A,B>? = this.root() // TODO this.leftMost() ?: this.root()
 
     override fun leftMost(): TKVEntry<A, B>? {
 
@@ -623,14 +623,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
             mappedItem: TKVEntry<C, D>): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D>  where A: Any, A: Comparable<A> =
             { treeStub: FRBTree<C, D>, _: TKVEntry<A, B> -> insert(treeStub, mappedItem) }
 
-        fun <A, B: Any> of(fl: FList<TKVEntry<A,B>>): FRBTree<A,B> where A: Any, A: Comparable<A> =
-            fl.ffoldLeft(nul(), ::insert)
+        fun <A, B: Any> of(vararg items: TKVEntry<A,B>): FRBTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator())
 
         fun <A, B: Any> of(iter: Iterator<TKVEntry<A,B>>): FRBTree<A, B> where A: Any, A: Comparable<A> =
             FList.of(iter).ffoldLeft(nul(), ::insert)
 
-        fun <B: Any> ofValues(iter: Iterator<B>): FRBTree<Int, B> =
-            FList.of(iter).fmap{TKVEntry.ofIntKey(it)}.ffoldLeft(nul(), ::insert)
+        fun <A, B: Any> of(fl: FList<TKVEntry<A,B>>): FRBTree<A,B> where A: Any, A: Comparable<A> =
+            fl.ffoldLeft(nul(), ::insert)
 
     }
 }

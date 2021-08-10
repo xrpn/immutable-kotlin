@@ -30,7 +30,6 @@ interface IMListFiltering<out A: Any> {
 
 interface IMSetFiltering<out A: Any> {
     fun fpick(): A? // peek at one random element
-    fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A>
     fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
     fun ffind(isMatch: (A) -> Boolean): A? // Return the element that matches the predicate p

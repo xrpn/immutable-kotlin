@@ -42,7 +42,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         return true
     }
 
-    override fun iterator(): Iterator<B> = FListIteratorFwd(this.inorder().map { kv -> kv.getv() } as FList<B>)
+    override fun iterator(): Iterator<B> = FListIteratorFwd(this.inorder().fmap { kv -> kv.getv() })
 
     /*
         A Binary search tree allows duplicates, but may become pathologically unbalanced.  In the latter case,
@@ -52,7 +52,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         of a Binary Search Tree.
      */
 
-    override fun reverseIterator(): Iterator<B> = FListIteratorFwd(this.inorder(reverse = false).map { kv -> kv.getv() } as FList<B>)
+    override fun reverseIterator(): Iterator<B> = FListIteratorFwd(this.inorder(reverse = false).fmap { kv -> kv.getv() })
 
     override fun fsize(): Int = size
 
@@ -67,7 +67,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
         is FBSTNode -> this.entry
     }
 
-    override fun fpick(): TKVEntry<A,B>? = this.root()
+    override fun fpick(): TKVEntry<A,B>? = this.root() // this.leftMost() ?: this.root()
 
     override fun leftMost(): TKVEntry<A, B>? {
         tailrec fun leftDescent(bt: FBSTree<A, B>): TKVEntry<A, B>? =
@@ -598,6 +598,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<B>, IMBTree<A, B> where A: A
                 true -> splice(item, treeStub, FLNil)
             }
         }
+
+        fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean = false): FBSTree<A, B> where A: Any, A: Comparable<A> =
+            of(items.iterator(), allowDups)
 
         fun <A, B: Any> of(fl: FList<TKVEntry<A, B>>, allowDups: Boolean = false): FBSTree<A, B> where A: Any, A: Comparable<A> =
             fl.ffoldLeft(nul(), appender(allowDups))

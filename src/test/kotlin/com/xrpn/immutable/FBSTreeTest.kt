@@ -22,8 +22,7 @@ import kotlin.random.Random.Default.nextInt
 
 class FBSTreeTest : FunSpec({
 
-    beforeTest {
-    }
+    beforeTest {}
 
     test("root") {
         FBSTNil.root() shouldBe null
