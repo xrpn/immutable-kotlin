@@ -1,6 +1,6 @@
 package com.xrpn.immutable
 
-class FMapIterator<out A: Any, out B: Any> internal constructor (val seed: FMap<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A,B>>, Sequence<TKVEntry<A,B>> {
+class FMapIterator<out A, out B: Any> internal constructor (val seed: FMap<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A,B>>, Sequence<TKVEntry<A,B>> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: FList<TKVEntry<A, B>> = seed.entries()

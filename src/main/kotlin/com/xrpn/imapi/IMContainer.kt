@@ -6,27 +6,20 @@ import com.xrpn.immutable.TKVEntry
 
 interface IMList<out A:Any>: IMListFiltering<A>, IMListGrouping<A>, IMListTransforming<A>
 interface IMSet<out A:Any>: IMSetFiltering<A>, IMSetGrouping<A>, IMSetTransforming<A>
+interface IMBTree<out A, out B: Any>: IMBTreeTraversable<A, B>, IMTreeFiltering<A, B>, IMTreeGrouping<A, B>
+        where A: Any, A: Comparable<@UnsafeVariance A>
 
-interface BTree<out A: Any, out B: Any> {
-    fun isEmpty(): Boolean
-    fun root(): TKVEntry<A, B>?
-    fun leftMost(): TKVEntry<A, B>?
-    fun rightMost(): TKVEntry<A, B>?
-    fun size(): Int
-    fun minDepth(): Int
-    fun maxDepth(): Int
-}
-
-interface BTreeTraversable<out A: Any, out B: Any> {
+interface IMBTreeTraversable<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun reverseIterator(): Iterator<B>
     fun preorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun postorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun inorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun breadthFirst(reverse: Boolean = false): FList<TKVEntry<A, B>>
 
     companion object {
-        fun <A: Any, B: Any> equal(rhs: BTreeTraversable<A, B>, lhs: BTreeTraversable<A, B>): Boolean =
+        fun <A, B: Any> equal(rhs: IMBTreeTraversable<A, B>, lhs: IMBTreeTraversable<A, B>) : Boolean where A: Any, A: Comparable<A> =
             rhs.inorder() == lhs.inorder()
-        fun <A: Any, B: Any> strongEqual(rhs: BTreeTraversable<A, B>, lhs: BTreeTraversable<A, B>): Boolean =
+        fun <A, B: Any> strongEqual(rhs: IMBTreeTraversable<A, B>, lhs: IMBTreeTraversable<A, B>): Boolean where A: Any, A: Comparable<A> =
             rhs.preorder() == lhs.preorder() &&
                     rhs.inorder() == lhs.inorder() &&
                     rhs.postorder() == lhs.postorder()

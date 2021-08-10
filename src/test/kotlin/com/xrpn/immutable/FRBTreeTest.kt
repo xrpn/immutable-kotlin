@@ -1,6 +1,6 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.BTreeTraversable
+import com.xrpn.imapi.IMBTreeTraversable
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
 import com.xrpn.immutable.FRBTree.Companion.find
@@ -215,20 +215,20 @@ class FRBTreeTest : FunSpec({
     }
 
     test("size") {
-        FRBTNil.size() shouldBe 0
-        FRBTNode(mEntry).size() shouldBe 1
+        FRBTNil.size shouldBe 0
+        FRBTNode(mEntry).size shouldBe 1
 
-        ttDepthOneRight.size() shouldBe 2
-        frbDepthOneLeft.size() shouldBe 2
-        frbDepthOneFull.size() shouldBe 3
+        ttDepthOneRight.size shouldBe 2
+        frbDepthOneLeft.size shouldBe 2
+        frbDepthOneFull.size shouldBe 3
 
-        ttDepthTwoLeftRight.size() shouldBe 4
-        frbDepthTwoLeftLeft.size() shouldBe 4
-        frbDepthTwoRightRight.size() shouldBe 4
-        frbDepthTwoRightLeft.size() shouldBe 4
+        ttDepthTwoLeftRight.size shouldBe 4
+        frbDepthTwoLeftLeft.size shouldBe 4
+        frbDepthTwoRightRight.size shouldBe 4
+        frbDepthTwoRightLeft.size shouldBe 4
 
-        frbWikiTree.size() shouldBe 9
-        frbSlideShareTree.size() shouldBe 8
+        frbWikiTree.size shouldBe 9
+        frbSlideShareTree.size shouldBe 8
     }
 
     test("maxDepth") {
@@ -486,7 +486,7 @@ class FRBTreeTest : FunSpec({
             val frbTree = of(values.iterator())
             displayRbOnVerbose(frbTree, n)
             rbRootSane(frbTree) shouldBe true
-            frbTree.size() shouldBe n
+            frbTree.size shouldBe n
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
             rbTree.rbSane() shouldBe true
@@ -514,7 +514,7 @@ class FRBTreeTest : FunSpec({
             val frbTree = of(values.iterator())
             displayRbOnVerbose(frbTree, n)
             rbRootSane(frbTree) shouldBe true
-            frbTree.size() shouldBe n
+            frbTree.size shouldBe n
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
             rbTree.rbSane() shouldBe true
@@ -541,7 +541,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(values.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(values.iterator())
             aut shouldBe testOracle
@@ -556,7 +556,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(values.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder(reverse = true)
             val testOracle = FList.of(values.iterator())
             aut shouldBe testOracle
@@ -569,7 +569,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(values.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(values.iterator())
             aut shouldBe testOracle
@@ -583,7 +583,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(values.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder(reverse = true)
             val testOracle = FList.of(values.iterator())
             aut shouldBe testOracle
@@ -600,7 +600,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
             aut shouldBe testOracle
@@ -618,7 +618,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
             aut shouldBe testOracle
@@ -633,7 +633,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n, true)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
             aut shouldBe testOracle
@@ -649,7 +649,7 @@ class FRBTreeTest : FunSpec({
             val rbTree = of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n, true)
             rbRootSane(rbTree) shouldBe true
-            rbTree.size() shouldBe n
+            rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
             aut shouldBe testOracle
@@ -658,19 +658,20 @@ class FRBTreeTest : FunSpec({
 
     test("co.delete") {
 
-        tailrec fun <A: Comparable<A>, B: Any> goAllWiki(frb: FRBTree<A,B>, acc: FList<TKVEntry<A,B>>, inorder: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+        // tailrec fun <A: Comparable<A>, B: Any> goAllWiki(frb: FRBTree<A,B>, acc: FList<TKVEntry<A,B>>, inorder: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+        tailrec fun goAllWiki(frb: FRBTree<Int, String>, acc: FList<TKVEntry<Int,String>>, inorder: FList<TKVEntry<Int,String>>): FList<TKVEntry<Int,String>> =
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    val rbDeleted = rbWikiTree.copy()
-                    rbDeleted.rbDelete(TKVEntry.of(acc.head.getk() as Int, acc.head.getv() as String))
+                    val rbDeleted: RBTree<Int, String> = rbWikiTree.copy()
+                    rbDeleted.rbDelete(TKVEntry.of(acc.head.getk(), acc.head.getv()))
                     when (val deleted = delete(frb, acc.head)) {
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
                             val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
-                            BTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
                             true shouldBe false
@@ -680,19 +681,20 @@ class FRBTreeTest : FunSpec({
                 }
             }
 
-        tailrec fun <A: Comparable<A>, B: Any> goAllSS(frb: FRBTree<A,B>, acc: FList<TKVEntry<A,B>>, inorder: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+        // tailrec fun <A: Comparable<A>, B: Any> goAllSS(frb: FRBTree<A,B>, acc: FList<TKVEntry<A,B>>, inorder: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+        tailrec fun goAllSS(frb: FRBTree<Int,Int>, acc: FList<TKVEntry<Int,Int>>, inorder: FList<TKVEntry<Int,Int>>): FList<TKVEntry<Int,Int>> =
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    val rbDeleted = rbSlideShareTree.copy()
-                    rbDeleted.rbDelete(TKVEntry.of(acc.head.getk() as Int, acc.head.getv() as Int))
+                    val rbDeleted: RBTree<Int, Int> = rbSlideShareTree.copy()
+                    rbDeleted.rbDelete(TKVEntry.of(acc.head.getk(), acc.head.getv()))
                     when (val deleted = delete(frb, acc.head)) {
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
                             val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
-                            BTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
                             true shouldBe false
@@ -714,10 +716,10 @@ class FRBTreeTest : FunSpec({
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
                             aut1in shouldBe oracle
-                            BTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversable.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
-                            deleted.size() shouldBe 0
+                            deleted.size shouldBe 0
                             rbDeleted.size() shouldBe 0
                         }
                     }
@@ -785,7 +787,7 @@ class FRBTreeTest : FunSpec({
             val ix1 = nextInt(0, n)
             val frbTree = of(values.iterator())
             val aut = delete(frbTree, TKVEntry.ofIntKey(ix1))
-            aut.size() shouldBe n - 1
+            aut.size shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
                 .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
@@ -801,7 +803,7 @@ class FRBTreeTest : FunSpec({
             val ix1 = nextInt(0, n)
             val frbTree = of(values.iterator())
             val aut = delete(frbTree, TKVEntry.ofIntKey(ix1))
-            aut.size() shouldBe n - 1
+            aut.size shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
                 .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
@@ -823,7 +825,7 @@ class FRBTreeTest : FunSpec({
             val aux0 = delete(frbTree, TKVEntry.ofIntKey(ix1))
             val aux1 = delete(aux0, TKVEntry.ofIntKey(ix2))
             val aut = delete(aux1, TKVEntry.ofIntKey(ix3))
-            aut.size() shouldBe n - 3
+            aut.size shouldBe n - 3
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
                 .ffilterNot { it == TKVEntry.ofIntKey(ix1) }

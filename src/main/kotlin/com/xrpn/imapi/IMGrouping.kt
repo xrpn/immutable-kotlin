@@ -1,9 +1,13 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FBSTree
 import com.xrpn.immutable.FList
+import com.xrpn.immutable.FSetBody
+import com.xrpn.immutable.TKVEntry
 
 interface IMListGrouping<out A: Any> {
 
+    fun fsize(): Int // number of elements
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ IMList<A>, A?, /* after */ IMList<A>> // Split the list at first match
     fun <B> fgroupBy(f: (A) -> B): Map<B, IMList<A>> //	A map of collections created by the function f
@@ -21,8 +25,21 @@ interface IMListGrouping<out A: Any> {
 
 interface IMSetGrouping<out A: Any> {
 
+    fun fsize(): Int // number of elements
+    fun popAndReminder(): Pair<A?, IMSet<A>>
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
+}
+
+interface IMTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{
+
+    fun fsize(): Int // number of elements
+    fun popAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
+
+//    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
+//    fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f
+//    fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
+//    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
 }

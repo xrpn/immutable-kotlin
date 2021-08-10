@@ -1,9 +1,5 @@
 package com.xrpn.immutable
 
-import com.xrpn.hash.CryptoHash
-import java.math.BigInteger
-import java.security.MessageDigest
-
 inline fun <reified A, reified B> isSameType(a: A, b: B): Boolean = (a is B) && (b is A)
 inline fun <reified A> fidentity(a: A): A = a
 
@@ -46,7 +42,7 @@ data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
 
 }
 
-interface TKVEntry<out A: Any, out B: Any> {
+interface TKVEntry<out A, out B: Any> where A: Any, A: Comparable<@kotlin.UnsafeVariance A> {
     fun getk(): A
     fun getkc(): Comparable<@UnsafeVariance A>
     fun getv(): B
@@ -57,6 +53,14 @@ interface TKVEntry<out A: Any, out B: Any> {
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>): TKVEntry<A, B> = TKVEntryK(p.first, p.second)
         fun <B: Any> ofIntKey (item: B): TKVEntry<Int, B> = TKVEntryK(item.hashCode(), item)
         fun <B: Any> ofStrKey (item: B): TKVEntry<String, B> = TKVEntryK(item.toString(), item)
+        fun <A: Any> A.toIAEntry(): TKVEntry<Int, A> = ofIntKey(this)
+        fun <A: Any> A.toSAEntry(): TKVEntry<String, A> = ofStrKey(this)
+        fun <A: Any> FList<A>.toIAEntries(): FList<TKVEntry<Int, A>> = this.fmap { a -> ofIntKey(a) }
+        fun <A: Any> FList<A>.toSAEntries(): FList<TKVEntry<String, A>> = this.fmap { a -> ofStrKey(a) }
+        fun <A: Any> FSet<A>.toIAEntries(): FList<TKVEntry<Int, A>> = this.fmapToList { a -> ofIntKey(a) }
+        fun <A: Any> FSet<A>.toSAEntries(): FList<TKVEntry<String, A>> = this.fmapToList { a -> ofStrKey(a) }
+        fun <A: Any> Collection<A>.toIAEntries(): FList<TKVEntry<Int, A>> = FList.ofMap(this.iterator()){ a -> ofIntKey(a) }
+        fun <A: Any> Collection<A>.toSAEntries(): FList<TKVEntry<String, A>> = FList.ofMap(this.iterator()) { a -> ofStrKey(a) }
     }
 }
 

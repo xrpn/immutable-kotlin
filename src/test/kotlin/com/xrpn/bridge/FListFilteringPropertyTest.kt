@@ -53,6 +53,15 @@ class FListFilteringTest : FunSpec({
     }
   }
 
+  test("fdropWhen") {
+    Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
+      val ora = middle(fl)
+      val aux = (fl.copyToList() as MutableList<Int>)
+      aux.removeIf(matchLessThan(ora))
+      fl.fdropWhen(matchLessThan(ora)) shouldBe aux
+    }
+  }
+
   test("ffilter") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ora = middle(fl)

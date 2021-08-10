@@ -1,13 +1,13 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.imapi.BTreeTraversable
+import com.xrpn.imapi.IMBTreeTraversable
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
  */
 
-open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B> {
+open class RBTree<A: Comparable<A>, B: Any>: IMBTreeTraversable<A, B> {
 
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
@@ -291,6 +291,10 @@ open class RBTree<A: Comparable<A>, B: Any>: BTreeTraversable<A, B> {
     }
 
     override fun breadthFirst(reverse: Boolean): FList<TKVEntry<A, B>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun reverseIterator(): Iterator<B> {
         TODO("Not yet implemented")
     }
 }

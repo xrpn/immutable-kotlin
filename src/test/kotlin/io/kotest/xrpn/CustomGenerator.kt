@@ -3,6 +3,7 @@ package io.kotest.xrpn
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
+import com.xrpn.immutable.FSet
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -60,6 +61,17 @@ fun <A: Any, B> Arb.Companion.flist(
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.list(arbB, range).map { bs -> FList.ofMap(bs, f) }
 }
+
+fun <A: Any, B> Arb.Companion.fsetAsCollection(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
+): Arb<Collection<A>> {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.list(arbB, range).map { bs -> FSet.ofMap(bs, f) }
+}
+
 
 //fun <A, B, T: Any> let(genA: Gen<A>, genB: (A) -> Gen<B>, bindFn: (A, B) -> T): Arb<T> {
 //    return arb { rs ->

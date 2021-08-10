@@ -260,20 +260,20 @@ class FBSTreeTest : FunSpec({
     }
 
     test("size") {
-        FBSTNil.size() shouldBe 0
-        FBSTNode(mEntry).size() shouldBe 1
+        FBSTNil.size shouldBe 0
+        FBSTNode(mEntry).size shouldBe 1
 
-        depthOneRight.size() shouldBe 2
-        depthOneLeft.size() shouldBe 2
-        depthOneFull.size() shouldBe 3
+        depthOneRight.size shouldBe 2
+        depthOneLeft.size shouldBe 2
+        depthOneFull.size shouldBe 3
 
-        depthTwoLeftRight.size() shouldBe 4
-        depthTwoLeftLeft.size() shouldBe 4
-        depthTwoRightRight.size() shouldBe 4
-        depthTwoRightLeft.size() shouldBe 4
+        depthTwoLeftRight.size shouldBe 4
+        depthTwoLeftLeft.size shouldBe 4
+        depthTwoRightRight.size shouldBe 4
+        depthTwoRightLeft.size shouldBe 4
 
-        wikiTree.size() shouldBe 9
-        slideShareTree.size() shouldBe 8
+        wikiTree.size shouldBe 9
+        slideShareTree.size shouldBe 8
     }
 
     test("maxDepth") {
@@ -879,7 +879,7 @@ class FBSTreeTest : FunSpec({
         checkAll(50, Arb.int(20..100)) { n ->
             val values = IntArray(n) { _: Int -> nextInt() }
             val bst = FBSTree.ofValues<Int, Int>(values.iterator(), allowDups = true)
-            bst.size() shouldBe n
+            bst.size shouldBe n
             val aut = bst.inorder()
             values.sort()
             val testOracle = FList.of(values.iterator()).fmap { TKVEntry.ofIntKey(it) }
@@ -891,7 +891,7 @@ class FBSTreeTest : FunSpec({
         checkAll(2, Arb.int(10000..50000)) { n ->
             val values = IntArray(n) { _: Int -> nextInt() }
             val bst = FBSTree.ofValues<Int, Int>(values.iterator(), allowDups = true)
-            bst.size() shouldBe n
+            bst.size shouldBe n
             print("size "+n)
             print(", max depth "+bst.maxDepth())
             println          (", min depth "+bst.minDepth())
@@ -953,7 +953,7 @@ class FBSTreeTest : FunSpec({
                         is FBSTNode -> {
                             deleted.inorder() shouldBe oracle
                         }
-                        is FBSTNil -> deleted.size() shouldBe 0
+                        is FBSTNil -> deleted.size shouldBe 0
                     }
                     goTele(deleted, acc.tail, oracle)
                 }

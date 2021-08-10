@@ -14,7 +14,7 @@ sealed class FQueue<out A: Any> {
         true -> emptyFQueue()
         false -> {
             this as FQueueBody<A>
-            if (merge) FQueueBody.of(FList.append(this.front, this.back.freverse()), FLNil)
+            if (merge) FQueueBody.of(FList.fappend(this.front, this.back.freverse()), FLNil)
             else when (this.front) {
                 is FLNil -> FQueueBody.of(this.back.freverse(), FLNil)
                 is FLCons -> this
@@ -28,7 +28,7 @@ sealed class FQueue<out A: Any> {
         true -> emptyFQueue()
         false -> {
             this as FQueueBody<A>
-            if (merge) FQueueBody.of(FLNil, FList.append(this.back, this.front.freverse()))
+            if (merge) FQueueBody.of(FLNil, FList.fappend(this.back, this.front.freverse()))
             else when (this.back) {
                 is FLNil -> FQueueBody.of(FLNil, this.front.freverse())
                 is FLCons -> this
@@ -190,8 +190,8 @@ sealed class FQueue<out A: Any> {
             // in the weeds, sigh. Expensive
             // we have the same amount of elements spread unevenly between front and back
             // this represents the order in which they would be processed by "dequeue"
-            val dequeueLhs = FList.append(lhs.getFront(),lhs.getBack().freverse())
-            val dequeueRhs = FList.append(rhs.getFront(),rhs.getBack().freverse())
+            val dequeueLhs = FList.fappend(lhs.getFront(),lhs.getBack().freverse())
+            val dequeueRhs = FList.fappend(rhs.getFront(),rhs.getBack().freverse())
             return dequeueLhs == dequeueRhs
         }
 

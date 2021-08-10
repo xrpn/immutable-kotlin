@@ -2,7 +2,7 @@ package com.xrpn.immutable
 
 import kotlin.math.max
 
-sealed class FBHeap<out A : Any, out B : Any> {
+sealed class FBHeap<out A, out B : Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     /*
         Binary heaps are commonly viewed as binary trees which satisfy two invariants. The shape invariant:
@@ -84,13 +84,13 @@ sealed class FBHeap<out A : Any, out B : Any> {
             MIN, MAX
         }
 
-        internal fun <A : Any, B : Any> minHeapNul(): FBHeap<A, B> =
+        internal fun <A, B: Any> minHeapNul(): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHMinNil
 
-        internal fun <A : Any, B : Any> maxHeapNul(): FBHeap<A, B> =
+        internal fun <A, B: Any> maxHeapNul(): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHMaxNil
 
-        private fun <A : Any, B : Any> rule(h: FBHeap<A, B>): FBHeap.Companion.RULE = when (h) {
+        private fun <A, B: Any> rule(h: FBHeap<A, B>): RULE where A: Any, A: Comparable<A> = when (h) {
             is FBHMinNil -> FBHeap.Companion.RULE.MIN
             is FBHMaxNil -> FBHeap.Companion.RULE.MAX
             is FBHBranch -> when (Pair(h.bLeft is FBHBranch, h.bRight is FBHBranch)) {
@@ -104,20 +104,19 @@ sealed class FBHeap<out A : Any, out B : Any> {
             }
         }
 
-
-        private fun <A : Comparable<A>, B : Any> fit(item: TKVEntry<A, B>, b: FBHBranch<A, B>, r: FBHeap.Companion.RULE): FBHeap.Companion.FIT =
+        private fun <A, B: Any> fit(item: TKVEntry<A, B>, b: FBHBranch<A, B>, r: RULE): FIT where A: Any, A: Comparable<A> =
             when (r) {
-                FBHeap.Companion.RULE.MIN -> when {
-                    item.getk() < b.entry.getk() -> FBHeap.Companion.FIT.ABOVE
-                    else -> FBHeap.Companion.FIT.BELOW
+                Companion.RULE.MIN -> when {
+                    item.getk() < b.entry.getk() -> Companion.FIT.ABOVE
+                    else -> Companion.FIT.BELOW
                 }
-                FBHeap.Companion.RULE.MAX -> when {
+                Companion.RULE.MAX -> when {
                     b.entry.getk() < item.getk() -> FBHeap.Companion.FIT.ABOVE
                     else -> FBHeap.Companion.FIT.BELOW
                 }
             }
 
-        private fun <A : Comparable<A>, B : Any> isHeapBranch(b: FBHBranch<A, B>, R: FBHeap.Companion.RULE): Boolean =
+        private fun <A, B: Any> isHeapBranch(b: FBHBranch<A, B>, R: RULE): Boolean where A: Any, A: Comparable<A> =
             when (Pair(b.bLeft is FBHBranch, b.bRight is FBHBranch)) {
                 Pair(true, true) -> {
                     b.bLeft as FBHBranch
@@ -151,7 +150,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 else -> b.bRight == FBHeap.Companion.asMatchingNil(R) && b.bLeft == b.bRight
             }
 
-        internal fun <A : Comparable<A>, B : Any> heapSane(heap: FBHeap<A, B>): Boolean {
+        internal fun <A, B: Any> heapSane(heap: FBHeap<A, B>): Boolean where A: Any, A: Comparable<A> {
 
             tailrec fun go(h: FBHeap<A, B>, sane: Boolean): Boolean {
                 if (!sane) return false
@@ -172,12 +171,12 @@ sealed class FBHeap<out A : Any, out B : Any> {
             return go(heap, true)
         }
 
-        private fun <A : Comparable<A>, B : Any> bubbleUp(
+        private fun <A, B : Any> bubbleUp(
             item: TKVEntry<A, B>,
             l: FBHeap<A, B>,
             r: FBHeap<A, B>,
             R: FBHeap.Companion.RULE
-        ): FBHeap<A, B> =
+        ): FBHeap<A, B> where A: Any, A: Comparable<A> =
             if (l is FBHBranch && FBHeap.Companion.FIT.BELOW == FBHeap.Companion.fit(
                     item,
                     l,
@@ -204,11 +203,11 @@ sealed class FBHeap<out A : Any, out B : Any> {
 
         private fun asMatchingNil(R: FBHeap.Companion.RULE) = if (FBHeap.Companion.RULE.MAX == R) FBHMaxNil else FBHMinNil
 
-        internal fun <A : Comparable<A>, B : Any> insert(
+        internal fun <A, B : Any> insert(
             dest: FBHeap<A, B>,
             item: TKVEntry<A, B>,
             R: FBHeap.Companion.RULE
-        ): FBHeap<A, B> {
+        ): FBHeap<A, B> where A: Any, A: Comparable<A> {
             if (dest.isEmpty() && dest != FBHeap.Companion.asMatchingNil(R)) throw RuntimeException("insert into $dest with opposite rule")
             return if (dest.isEmpty()) FBHBranch(
                 item,
@@ -247,12 +246,12 @@ sealed class FBHeap<out A : Any, out B : Any> {
             }
         }
 
-        private fun <A : Comparable<A>, B : Any> bubbleDown(
+        private fun <A, B : Any> bubbleDown(
             item: TKVEntry<A, B>,
             l: FBHeap<A, B>,
             r: FBHeap<A, B>,
             R: FBHeap.Companion.RULE
-        ): FBHeap<A, B> =
+        ): FBHeap<A, B> where A: Any, A: Comparable<A> =
             if (l is FBHBranch && r is FBHBranch && (FBHeap.Companion.FIT.ABOVE == FBHeap.Companion.fit(
                     r.entry,
                     l,
@@ -281,7 +280,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 )
             } else FBHBranch(item, l, r)
 
-        private fun <A : Comparable<A>, B : Any> bubbleRootDown(h: FBHeap<A, B>, R: FBHeap.Companion.RULE): FBHeap<A, B> =
+        private fun <A, B : Any> bubbleRootDown(h: FBHeap<A, B>, R: FBHeap.Companion.RULE): FBHeap<A, B> where A: Any, A: Comparable<A> =
             if (h.isEmpty()) h else FBHeap.Companion.bubbleDown(
                 h.top()!!,
                 h.left(),
@@ -289,11 +288,11 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 R
             )
 
-        private fun <A : Comparable<A>, B : Any> floatLeft(
+        private fun <A, B : Any> floatLeft(
             item: TKVEntry<A, B>,
             l: FBHeap<A, B>,
             r: FBHeap<A, B>
-        ): FBHeap<A, B> =
+        ): FBHeap<A, B> where A: Any, A: Comparable<A> =
             when (l) {
                 is FBHBranch -> FBHBranch(
                     l.entry,
@@ -303,11 +302,11 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 else -> FBHBranch(item, l, r)
             }
 
-        private fun <A : Comparable<A>, B : Any> floatRight(
+        private fun <A, B : Any> floatRight(
             item: TKVEntry<A, B>,
             l: FBHeap<A, B>,
             r: FBHeap<A, B>
-        ): FBHeap<A, B> =
+        ): FBHeap<A, B> where A: Any, A: Comparable<A> =
             when (r) {
                 is FBHBranch -> FBHBranch(
                     r.entry,
@@ -317,7 +316,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 else -> FBHBranch(item, l, r)
             }
 
-        private fun <A : Comparable<A>, B : Any> mergeChildren(l: FBHeap<A, B>, r: FBHeap<A, B>): FBHeap<A, B> =
+        private fun <A, B : Any> mergeChildren(l: FBHeap<A, B>, r: FBHeap<A, B>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             if (l.isEmpty() && r.isEmpty()) l // or, identically, r
             else if (r.height() < l.height())
                 FBHeap.Companion.floatLeft(
@@ -348,7 +347,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                     )
             }
 
-        private fun <A : Comparable<A>, B : Any> remove(src: FBHeap<A, B>, R: FBHeap.Companion.RULE): FBHeap<A, B> =
+        private fun <A, B : Any> remove(src: FBHeap<A, B>, R: FBHeap.Companion.RULE): FBHeap<A, B> where A: Any, A: Comparable<A> =
             if (src.isEmpty()) src
             else FBHeap.Companion.bubbleRootDown(
                 FBHeap.Companion.mergeChildren(
@@ -364,7 +363,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 FBHeap.Companion.rule(dest)
             )
 
-        fun <A : Comparable<A>, B : Any> pop(src: FBHeap<A, B>): Pair<FBHeap<A, B>, TKVEntry<A, B>?> =
+        fun <A, B : Any> pop(src: FBHeap<A, B>): Pair<FBHeap<A, B>, TKVEntry<A, B>?> where A: Any, A: Comparable<A> =
             when (src) {
                 is FBHMinNil, is FBHMaxNil -> Pair(src, null)
                 is FBHBranch -> Pair(
@@ -375,7 +374,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 )
             }
 
-        fun <A : Comparable<A>, B : Any> enumerate(heap: FBHeap<A, B>): FList<TKVEntry<A, B>> {
+        fun <A, B : Any> enumerate(heap: FBHeap<A, B>): FList<TKVEntry<A, B>> where A: Any, A: Comparable<A> {
 
             tailrec fun go(h: FBHeap<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> = when (h) {
                 is FBHMinNil, is FBHMaxNil -> acc
@@ -388,7 +387,7 @@ sealed class FBHeap<out A : Any, out B : Any> {
             return go(heap, FLNil)
         }
 
-        fun <A : Comparable<A>, B : Any> equal2(rhs: FBHeap<A, B>, lhs: FBHeap<A, B>): Boolean =
+        fun <A, B : Any> equal2(rhs: FBHeap<A, B>, lhs: FBHeap<A, B>): Boolean where A: Any, A: Comparable<A> =
             when (Pair(lhs.isEmpty(), rhs.isEmpty())) {
                 Pair(false, false) -> if (rhs === lhs) true else {
                     val lh = lhs.height()
@@ -411,10 +410,10 @@ sealed class FBHeap<out A : Any, out B : Any> {
                 else -> false
             }
 
-        fun <A : Comparable<A>, B : Any> FBHeap<A, B>.equal(rhs: FBHeap<A, B>): Boolean =
+        fun <A, B : Any> FBHeap<A, B>.equal(rhs: FBHeap<A, B>): Boolean where A: Any, A: Comparable<A> =
             FBHeap.Companion.equal2(this, rhs)
 
-        internal fun <A : Comparable<A>, B : Any> of(items: Array<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> {
+        internal fun <A, B : Any> of(items: Array<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> where A: Any, A: Comparable<A> {
             fun loop(i: Int): FBHeap<A, B> =
                 if (i < items.size) FBHeap.Companion.bubbleDown(
                     items[i],
@@ -425,19 +424,19 @@ sealed class FBHeap<out A : Any, out B : Any> {
             return loop(0)
         }
 
-        fun <A : Comparable<A>, B : Any> minHeapOf(items: Array<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> minHeapOf(items: Array<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 items,
                 FBHeap.Companion.RULE.MIN
             )
 
-        fun <A : Comparable<A>, B : Any> maxHeapOf(items: Array<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> maxHeapOf(items: Array<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 items,
                 FBHeap.Companion.RULE.MAX
             )
 
-        internal fun <A : Comparable<A>, B : Any> of(fl: FList<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> {
+        internal fun <A, B : Any> of(fl: FList<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> where A: Any, A: Comparable<A> {
             return FBHeap.Companion.of(
                 FList.Companion.toArray(
                     fl
@@ -445,19 +444,19 @@ sealed class FBHeap<out A : Any, out B : Any> {
             )
         }
 
-        fun <A : Comparable<A>, B : Any> minHeapOf(fl: FList<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> minHeapOf(fl: FList<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 fl,
                 FBHeap.Companion.RULE.MIN
             )
 
-        fun <A : Comparable<A>, B : Any> maxHeapOf(fl: FList<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> maxHeapOf(fl: FList<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 fl,
                 FBHeap.Companion.RULE.MAX
             )
 
-        internal fun <A : Comparable<A>, B : Any> of(iter: Iterator<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> {
+        internal fun <A, B : Any> of(iter: Iterator<TKVEntry<A, B>>, R: FBHeap.Companion.RULE): FBHeap<A, B> where A: Any, A: Comparable<A> {
             return FBHeap.Companion.of(
                 FList.Companion.toArray(
                     FList.Companion.of(iter)
@@ -465,22 +464,22 @@ sealed class FBHeap<out A : Any, out B : Any> {
             )
         }
 
-        fun <A : Comparable<A>, B : Any> minHeapOf(iter: Iterator<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> minHeapOf(iter: Iterator<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 iter,
                 FBHeap.Companion.RULE.MIN
             )
 
-        fun <A : Comparable<A>, B : Any> maxHeapOf(iter: Iterator<TKVEntry<A, B>>): FBHeap<A, B> =
+        fun <A, B : Any> maxHeapOf(iter: Iterator<TKVEntry<A, B>>): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.of(
                 iter,
                 FBHeap.Companion.RULE.MAX
             )
 
-        fun <A : Comparable<A>, B : Any> emptyMaxHeap(): FBHeap<A, B> =
+        fun <A, B : Any> emptyMaxHeap(): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.maxHeapNul()
 
-        fun <A : Comparable<A>, B : Any> emptyMinHeap(): FBHeap<A, B> =
+        fun <A, B : Any> emptyMinHeap(): FBHeap<A, B> where A: Any, A: Comparable<A> =
             FBHeap.Companion.minHeapNul()
     }
 }

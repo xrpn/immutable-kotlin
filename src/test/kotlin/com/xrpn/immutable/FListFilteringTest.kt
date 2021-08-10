@@ -8,6 +8,9 @@ private val intListOfNone: IMListFiltering<Int> = FList.of(*arrayOf<Int>())
 private val intListOfOne: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1))
 private val intListOfTwo: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2))
 private val intListOfThree: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFour: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
+private val intListOfFourA: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
+private val intListOfFourB: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
 
 class FListFilteringTest : FunSpec({
 
@@ -80,6 +83,22 @@ class FListFilteringTest : FunSpec({
     FList.of(*arrayOf<Int>(2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
     FList.of(*arrayOf<Int>(3,2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
     FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhile { it > 1 } shouldBe FLCons(1,FLCons(0,FLNil))
+    intListOfFour.fdropWhile { it > 1 } shouldBe intListOfFour
+    intListOfFourA.fdropWhile { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
+    intListOfFourA.fdropWhile { it < 3 } shouldBe FLCons(3, FLNil)
+    intListOfFourB.fdropWhile { it < 3 } shouldBe FLCons(3, FLCons(2, FLNil))
+  }
+
+  test("fdropWhen") {
+    intListOfNone.fdropWhen { it > 1 } shouldBe FLNil
+    intListOfOne.fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhen { it > 1 } shouldBe FLCons(1,FLCons(0,FLNil))
+    intListOfFour.fdropWhen { it > 1 } shouldBe FLCons(1, FLCons(1, FLNil))
+    intListOfFourA.fdropWhen { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
+    intListOfFourA.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
+    intListOfFourB.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
   }
 
   test("ffilter") {

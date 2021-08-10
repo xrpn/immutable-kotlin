@@ -1,12 +1,16 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FSet
+import com.xrpn.immutable.TKVEntry
+
 interface IMListFiltering<out A: Any> {
 
-    fun fdistinct(): IMSet<A> // 	Return a new sequence with no duplicate elements
+    // fun fdistinct(): IMSet<A> // 	Return a new sequence with no duplicate elements
     fun fdrop(n: Int): IMList<A> // 	Return all elements after the first n elements
     fun fdropFirst(isMatch: (A) -> Boolean): IMList<A> // 	Drop the first element that matches the predicate p
     fun fdropRight(n: Int): IMList<A> //	Return all elements except the last n elements
-    fun fdropWhile(isMatch: (A) -> Boolean): IMList<A> // 	Drop the elements that match the predicate p
+    fun fdropWhen(isMatch: (A) -> Boolean): IMList<A> // 	Drop all elements that match the predicate p
+    fun fdropWhile(isMatch: (A) -> Boolean): IMList<A> // 	Drop the first elements that match the predicate p
     fun ffilter(isMatch: (A) -> Boolean): IMList<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMList<A> // 	Return all elements that do not match the predicate p
     fun ffindFromLeft(isMatch: (A) -> Boolean): A? // Return the first element that matches the predicate p
@@ -25,11 +29,20 @@ interface IMListFiltering<out A: Any> {
 }
 
 interface IMSetFiltering<out A: Any> {
-
-    fun fdropWhile(isMatch: (A) -> Boolean): IMSet<A> // 	Drop the elements that match the predicate p
+    fun fpick(): A? // peek at one random element
+    fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A>
     fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
     fun ffind(isMatch: (A) -> Boolean): A? // Return the element that matches the predicate p
-    fun frandom(): A? // 	Returns  some element as a nullable
-    fun fempty(): Boolean = (frandom()?.let { false } != false)
+    fun fempty(): Boolean = (fpick()?.let { false } != false)
+}
+
+interface IMTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun fempty(): Boolean = (root()?.let { false } != false)
+    fun root(): TKVEntry<A, B>?
+    fun fpick(): TKVEntry<A, B>? // peek at one random element
+    fun leftMost(): TKVEntry<A, B>?
+    fun rightMost(): TKVEntry<A, B>?
+    fun minDepth(): Int
+    fun maxDepth(): Int
 }

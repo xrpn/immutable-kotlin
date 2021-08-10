@@ -1,16 +1,16 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.BTreeTraversable.Companion.equal
+import com.xrpn.imapi.IMBTreeTraversable.Companion.equal
 import com.xrpn.immutable.FRBTree.Companion.findKey
 import com.xrpn.immutable.FRBTree.Companion.insert
 import com.xrpn.immutable.FRBTree.Companion.inserts
 
-sealed class FMap<out A: Any, out B: Any> {
+sealed class FMap<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     fun isEmpty(): Boolean = this === FMapBody.empty
-    fun size(): Int = (this as FMapBody).body.size()
+    fun size(): Int = (this as FMapBody).body.size
     fun keys(): FSet<A> = when {
-        isEmpty() -> FSet.emptyFSet()
+        isEmpty() -> FSet.emptyIMSet()
         else -> {
             this as FMapBody
             FSet.of(this.body.preorder(reverse = true).fmap { it.getk() })
@@ -66,17 +66,17 @@ sealed class FMap<out A: Any, out B: Any> {
     }
 }
 
-internal class FMapBody<A: Any, out B: Any> internal constructor (
+internal class FMapBody<out A, out B: Any> internal constructor (
     val body: FRBTree<A, B>
-): FMap<A, B>() {
+): FMap<A, B>() where A: Any, A: Comparable<@UnsafeVariance A> {
 
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
         other is FMapBody<*, *> -> when {
-            this.isEmpty() && other.body.isEmpty() -> true
-            this.body.isEmpty() || other.body.isEmpty() -> false
-            this.body.root()!!::class == other.body.root()!!::class -> equal(this.body, other.body)
+            this.isEmpty() && other.body.fempty() -> true
+            this.body.fempty() || other.body.fempty() -> false
+            this.body.root()!!::class == other.body.root()!!::class -> @Suppress("UNCHECKED_CAST") equal(this.body, other.body as FRBTree<A, B>)
             else -> false
         }
         else -> false
