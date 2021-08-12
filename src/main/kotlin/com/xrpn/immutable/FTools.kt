@@ -11,11 +11,19 @@ fun <A, B> Triple<A, A, A>.tmap1(f: (A) -> B): Triple<B, B, B> = Triple(f(this.f
 fun <A, B, C, D, E, F> Triple<A, B, C>.tmap3(f: (A) -> D, g: (B) -> E, h: (C) -> F): Triple<D, E, F> = Triple(f(this.first), g(this.second), h(this.third))
 fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLCons(this.third, FLNil)))
 
+//abstract class DeepRecursiveScope<T, R> {
+//    abstract suspend fun callRecursive(value: T): R
+//}
+//
+//class DeepRecursiveFunction<T, R>(
+//    val block: suspend DeepRecursiveScope<T, R>.(T) -> R
+//)
+
 data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
         Comparable<TKVEntryK<A,B>>,
         TKVEntry<A,B> {
 
-    override fun compareTo(other: TKVEntryK<A, B>): Int = k.compareTo(other.k)
+    override operator fun compareTo(other: TKVEntryK<A, B>): Int = k.compareTo(other.k)
 
     override fun toString(): String = "[ $k:$v ]"
 
@@ -39,7 +47,6 @@ data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
     override fun getkc(): Comparable<A> = k
     override fun getv(): B = v
     override fun copy(): TKVEntry<A, B> = /* TODO */ this.copy(k=k, v=v)
-
 }
 
 interface TKVEntry<out A, out B: Any> where A: Any, A: Comparable<@kotlin.UnsafeVariance A> {
@@ -49,6 +56,7 @@ interface TKVEntry<out A, out B: Any> where A: Any, A: Comparable<@kotlin.Unsafe
     fun copy(): TKVEntry<A,B>
 
     companion object {
+        fun <A: Comparable<A>, B: Any> TKVEntry<A, B>.compare(other: TKVEntry<A, B>): Int = this.getkc().compareTo(other.getk())
         fun <A: Comparable<A>, B: Any> of (key:A, value: B): TKVEntry<A, B> = TKVEntryK(key, value)
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>): TKVEntry<A, B> = TKVEntryK(p.first, p.second)
         fun <B: Any> ofIntKey (item: B): TKVEntry<Int, B> = TKVEntryK(item.hashCode(), item)

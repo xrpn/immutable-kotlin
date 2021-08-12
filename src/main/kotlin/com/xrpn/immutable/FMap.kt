@@ -76,7 +76,7 @@ internal class FMapBody<out A, out B: Any> internal constructor (
         other is FMapBody<*, *> -> when {
             this.isEmpty() && other.body.fempty() -> true
             this.body.fempty() || other.body.fempty() -> false
-            this.body.root()!!::class == other.body.root()!!::class -> @Suppress("UNCHECKED_CAST") equal(this.body, other.body as FRBTree<A, B>)
+            this.body.froot()!!::class == other.body.froot()!!::class -> @Suppress("UNCHECKED_CAST") equal(this.body, other.body as FRBTree<A, B>)
             else -> false
         }
         else -> false

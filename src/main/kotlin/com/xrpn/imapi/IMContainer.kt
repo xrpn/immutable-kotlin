@@ -6,14 +6,17 @@ import com.xrpn.immutable.TKVEntry
 
 interface IMList<out A:Any>: IMListFiltering<A>, IMListGrouping<A>, IMListTransforming<A>
 interface IMSet<out A:Any>: IMSetFiltering<A>, IMSetGrouping<A>, IMSetTransforming<A>
-interface IMBTree<out A, out B: Any>: IMBTreeTraversable<A, B>, IMTreeFiltering<A, B>, IMTreeGrouping<A, B>
+interface IMBTree<out A, out B: Any>: IMBTreeTraversable<A, B>, IMBTreeFiltering<A, B>, IMBTreeGrouping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A>
 
 interface IMBTreeTraversable<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
     fun reverseIterator(): Iterator<B>
     fun preorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
+    fun preorderForEach (f: (TKVEntry<A, B>) -> Unit): Unit
     fun postorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
+    fun postorderForEach (f: (TKVEntry<A, B>) -> Unit): Unit
     fun inorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
+    fun inorderForEach (f: (TKVEntry<A, B>) -> Unit): Unit
     fun breadthFirst(reverse: Boolean = false): FList<TKVEntry<A, B>>
 
     companion object {

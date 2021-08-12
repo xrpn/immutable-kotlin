@@ -5,8 +5,6 @@ import com.xrpn.hash.DigestHash
 import kotlin.collections.List
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
-import com.xrpn.immutable.FList.Companion.prependAll
-import com.xrpn.immutable.FList.Companion.toFList
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
 
@@ -108,7 +106,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         tailrec fun dropMatch(l: IMList<A>, current: IMList<A>): IMList<A>  = when {
             l.fempty() -> current
             isMatch(l.fhead()!!) -> dropMatch(l.ftail(), current)
-            else -> dropMatch(l.ftail(), current.prepend(l.fhead()!!))
+            else -> dropMatch(l.ftail(), current.fprepend(l.fhead()!!))
         }
 
         return this.ffindFromLeft(isMatch)?.let { dropMatch(this, FLNil).freverse() } ?: this
@@ -509,23 +507,23 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
         // ==========
 
-        override fun <A: Any> IMList<A>.append(item: A): IMList<A> = fsetLast(this.toFList(), item)
+        override fun <A: Any> IMList<A>.fappend(item: A): IMList<A> = fsetLast(this.toFList(), item)
 
-        override fun <A: Any> IMList<A>.appendAll(elements: Collection<A>): IMList<A> = fappend(this.toFList(), elements.toFList())
+        override fun <A: Any> IMList<A>.fappendAll(elements: Collection<A>): IMList<A> = fappend(this.toFList(), elements.toFList())
 
-        override fun <A: Any> IMList<A>.hasSubsequence(sub: IMList<A>): Boolean = fhasSubsequence(this.toFList(), sub.toFList())
+        override fun <A: Any> IMList<A>.fhasSubsequence(sub: IMList<A>): Boolean = fhasSubsequence(this.toFList(), sub.toFList())
 
-        override fun <A: Any> IMList<A>.prepend(item: A): IMList<A> = fsetHead(item, this.toFList())
+        override fun <A: Any> IMList<A>.fprepend(item: A): IMList<A> = fsetHead(item, this.toFList())
 
-        override fun <A: Any> IMList<A>.prependAll(elements: Collection<A>): IMList<A> = fappend(elements.toFList(), this.toFList())
+        override fun <A: Any> IMList<A>.fprependAll(elements: Collection<A>): IMList<A> = fappend(elements.toFList(), this.toFList())
 
-        override fun <A: Any> IMList<A>.remove(item: A): IMList<A> = this.fdropWhen { it == item }
+        override fun <A: Any> IMList<A>.fremove(item: A): IMList<A> = this.fdropWhen { it == item }
 
         // TODO the following is a dog
-        override fun <A: Any> IMList<A>.removeAll(elements: Collection<A>): IMList<A> {
+        override fun <A: Any> IMList<A>.fremoveAll(elements: Collection<A>): IMList<A> {
             var res = this
             for(element in elements) {
-                res = res.remove(element).toFList()
+                res = res.fremove(element).toFList()
             }
             return res
         }

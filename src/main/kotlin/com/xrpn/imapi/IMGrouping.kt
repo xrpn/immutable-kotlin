@@ -25,20 +25,22 @@ interface IMListGrouping<out A: Any> {
 
 interface IMSetGrouping<out A: Any> {
 
-    fun fsize(): Int // number of elements
-    fun popAndReminder(): Pair<A?, IMSet<A>>
+    fun fcombinations(size: Int): IMSet<IMSet<A>> // all groups of "size" members from this set; order does not matter
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
     fun fpermutations(size: Int): IMSet<IMList<A>> // all groups of "size" members from this set; order does matter
-    fun fcombinations(size: Int): IMSet<IMSet<A>> // all groups of "size" members from this set; order does not matter
+    fun fpopAndReminder(): Pair<A?, IMSet<A>>
+    fun fsize(): Int // number of elements
 }
 
-interface IMTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{
+interface IMBTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{
 
     fun fsize(): Int // number of elements
-    fun popAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
+    fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
+    fun fmaxDepth(): Int
+    fun fminDepth(): Int
 
 //    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
 //    fun <B> fgroupBy(f: (A) -> B): Map<B, IMSet<A>> //	A map of collections created by the function f

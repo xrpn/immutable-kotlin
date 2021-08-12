@@ -38,7 +38,7 @@ task printSourceSetInformation(){
 }
 
 test {
-    maxHeapSize = '1G'
+    maxHeapSize = '2G'
     useJUnitPlatform()
 }
 
@@ -57,6 +57,7 @@ jacocoTestReport {
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
+
         allWarningsAsErrors = true
         verbose = true
         freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"

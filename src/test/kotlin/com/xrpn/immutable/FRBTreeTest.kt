@@ -59,19 +59,19 @@ class FRBTreeTest : FunSpec({
 //    }
 
     test("root") {
-        FRBTNil.root() shouldBe null
+        FRBTNil.froot() shouldBe null
         val ary = IntArray(1) { nextInt() }
-        of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).root() shouldBe TKVEntry.ofIntKey(ary[0])
+        of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).froot() shouldBe TKVEntry.ofIntKey(ary[0])
         val itemAry = Array(1) { TKVEntry.ofIntKey(nextInt()) }
-        of(itemAry.iterator()).root() shouldBe itemAry[0]
+        of(itemAry.iterator()).froot() shouldBe itemAry[0]
     }
 
     test("min") {
-        FRBTNil.leftMost() shouldBe null
+        FRBTNil.fleftMost() shouldBe null
     }
 
     test("max") {
-        FRBTNil.rightMost() shouldBe null
+        FRBTNil.frightMost() shouldBe null
     }
 
     test("min max int") {
@@ -79,8 +79,8 @@ class FRBTreeTest : FunSpec({
             val ary = IntArray(size) { nextInt() }
             val max = ary.maxOrNull()!!
             val min = ary.minOrNull()!!
-            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).leftMost() shouldBe TKVEntry.ofIntKey(min)
-            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).rightMost() shouldBe TKVEntry.ofIntKey(max)
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).fleftMost() shouldBe TKVEntry.ofIntKey(min)
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).frightMost() shouldBe TKVEntry.ofIntKey(max)
         }
     }
 
@@ -232,37 +232,37 @@ class FRBTreeTest : FunSpec({
     }
 
     test("maxDepth") {
-        FRBTNil.maxDepth() shouldBe 0
-        FRBTNode(TKVEntry.of(mEntry.hashCode(),mEntry)).maxDepth() shouldBe 1
+        FRBTNil.fmaxDepth() shouldBe 0
+        FRBTNode(TKVEntry.of(mEntry.hashCode(),mEntry)).fmaxDepth() shouldBe 1
 
-        ttDepthOneRight.maxDepth() shouldBe 2
-        frbDepthOneLeft.maxDepth() shouldBe 2
-        frbDepthOneFull.maxDepth() shouldBe 2
+        ttDepthOneRight.fmaxDepth() shouldBe 2
+        frbDepthOneLeft.fmaxDepth() shouldBe 2
+        frbDepthOneFull.fmaxDepth() shouldBe 2
 
-        ttDepthTwoLeftRight.maxDepth() shouldBe 3
-        frbDepthTwoLeftLeft.maxDepth() shouldBe 3
-        frbDepthTwoRightRight.maxDepth() shouldBe 3
-        frbDepthTwoRightLeft.maxDepth() shouldBe 3
+        ttDepthTwoLeftRight.fmaxDepth() shouldBe 3
+        frbDepthTwoLeftLeft.fmaxDepth() shouldBe 3
+        frbDepthTwoRightRight.fmaxDepth() shouldBe 3
+        frbDepthTwoRightLeft.fmaxDepth() shouldBe 3
 
-        frbWikiTree.maxDepth() shouldBe 4
-        frbSlideShareTree.maxDepth() shouldBe 4
+        frbWikiTree.fmaxDepth() shouldBe 4
+        frbSlideShareTree.fmaxDepth() shouldBe 4
     }
 
     test("minDepth") {
-        FRBTNil.minDepth() shouldBe 0
-        FRBTNode(mEntry).minDepth() shouldBe 1
+        FRBTNil.fminDepth() shouldBe 0
+        FRBTNode(mEntry).fminDepth() shouldBe 1
 
-        ttDepthOneRight.minDepth() shouldBe 2
-        frbDepthOneLeft.minDepth() shouldBe 2
-        frbDepthOneFull.minDepth() shouldBe 2
+        ttDepthOneRight.fminDepth() shouldBe 2
+        frbDepthOneLeft.fminDepth() shouldBe 2
+        frbDepthOneFull.fminDepth() shouldBe 2
 
-        ttDepthTwoLeftRight.minDepth() shouldBe 2
-        frbDepthTwoLeftLeft.minDepth() shouldBe 2
-        frbDepthTwoRightRight.minDepth() shouldBe 2
-        frbDepthTwoRightLeft.minDepth() shouldBe 2
+        ttDepthTwoLeftRight.fminDepth() shouldBe 2
+        frbDepthTwoLeftLeft.fminDepth() shouldBe 2
+        frbDepthTwoRightRight.fminDepth() shouldBe 2
+        frbDepthTwoRightLeft.fminDepth() shouldBe 2
 
-        frbWikiTree.minDepth() shouldBe 3
-        frbSlideShareTree.minDepth() shouldBe 3
+        frbWikiTree.fminDepth() shouldBe 3
+        frbSlideShareTree.fminDepth() shouldBe 3
     }
 
     test("map") {
@@ -852,8 +852,8 @@ private fun displayRbOnVerbose(rbTree: FRBTree<Int, Int>, n: Int, force: Boolean
     if (verbose || !rbRootSane(rbTree) || force) {
         print("FF size " + n)
         print(", expected depth ${rbMaxDepth(n)}")
-        print(", max depth " + rbTree.maxDepth())
-        println(", min depth " + rbTree.minDepth())
+        print(", max depth " + rbTree.fmaxDepth())
+        println(", min depth " + rbTree.fminDepth())
         // println("$rbTree")
     }
 }

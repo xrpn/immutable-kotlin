@@ -297,6 +297,19 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTreeTraversable<A, B> {
     override fun reverseIterator(): Iterator<B> {
         TODO("Not yet implemented")
     }
+
+    override fun preorderForEach(f: (TKVEntry<A, B>) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun postorderForEach(f: (TKVEntry<A, B>) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun inorderForEach(f: (TKVEntry<A, B>) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

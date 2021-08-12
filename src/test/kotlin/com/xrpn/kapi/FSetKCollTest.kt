@@ -22,8 +22,24 @@ private val intSetOfTwoB: Collection<Int> = FSet.of(*arrayOf<Int>(0,2))
 private val intSetOfTwoC: Collection<Int> = FSet.of(*arrayOf<Int>(1,4))
 private val intSetOfThree: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3))
 private val intSetOfThreeA: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,5))
-private val intSetOfFive: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,2,1))
+private val intSetOfFive: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,4,5))
+private val intSetOfFiveA: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,2,1))
 private val intSetOfSix: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSetOf2: Collection<Int> = FSet.of(2)
+private val intSetOf3: Collection<Int> = FSet.of(3)
+private val intSetOf4: Collection<Int> = FSet.of(4)
+private val intSetOf5: Collection<Int> = FSet.of(5)
+private val intSetOf13: Collection<Int> = FSet.of(1, 3)
+private val intSetOf23: Collection<Int> = FSet.of(2, 3)
+private val intSetOf25: Collection<Int> = FSet.of(2, 5)
+private val intSetOf45: Collection<Int> = FSet.of(4, 5)
+private val intSetOf125: Collection<Int> = FSet.of(1, 2, 5)
+private val intSetOf145: Collection<Int> = FSet.of(1, 4, 5)
+private val intSetOf245: Collection<Int> = FSet.of(2, 4, 5)
+private val intSetOf1245: Collection<Int> = FSet.of(1, 2, 4, 5)
+private val intSetOf1235: Collection<Int> = FSet.of(1, 2, 3, 5)
+private val intSetOf1345: Collection<Int> = FSet.of(1, 3, 4, 5)
+
 
 class FSetKCollTest : FunSpec({
 
@@ -173,8 +189,8 @@ class FSetKCollTest : FunSpec({
   }
 
   test("iterator b") {
-    val itr = intSetOfFive.iterator() as FSetIterator<Int>
-    for (i in (1..intSetOfFive.size)) {
+    val itr = intSetOfFiveA.iterator() as FSetIterator<Int>
+    for (i in (1..intSetOfFiveA.size)) {
       val tmp = itr.nullableNext()
       tmp?.let { true } shouldBe true
     }
@@ -616,7 +632,7 @@ class FSetKCollTest : FunSpec({
     fun f(t: Int): Int = -t
 
     intSetOfNone.groupBy(::f) shouldBe emptyMap()
-    intSetOfFive.groupBy(::f) shouldBe mapOf( -1 to setOf(1, 1), -2 to setOf(2,2), -3 to setOf(3) )
+    intSetOfFiveA.groupBy(::f) shouldBe mapOf( -1 to setOf(1, 1), -2 to setOf(2,2), -3 to setOf(3) )
   }
 
   test("groupBy (k, v)") {
@@ -625,7 +641,7 @@ class FSetKCollTest : FunSpec({
     fun g(t: Int): Int = 2*t
 
     intSetOfNone.groupBy(::f, ::g) shouldBe emptyMap()
-    intSetOfFive.groupBy(::f, ::g) shouldBe mapOf( -1 to setOf(2, 2), -2 to setOf(4,4), -3 to setOf(6) )
+    intSetOfFiveA.groupBy(::f, ::g) shouldBe mapOf( -1 to setOf(2, 2), -2 to setOf(4,4), -3 to setOf(6) )
   }
 
   // TODO (maybe)
@@ -671,7 +687,7 @@ class FSetKCollTest : FunSpec({
     intSetOfNone.distinct().toFSet() shouldBe emptyIMSet()
     intSetOfOne.distinct() shouldBe intSetOfOne.toSet()
     intSetOfTwo.distinct() shouldBe intSetOfTwo.toSet()
-    intSetOfFive.distinct() shouldBe intSetOfThree.toSet()
+    intSetOfFiveA.distinct() shouldBe intSetOfThree.toSet()
     intSetOfSix.distinct() shouldBe intSetOfThree.toSet()
   }
 
@@ -682,14 +698,168 @@ class FSetKCollTest : FunSpec({
     intSetOfNone.distinctBy(::identity).toFSet() shouldBe emptyIMSet()
     intSetOfOne.distinctBy(::identity) shouldBe intSetOfOne.toSet()
     intSetOfTwo.distinctBy(::identity) shouldBe intSetOfTwo.toSet()
-    intSetOfFive.distinctBy(::identity) shouldBe intSetOfThree.toSet()
+    intSetOfFiveA.distinctBy(::identity) shouldBe intSetOfThree.toSet()
     intSetOfSix.distinctBy(::identity) shouldBe intSetOfThree.toSet()
   }
 
-  // ignore
-  // test("intersect") {}
-  // test("subtract") {}
-  // test("union") {}
+   test("intersect") {
+     intSetOfNone.intersect(intSetOfNone) shouldBe intSetOfNone
+
+     intSetOfOne.intersect(intSetOfNone) shouldBe intSetOfNone
+     intSetOfTwo.intersect(intSetOfNone) shouldBe intSetOfNone
+     intSetOfThree.intersect(intSetOfNone) shouldBe intSetOfNone
+
+     intSetOfNone.intersect(intSetOfOne) shouldBe intSetOfNone
+     intSetOfNone.intersect(intSetOfTwo) shouldBe intSetOfNone
+     intSetOfNone.intersect(intSetOfThree) shouldBe intSetOfNone
+
+     intSetOfOne.intersect(intSetOfOne) shouldBe intSetOfOne
+     intSetOfTwo.intersect(intSetOfTwo) shouldBe intSetOfTwo
+     intSetOfThree.intersect(intSetOfThree) shouldBe intSetOfThree
+
+     intSetOfTwo.intersect(intSetOfOne) shouldBe intSetOfOne
+     intSetOfOne.intersect(intSetOfTwo) shouldBe intSetOfOne
+
+     intSetOfOne.intersect(intSetOfThree) shouldBe intSetOfOne
+     intSetOfOne.intersect(intSetOf13) shouldBe intSetOfOne
+     intSetOfOne.intersect(intSetOf25) shouldBe intSetOfNone
+     intSetOfOne.intersect(intSetOf45) shouldBe intSetOfNone
+
+     intSetOfTwo.intersect(intSetOfThree) shouldBe intSetOfTwo
+     intSetOfTwo.intersect(intSetOf13) shouldBe intSetOfOne
+     intSetOfTwo.intersect(intSetOf25) shouldBe intSetOf2
+     intSetOfTwo.intersect(intSetOf45) shouldBe intSetOfNone
+
+     intSetOf13.intersect(intSetOfOne) shouldBe intSetOfOne
+     intSetOf13.intersect(intSetOfTwo) shouldBe intSetOfOne
+     intSetOf13.intersect(intSetOfThree) shouldBe intSetOf13
+     intSetOf13.intersect(intSetOf25) shouldBe intSetOfNone
+     intSetOf13.intersect(intSetOf45) shouldBe intSetOfNone
+
+     intSetOf25.intersect(intSetOfOne) shouldBe intSetOfNone
+     intSetOf25.intersect(intSetOfTwo) shouldBe intSetOf2
+     intSetOf25.intersect(intSetOfThree) shouldBe intSetOf2
+     intSetOf25.intersect(intSetOf13) shouldBe intSetOfNone
+     intSetOf25.intersect(intSetOf45) shouldBe intSetOf5
+
+     intSetOf45.intersect(intSetOfOne) shouldBe intSetOfNone
+     intSetOf45.intersect(intSetOfTwo) shouldBe intSetOfNone
+     intSetOf45.intersect(intSetOfThree) shouldBe intSetOfNone
+     intSetOf45.intersect(intSetOf13) shouldBe intSetOfNone
+     intSetOf45.intersect(intSetOf25) shouldBe intSetOf5
+
+     intSetOfThree.intersect(intSetOfOne) shouldBe intSetOfOne
+     intSetOfThree.intersect(intSetOfTwo) shouldBe intSetOfTwo
+     intSetOfThree.intersect(intSetOf13) shouldBe intSetOf13
+     intSetOfThree.intersect(intSetOf25) shouldBe intSetOf2
+     intSetOfThree.intersect(intSetOf45) shouldBe intSetOfNone
+   }
+
+   test("subtract") {
+     intSetOfNone.subtract(intSetOfNone) shouldBe intSetOfNone
+
+     intSetOfOne.subtract(intSetOfNone) shouldBe intSetOfOne
+     intSetOfTwo.subtract(intSetOfNone) shouldBe intSetOfTwo
+     intSetOfThree.subtract(intSetOfNone) shouldBe intSetOfThree
+
+     intSetOfNone.subtract(intSetOfOne) shouldBe intSetOfNone
+     intSetOfNone.subtract(intSetOfTwo) shouldBe intSetOfNone
+     intSetOfNone.subtract(intSetOfThree) shouldBe intSetOfNone
+
+     intSetOfOne.subtract(intSetOfOne) shouldBe intSetOfNone
+     intSetOfTwo.subtract(intSetOfTwo) shouldBe intSetOfNone
+     intSetOfThree.subtract(intSetOfThree) shouldBe intSetOfNone
+
+     intSetOfTwo.subtract(intSetOfOne) shouldBe intSetOf2
+     intSetOfOne.subtract(intSetOfTwo) shouldBe intSetOfNone
+
+     intSetOfOne.subtract(intSetOfThree) shouldBe intSetOfNone
+     intSetOfOne.subtract(intSetOf13) shouldBe intSetOfNone
+     intSetOfOne.subtract(intSetOf25) shouldBe intSetOfOne
+     intSetOfOne.subtract(intSetOf45) shouldBe intSetOfOne
+
+     intSetOfTwo.subtract(intSetOfThree) shouldBe intSetOfNone
+     intSetOfTwo.subtract(intSetOf13) shouldBe intSetOf2
+     intSetOfTwo.subtract(intSetOf25) shouldBe intSetOfOne
+     intSetOfTwo.subtract(intSetOf45) shouldBe intSetOfTwo
+
+     intSetOf13.subtract(intSetOfOne) shouldBe intSetOf3
+     intSetOf13.subtract(intSetOfTwo) shouldBe intSetOf3
+     intSetOf13.subtract(intSetOfThree) shouldBe intSetOfNone
+     intSetOf13.subtract(intSetOf25) shouldBe intSetOf13
+     intSetOf13.subtract(intSetOf45) shouldBe intSetOf13
+
+     intSetOf25.subtract(intSetOfOne) shouldBe intSetOf25
+     intSetOf25.subtract(intSetOfTwo) shouldBe intSetOf5
+     intSetOf25.subtract(intSetOfThree) shouldBe intSetOf5
+     intSetOf25.subtract(intSetOf13) shouldBe intSetOf25
+     intSetOf25.subtract(intSetOf45) shouldBe intSetOf2
+
+     intSetOf45.subtract(intSetOfOne) shouldBe intSetOf45
+     intSetOf45.subtract(intSetOfTwo) shouldBe intSetOf45
+     intSetOf45.subtract(intSetOfThree) shouldBe intSetOf45
+     intSetOf45.subtract(intSetOf13) shouldBe intSetOf45
+     intSetOf45.subtract(intSetOf25) shouldBe intSetOf4
+
+     intSetOfThree.subtract(intSetOfOne) shouldBe intSetOf23
+     intSetOfThree.subtract(intSetOfTwo) shouldBe intSetOf3
+     intSetOfThree.subtract(intSetOf13) shouldBe intSetOf2
+     intSetOfThree.subtract(intSetOf25) shouldBe intSetOf13
+     intSetOfThree.subtract(intSetOf45) shouldBe intSetOfThree
+   }
+
+  test("union") {
+    intSetOfNone.union(intSetOfNone) shouldBe intSetOfNone
+
+    intSetOfOne.union(intSetOfNone) shouldBe intSetOfOne
+    intSetOfTwo.union(intSetOfNone) shouldBe intSetOfTwo
+    intSetOfThree.union(intSetOfNone) shouldBe intSetOfThree
+
+    intSetOfNone.union(intSetOfOne) shouldBe intSetOfOne
+    intSetOfNone.union(intSetOfTwo) shouldBe intSetOfTwo
+    intSetOfNone.union(intSetOfThree) shouldBe intSetOfThree
+
+    intSetOfOne.union(intSetOfOne) shouldBe intSetOfOne
+    intSetOfTwo.union(intSetOfTwo) shouldBe intSetOfTwo
+    intSetOfThree.union(intSetOfThree) shouldBe intSetOfThree
+
+    intSetOfTwo.union(intSetOfOne) shouldBe intSetOfTwo
+    intSetOfOne.union(intSetOfTwo) shouldBe intSetOfTwo
+
+    intSetOfOne.union(intSetOfThree) shouldBe intSetOfThree
+    intSetOfOne.union(intSetOf13) shouldBe intSetOf13
+    intSetOfOne.union(intSetOf25) shouldBe intSetOf125
+    intSetOfOne.union(intSetOf45) shouldBe intSetOf145
+
+    intSetOfTwo.union(intSetOfThree) shouldBe intSetOfThree
+    intSetOfTwo.union(intSetOf13) shouldBe intSetOfThree
+    intSetOfTwo.union(intSetOf25) shouldBe intSetOf125
+    intSetOfTwo.union(intSetOf45) shouldBe intSetOf1245
+
+    intSetOf13.union(intSetOfOne) shouldBe intSetOf13
+    intSetOf13.union(intSetOfTwo) shouldBe intSetOfThree
+    intSetOf13.union(intSetOfThree) shouldBe intSetOfThree
+    intSetOf13.union(intSetOf25) shouldBe intSetOf1235
+    intSetOf13.union(intSetOf45) shouldBe intSetOf1345
+
+    intSetOf25.union(intSetOfOne) shouldBe intSetOf125
+    intSetOf25.union(intSetOfTwo) shouldBe intSetOf125
+    intSetOf25.union(intSetOfThree) shouldBe intSetOf1235
+    intSetOf25.union(intSetOf13) shouldBe intSetOf1235
+    intSetOf25.union(intSetOf45) shouldBe intSetOf245
+
+    intSetOf45.union(intSetOfOne) shouldBe intSetOf145
+    intSetOf45.union(intSetOfTwo) shouldBe intSetOf1245
+    intSetOf45.union(intSetOfThree) shouldBe intSetOfFive
+    intSetOf45.union(intSetOf13) shouldBe intSetOf1345
+    intSetOf45.union(intSetOf25) shouldBe intSetOf245
+
+    intSetOfThree.union(intSetOfOne) shouldBe intSetOfThree
+    intSetOfThree.union(intSetOfTwo) shouldBe intSetOfThree
+    intSetOfThree.union(intSetOf13) shouldBe intSetOfThree
+    intSetOfThree.union(intSetOf25) shouldBe intSetOf1235
+    intSetOfThree.union(intSetOf45) shouldBe intSetOfFive
+  }
 
   test("all") {
     intSetOfNone.all(matchLessThan(0)) shouldBe true // by vacuous implication
@@ -722,7 +892,7 @@ class FSetKCollTest : FunSpec({
 
   test("count matching") {
     intSetOfNone.count(matchEqual(0)) shouldBe 0
-    intSetOfFive.count(matchEqual(3)) shouldBe 1
+    intSetOfFiveA.count(matchEqual(3)) shouldBe 1
     intSetOfSix.count(matchEqual(3)) shouldBe 1
   }
 
@@ -785,8 +955,13 @@ class FSetKCollTest : FunSpec({
     }
   }
 
-  // ignore
-  // test("runningFoldIndexed") {}
+  test("runningFoldIndexed") {
+    shouldThrow<RuntimeException> {
+      val ss = { index: Int, acc: Int, b: Int -> b + acc + index }
+      @Suppress("DEPRECATION")
+      FSet.of(*arrayOf<Int>(2,1)).runningFoldIndexed(1, ss)
+    }
+  }
 
   test("runningReduce") {
     shouldThrow<RuntimeException> {
@@ -796,8 +971,13 @@ class FSetKCollTest : FunSpec({
     }
   }
 
-  // ignore
-  // test("runningReduceIndexed") {}
+  test("runningReduceIndexed") {
+    shouldThrow<RuntimeException> {
+      val ss = { index: Int, acc: Int, b: Int -> b + acc + index }
+      @Suppress("DEPRECATION")
+      FSet.of(*arrayOf<Int>(2,1)).runningReduceIndexed(ss)
+    }
+  }
 
   test("partition") {
     (intSetOfOne.partition(matchLessThan(1)).pmap1 { l -> of(l.iterator()) }) shouldBe Pair(emptyIMSet(), setOf(1))
@@ -825,7 +1005,17 @@ class FSetKCollTest : FunSpec({
     }
   }
 
-  // ignore
-  // test("zipWithNext"){}
-  // test("zipWithNext (transform)"){}
+  test("zipWithNext") {
+    shouldThrow<RuntimeException> {
+      @Suppress("DEPRECATION")
+      FSet.of(*arrayOf<Int>(2,1)).zipWithNext()
+    }
+  }
+
+  test("zipWithNext transform") {
+    shouldThrow<RuntimeException> {
+      @Suppress("DEPRECATION")
+      FSet.of(*arrayOf<Int>(2,1)).zipWithNext { a, b -> Pair(a, b) }
+    }
+  }
 })
