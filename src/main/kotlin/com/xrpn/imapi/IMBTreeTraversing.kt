@@ -4,20 +4,29 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 
-interface IMTraversable<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
-    fun forEach (f: (TKVEntry<A, B>) -> Unit): Unit
+interface IMListTraversing<out A: Any> {
+    fun fforEach (f: (A) -> Unit): Unit
+}
+
+interface IMSetTraversing<out A: Any> {
+    fun fforEach (f: (A) -> Unit): Unit
+}
+
+interface IMBTreeTraversing<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun fforEach (f: (TKVEntry<A, B>) -> Unit): Unit
     fun preorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun postorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun inorder(reverse: Boolean = false): FList<TKVEntry<A, B>>
     fun breadthFirst(reverse: Boolean = false): FList<TKVEntry<A, B>>
 
     companion object {
-        fun <A, B: Any> equal(rhs: IMTraversable<A, B>, lhs: IMTraversable<A, B>) : Boolean where A: Any, A: Comparable<A> =
-            rhs.inorder() == lhs.inorder()
-        fun <A, B: Any> strongEqual(rhs: IMTraversable<A, B>, lhs: IMTraversable<A, B>): Boolean where A: Any, A: Comparable<A> =
-            rhs.preorder() == lhs.preorder() &&
-                    rhs.inorder() == lhs.inorder() &&
-                    rhs.postorder() == lhs.postorder()
+        fun <A, B: Any> equal(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when (Pair(lhs.fempty(), rhs.fempty())) {
+            Pair(false, false) -> if (rhs === lhs) true else rhs.inorder() == lhs.inorder()
+            Pair(true, true) -> true
+            else -> false
+        }
+        fun <A, B: Any> strongEqual(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A> =
+            equal(rhs, lhs) && rhs.preorder() == lhs.preorder() && rhs.postorder() == lhs.postorder()
     }
 
     fun preorderValues(reverse: Boolean = false): FList<B> = preorder(reverse).fmap { it.getv() }

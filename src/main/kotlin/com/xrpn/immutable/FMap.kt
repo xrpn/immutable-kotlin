@@ -1,6 +1,6 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMTraversable.Companion.equal
+import com.xrpn.imapi.IMBTreeTraversing.Companion.equal
 import com.xrpn.immutable.FRBTree.Companion.ffindKey
 import com.xrpn.immutable.FRBTree.Companion.finsert
 import com.xrpn.immutable.FRBTree.Companion.finserts

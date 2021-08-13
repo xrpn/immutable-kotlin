@@ -74,6 +74,21 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         out (on most reasonable general purpose computers) of stack frames.
      */
 
+    // traversing
+
+    override fun fforEach (f: (A) -> Unit): Unit {
+
+        tailrec fun go(xs: FList<A>): Unit = when(xs) {
+            is FLNil -> Unit
+            is FLCons -> {
+                f(xs.head)
+                go(xs.tail)
+            }
+        }
+
+        return go(this)
+    }
+
     // filtering
 
     override fun fdrop(n: Int): FList<A> {
@@ -446,7 +461,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     fun copy(): FList<A> = this.ffoldRight(emptyIMList(), { a, b -> FLCons(a,b)})
 
-    fun copyToList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
+    fun copyToMutableList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
 
     companion object: IMListCompanion {
 

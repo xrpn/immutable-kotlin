@@ -18,6 +18,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
+import java.util.concurrent.atomic.AtomicInteger
 
 private val intListOfNone = FList.of(*arrayOf<Int>())
 private val intListOfOne = FList.of(*arrayOf<Int>(1))
@@ -38,6 +39,24 @@ class FListCompanionTest : FunSpec({
 
   beforeTest {}
 
+  // traversing stowaway
+
+  test("forEach") {
+    val counter = AtomicInteger(0)
+    val summer = AtomicInteger(0)
+    val doCount: (Int) -> Unit = { counter.incrementAndGet() }
+    val doSum: (Int) -> Unit = { v -> summer.addAndGet(v) }
+    checkAll(50, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+      val oraSum = fl.fold(0){ acc, el -> acc + el }
+      fl.forEach(doCount)
+      counter.get() shouldBe fl.size
+      counter.set(0)
+      fl.forEach(doSum)
+      summer.get() shouldBe oraSum
+      summer.set(0)
+    }
+  }
+  
   test("co.emptyFList") {
     FList.emptyIMList<Int>().isEmpty() shouldBe true
     FList.emptyIMList<Int>().fempty() shouldBe true

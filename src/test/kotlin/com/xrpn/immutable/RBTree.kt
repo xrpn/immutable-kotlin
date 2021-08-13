@@ -2,13 +2,13 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMTraversable
+import com.xrpn.imapi.IMList
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
  */
 
-open class RBTree<A: Comparable<A>, B: Any>: IMTraversable<A, B> {
+open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
 
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
@@ -295,7 +295,49 @@ open class RBTree<A: Comparable<A>, B: Any>: IMTraversable<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun forEach(f: (TKVEntry<A, B>) -> Unit) {
+    override fun fforEach(f: (TKVEntry<A, B>) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): IMList<TKVEntry<A, B>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fleftMost(): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpick(): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun frightMost(): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun froot(): TKVEntry<A, B>? = root?.entry
+
+    override fun fsize(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fmaxDepth(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun fminDepth(): Int {
         TODO("Not yet implemented")
     }
 

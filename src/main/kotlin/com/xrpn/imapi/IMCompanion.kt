@@ -118,6 +118,7 @@ interface IMBTreeCompanion {
 //    fun <A, B: Any> fdelete(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>, atMostOne: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A>
 //    fun <A, B: Any> fdeletes(treeStub: IMBTree<A, B>, items: FList<TKVEntry<A,B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
 //    fun <A, B: Any> ffind(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+//    fun <A, B: Any> ffindKey(treeStub: IMBTree<A, B>, key: A): B? where A: Any, A: Comparable<A>
 //    fun <A, B: Any> ffindLast(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
 //    fun <A, B: Any> finsert(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
 //    fun <A, B: Any> finsert(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>

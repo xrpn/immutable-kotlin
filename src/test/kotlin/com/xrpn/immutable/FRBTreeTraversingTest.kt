@@ -52,7 +52,6 @@ class FRBTreeTraversingTest : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            println("n:$n oraSum:$oraSum")
             tree.forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
@@ -73,7 +72,6 @@ class FRBTreeTraversingTest : FunSpec({
             values.shuffle()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            println("n:$n oraSum:$oraSum")
             tree.forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
@@ -94,7 +92,6 @@ class FRBTreeTraversingTest : FunSpec({
             values.reverse()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            println("n:$n oraSum:$oraSum")
             tree.forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)

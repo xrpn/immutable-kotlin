@@ -1,7 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FSetIterator
-import com.xrpn.imapi.IMTraversable
+import com.xrpn.imapi.IMBTreeTraversing
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMSet
 import com.xrpn.imapi.IMSetCompanion
@@ -51,6 +51,12 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     }
 
     override fun iterator(): Iterator<A> = FSetIterator(this)
+
+    // traversing
+
+    override fun fforEach (f: (A) -> Unit): Unit {
+        this.toFRBTree().fforEach { tkv -> f(tkv.getv()) }
+    }
 
     // filtering
 
@@ -353,7 +359,7 @@ internal class FSetBody<out A: Any> internal constructor (
             this.body.fempty() && other.body.fempty() -> true
             this.body.fempty() || other.body.fempty() -> false
             this.body.froot()!!::class == other.body.froot()!!::class ->
-                IMTraversable.equal(this.body, other.body)
+                IMBTreeTraversing.equal(this.body, other.body)
             else -> false
         }
         other is Set<*> -> when {

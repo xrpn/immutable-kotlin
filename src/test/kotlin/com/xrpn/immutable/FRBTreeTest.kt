@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMTraversable
+import com.xrpn.imapi.IMBTree
+import com.xrpn.imapi.IMBTreeTraversing
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
 import com.xrpn.immutable.FRBTree.Companion.fcontains2
@@ -488,7 +489,7 @@ class FRBTreeTest : FunSpec({
                             val aut1in = deleted.inorder()
                             val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
-                            IMTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversing.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
                             true shouldBe false
@@ -511,7 +512,7 @@ class FRBTreeTest : FunSpec({
                             val aut1in = deleted.inorder()
                             val oracle = inorder.ffilterNot { it == acc.head }
                             aut1in shouldBe oracle
-                            IMTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversing.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
                             true shouldBe false
@@ -533,7 +534,7 @@ class FRBTreeTest : FunSpec({
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
                             aut1in shouldBe oracle
-                            IMTraversable.strongEqual(deleted, rbDeleted) shouldBe true
+                            IMBTreeTraversing.strongEqual(deleted, rbDeleted) shouldBe true
                         }
                         is FRBTNil -> {
                             deleted.size shouldBe 0

@@ -18,7 +18,7 @@ class FBSTreeFilteringTest : FunSpec({
         ofvi(1).fempty() shouldBe false
     }
 
-    test ("ffilter, filterNot, ffind (A)") {
+    test("ffilter, filterNot, ffind (A)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -60,7 +60,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test ("ffilter, ffind (B)") {
+    test("ffilter, ffind (B)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -95,7 +95,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test ("ffilter, ffind (C)") {
+    test("ffilter, ffind (C)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -130,7 +130,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test("ffindDistinct") {
+    test("ffindDistinct (A)") {
         // checkAll(PropTestConfig(seed = 5699135300091264211), Arb.int(20..100)) { n ->
         checkAll(50, Arb.int(20..100)) { n ->
             val values = Array(n) { i: Int -> TKVEntry.of(i, i) }
@@ -140,7 +140,44 @@ class FBSTreeFilteringTest : FunSpec({
             val tree2: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
             tree2.size shouldBe (ora1 * 2)
             val tree1: FBSTree<Int, Int> = of(svalues.iterator())
-            println("$tree1")
+            tree1.size shouldBe ora1
+
+            val ora2 = ora1 / 2
+            tree2.ffindDistinct { it.getv() == ora1 } shouldBe null
+            tree2.ffindDistinct { it.getv() == ora2 } shouldBe null
+            tree1.ffindDistinct { it.getv() == ora2 }?.getv() shouldBe ora2
+        }
+    }
+
+    test("ffindDistinct (B)") {
+        checkAll(50, Arb.int(20..100)) { n ->
+            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            shuffled.shuffle()
+            val svalues = shuffled + shuffled
+            val ora1 = shuffled.size
+            svalues.size shouldBe (ora1 * 2)
+            val tree2: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
+            tree2.size shouldBe (ora1 * 2)
+            val tree1: FBSTree<Int, Int> = of(svalues.iterator())
+            tree1.size shouldBe ora1
+
+            val ora2 = ora1 / 2
+            tree2.ffindDistinct { it.getv() == ora1 } shouldBe null
+            tree2.ffindDistinct { it.getv() == ora2 } shouldBe null
+            tree1.ffindDistinct { it.getv() == ora2 }?.getv() shouldBe ora2
+        }
+    }
+
+    test("ffindDistinct (C)") {
+        checkAll(50, Arb.int(20..100)) { n ->
+            val reversed = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            reversed.reverse()
+            val svalues = reversed + reversed
+            val ora1 = reversed.size
+            svalues.size shouldBe (ora1 * 2)
+            val tree2: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
+            tree2.size shouldBe (ora1 * 2)
+            val tree1: FBSTree<Int, Int> = of(svalues.iterator())
             tree1.size shouldBe ora1
 
             val ora2 = ora1 / 2

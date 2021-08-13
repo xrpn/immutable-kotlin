@@ -4,8 +4,10 @@ import com.xrpn.bridge.FTreeIterator
 import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeCompanion
-import com.xrpn.imapi.IMTraversable
+import com.xrpn.imapi.IMBTreeTraversing
 import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMBTreeTraversing.Companion.equal
+import com.xrpn.immutable.FRBTree.Companion.equal
 import kotlin.math.log2
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -63,13 +65,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== traversable
 
-    override fun forEach(f: (TKVEntry<A, B>) -> Unit) {
+    override fun fforEach(f: (TKVEntry<A, B>) -> Unit) {
 
         fun traverse(t: FRBTree<A, B>): Unit = when (t) {
             is FRBTNil -> Unit
             is FRBTNode<A, B> -> {
-                traverse(t.bLeft)
                 f(t.entry)
+                traverse(t.bLeft)
                 traverse(t.bRight)
             }
         }
@@ -155,34 +157,26 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> {
 
-        var res: FRBTree<A, B> = FRBTNil
-        fun traverse(t: FRBTree<A, B>): Unit = when (t) {
-            is FRBTNil -> Unit
-            is FRBTNode<A, B> -> {
-                traverse(t.bLeft)
-                if (isMatch(t.entry)) res = finsert(res, t.entry)
-                traverse(t.bRight)
+        fun traverse(t: FRBTree<A, B>, acc: FRBTree<A, B>): FRBTree<A, B> =
+            when (t) {
+                is FRBTNil -> acc
+                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, if (isMatch(t.entry)) finsert(acc, t.entry) else acc ))
             }
-        }
-        traverse(this)
-        return res
+
+        return traverse(this, FRBTree.nul())
     }
 
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> = ffilter { !isMatch(it) }
 
     override fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): FList<TKVEntry<A, B>> {
 
-        var res: FList<TKVEntry<A, B>> = FLNil
-        fun traverse(t: FRBTree<A, B>): Unit = when (t) {
-            is FRBTNil -> Unit
-            is FRBTNode<A, B> -> {
-                traverse(t.bLeft)
-                if (isMatch(t.entry)) res = FLCons(t.entry, res)
-                traverse(t.bRight)
+        fun traverse(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+            when (t) {
+                is FRBTNil -> acc
+                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, if (isMatch(t.entry)) FLCons(t.entry, acc) else acc))
             }
-        }
-        traverse(this)
-        return res
+
+        return traverse(this, FLNil)
     }
 
     override fun fleftMost(): TKVEntry<A, B>? {
@@ -516,7 +510,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // =================
 
-        fun <A, B: Any> equal(rhs: FRBTree<A, B>, lhs: FRBTree<A, B>): Boolean where A: Any, A: Comparable<A> = IMTraversable.equal(rhs, lhs)
+        fun <A, B: Any> FRBTree<A,B>.equal(lhs: FRBTree<A, B>): Boolean where A: Any, A: Comparable<A> = equal(this, lhs)
 
         fun <A, B: Any> FRBTree<A,B>.fcontainsItem(item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> =
             ffind(this, item) is FRBTNode
@@ -524,11 +518,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         fun <A, B: Any> FRBTree<A,B>.fcontainsKey(key: A): Boolean where A: Any, A: Comparable<A> =
             ffindKey(this, key) != null
 
-
         // =================
 
         internal const val RED = true
         internal const val BLACK = false
+
+        internal fun <A, B: Any> equal2(rhs: FRBTree<A, B>, lhs: FRBTree<A, B>): Boolean where A: Any, A: Comparable<A> = equal(rhs, lhs)
 
         internal fun printErr(errorMsg: String) {
             System.err.println(errorMsg)
@@ -805,8 +800,8 @@ internal data class FRBTNode<A, B: Any> (
         this === other -> true
         other == null -> false
         other is FRBTNode<*, *> -> when {
-            this.color == other.color && this.entry::class == other.entry::class ->
-                @Suppress("UNCHECKED_CAST") IMTraversable.equal(this, other as FRBTree<A, B>)
+            this.color == other.color && this.entry::class == other.entry::class && this.entry == other.entry ->
+                @Suppress("UNCHECKED_CAST") equal(this, other as FRBTree<A, B>)
             else -> false
         }
         else -> false

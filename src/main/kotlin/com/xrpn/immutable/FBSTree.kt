@@ -3,7 +3,7 @@ package com.xrpn.immutable
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeCompanion
-import com.xrpn.imapi.IMTraversable.Companion.equal
+import com.xrpn.imapi.IMBTreeTraversing.Companion.equal
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
@@ -61,7 +61,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== traversable
 
-    override fun forEach(f: (TKVEntry<A, B>) -> Unit): Unit {
+    override fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit {
         // this is a modified preorder traverse
         fun accrueForEach(stack: FStack<FBSTNode<A, B>>): FStack<FBSTNode<A, B>> {
             val (node, shortStack) = stack.pop()
@@ -376,14 +376,10 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         override fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator(), allowDups)
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items, false)
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
-            var count = 0
             var res: FBSTree<A, B> = nul()
             for(item in items) {
                 res = finsert(res, item, allowDups)
-                println("inserted item $count as $item, res size is ${res.size}")
-                count += 1
             }
-            println("done inserted, size $count")
             return res
         }
         override fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> =
@@ -641,7 +637,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // ===============
 
-        fun<A, B: Any> FBSTree<A, B>.equal(rhs: FBSTree<A, B>): Boolean where A: Any, A: Comparable<A> = equal2(this, rhs)
+        fun<A, B: Any> FBSTree<A, B>.equal(rhs: FBSTree<A, B>): Boolean where A: Any, A: Comparable<A> = equal(this, rhs)
 
         fun <A, B: Any> FBSTree<A, B>.fcontainsItem(item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> = ffind(this, item) is FBSTNode
 
@@ -677,11 +673,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return n
         }
 
-        fun<A, B: Any> equal2(rhs: FBSTree<A, B>, lhs: FBSTree<A, B>): Boolean where A: Any, A: Comparable<A> = when(Pair(lhs.fempty(), rhs.fempty())) {
-            Pair(false, false) -> if (rhs === lhs) true else equal(rhs, lhs)
-            Pair(true, true) -> true
-            else -> false
-        }
+        fun<A, B: Any> equal2(rhs: FBSTree<A, B>, lhs: FBSTree<A, B>): Boolean where A: Any, A: Comparable<A> = equal(rhs, lhs)
 
         // clip off the whole branch starting at, and inclusive of, a node with value clipMatch
         internal fun <A, B: Any> prune(treeStub: FBSTree<A, B>, clipMatch: TKVEntry<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> {
@@ -812,7 +804,8 @@ internal data class FBSTNode<out A, out B: Any> (
         this === other -> true
         other == null -> false
         other is FBSTNode<*, *> -> when {
-            this.entry::class == other.entry::class -> @Suppress("UNCHECKED_CAST") equal(this, other as FBSTNode<A, B> )
+            this.entry::class == other.entry::class && this.entry == other.entry ->
+                @Suppress("UNCHECKED_CAST") equal(this, other as FBSTNode<A, B> )
             else -> false
         }
         else -> false
