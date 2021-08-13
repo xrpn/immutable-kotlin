@@ -3,17 +3,17 @@ package com.xrpn.immutable
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
 import com.xrpn.immutable.FBSTree.Companion.isChildMatch
 import com.xrpn.immutable.FBSTree.Companion.nul
-import com.xrpn.immutable.FBSTree.Companion.fparent
+import com.xrpn.immutable.FBSTree.Companion.bstParent
 import com.xrpn.immutable.FBSTree.Companion.prune
-import com.xrpn.immutable.FBSTree.Companion.ffind
-import com.xrpn.immutable.FBSTree.Companion.ffindLast
+import com.xrpn.immutable.FBSTree.Companion.bstFind
+import com.xrpn.immutable.FBSTree.Companion.bstFindLast
 import com.xrpn.immutable.FBSTree.Companion.addGraft
-import com.xrpn.immutable.FBSTree.Companion.fcontains2
-import com.xrpn.immutable.FBSTree.Companion.finsert
-import com.xrpn.immutable.FBSTree.Companion.finserts
-import com.xrpn.immutable.FBSTree.Companion.fdelete
+import com.xrpn.immutable.FBSTree.Companion.bstContains2
+import com.xrpn.immutable.FBSTree.Companion.bstInsert
+import com.xrpn.immutable.FBSTree.Companion.bstDelete
 import com.xrpn.immutable.FBSTree.Companion.equal
-import com.xrpn.immutable.FBSTree.Companion.fcontainsItem
+import com.xrpn.immutable.FBSTree.Companion.fcontains
+import io.kotest.assertions.fail
 import io.kotest.property.Arb
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -38,21 +38,22 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.find") {
+
         tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val found = ffind(t, acc.head)) {
+                    when (val found = bstFind(t, acc.head)) {
                         is FBSTNode -> found.entry shouldBe acc.head
-                        is FBSTNil -> true shouldBe false
+                        else -> fail("not found: ${acc.head}")
                     }
                     go(t, acc.tail)
                 }
             }
         go(wikiTree, wikiPreorder)
-        ffind(wikiTree, zEntry) shouldBe FBSTNil
+        bstFind(wikiTree, zEntry) shouldBe null
         go(slideShareTree, slideShareBreadthFirst)
-        ffind(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe FBSTNil
+        bstFind(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe null
     }
 
     test("co.findLast no dups") {
@@ -60,20 +61,20 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val found = ffindLast(t, acc.head)) {
+                    when (val found = bstFindLast(t, acc.head)) {
                         is FBSTNode -> {
                             found.entry shouldBe acc.head
                             isChildMatch(found, acc.head) shouldBe Pair(false, false)
                         }
-                        is FBSTNil -> true shouldBe false
+                        else -> fail("not found: ${acc.head}")
                     }
                     go(t, acc.tail)
                 }
             }
         go(wikiTree, wikiPreorder)
-        ffindLast(wikiTree, zEntry) shouldBe FBSTNil
+        bstFindLast(wikiTree, zEntry) shouldBe null
         go(slideShareTree, slideShareBreadthFirst)
-        ffindLast(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe FBSTNil
+        bstFindLast(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe null
     }
 
     test("co.findLast with dups") {
@@ -81,78 +82,80 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val found = ffindLast(t, acc.head)) {
+                    when (val found = bstFindLast(t, acc.head)) {
                         is FBSTNode -> {
                             found.entry shouldBe acc.head
                             isChildMatch(found, acc.head) shouldBe Pair(false, false)
                         }
-                        is FBSTNil -> true shouldBe false
+                        else -> fail("not found: ${acc.head}")
                     }
                     go(t, acc.tail)
                 }
             }
-        go(finsert(wikiTree, wikiTree.froot()!!, allowDups = true), wikiPreorder)
-        go(finsert(
-            finsert(wikiTree,
+        go(bstInsert(wikiTree, wikiTree.froot()!!, allowDups = true), wikiPreorder)
+        go(bstInsert(
+            bstInsert(wikiTree,
                 wikiTree.froot()!!, allowDups = true),
             wikiTree.froot()!!, allowDups = true),
             wikiPreorder)
-        go(finsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true), wikiPreorder)
-        go(finsert(wikiTree, wikiTree.frightMost()!!, allowDups = true), wikiPreorder)
-        go(finsert(
-            finsert(slideShareTree, slideShareTree.fleftMost()!!),
+        go(bstInsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true), wikiPreorder)
+        go(bstInsert(wikiTree, wikiTree.frightMost()!!, allowDups = true), wikiPreorder)
+        go(bstInsert(
+            bstInsert(slideShareTree, slideShareTree.fleftMost()!!),
             slideShareTree.fleftMost()!!),
             slideShareBreadthFirst)
-        go(finsert(
-            finsert(slideShareTree, slideShareTree.frightMost()!!),
+        go(bstInsert(
+            bstInsert(slideShareTree, slideShareTree.frightMost()!!),
             slideShareTree.frightMost()!!),
             slideShareBreadthFirst)
     }
 
     test("co.parent") {
-        fparent(FBSTNil, TKVEntry.ofIntKey("")) shouldBe FBSTNil
-        fparent(FBSTNode(mEntry), mEntry) shouldBe FBSTNil
+        bstParent(FBSTNil, TKVEntry.ofIntKey("")) shouldBe FBSTNil
+        bstParent(FBSTNode(mEntry), mEntry) shouldBe FBSTNil
 
-        fparent(depthOneLeft, lEntry) shouldBe depthOneLeft
-        fparent(depthOneRight, nEntry) shouldBe depthOneRight
-        fparent(depthOneFull, lEntry) shouldBe depthOneFull
-        fparent(depthOneFull, nEntry) shouldBe depthOneFull
+        bstParent(depthOneLeft, lEntry) shouldBe depthOneLeft
+        bstParent(depthOneRight, nEntry) shouldBe depthOneRight
+        bstParent(depthOneFull, lEntry) shouldBe depthOneFull
+        bstParent(depthOneFull, nEntry) shouldBe depthOneFull
 
-        (fparent(depthTwoLeftRight, mEntry) as FBSTNode).entry shouldBe lEntry
-        (fparent(depthTwoLeftRight, lEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoLeftRight, sEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoLeftLeft, eEntry) as FBSTNode).entry shouldBe lEntry
-        (fparent(depthTwoLeftLeft, lEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoLeftLeft, sEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoRightRight, uEntry) as FBSTNode).entry shouldBe sEntry
-        (fparent(depthTwoRightRight, sEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoRightRight, mEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoRightLeft, rEntry) as FBSTNode).entry shouldBe sEntry
-        (fparent(depthTwoRightLeft, sEntry) as FBSTNode).entry shouldBe nEntry
-        (fparent(depthTwoRightLeft, mEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoLeftRight, mEntry) as FBSTNode).entry shouldBe lEntry
+        (bstParent(depthTwoLeftRight, lEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoLeftRight, sEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoLeftLeft, eEntry) as FBSTNode).entry shouldBe lEntry
+        (bstParent(depthTwoLeftLeft, lEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoLeftLeft, sEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoRightRight, uEntry) as FBSTNode).entry shouldBe sEntry
+        (bstParent(depthTwoRightRight, sEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoRightRight, mEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoRightLeft, rEntry) as FBSTNode).entry shouldBe sEntry
+        (bstParent(depthTwoRightLeft, sEntry) as FBSTNode).entry shouldBe nEntry
+        (bstParent(depthTwoRightLeft, mEntry) as FBSTNode).entry shouldBe nEntry
 
-        fparent(wikiTree, fEntry)  /* parent of root */ shouldBe FBSTNil
-        (fparent(wikiTree, cEntry) as FBSTNode).entry shouldBe dEntry
-        (fparent(wikiTree, hEntry) as FBSTNode).entry shouldBe iEntry
-        fparent(wikiTree, zEntry) /* parent of missing value */ shouldBe FBSTNil
+        bstParent(wikiTree, fEntry)  /* parent of root */ shouldBe FBSTNil
+        (bstParent(wikiTree, cEntry) as FBSTNode).entry shouldBe dEntry
+        (bstParent(wikiTree, hEntry) as FBSTNode).entry shouldBe iEntry
+        bstParent(wikiTree, zEntry) /* parent of missing value */ shouldBe FBSTNil
 
-        (fparent(slideShareTree, n32Entry) as FBSTNode).entry shouldBe n17Entry
-        (fparent(slideShareTree, n50Entry) as FBSTNode).entry shouldBe n78Entry
+        (bstParent(slideShareTree, n32Entry) as FBSTNode).entry shouldBe n17Entry
+        (bstParent(slideShareTree, n50Entry) as FBSTNode).entry shouldBe n78Entry
     }
 
     test("co.contains2") {
+        bstContains2(FBSTNil, zEntry) shouldBe false
         tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    fcontains2(t, acc.head) shouldBe true
+                    val p = bstContains2(t, acc.head)
+                    p shouldBe true
                     go(t, acc.tail)
                 }
             }
         go(wikiTree, wikiPreorder)
-        fcontains2(wikiTree, zEntry) shouldBe false
+        bstContains2(wikiTree, zEntry) shouldBe false
         go(slideShareTree, slideShareBreadthFirst)
-        fcontains2(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
+        bstContains2(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("co.contains") {
@@ -160,14 +163,14 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    (t.fcontainsItem(acc.head)) shouldBe true
+                    (t.fcontains(acc.head)) shouldBe true
                     go(t, acc.tail)
                 }
             }
         go(wikiTree, wikiPreorder)
-        fcontains2(wikiTree, zEntry) shouldBe false
+        bstContains2(wikiTree, zEntry) shouldBe false
         go(slideShareTree, slideShareBreadthFirst)
-        fcontains2(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
+        bstContains2(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("co.prune") {
@@ -255,65 +258,62 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.insert item") {
-        finsert(FBSTNil,mEntry) shouldBe FBSTNode(mEntry)
-        finsert(FBSTNode(mEntry),lEntry) shouldBe depthOneLeft
-        finsert(FBSTNode(mEntry),nEntry) shouldBe depthOneRight
+        bstInsert(FBSTNil,mEntry) shouldBe FBSTNode(mEntry)
+        bstInsert(FBSTNode(mEntry),lEntry) shouldBe depthOneLeft
+        bstInsert(FBSTNode(mEntry),nEntry) shouldBe depthOneRight
 
-        finsert(depthOneLeft,nEntry) shouldBe depthOneFull
-        finsert(depthOneRight,lEntry) shouldBe depthOneFull
+        bstInsert(depthOneLeft,nEntry) shouldBe depthOneFull
+        bstInsert(depthOneRight,lEntry) shouldBe depthOneFull
 
-        finsert(depthTwoLeftPartial,mEntry) shouldBe depthTwoLeftRight
-        finsert(depthTwoLeftPartial,eEntry) shouldBe depthTwoLeftLeft
-        finsert(depthTwoRightPartial,uEntry) shouldBe depthTwoRightRight
-        finsert(depthTwoRightPartial,rEntry) shouldBe depthTwoRightLeft
+        bstInsert(depthTwoLeftPartial,mEntry) shouldBe depthTwoLeftRight
+        bstInsert(depthTwoLeftPartial,eEntry) shouldBe depthTwoLeftLeft
+        bstInsert(depthTwoRightPartial,uEntry) shouldBe depthTwoRightRight
+        bstInsert(depthTwoRightPartial,rEntry) shouldBe depthTwoRightLeft
 
         // --
-        finsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),pEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),pEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNil, FBSTNode(pEntry)))
-        finsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),nEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),nEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNode(nEntry), FBSTNil))
-        finsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),dEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),dEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(cEntry, FBSTNil, FBSTNode(dEntry)), FBSTNode(zEntry))
-        finsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),bEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),bEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(cEntry, FBSTNode(bEntry), FBSTNil), FBSTNode(zEntry))
         // --
-        finsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),pEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry)),pEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNil, FBSTNode(pEntry)))
-        finsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNil, FBSTNode(pEntry))),nEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNil, FBSTNode(pEntry))),nEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(oEntry, FBSTNode(nEntry), FBSTNode(pEntry)))
         // --
-        finsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),dEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(cEntry), FBSTNode(zEntry)),dEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(cEntry, FBSTNil, FBSTNode(dEntry)), FBSTNode(zEntry))
-        finsert(FBSTNode(mEntry, FBSTNode(cEntry, FBSTNil, FBSTNode(dEntry)), FBSTNode(zEntry)), bEntry) shouldBe
+        bstInsert(FBSTNode(mEntry, FBSTNode(cEntry, FBSTNil, FBSTNode(dEntry)), FBSTNode(zEntry)), bEntry) shouldBe
             FBSTNode(mEntry, FBSTNode(cEntry, FBSTNode(bEntry), FBSTNode(dEntry)), FBSTNode(zEntry))
-        // --
-        print(finsert(FBSTNode(mEntry, FBSTNode(cEntry, FBSTNode(bEntry), FBSTNode(dEntry)), FBSTNode(zEntry)), bEntry))
-
     }
 
     test("co.insert item dups multiple") {
-        finsert(FBSTNil, mEntry, allowDups = true) shouldBe FBSTNode(mEntry)
-        finsert(FBSTNode(mEntry), mEntry, allowDups = true) shouldBe FBSTNode(
+        bstInsert(FBSTNil, mEntry, allowDups = true) shouldBe FBSTNode(mEntry)
+        bstInsert(FBSTNode(mEntry), mEntry, allowDups = true) shouldBe FBSTNode(
             mEntry,
             FBSTNil,
             FBSTNode(mEntry)
         )
-        finsert(FBSTNode(mEntry), lEntry, allowDups = true) shouldBe depthOneLeft
-        finsert(FBSTNode(mEntry), nEntry, allowDups = true) shouldBe depthOneRight
+        bstInsert(FBSTNode(mEntry), lEntry, allowDups = true) shouldBe depthOneLeft
+        bstInsert(FBSTNode(mEntry), nEntry, allowDups = true) shouldBe depthOneRight
 
-        finsert(FBSTNode(mEntry), mEntry, allowDups = true) shouldBe FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry))
-        finsert(depthOneLeft, nEntry, allowDups = true) shouldBe depthOneFull
-        finsert(depthOneRight, lEntry, allowDups = true) shouldBe depthOneFull
+        bstInsert(FBSTNode(mEntry), mEntry, allowDups = true) shouldBe FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry))
+        bstInsert(depthOneLeft, nEntry, allowDups = true) shouldBe depthOneFull
+        bstInsert(depthOneRight, lEntry, allowDups = true) shouldBe depthOneFull
 
         // dups right
-        finsert(depthOneLeft, mEntry, allowDups = true) shouldBe
+        bstInsert(depthOneLeft, mEntry, allowDups = true) shouldBe
             FBSTNode(
                 mEntry,
                 FBSTNode(lEntry),
                 FBSTNode(mEntry)
             )
-        finsert(
-            finsert(depthOneLeft, mEntry, allowDups = true),
+        bstInsert(
+            bstInsert(depthOneLeft, mEntry, allowDups = true),
             mEntry, allowDups = true
         ) shouldBe
             FBSTNode(
@@ -321,9 +321,9 @@ class FBSTreeCompanionTest : FunSpec({
                 FBSTNode(lEntry),
                 FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry))
             )
-        finsert(
-            finsert(
-                finsert(depthOneLeft, mEntry, allowDups = true),
+        bstInsert(
+            bstInsert(
+                bstInsert(depthOneLeft, mEntry, allowDups = true),
                 mEntry, allowDups = true
             ),
             mEntry, allowDups = true
@@ -339,14 +339,14 @@ class FBSTreeCompanionTest : FunSpec({
             )
 
         // dups left
-        finsert(depthOneLeft, lEntry, allowDups = true) shouldBe
+        bstInsert(depthOneLeft, lEntry, allowDups = true) shouldBe
             FBSTNode(
                 mEntry,
                 FBSTNode(lEntry, FBSTNil, FBSTNode(lEntry)),
                 FBSTNil
             )
-        finsert(
-            finsert(depthOneLeft, lEntry, allowDups = true),
+        bstInsert(
+            bstInsert(depthOneLeft, lEntry, allowDups = true),
             lEntry, allowDups = true
         ) shouldBe
             FBSTNode(
@@ -358,9 +358,9 @@ class FBSTreeCompanionTest : FunSpec({
                 ),
                 FBSTNil
             )
-        finsert(
-            finsert(
-                finsert(depthOneLeft, lEntry, allowDups = true),
+        bstInsert(
+            bstInsert(
+                bstInsert(depthOneLeft, lEntry, allowDups = true),
                 lEntry, allowDups = true
             ),
             lEntry, allowDups = true
@@ -380,16 +380,16 @@ class FBSTreeCompanionTest : FunSpec({
             )
 
         // dups right
-        finsert(depthOneRight, mEntry, allowDups = true) shouldBe
+        bstInsert(depthOneRight, mEntry, allowDups = true) shouldBe
             FBSTNode(mEntry, FBSTNil, depthOneRight)
-        finsert(
-            finsert(depthOneRight, mEntry, allowDups = true),
+        bstInsert(
+            bstInsert(depthOneRight, mEntry, allowDups = true),
             mEntry, allowDups = true
         ) shouldBe
             FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry, FBSTNil, depthOneRight))
-        finsert(
-            finsert(
-                finsert(depthOneRight, mEntry, allowDups = true),
+        bstInsert(
+            bstInsert(
+                bstInsert(depthOneRight, mEntry, allowDups = true),
                 mEntry, allowDups = true
             ),
             mEntry, allowDups = true
@@ -397,14 +397,14 @@ class FBSTreeCompanionTest : FunSpec({
             FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry, FBSTNil, FBSTNode(mEntry, FBSTNil, depthOneRight)))
 
         // dups left
-        finsert(depthOneRight, nEntry, allowDups = true) shouldBe
+        bstInsert(depthOneRight, nEntry, allowDups = true) shouldBe
             FBSTNode(
                 mEntry,
                 FBSTNil,
                 FBSTNode(nEntry, FBSTNil, FBSTNode(nEntry))
             )
-        finsert(
-            finsert(depthOneRight, nEntry, allowDups = true),
+        bstInsert(
+            bstInsert(depthOneRight, nEntry, allowDups = true),
             nEntry, allowDups = true
         ) shouldBe
             FBSTNode(
@@ -416,9 +416,9 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNode(nEntry, FBSTNil, FBSTNode(nEntry))
                 )
             )
-        finsert(
-            finsert(
-                finsert(depthOneRight, nEntry, allowDups = true),
+        bstInsert(
+            bstInsert(
+                bstInsert(depthOneRight, nEntry, allowDups = true),
                 nEntry, allowDups = true
             ),
             nEntry, allowDups = true
@@ -440,12 +440,12 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.insert item dups single") {
 
-        finsert(depthTwoLeftPartial,mEntry, allowDups = true) shouldBe depthTwoLeftRight
-        finsert(depthTwoLeftPartial,eEntry, allowDups = true) shouldBe depthTwoLeftLeft
-        finsert(depthTwoRightPartial,uEntry, allowDups = true) shouldBe depthTwoRightRight
-        finsert(depthTwoRightPartial,rEntry, allowDups = true) shouldBe depthTwoRightLeft
+        bstInsert(depthTwoLeftPartial,mEntry, allowDups = true) shouldBe depthTwoLeftRight
+        bstInsert(depthTwoLeftPartial,eEntry, allowDups = true) shouldBe depthTwoLeftLeft
+        bstInsert(depthTwoRightPartial,uEntry, allowDups = true) shouldBe depthTwoRightRight
+        bstInsert(depthTwoRightPartial,rEntry, allowDups = true) shouldBe depthTwoRightLeft
 
-        finsert(depthTwoLeftRight,nEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftRight,nEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNil,
@@ -453,7 +453,7 @@ class FBSTreeCompanionTest : FunSpec({
                 FBSTNode(nEntry,
                     FBSTNil,
                     FBSTNode(sEntry)))
-        finsert(depthTwoLeftRight,lEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftRight,lEntry, allowDups = true) shouldBe
         FBSTNode(nEntry,
             FBSTNode(lEntry,
                 FBSTNil,
@@ -461,7 +461,7 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNil,
                     FBSTNode(mEntry))),
             FBSTNode(sEntry))
-        finsert(depthTwoLeftRight,mEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftRight,mEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNil,
@@ -469,14 +469,14 @@ class FBSTreeCompanionTest : FunSpec({
                         FBSTNil,
                         FBSTNode(mEntry))),
                 FBSTNode(sEntry))
-        finsert(depthTwoLeftRight,sEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftRight,sEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNil,
                     FBSTNode(mEntry)),
                 FBSTNode(sEntry, FBSTNil, FBSTNode(sEntry)))
 
-        finsert(depthTwoLeftLeft,nEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftLeft,nEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNode(eEntry),
@@ -484,13 +484,13 @@ class FBSTreeCompanionTest : FunSpec({
                 FBSTNode(nEntry,
                     FBSTNil,
                     FBSTNode(sEntry)))
-        finsert(depthTwoLeftLeft,lEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftLeft,lEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNode(eEntry),
                     FBSTNode(lEntry)),
                 FBSTNode(sEntry))
-        finsert(depthTwoLeftLeft,eEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftLeft,eEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNode(eEntry,
@@ -498,14 +498,14 @@ class FBSTreeCompanionTest : FunSpec({
                         FBSTNode(eEntry)),
                     FBSTNil),
                 FBSTNode(sEntry))
-        finsert(depthTwoLeftLeft,sEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoLeftLeft,sEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(lEntry,
                     FBSTNode(eEntry),
                     FBSTNil),
                 FBSTNode(sEntry, FBSTNil, FBSTNode(sEntry)))
 
-        finsert(depthTwoRightRight,nEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightRight,nEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(nEntry,
@@ -513,7 +513,7 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNode(sEntry,
                         FBSTNil,
                         FBSTNode(uEntry))))
-        finsert(depthTwoRightRight,mEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightRight,mEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry,
                     FBSTNil,
@@ -521,7 +521,7 @@ class FBSTreeCompanionTest : FunSpec({
                 FBSTNode(sEntry,
                     FBSTNil,
                     FBSTNode(uEntry)))
-        finsert(depthTwoRightRight,sEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightRight,sEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(sEntry,
@@ -529,7 +529,7 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNode(sEntry,
                         FBSTNil,
                         FBSTNode(uEntry))))
-        finsert(depthTwoRightRight,uEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightRight,uEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(sEntry,
@@ -538,7 +538,7 @@ class FBSTreeCompanionTest : FunSpec({
                         FBSTNil,
                         FBSTNode(uEntry))))
 
-        finsert(depthTwoRightLeft,nEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightLeft,nEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(nEntry,
@@ -546,7 +546,7 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNode(sEntry,
                         FBSTNode(rEntry),
                         FBSTNil)))
-        finsert(depthTwoRightLeft,mEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightLeft,mEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry,
                     FBSTNil,
@@ -554,13 +554,13 @@ class FBSTreeCompanionTest : FunSpec({
                 FBSTNode(sEntry,
                     FBSTNode(rEntry),
                     FBSTNil))
-        finsert(depthTwoRightLeft,sEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightLeft,sEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(sEntry,
                     FBSTNode(rEntry),
                     FBSTNode(sEntry)))
-        finsert(depthTwoRightLeft,rEntry, allowDups = true) shouldBe
+        bstInsert(depthTwoRightLeft,rEntry, allowDups = true) shouldBe
             FBSTNode(nEntry,
                 FBSTNode(mEntry),
                 FBSTNode(sEntry,
@@ -588,9 +588,6 @@ class FBSTreeCompanionTest : FunSpec({
             val values = IntArray(n) { _: Int -> nextInt() }
             val bst = FBSTree.ofvi(values.iterator(), allowDups = true)
             bst.size shouldBe n
-            print("size "+n)
-            print(", max depth "+bst.fmaxDepth())
-            println          (", min depth "+bst.fminDepth())
             val aut = bst.inorder()
             values.sort()
             val testOracle = FList.of(values.iterator()).fmap { TKVEntry.ofIntKey(it) }
@@ -607,20 +604,20 @@ class FBSTreeCompanionTest : FunSpec({
         addGraft(prune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
 
         addGraft(prune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
-        addGraft(prune(depthTwoLeftRight, sEntry), ffind(depthTwoLeftRight,sEntry)) shouldBe depthTwoLeftRight
-        addGraft(prune(depthTwoLeftRight, lEntry), ffind(depthTwoLeftRight,lEntry)) shouldBe depthTwoLeftRight
+        addGraft(prune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight,sEntry)!!) shouldBe depthTwoLeftRight
+        addGraft(prune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight,lEntry)!!) shouldBe depthTwoLeftRight
 
         addGraft(prune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
-        addGraft(prune(depthTwoLeftLeft, sEntry), ffind(depthTwoLeftLeft,sEntry)) shouldBe depthTwoLeftLeft
-        addGraft(prune(depthTwoLeftLeft, lEntry), ffind(depthTwoLeftLeft,lEntry)) shouldBe depthTwoLeftLeft
+        addGraft(prune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft,sEntry)!!) shouldBe depthTwoLeftLeft
+        addGraft(prune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft,lEntry)!!) shouldBe depthTwoLeftLeft
 
         addGraft(prune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
-        addGraft(prune(depthTwoRightRight, sEntry), ffind(depthTwoRightRight,sEntry)) shouldBe depthTwoRightRight
-        addGraft(prune(depthTwoRightRight, mEntry), ffind(depthTwoRightRight,mEntry)) shouldBe depthTwoRightRight
+        addGraft(prune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight,sEntry)!!) shouldBe depthTwoRightRight
+        addGraft(prune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight,mEntry)!!) shouldBe depthTwoRightRight
 
         addGraft(prune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
-        addGraft(prune(depthTwoRightLeft, sEntry), ffind(depthTwoRightLeft,sEntry)) shouldBe depthTwoRightLeft
-        addGraft(prune(depthTwoRightLeft, mEntry), ffind(depthTwoRightLeft,mEntry)) shouldBe depthTwoRightLeft
+        addGraft(prune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
+        addGraft(prune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
     }
 
     test("co.delete no dups") {
@@ -629,7 +626,7 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val deleted = fdelete(t, acc.head)) {
+                    when (val deleted = bstDelete(t, acc.head)) {
                         is FBSTNode -> {
                             deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
                         }
@@ -643,7 +640,7 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    val deleted = fdelete(t, acc.head)
+                    val deleted = bstDelete(t, acc.head)
                     val oracle = inorder.ffilterNot { it == acc.head }
                     when (deleted) {
                         is FBSTNode -> {
@@ -661,7 +658,7 @@ class FBSTreeCompanionTest : FunSpec({
         goAll(wikiTree, wikiPreorder.freverse(), wikiInorder)
         goAll(wikiTree, wikiInorder.freverse(), wikiInorder)
         goAll(wikiTree, wikiPostorder.freverse(), wikiInorder)
-        fdelete(wikiTree, zEntry) shouldBe wikiTree
+        bstDelete(wikiTree, zEntry) shouldBe wikiTree
         goTele(wikiTree, wikiPreorder, wikiInorder)
         goTele(wikiTree, wikiInorder, wikiInorder)
         goTele(wikiTree, wikiPostorder, wikiInorder)
@@ -677,7 +674,7 @@ class FBSTreeCompanionTest : FunSpec({
         goAll(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
         goAll(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
         goAll(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
-        fdelete(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe slideShareTree
+        bstDelete(slideShareTree, TKVEntry.ofIntKey(100)) shouldBe slideShareTree
         goTele(slideShareTree, slideSharePreorder, slideShareInorder)
         goTele(slideShareTree, slideShareInorder, slideShareInorder)
         goTele(slideShareTree, slideSharePostorder, slideShareInorder)
@@ -693,30 +690,30 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val deleted = fdelete(t, acc.head)) {
+                    when (val deleted = bstDelete(t, acc.head)) {
                         is FBSTNode -> deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
                         is FBSTNil -> true shouldBe false
                     }
                     go(t, acc.tail, inorder)
                 }
             }
-        val aux1 = finsert(wikiTree, wikiTree.froot()!!, allowDups = true)
+        val aux1 = bstInsert(wikiTree, wikiTree.froot()!!, allowDups = true)
         go(aux1, wikiPreorder, aux1.inorder())
-        val aux2 = finsert(
-            finsert(wikiTree,
+        val aux2 = bstInsert(
+            bstInsert(wikiTree,
                 wikiTree.froot()!!, allowDups = true),
             wikiTree.froot()!!, allowDups = true)
         go(aux2, wikiPreorder, aux2.inorder())
-        val aux3 = finsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true)
+        val aux3 = bstInsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true)
         go(aux3, wikiPreorder, aux3.inorder())
-        val aux4 = finsert(wikiTree, wikiTree.frightMost()!!, allowDups = true)
+        val aux4 = bstInsert(wikiTree, wikiTree.frightMost()!!, allowDups = true)
         go(aux4, wikiPreorder, aux4.inorder())
-        val aux5 = finsert(
-            finsert(slideShareTree, slideShareTree.fleftMost()!!),
+        val aux5 = bstInsert(
+            bstInsert(slideShareTree, slideShareTree.fleftMost()!!),
             slideShareTree.fleftMost()!!)
         go(aux5, slideShareBreadthFirst, aux5.inorder())
-        val aux6 = finsert(
-            finsert(slideShareTree, slideShareTree.frightMost()!!),
+        val aux6 = bstInsert(
+            bstInsert(slideShareTree, slideShareTree.frightMost()!!),
             slideShareTree.frightMost()!!)
         go(aux6, slideShareBreadthFirst, aux6.inorder())
     }
@@ -726,37 +723,35 @@ class FBSTreeCompanionTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val deleted = fdelete(t, acc.head, atMostOne = true)) {
+                    when (val deleted = bstDelete(t, acc.head, atMostOne = true)) {
                         is FBSTNode -> deleted.inorder() shouldBe inorder.fdropFirst { it == acc.head }
                         is FBSTNil -> true shouldBe false
                     }
                     go(t, acc.tail, inorder)
                 }
             }
-        val aux1 = finsert(wikiTree, wikiTree.froot()!!, allowDups = true)
+        val aux1 = bstInsert(wikiTree, wikiTree.froot()!!, allowDups = true)
         go(aux1, wikiPreorder, aux1.inorder())
-        val aux2 = finsert(
-            finsert(wikiTree,
+        val aux2 = bstInsert(
+            bstInsert(wikiTree,
                 wikiTree.froot()!!, allowDups = true),
             wikiTree.froot()!!, allowDups = true)
         go(aux2, wikiPreorder, aux2.inorder())
-        val aux3 = finsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true)
+        val aux3 = bstInsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true)
         go(aux3, wikiPreorder, aux3.inorder())
-        val aux4 = finsert(wikiTree, wikiTree.frightMost()!!, allowDups = true)
+        val aux4 = bstInsert(wikiTree, wikiTree.frightMost()!!, allowDups = true)
         go(aux4, wikiPreorder, aux4.inorder())
-        val aux5 = finsert(
-            finsert(slideShareTree, slideShareTree.fleftMost()!!),
+        val aux5 = bstInsert(
+            bstInsert(slideShareTree, slideShareTree.fleftMost()!!),
             slideShareTree.fleftMost()!!)
         go(aux5, slideShareBreadthFirst, aux5.inorder())
-        val aux6 = finsert(
-            finsert(slideShareTree, slideShareTree.frightMost()!!),
+        val aux6 = bstInsert(
+            bstInsert(slideShareTree, slideShareTree.frightMost()!!),
             slideShareTree.frightMost()!!)
         go(aux6, slideShareBreadthFirst, aux6.inorder())
     }
 
     test("co.of(list)") {
-        val foo = finserts(wikiTree, FList.of(fEntry, fEntry, fEntry), allowDups = true)
-        print("$foo")
         FBSTree.of<Int, Int>(FLNil) shouldBe FBSTNil
         FBSTree.of(FList.of(*arrayOf(mEntry,lEntry,nEntry))) shouldBe FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(nEntry))
         FBSTree.of(FList.of(*arrayOf(mEntry,cEntry,bEntry,dEntry,zEntry,bEntry)), allowDups = true) shouldBe

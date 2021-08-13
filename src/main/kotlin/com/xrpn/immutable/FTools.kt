@@ -19,6 +19,10 @@ fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second,
 //    val block: suspend DeepRecursiveScope<T, R>.(T) -> R
 //)
 
+internal enum class FBTFIT {
+    LEFT, RIGHT, EQ
+}
+
 data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B):
         Comparable<TKVEntryK<A,B>>,
         TKVEntry<A,B> {

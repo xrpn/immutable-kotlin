@@ -1,9 +1,9 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.IMBTreeTraversing.Companion.equal
-import com.xrpn.immutable.FRBTree.Companion.ffindKey
-import com.xrpn.immutable.FRBTree.Companion.finsert
-import com.xrpn.immutable.FRBTree.Companion.finserts
+import com.xrpn.immutable.FRBTree.Companion.rbtFindValueOFKey
+import com.xrpn.immutable.FRBTree.Companion.rbtInsert
+import com.xrpn.immutable.FRBTree.Companion.rbtInserts
 
 sealed class FMap<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -42,21 +42,21 @@ sealed class FMap<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance
 
         fun<A: Comparable<A>, B: Any> FMap<A,B>.get(key: A): B? = when {
             this.isEmpty() -> null
-            else -> ffindKey((this as FMapBody).body, key)
+            else -> rbtFindValueOFKey((this as FMapBody).body, key)
         }
 
         operator fun<A: Comparable<A>, B: Any> FMap<A,B>.contains(key: A): Boolean = when {
             this.isEmpty() -> false
-            else -> ffindKey((this as FMapBody).body, key) != null
+            else -> rbtFindValueOFKey((this as FMapBody).body, key) != null
         }
 
         fun<A: Comparable<A>, B: Any> FMap<A,B>.getOrElse(key: A, default:B): B = get(key) ?: default
 
-        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(key: A, value: B): FMap<A,B> = FMapBody(finsert((this as FMapBody).body, TKVEntry.of(key, value)))
+        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(key: A, value: B): FMap<A,B> = FMapBody(rbtInsert((this as FMapBody).body, TKVEntry.of(key, value)))
 
-        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(p: Pair<A, B>): FMap<A,B> = FMapBody(finsert((this as FMapBody).body, TKVEntry.of(p)))
+        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(p: Pair<A, B>): FMap<A,B> = FMapBody(rbtInsert((this as FMapBody).body, TKVEntry.of(p)))
 
-        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(ps: FList<Pair<A, B>>): FMap<A,B> = FMapBody(finserts((this as FMapBody).body, ps.fmap { TKVEntry.of(it) }))
+        fun<A: Comparable<A>, B: Any> FMap<A,B>.add(ps: FList<Pair<A, B>>): FMap<A,B> = FMapBody(rbtInserts((this as FMapBody).body, ps.fmap { TKVEntry.of(it) }))
 
         fun <A: Comparable<A>, B: Any> of(_body: FList<TKVEntry<A,B>>): FMap<A, B> =
             if (_body is FLNil) FMapBody.empty else FMapBody(FRBTree.of(_body))

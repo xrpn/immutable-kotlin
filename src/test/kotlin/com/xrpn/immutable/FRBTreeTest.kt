@@ -1,20 +1,20 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeTraversing
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
-import com.xrpn.immutable.FRBTree.Companion.fcontains2
-import com.xrpn.immutable.FRBTree.Companion.fdelete
-import com.xrpn.immutable.FRBTree.Companion.fcontainsItem
+import com.xrpn.immutable.FRBTree.Companion.rbtContains2
+import com.xrpn.immutable.FRBTree.Companion.rbtDelete
+import com.xrpn.immutable.FRBTree.Companion.fcontains
 import com.xrpn.immutable.FRBTree.Companion.fcontainsKey
-import com.xrpn.immutable.FRBTree.Companion.ffind
-import com.xrpn.immutable.FRBTree.Companion.finsert
+import com.xrpn.immutable.FRBTree.Companion.rbtFind
+import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.of
-import com.xrpn.immutable.FRBTree.Companion.fparent
+import com.xrpn.immutable.FRBTree.Companion.rbtParent
 import com.xrpn.immutable.FRBTree.Companion.rbMaxDepth
 import com.xrpn.immutable.FRBTree.Companion.rbRootSane
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -118,48 +118,48 @@ class FRBTreeTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    when (val found = ffind(t, acc.head)) {
+                    when (val found = rbtFind(t, acc.head)) {
                         is FRBTNode -> found.entry shouldBe acc.head
-                        is FRBTNil -> true shouldBe false
+                        else -> fail("not found: ${acc.head}")
                     }
                     go(t, acc.tail)
                 }
             }
         go(frbWikiTree, frbWikiPreorder)
-        ffind(frbWikiTree, zEntry) shouldBe FRBTNil
+        rbtFind(frbWikiTree, zEntry) shouldBe null
         go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        ffind(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe FRBTNil
+        rbtFind(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe null
     }
 
     test("co.parent") {
-        fparent(FRBTNil, TKVEntry.ofIntKey("")) shouldBe FRBTNil
-        fparent(FRBTNode(mEntry), mEntry) shouldBe FRBTNil
+        rbtParent(FRBTNil, TKVEntry.ofIntKey("")) shouldBe FRBTNil
+        rbtParent(FRBTNode(mEntry), mEntry) shouldBe FRBTNil
 
-        fparent(frbDepthOneLeft, lEntry) shouldBe frbDepthOneLeft
-        fparent(ttDepthOneRight, nEntry) shouldBe ttDepthOneRight
-        fparent(frbDepthOneFull, lEntry) shouldBe frbDepthOneFull
-        fparent(frbDepthOneFull, nEntry) shouldBe frbDepthOneFull
+        rbtParent(frbDepthOneLeft, lEntry) shouldBe frbDepthOneLeft
+        rbtParent(ttDepthOneRight, nEntry) shouldBe ttDepthOneRight
+        rbtParent(frbDepthOneFull, lEntry) shouldBe frbDepthOneFull
+        rbtParent(frbDepthOneFull, nEntry) shouldBe frbDepthOneFull
 
-        (fparent(ttDepthTwoLeftRight, mEntry) as FRBTNode).entry shouldBe lEntry
-        (fparent(ttDepthTwoLeftRight, lEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(ttDepthTwoLeftRight, sEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoLeftLeft, eEntry) as FRBTNode).entry shouldBe lEntry
-        (fparent(frbDepthTwoLeftLeft, lEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoLeftLeft, sEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoRightRight, uEntry) as FRBTNode).entry shouldBe sEntry
-        (fparent(frbDepthTwoRightRight, sEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoRightRight, mEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoRightLeft, rEntry) as FRBTNode).entry shouldBe sEntry
-        (fparent(frbDepthTwoRightLeft, sEntry) as FRBTNode).entry shouldBe nEntry
-        (fparent(frbDepthTwoRightLeft, mEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(ttDepthTwoLeftRight, mEntry) as FRBTNode).entry shouldBe lEntry
+        (rbtParent(ttDepthTwoLeftRight, lEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(ttDepthTwoLeftRight, sEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoLeftLeft, eEntry) as FRBTNode).entry shouldBe lEntry
+        (rbtParent(frbDepthTwoLeftLeft, lEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoLeftLeft, sEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoRightRight, uEntry) as FRBTNode).entry shouldBe sEntry
+        (rbtParent(frbDepthTwoRightRight, sEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoRightRight, mEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoRightLeft, rEntry) as FRBTNode).entry shouldBe sEntry
+        (rbtParent(frbDepthTwoRightLeft, sEntry) as FRBTNode).entry shouldBe nEntry
+        (rbtParent(frbDepthTwoRightLeft, mEntry) as FRBTNode).entry shouldBe nEntry
 
-        fparent(frbWikiTree, mEntry)  /* parent of root */ shouldBe FRBTNil
-        (fparent(frbWikiTree, cEntry) as FRBTNode).entry shouldBe bEntry
-        (fparent(frbWikiTree, hEntry) as FRBTNode).entry shouldBe dEntry
-        fparent(frbWikiTree, zEntry) /* parent of missing value */ shouldBe FRBTNil
+        rbtParent(frbWikiTree, mEntry)  /* parent of root */ shouldBe FRBTNil
+        (rbtParent(frbWikiTree, cEntry) as FRBTNode).entry shouldBe bEntry
+        (rbtParent(frbWikiTree, hEntry) as FRBTNode).entry shouldBe dEntry
+        rbtParent(frbWikiTree, zEntry) /* parent of missing value */ shouldBe FRBTNil
 
-        (fparent(frbSlideShareTree, n32Entry) as FRBTNode).entry shouldBe n48Entry
-        (fparent(frbSlideShareTree, n50Entry) as FRBTNode).entry shouldBe n62Entry
+        (rbtParent(frbSlideShareTree, n32Entry) as FRBTNode).entry shouldBe n48Entry
+        (rbtParent(frbSlideShareTree, n50Entry) as FRBTNode).entry shouldBe n62Entry
     }
 
     test("co.contains2") {
@@ -167,14 +167,14 @@ class FRBTreeTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    fcontains2(t, acc.head) shouldBe true
+                    rbtContains2(t, acc.head) shouldBe true
                     go(t, acc.tail)
                 }
             }
         go(frbWikiTree, frbWikiPreorder)
-        fcontains2(frbWikiTree, zEntry) shouldBe false
+        rbtContains2(frbWikiTree, zEntry) shouldBe false
         go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        fcontains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
+        rbtContains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("co.contains item") {
@@ -182,14 +182,14 @@ class FRBTreeTest : FunSpec({
             when (acc) {
                 is FLNil -> FLNil
                 is FLCons -> {
-                    (t.fcontainsItem(acc.head)) shouldBe true
+                    (t.fcontains(acc.head)) shouldBe true
                     go(t, acc.tail)
                 }
             }
         go(frbWikiTree, frbWikiPreorder)
-        fcontains2(frbWikiTree, zEntry) shouldBe false
+        rbtContains2(frbWikiTree, zEntry) shouldBe false
         go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        fcontains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
+        rbtContains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("co.contains key") {
@@ -202,97 +202,78 @@ class FRBTreeTest : FunSpec({
                 }
             }
         go(frbWikiTree, frbWikiPreorder)
-        fcontains2(frbWikiTree, zEntry) shouldBe false
+        rbtContains2(frbWikiTree, zEntry) shouldBe false
         go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        fcontains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
+        rbtContains2(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("co.insert item") {
-        finsert(FRBTNil,mEntry) shouldBe FRBTNode(mEntry, BLACK)
-        finsert(FRBTNode(mEntry),lEntry) shouldBe frbDepthOneLeft
-        finsert(frbDepthOneLeft,nEntry) shouldBe frbDepthOneFull
-        finsert(ttDepthTwoRightPartial,rEntry) shouldBe frbDepthTwoRightLeft
+        rbtInsert(FRBTNil,mEntry) shouldBe FRBTNode(mEntry, BLACK)
+        rbtInsert(FRBTNode(mEntry),lEntry) shouldBe frbDepthOneLeft
+        rbtInsert(frbDepthOneLeft,nEntry) shouldBe frbDepthOneFull
+        rbtInsert(ttDepthTwoRightPartial,rEntry) shouldBe frbDepthTwoRightLeft
     }
 
     test("co.insert items sorted asc") {
-        val aux0 = finsert(FRBTNil, TKVEntry.ofIntKey(0))
+        val aux0 = rbtInsert(FRBTNil, TKVEntry.ofIntKey(0))
         println("tree with 0                   $aux0")
-        aux0 as FRBTNode
         rbRootSane(aux0) shouldBe true
-        val aux1 = finsert(aux0, TKVEntry.ofIntKey(1))
+        val aux1 = rbtInsert(aux0, TKVEntry.ofIntKey(1))
         println("tree with 0,1                 $aux1")
-        aux1 as FRBTNode
         rbRootSane(aux1) shouldBe true
-        val aux2 = finsert(aux1, TKVEntry.ofIntKey(2))
+        val aux2 = rbtInsert(aux1, TKVEntry.ofIntKey(2))
         println("tree with 0,1,2               $aux2")
-        aux2 as FRBTNode
         rbRootSane(aux2) shouldBe true
-        val aux3 = finsert(aux2, TKVEntry.ofIntKey(3))
+        val aux3 = rbtInsert(aux2, TKVEntry.ofIntKey(3))
         println("tree with 0,1,2,3             $aux3")
-        aux3 as FRBTNode
         rbRootSane(aux3) shouldBe true
-        val aux4 = finsert(aux3, TKVEntry.ofIntKey(4))
+        val aux4 = rbtInsert(aux3, TKVEntry.ofIntKey(4))
         println("tree with 0,1,2,3,4           $aux4")
-        aux4 as FRBTNode
         rbRootSane(aux4) shouldBe true
-        val aux5 = finsert(aux4, TKVEntry.ofIntKey(5))
+        val aux5 = rbtInsert(aux4, TKVEntry.ofIntKey(5))
         println("tree with 0,1,2,3,4,5         $aux5")
-        aux5 as FRBTNode
         rbRootSane(aux5) shouldBe true
-        val aux6 = finsert(aux5, TKVEntry.ofIntKey(6))
+        val aux6 = rbtInsert(aux5, TKVEntry.ofIntKey(6))
         println("tree with 0,1,2,3,4,5,6       $aux6")
-        aux6 as FRBTNode
         rbRootSane(aux6) shouldBe true
-        val aux7 = finsert(aux6, TKVEntry.ofIntKey(7))
+        val aux7 = rbtInsert(aux6, TKVEntry.ofIntKey(7))
         println("tree with 0,1,2,3,4,5,6,7     $aux7")
-        aux7 as FRBTNode
         rbRootSane(aux7) shouldBe true
-        val aux8 = finsert(aux7, TKVEntry.ofIntKey(8))
+        val aux8 = rbtInsert(aux7, TKVEntry.ofIntKey(8))
         println("tree with 0,1,2,3,4,5,6,7,8   $aux8")
-        aux8 as FRBTNode
         rbRootSane(aux8) shouldBe true
-        val aux9 = finsert(aux8, TKVEntry.ofIntKey(9))
+        val aux9 = rbtInsert(aux8, TKVEntry.ofIntKey(9))
         println("tree with 0,1,2,3,4,5,6,7,8,9 $aux9")
-        aux9 as FRBTNode
         rbRootSane(aux9) shouldBe true
     }
 
     test("co.insert items sorted desc") {
-        val aux0 = finsert(FRBTNil, TKVEntry.ofIntKey(8))
+        val aux0 = rbtInsert(FRBTNil, TKVEntry.ofIntKey(8))
         println("8: $aux0")
-        aux0 as FRBTNode
         rbRootSane(aux0) shouldBe true
-        val aux1 = finsert(aux0, TKVEntry.ofIntKey(7))
+        val aux1 = rbtInsert(aux0, TKVEntry.ofIntKey(7))
         println("7: $aux1")
-        aux1 as FRBTNode
         rbRootSane(aux1) shouldBe true
-        val aux2 = finsert(aux1, TKVEntry.ofIntKey(6))
+        val aux2 = rbtInsert(aux1, TKVEntry.ofIntKey(6))
         println("6: $aux2")
-        aux2 as FRBTNode
         rbRootSane(aux2) shouldBe true
-        val aux3 = finsert(aux2, TKVEntry.ofIntKey(5))
+        val aux3 = rbtInsert(aux2, TKVEntry.ofIntKey(5))
         println("5: $aux3")
-        aux3 as FRBTNode
         rbRootSane(aux3) shouldBe true
-        val aux4 = finsert(aux3, TKVEntry.ofIntKey(4))
+        val aux4 = rbtInsert(aux3, TKVEntry.ofIntKey(4))
         println("4: $aux4")
-        aux4 as FRBTNode
         rbRootSane(aux4) shouldBe true
-        val aux5 = finsert(aux4, TKVEntry.ofIntKey(3))
+        val aux5 = rbtInsert(aux4, TKVEntry.ofIntKey(3))
         println("3: $aux5")
-        aux5 as FRBTNode
         rbRootSane(aux5) shouldBe true
-        val aux6 = finsert(aux5, TKVEntry.ofIntKey(2))
+        val aux6 = rbtInsert(aux5, TKVEntry.ofIntKey(2))
         println("2: $aux6")
-        aux6 as FRBTNode
         rbRootSane(aux6) shouldBe true
-        val aux7 = finsert(aux6, TKVEntry.ofIntKey(1))
+        val aux7 = rbtInsert(aux6, TKVEntry.ofIntKey(1))
         println("1: $aux7")
-        aux7 as FRBTNode
         rbRootSane(aux7) shouldBe true
-        val aux8 = finsert(aux7, TKVEntry.ofIntKey(0))
+        val aux8 = rbtInsert(aux7, TKVEntry.ofIntKey(0))
         println("0: $aux8")
-        aux8 as FRBTNode
         rbRootSane(aux8) shouldBe true
     }
 
@@ -483,7 +464,7 @@ class FRBTreeTest : FunSpec({
                 is FLCons -> {
                     val rbDeleted: RBTree<Int, String> = rbWikiTree.copy()
                     rbDeleted.rbDelete(TKVEntry.of(acc.head.getk(), acc.head.getv()))
-                    when (val deleted = fdelete(frb, acc.head)) {
+                    when (val deleted = rbtDelete(frb, acc.head)) {
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
@@ -506,7 +487,7 @@ class FRBTreeTest : FunSpec({
                 is FLCons -> {
                     val rbDeleted: RBTree<Int, Int> = rbSlideShareTree.copy()
                     rbDeleted.rbDelete(TKVEntry.of(acc.head.getk(), acc.head.getv()))
-                    when (val deleted = fdelete(frb, acc.head)) {
+                    when (val deleted = rbtDelete(frb, acc.head)) {
                         is FRBTNode -> {
                             rbRootSane(deleted) shouldBe true
                             val aut1in = deleted.inorder()
@@ -527,7 +508,7 @@ class FRBTreeTest : FunSpec({
                 is FLNil -> FLNil
                 is FLCons -> {
                     rbDeleted.rbDelete(acc.head)
-                    val deleted = fdelete(t, acc.head)
+                    val deleted = rbtDelete(t, acc.head)
                     val oracle = inorder.ffilterNot { it == acc.head }
                     when (deleted) {
                         is FRBTNode -> {
@@ -569,7 +550,7 @@ class FRBTreeTest : FunSpec({
         rbMutable = rbWikiTree.copy()
         goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst.freverse(), frbWikiInorder)
 
-        fdelete(frbWikiTree, zEntry) shouldBe frbWikiTree
+        rbtDelete(frbWikiTree, zEntry) shouldBe frbWikiTree
         
         goAllSS(frbSlideShareTree, frbSlideSharePreorder, frbSlideShareInorder)
         goAllSS(frbSlideShareTree, frbSlideSharePostorder, frbSlideShareInorder)
@@ -596,7 +577,7 @@ class FRBTreeTest : FunSpec({
         rbMutableSs = rbSlideShareTree.copy()
         goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst.freverse(), frbSlideShareInorder)
 
-        fdelete(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe frbSlideShareTree
+        rbtDelete(frbSlideShareTree, TKVEntry.ofIntKey(100)) shouldBe frbSlideShareTree
     }
 
     test("co.delete (property), sorted asc") {
@@ -604,7 +585,7 @@ class FRBTreeTest : FunSpec({
             val values = Array(n) { i: Int -> TKVEntry.of(i, i) }
             val ix1 = nextInt(0, n)
             val frbTree = of(values.iterator())
-            val aut = fdelete(frbTree, TKVEntry.ofIntKey(ix1))
+            val aut = rbtDelete(frbTree, TKVEntry.ofIntKey(ix1))
             aut.size shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
@@ -620,7 +601,7 @@ class FRBTreeTest : FunSpec({
             reversed.reverse()
             val ix1 = nextInt(0, n)
             val frbTree = of(values.iterator())
-            val aut = fdelete(frbTree, TKVEntry.ofIntKey(ix1))
+            val aut = rbtDelete(frbTree, TKVEntry.ofIntKey(ix1))
             aut.size shouldBe n - 1
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())
@@ -640,9 +621,9 @@ class FRBTreeTest : FunSpec({
             val ix2 = randoms[1]
             val ix3 = randoms[2]
             val frbTree = of(shuffled.iterator())
-            val aux0 = fdelete(frbTree, TKVEntry.ofIntKey(ix1))
-            val aux1 = fdelete(aux0, TKVEntry.ofIntKey(ix2))
-            val aut = fdelete(aux1, TKVEntry.ofIntKey(ix3))
+            val aux0 = rbtDelete(frbTree, TKVEntry.ofIntKey(ix1))
+            val aux1 = rbtDelete(aux0, TKVEntry.ofIntKey(ix2))
+            val aut = rbtDelete(aux1, TKVEntry.ofIntKey(ix3))
             aut.size shouldBe n - 3
             rbRootSane(aut) shouldBe true
             val testOracle = FList.of(values.iterator())

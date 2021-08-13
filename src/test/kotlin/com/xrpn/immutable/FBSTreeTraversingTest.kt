@@ -13,7 +13,7 @@ class FBSTreeTraversingTest : FunSpec({
     beforeTest {}
 
     fun <A, B: Any> FBSTree<A, B>.quietAssert(tkv: TKVEntry<A, B>): Unit where A: Any, A: Comparable<A> =
-        when (val node = FBSTree.fparent(this, tkv)) {
+        when (val node = FBSTree.bstParent(this, tkv)) {
             is FBSTNil -> Unit
             is FBSTNode<A, B> -> {
                 fbtAssert(node)

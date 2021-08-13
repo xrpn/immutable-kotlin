@@ -50,7 +50,7 @@ interface IMSetCompanion {
     fun <A: Any> IMSet<A>.faddAll(elements: Collection<A>): IMSet<A>
     fun <A: Any> IMSet<A>.fremove(item: A): IMSet<A>
     fun <A: Any> IMSet<A>.fremoveAll(elements: Collection<A>): IMSet<A>
-    fun <A: Any> IMSet<A>.fholds(item: A): Boolean
+    fun <A: Any> IMSet<A>.fcontains(item: A): Boolean
 
     fun <A: Any> IMSet<A>.fisSubsetOf(rhs: IMSet<A>): Boolean
     fun <A: Any> IMSet<A>.fretainsOnly(elements: Collection<A>): IMSet<A>
@@ -109,20 +109,35 @@ interface IMBTreeCompanion {
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, f: (B) -> C): IMBTree<String, C>
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): IMBTree<String, C>
 
-    // -----------
+    fun <A, B: Any> IMBTree<A,B>.fcontains(item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.fcontainsKey(key: A): Boolean where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.fdelete(item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.fdeleteAtMost(item: TKVEntry<A, B>, atMostOne: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.fdeletes(items: IMList<TKVEntry<A,B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.equal(rhs: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.ffind(item: TKVEntry<A, B>): IMBTree<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.ffindKey(key: A): IMBTree<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.ffindLast(item: TKVEntry<A, B>): IMBTree<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.ffindLastKey(key: A): IMBTree<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.ffindValueOfKey(key: A): B? where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.finsert(item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.finsertDup(item: TKVEntry<A, B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.finserts(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.finsertsDups(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> IMBTree<A,B>.fparentOf(child: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
 
-//    fun <A, B: Any> fcontains2(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A>
-//    fun <B: Any> fcontainsIntKey(treeStub: IMBTree<Int, B>, value: B): Boolean
-//    fun <B: Any> fcontainsStrKey(treeStub: IMBTree<String, B>, value: B): Boolean
-//    fun <A, B: Any> fdelete(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> fdelete(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>, atMostOne: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> fdeletes(treeStub: IMBTree<A, B>, items: FList<TKVEntry<A,B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> ffind(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> ffindKey(treeStub: IMBTree<A, B>, key: A): B? where A: Any, A: Comparable<A>
-//    fun <A, B: Any> ffindLast(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> finsert(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> finsert(treeStub: IMBTree<A, B>, item: TKVEntry<A, B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> finserts(treeStub: IMBTree<A, B>, items: FList<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> finserts(treeStub: IMBTree<A, B>, items: FList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
-//    fun <A, B: Any> fparent(treeStub: IMBTree<A, B>, childItem: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <B: Any> IMBTree<Int,B>.fcontainsIK(item: B): Boolean
+    fun <B: Any> IMBTree<Int,B>.fdeleteIK(item: B): IMBTree<Int,B>
+    fun <B: Any> IMBTree<Int,B>.ffindIK(item: B): IMBTree<Int,B>?
+    fun <B: Any> IMBTree<Int,B>.ffindLastIK(item: B): IMBTree<Int,B>?
+    fun <B: Any> IMBTree<Int,B>.finsertIK(item: B): IMBTree<Int, B>
+    fun <B: Any> IMBTree<Int,B>.finsertDupIK(item: B, allowDups: Boolean): IMBTree<Int, B>
+
+    fun <B: Any> IMBTree<String,B>.fcontainsSK(item: B): Boolean
+    fun <B: Any> IMBTree<String,B>.fdeleteSK(item: B): IMBTree<String,B>
+    fun <B: Any> IMBTree<String,B>.ffindSK(item: B): IMBTree<String,B>?
+    fun <B: Any> IMBTree<String,B>.ffindLastSK(item: B): IMBTree<String,B>?
+    fun <B: Any> IMBTree<String,B>.finsertSK(item: B): IMBTree<String, B>
+    fun <B: Any> IMBTree<String,B>.finsertDupSK(item: B, allowDups: Boolean): IMBTree<String, B>
+
 }
