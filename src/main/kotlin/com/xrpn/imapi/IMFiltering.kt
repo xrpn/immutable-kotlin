@@ -1,5 +1,7 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FLCons
+import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.TKVEntry
 
 interface IMListFiltering<out A: Any> {
@@ -15,7 +17,7 @@ interface IMListFiltering<out A: Any> {
     fun ffindFromLeft(isMatch: (A) -> Boolean): A? // Return the first element that matches the predicate p
     fun ffindFromRight(isMatch: (A) -> Boolean): A? // Return the last element that matches the predicate p
     fun fgetOrNull(ix: Int): A? // element at ix, null if bad ix
-    fun fempty(): Boolean = (fhead()?.let { false } != false)
+    fun fempty(): Boolean = fhead() == null
     fun fhead(): A? // 	Returns the first element as a nullable
     fun finit(): IMList<A> // All elements except the last one
     fun flast(): A? // 	The last element as a nullable
@@ -28,7 +30,7 @@ interface IMListFiltering<out A: Any> {
 }
 
 interface IMSetFiltering<out A: Any> {
-    fun fempty(): Boolean = (fpick()?.let { false } != false)
+    fun fempty(): Boolean = fpick() == null
     fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
     fun ffind(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
@@ -36,11 +38,14 @@ interface IMSetFiltering<out A: Any> {
 }
 
 interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
-    fun fempty(): Boolean = (froot()?.let { false } != false)
-    fun ffilter(match: Comparable<TKVEntry<A, B>>): IMBTree<A, B> // 	Return all elements that match the predicate p
-    fun ffilterNot(match: Comparable<TKVEntry<A, B>>): IMBTree<A, B> // 	Return all elements that do not match the predicate p
-    fun ffindDistinct(match: Comparable<TKVEntry<A, B>>): TKVEntry<A, B>? // Return the element that matches the predicate p
-    fun ffind(match: Comparable<TKVEntry<A, B>>): IMList<TKVEntry<A, B>> // Return the element that matches the predicate p
+    fun fempty(): Boolean = froot() == null
+    fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> // 	Return all elements that match the predicate p
+    fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> // 	Return all elements that do not match the predicate p
+    fun ffindDistinct(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? {  // Return the element that matches the predicate p
+        val found = ffind(isMatch)
+        return if (found.fempty() || 1 < found.fsize()) null else found.fhead()
+    }
+    fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): IMList<TKVEntry<A, B>> // Return the element that matches the predicate p
     fun fleftMost(): TKVEntry<A, B>?
     fun fpick(): TKVEntry<A, B>? // peek at one random element
     fun frightMost(): TKVEntry<A, B>?

@@ -1,13 +1,14 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.imapi.IMBTreeTraversable
+import com.xrpn.imapi.IMBTree
+import com.xrpn.imapi.IMTraversable
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
  */
 
-open class RBTree<A: Comparable<A>, B: Any>: IMBTreeTraversable<A, B> {
+open class RBTree<A: Comparable<A>, B: Any>: IMTraversable<A, B> {
 
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
@@ -294,19 +295,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTreeTraversable<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun reverseIterator(): Iterator<B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun preorderForEach(f: (TKVEntry<A, B>) -> Unit) {
-        TODO("Not yet implemented")
-    }
-
-    override fun postorderForEach(f: (TKVEntry<A, B>) -> Unit) {
-        TODO("Not yet implemented")
-    }
-
-    override fun inorderForEach(f: (TKVEntry<A, B>) -> Unit) {
+    override fun forEach(f: (TKVEntry<A, B>) -> Unit) {
         TODO("Not yet implemented")
     }
 

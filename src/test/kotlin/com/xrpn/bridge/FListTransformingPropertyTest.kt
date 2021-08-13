@@ -9,7 +9,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
-class FListTransformingTest : FunSpec({
+class FListTransformingPropertyTest : FunSpec({
 
   val repeats = 10
 

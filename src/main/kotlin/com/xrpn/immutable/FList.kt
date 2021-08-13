@@ -446,10 +446,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     fun copy(): FList<A> = this.ffoldRight(emptyIMList(), { a, b -> FLCons(a,b)})
 
-    fun copyToList(): List<A> = this.ffoldRight<MutableList<A>>(mutableListOf()) { a, b ->
-        b.add(a)
-        b
-    }.reversed()
+    fun copyToList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
 
     companion object: IMListCompanion {
 

@@ -27,8 +27,10 @@ interface IMSetTransforming<out A: Any> {
 interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C>  // 	When working with sequences, it works like map followed by flatten
-    fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
+    fun <C> ffold(z: C, f: (acc: C, B) -> C): C // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
     fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
+    fun <C, D: Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMList<TKVEntry<C, D>> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
     fun <C: Any> fmapv(f: (B) -> C): IMBTree<A, C>  // 	Return a new sequence by applying the function f to each element in the List
-    fun freducev(f: (acc: B, B) -> @UnsafeVariance B): B? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
+    fun <C: Any> fmapvToList(f: (B) -> C): IMList<C>  // 	Return a new sequence by applying the function f to each element in the List
+    fun freduce(f: (acc: B, B) -> @UnsafeVariance B): B? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 }

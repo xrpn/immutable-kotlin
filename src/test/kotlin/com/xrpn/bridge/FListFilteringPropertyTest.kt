@@ -4,11 +4,12 @@ import com.xrpn.immutable.FList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
-class FListFilteringTest : FunSpec({
+class FListFilteringPropertyTest : FunSpec({
 
   val repeats = 10
   fun <Z: Comparable<Z>> matchEqual(oracle: Z): (Z) -> Boolean = { aut: Z -> oracle == aut }
@@ -54,9 +55,10 @@ class FListFilteringTest : FunSpec({
   }
 
   test("fdropWhen") {
+    // Arb.flist<Int, Int>(Arb.int()).checkAll(repeats, PropTestConfig(seed=2890448575695491053)) { fl ->
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ora = middle(fl)
-      val aux = (fl.copyToList() as MutableList<Int>)
+      val aux: MutableList<Int> = fl.copyToList()
       aux.removeIf(matchLessThan(ora))
       fl.fdropWhen(matchLessThan(ora)) shouldBe aux
       fl.fdropWhen(matchLessThan(ora)) shouldBe fl.ffilterNot(matchLessThan(ora))

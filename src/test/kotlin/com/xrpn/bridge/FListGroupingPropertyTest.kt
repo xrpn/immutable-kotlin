@@ -9,7 +9,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
-class FListGroupingTest : FunSpec({
+class FListGroupingPropertyTest : FunSpec({
 
   val repeats = 10
   fun <Z> matchEqualNullable(oracle: Z?): (Z) -> Boolean = { aut: Z -> oracle == aut }

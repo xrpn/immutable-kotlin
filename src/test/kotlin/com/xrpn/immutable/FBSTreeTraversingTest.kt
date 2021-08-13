@@ -1,31 +1,19 @@
 package com.xrpn.immutable
 
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
-import com.xrpn.immutable.FBSTree.Companion.isChildMatch
-import com.xrpn.immutable.FBSTree.Companion.nul
-import com.xrpn.immutable.FBSTree.Companion.parent
-import com.xrpn.immutable.FBSTree.Companion.prune
-import com.xrpn.immutable.FBSTree.Companion.find
-import com.xrpn.immutable.FBSTree.Companion.findLast
-import com.xrpn.immutable.FBSTree.Companion.addGraft
-import com.xrpn.immutable.FBSTree.Companion.contains
-import com.xrpn.immutable.FBSTree.Companion.contains2
-import com.xrpn.immutable.FBSTree.Companion.insert
-import com.xrpn.immutable.FBSTree.Companion.delete
-import com.xrpn.immutable.FBSTree.Companion.equal
-import io.kotest.property.Arb
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import kotlin.random.Random.Default.nextInt
+import java.util.concurrent.atomic.AtomicInteger
 
 class FBSTreeTraversingTest : FunSpec({
 
     beforeTest {}
 
     fun <A, B: Any> FBSTree<A, B>.quietAssert(tkv: TKVEntry<A, B>): Unit where A: Any, A: Comparable<A> =
-        when (val node = FBSTree.parent(this, tkv)) {
+        when (val node = FBSTree.fparent(this, tkv)) {
             is FBSTNil -> Unit
             is FBSTNode<A, B> -> {
                 fbtAssert(node)
@@ -33,46 +21,80 @@ class FBSTreeTraversingTest : FunSpec({
             }
         }
 
-    test("sanity preorder") {
-        wikiTree.preorderForEach(wikiTree::quietAssert)
-        slideShareTree.preorderForEach(wikiTree::quietAssert)
-        depthOneRight.preorderForEach(depthOneRight::quietAssert)
-        depthOneLeft.preorderForEach(depthOneRight::quietAssert)
-        depthOneFull.preorderForEach(depthOneRight::quietAssert)
-        depthTwoLeftPartial.preorderForEach(depthTwoLeftPartial::quietAssert)
-        depthTwoLeftRight.preorderForEach(depthTwoLeftRight::quietAssert)
-        depthTwoLeftLeft.preorderForEach(depthTwoLeftLeft::quietAssert)
-        depthTwoRightPartial.preorderForEach(depthTwoRightPartial::quietAssert)
-        depthTwoRightRight.preorderForEach(depthTwoRightRight::quietAssert)
-        depthTwoRightLeft.preorderForEach(depthTwoRightLeft::quietAssert)
+    test("sanity") {
+        wikiTree.forEach(wikiTree::quietAssert)
+        slideShareTree.forEach(wikiTree::quietAssert)
+        depthOneRight.forEach(depthOneRight::quietAssert)
+        depthOneLeft.forEach(depthOneRight::quietAssert)
+        depthOneFull.forEach(depthOneRight::quietAssert)
+        depthTwoLeftPartial.forEach(depthTwoLeftPartial::quietAssert)
+        depthTwoLeftRight.forEach(depthTwoLeftRight::quietAssert)
+        depthTwoLeftLeft.forEach(depthTwoLeftLeft::quietAssert)
+        depthTwoRightPartial.forEach(depthTwoRightPartial::quietAssert)
+        depthTwoRightRight.forEach(depthTwoRightRight::quietAssert)
+        depthTwoRightLeft.forEach(depthTwoRightLeft::quietAssert)
     }
 
-    test("sanity inorder") {
-        wikiTree.inorderForEach(wikiTree::quietAssert)
-        slideShareTree.inorderForEach(wikiTree::quietAssert)
-        depthOneRight.inorderForEach(depthOneRight::quietAssert)
-        depthOneLeft.inorderForEach(depthOneRight::quietAssert)
-        depthOneFull.inorderForEach(depthOneRight::quietAssert)
-        depthTwoLeftPartial.inorderForEach(depthTwoLeftPartial::quietAssert)
-        depthTwoLeftRight.inorderForEach(depthTwoLeftRight::quietAssert)
-        depthTwoLeftLeft.inorderForEach(depthTwoLeftLeft::quietAssert)
-        depthTwoRightPartial.inorderForEach(depthTwoRightPartial::quietAssert)
-        depthTwoRightRight.inorderForEach(depthTwoRightRight::quietAssert)
-        depthTwoRightLeft.inorderForEach(depthTwoRightLeft::quietAssert)
+    test ("forEach presorted") {
+
+        val counter = AtomicInteger(0)
+        val summer = AtomicInteger(0)
+        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
+        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
+        checkAll(50, Arb.int(20..100)) { n ->
+            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
+            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
+            println("n:$n oraSum:$oraSum")
+            tree.forEach(doCount)
+            counter.get() shouldBe n
+            counter.set(0)
+            tree.forEach(doSum)
+            summer.get() shouldBe oraSum
+            summer.set(0)
+        }
     }
 
-    test("sanity postorder") {
-        wikiTree.postorderForEach(wikiTree::quietAssert)
-        slideShareTree.postorderForEach(wikiTree::quietAssert)
-        depthOneRight.postorderForEach(depthOneRight::quietAssert)
-        depthOneLeft.postorderForEach(depthOneRight::quietAssert)
-        depthOneFull.postorderForEach(depthOneRight::quietAssert)
-        depthTwoLeftPartial.postorderForEach(depthTwoLeftPartial::quietAssert)
-        depthTwoLeftRight.postorderForEach(depthTwoLeftRight::quietAssert)
-        depthTwoLeftLeft.postorderForEach(depthTwoLeftLeft::quietAssert)
-        depthTwoRightPartial.postorderForEach(depthTwoRightPartial::quietAssert)
-        depthTwoRightRight.postorderForEach(depthTwoRightRight::quietAssert)
-        depthTwoRightLeft.postorderForEach(depthTwoRightLeft::quietAssert)
+    test ("forEach shuffled") {
+
+        val counter = AtomicInteger(0)
+        val summer = AtomicInteger(0)
+        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
+        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
+        checkAll(50, Arb.int(20..100)) { n ->
+            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            values.shuffle()
+            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
+            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
+            println("n:$n oraSum:$oraSum")
+            tree.forEach(doCount)
+            counter.get() shouldBe n
+            counter.set(0)
+            tree.forEach(doSum)
+            summer.get() shouldBe oraSum
+            summer.set(0)
+        }
+    }
+
+    test ("forEach reversed") {
+
+        val counter = AtomicInteger(0)
+        val summer = AtomicInteger(0)
+        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
+        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
+        checkAll(50, Arb.int(20..100)) { n ->
+            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            values.reverse()
+            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
+            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
+            println("n:$n oraSum:$oraSum")
+            tree.forEach(doCount)
+            counter.get() shouldBe n
+            counter.set(0)
+            tree.forEach(doSum)
+            summer.get() shouldBe oraSum
+            summer.set(0)
+        }
     }
 
     test("preorder") {
