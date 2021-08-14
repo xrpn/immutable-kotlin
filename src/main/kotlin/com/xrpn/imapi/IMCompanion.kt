@@ -84,7 +84,20 @@ interface IMBTreeCompanion {
     fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+
+//    fun <A, B> of1(vararg items: TKVEntry1<A,B>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(vararg items: TKVEntry1<A,B>, c: Comparator<B>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(vararg items: TKVEntry1<A,B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(vararg items: TKVEntry1<A,B>, c: Comparator<B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: Iterator<TKVEntry1<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: Iterator<TKVEntry1<A, B>>, c: Comparator<B>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: Iterator<TKVEntry1<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: Iterator<TKVEntry1<A, B>>, c: Comparator<B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: IMList<TKVEntry1<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: IMList<TKVEntry1<A, B>>, c: Comparator<B>): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: IMList<TKVEntry1<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
+//    fun <A, B> of1(items: IMList<TKVEntry1<A, B>>, c: Comparator<B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>, B: Any, B: Comparable<B>
 
     fun <B: Any> ofvi(vararg items: B): IMBTree<Int, B>
     fun <B: Any> ofvi(vararg items: B, allowDups: Boolean): IMBTree<Int, B>

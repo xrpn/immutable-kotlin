@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeTraversing
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
@@ -647,8 +648,8 @@ class FRBTreeTest : FunSpec({
     }
 })
 
-private fun displayRbOnVerbose(rbTree: FRBTree<Int, Int>, n: Int, force: Boolean = false) {
-    if (verbose || !rbRootSane(rbTree) || force) {
+private fun displayRbOnVerbose(rbTree: IMBTree<Int, Int>, n: Int, force: Boolean = false) {
+    if (verbose || !rbRootSane(rbTree as FRBTree<Int, Int>) || force) {
         print("FF size " + n)
         print(", expected depth ${rbMaxDepth(n)}")
         print(", max depth " + rbTree.fmaxDepth())

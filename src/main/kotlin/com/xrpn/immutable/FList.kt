@@ -89,6 +89,10 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this)
     }
 
+    override fun copy(): FList<A> = this.ffoldRight(emptyIMList(), { a, b -> FLCons(a,b)})
+
+    override fun copyToMutableList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
+
     // filtering
 
     override fun fdrop(n: Int): FList<A> {
@@ -458,10 +462,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun freverse(): FList<A> = this.ffoldLeft(emptyIMList(), { b, a -> FLCons(a,b)})
 
     // =====
-
-    fun copy(): FList<A> = this.ffoldRight(emptyIMList(), { a, b -> FLCons(a,b)})
-
-    fun copyToMutableList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
 
     companion object: IMListCompanion {
 

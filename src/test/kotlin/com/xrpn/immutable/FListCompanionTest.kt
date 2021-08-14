@@ -56,7 +56,24 @@ class FListCompanionTest : FunSpec({
       summer.set(0)
     }
   }
-  
+
+  test("copyToMutableList") {
+    checkAll(50, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+      val ml = fl.copyToMutableList()
+      (fl == ml) shouldBe true
+    }
+  }
+
+  test("copy") {
+    checkAll(50, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+      val fl1 = fl.copy()
+      (fl1 === fl) shouldBe false
+      fl.equal(fl1) shouldBe true
+    }
+  }
+
+  // ==============================================================
+
   test("co.emptyFList") {
     FList.emptyIMList<Int>().isEmpty() shouldBe true
     FList.emptyIMList<Int>().fempty() shouldBe true

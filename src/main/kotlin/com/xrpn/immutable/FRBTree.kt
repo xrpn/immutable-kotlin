@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMBTree
@@ -218,7 +219,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fsize(): Int = size
 
     override fun fpopAndReminder(): Pair<TKVEntry<A,B>?, FRBTree<A, B>> {
-        val pop: TKVEntry<A,B>? = this.fpick()
+        // pop will return elements in sorted order
+        val pop: TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
+        // computing the reminder can be very expensive, however; if traversal
+        // will be for the full tree, .inorder() or .forEach() may be cheaper
         val reminder: FRBTree<A, B> = pop?.let { rbtDelete(this, it) } ?: FRBTNil
         return Pair(pop, reminder)
     }
@@ -450,7 +454,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         override fun <B: Any> IMBTree<String,B>.finsertDupSK(item: B, allowDups: Boolean): IMBTree<String, B> =
             rbtInsert(this as FRBTree<String, B>, TKVEntry.ofStrKey(item))
 
-        // =============== top level type specific implementation
+        // =============== top level type-specific implementation
 
         internal fun <A, B: Any> rbtContains2(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> =
             rbtFind(treeStub, item) != null
@@ -458,6 +462,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // delete entry from treeStub.  Rebalance the tree maintaining immutability as part of deletion.
         internal fun <A, B: Any> rbtDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B>
         where A: Any, A: Comparable<A> {
+
+            // TODO this may be worth memoizing
 
             fun frbDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B> = when (treeStub) {
                 is FRBTNil -> FRBTNil
@@ -580,7 +586,11 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return if (rbtContains2(treeStub, item)) go(treeStub, Pair(FRBTNil, FRBTNil)).first else FRBTNil
         }
 
-        // =================
+        // ================= used in tests
+
+        // TODO this is crude
+        internal fun <A, B: Any, C: Comparable<C>, D: Any> map(tree: FRBTree<A, B>, fk: (A) -> (C), fv: (B) -> D): FRBTree<C, D> where A: Any, A: Comparable<A> =
+            tree.preorder(reverse = true).ffoldLeft(nul(), mapKvAppender(fk, fv))
 
         internal const val RED = true
         internal const val BLACK = false
@@ -591,12 +601,34 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         internal fun rbMaxDepth(size: Int): Int = ((2.0 * log2(size.toDouble() + 1.0)) + 0.5).toInt()
 
+        // check property invariants for tree
+        internal fun <A, B: Any> rbRootSane(root: FRBTree<A, B>): Boolean where A: Any, A: Comparable<A> {
+            fun red() = isRedInvariant(root)
+            fun bal() = isBalanced(root)
+            fun dep() = root.isDepthInvariant() // this is a consequence of other assertions in this group
+            fun i23() = is23(root)
+            val isRC = !root.isRed()
+            val sanity = isRC && dep() && i23() && red() && bal()
+            if (!sanity) {
+                println("INSANE, RC:$isRC red invariant:${red()}, balanced:${bal()}, depth invariant:${dep()}, 23:${i23()}")
+                println("INSANE:\n$root")
+            }
+            return sanity
+        }
+
+        internal inline fun <reified A, reified B: Any> toArray(frbt: FRBTree<A, B>): Array<TKVEntry<A, B>> where A: Any, A: Comparable<A> =
+            FTreeIterator.toArray(frbt.size, FTreeIterator(frbt))
+
+        // ================= internals
+
+        // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             a.getk() == b.entry.getk() -> FBTFIT.EQ
             a.getk() < b.entry.getk() -> FBTFIT.LEFT
             else -> FBTFIT.RIGHT
         }
 
+        // the sorting order
         private fun <A, B: Any> fitKey(k: A, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             k == b.entry.getk() -> FBTFIT.EQ
             k < b.entry.getk() -> FBTFIT.LEFT
@@ -701,21 +733,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        // check property invariants for tree
-        internal fun <A, B: Any> rbRootSane(root: FRBTree<A, B>): Boolean where A: Any, A: Comparable<A> {
-            fun red() = isRedInvariant(root)
-            fun bal() = isBalanced(root)
-            fun dep() = root.isDepthInvariant() // this is a consequence of other assertions in this group
-            fun i23() = is23(root)
-            val isRC = !root.isRed()
-            val sanity = isRC && dep() && i23() && red() && bal()
-            if (!sanity) {
-                println("INSANE, RC:$isRC red invariant:${red()}, balanced:${bal()}, depth invariant:${dep()}, 23:${i23()}")
-                println("INSANE:\n$root")
-            }
-            return sanity
-        }
-
         private tailrec fun <A, B: Any, C: Any> find(treeStub: FRBTree<A, B>, item: C, fitMode: (C, FRBTNode<A, B>) -> FBTFIT): FRBTNode<A, B>?
         where A: Any, A: Comparable<A> = when (treeStub) {
             is FRBTNil -> null
@@ -728,7 +745,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 if (next == null) treeStub else find(next, item, fitMode)
             }
         }
-
 
         private fun <A, B: Any> flipColor(node: FRBTNode<A, B>): FRBTNode<A, B> where A: Any, A: Comparable<A> =
             FRBTNode(node.entry, !node.color,
@@ -813,13 +829,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             vf: (B) -> (D)): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D> where A: Any, A: Comparable<A> =
             { treeStub: FRBTree<C, D>, item: TKVEntry<A, B> -> rbtInsert(treeStub, TKVEntryK(kf(item.getk()), vf(item.getv()))) }
 
-        fun <A, B: Any, C: Comparable<C>, D: Any> map(tree: FRBTree<A, B>, fk: (A) -> (C), fv: (B) -> D): FRBTree<C, D> where A: Any, A: Comparable<A> =
-            tree.preorder(reverse = true).ffoldLeft(nul(), mapKvAppender(fk, fv))
-
         private fun <A, B: Any, C: Comparable<C>, D: Any> mapAppender(
             mappedItem: TKVEntry<C, D>): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D>  where A: Any, A: Comparable<A> =
             { treeStub: FRBTree<C, D>, _: TKVEntry<A, B> -> rbtInsert(treeStub, mappedItem) }
-
     }
 }
 

@@ -1,13 +1,12 @@
 package com.xrpn.immutable
 
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
-import com.xrpn.immutable.FBSTree.Companion.isChildMatch
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.bstParent
-import com.xrpn.immutable.FBSTree.Companion.prune
+import com.xrpn.immutable.FBSTree.Companion.bstPrune
 import com.xrpn.immutable.FBSTree.Companion.bstFind
 import com.xrpn.immutable.FBSTree.Companion.bstFindLast
-import com.xrpn.immutable.FBSTree.Companion.addGraft
+import com.xrpn.immutable.FBSTree.Companion.addGraftTesting
 import com.xrpn.immutable.FBSTree.Companion.bstContains2
 import com.xrpn.immutable.FBSTree.Companion.bstInsert
 import com.xrpn.immutable.FBSTree.Companion.bstDelete
@@ -24,6 +23,12 @@ import kotlin.random.Random.Default.nextInt
 class FBSTreeCompanionTest : FunSpec({
 
     beforeTest {}
+
+    fun <A, B: Any> isChildMatchValidation(node: FBSTNode<A, B>, match: TKVEntry<A, B>): Pair<Boolean, Boolean> where A: Any, A: Comparable<A> {
+        val leftChildMatch = (node.bLeft is FBSTNode) && node.bLeft.entry == match
+        val rightChildMatch = (node.bRight is FBSTNode) && node.bRight.entry == match
+        return Pair(leftChildMatch, rightChildMatch)
+    }
 
     test("co.nul") {
         nul<Int, Int>() shouldBe FBSTNil
@@ -64,7 +69,7 @@ class FBSTreeCompanionTest : FunSpec({
                     when (val found = bstFindLast(t, acc.head)) {
                         is FBSTNode -> {
                             found.entry shouldBe acc.head
-                            isChildMatch(found, acc.head) shouldBe Pair(false, false)
+                            isChildMatchValidation(found, acc.head) shouldBe Pair(false, false)
                         }
                         else -> fail("not found: ${acc.head}")
                     }
@@ -85,7 +90,7 @@ class FBSTreeCompanionTest : FunSpec({
                     when (val found = bstFindLast(t, acc.head)) {
                         is FBSTNode -> {
                             found.entry shouldBe acc.head
-                            isChildMatch(found, acc.head) shouldBe Pair(false, false)
+                            isChildMatchValidation(found, acc.head) shouldBe Pair(false, false)
                         }
                         else -> fail("not found: ${acc.head}")
                     }
@@ -174,87 +179,87 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.prune") {
-        prune(wikiTree, zEntry) /* missing match */ shouldBe wikiTree
-        prune(wikiTree, fEntry) /* prune at root */ shouldBe FBSTNil
+        bstPrune(wikiTree, zEntry) /* missing match */ shouldBe wikiTree
+        bstPrune(wikiTree, fEntry) /* prune at root */ shouldBe FBSTNil
 
-        prune(depthOneLeft,lEntry) shouldBe FBSTNode(mEntry)
-        prune(depthOneRight,nEntry) shouldBe FBSTNode(mEntry)
-        prune(depthOneFull,lEntry) shouldBe depthOneRight
-        prune(depthOneFull,nEntry) shouldBe depthOneLeft
+        bstPrune(depthOneLeft,lEntry) shouldBe FBSTNode(mEntry)
+        bstPrune(depthOneRight,nEntry) shouldBe FBSTNode(mEntry)
+        bstPrune(depthOneFull,lEntry) shouldBe depthOneRight
+        bstPrune(depthOneFull,nEntry) shouldBe depthOneLeft
 
-        prune(depthTwoLeftRight, sEntry) shouldBe
+        bstPrune(depthTwoLeftRight, sEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(lEntry,
                     FBSTNil,
                     fbtAssert(FBSTNode(mEntry))
                 ))
             ))
-        prune(depthTwoLeftRight, mEntry) shouldBe
+        bstPrune(depthTwoLeftRight, mEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(lEntry)),
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoLeftRight, lEntry) shouldBe
+        bstPrune(depthTwoLeftRight, lEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 FBSTNil,
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoLeftRight, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoLeftRight, nEntry) shouldBe FBSTNil
 
-        prune(depthTwoLeftLeft, sEntry) shouldBe
+        bstPrune(depthTwoLeftLeft, sEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(lEntry,
                     fbtAssert(FBSTNode(eEntry)),
                     FBSTNil))
             ))
-        prune(depthTwoLeftLeft, eEntry) shouldBe
+        bstPrune(depthTwoLeftLeft, eEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(lEntry)),
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoLeftLeft, lEntry) shouldBe
+        bstPrune(depthTwoLeftLeft, lEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 FBSTNil,
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoLeftLeft, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoLeftLeft, nEntry) shouldBe FBSTNil
 
-        prune(depthTwoRightRight, uEntry) shouldBe
+        bstPrune(depthTwoRightRight, uEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(mEntry)),
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoRightRight, sEntry) shouldBe
+        bstPrune(depthTwoRightRight, sEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(mEntry)),
                 FBSTNil
             ))
-        prune(depthTwoRightRight, mEntry) shouldBe
+        bstPrune(depthTwoRightRight, mEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 FBSTNil,
                 fbtAssert(FBSTNode(sEntry,
                     FBSTNil,
                     fbtAssert(FBSTNode(uEntry))))))
-        prune(depthTwoRightRight, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoRightRight, nEntry) shouldBe FBSTNil
 
-        prune(depthTwoRightLeft, rEntry) shouldBe
+        bstPrune(depthTwoRightLeft, rEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(mEntry)),
                 fbtAssert(FBSTNode(sEntry))
             ))
-        prune(depthTwoRightLeft, sEntry) shouldBe
+        bstPrune(depthTwoRightLeft, sEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 fbtAssert(FBSTNode(mEntry)),
                 FBSTNil
             ))
-        prune(depthTwoRightLeft, mEntry) shouldBe
+        bstPrune(depthTwoRightLeft, mEntry) shouldBe
             fbtAssert(FBSTNode(nEntry,
                 FBSTNil,
                 fbtAssert(FBSTNode(sEntry,
                     fbtAssert(FBSTNode(rEntry)),
                     FBSTNil))
             ))
-        prune(depthTwoRightLeft, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoRightLeft, nEntry) shouldBe FBSTNil
     }
 
     test("co.insert item") {
@@ -595,29 +600,29 @@ class FBSTreeCompanionTest : FunSpec({
         }
     }
 
-    test("co.addGraft") {
-        addGraft(FBSTNil, FBSTNil) shouldBe FBSTNil
-        addGraft(depthOneFull, FBSTNil) shouldBe depthOneFull
-        addGraft(FBSTNil, depthOneFull) shouldBe depthOneFull
+    test("co.addGraftTesting") {
+        addGraftTesting(FBSTNil, FBSTNil) shouldBe FBSTNil
+        addGraftTesting(depthOneFull, FBSTNil) shouldBe depthOneFull
+        addGraftTesting(FBSTNil, depthOneFull) shouldBe depthOneFull
 
-        addGraft(prune(depthOneFull, nEntry), FBSTNode(nEntry)) shouldBe depthOneFull
-        addGraft(prune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
+        addGraftTesting(bstPrune(depthOneFull, nEntry), FBSTNode(nEntry)) shouldBe depthOneFull
+        addGraftTesting(bstPrune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
 
-        addGraft(prune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
-        addGraft(prune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight,sEntry)!!) shouldBe depthTwoLeftRight
-        addGraft(prune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight,lEntry)!!) shouldBe depthTwoLeftRight
+        addGraftTesting(bstPrune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
+        addGraftTesting(bstPrune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight,sEntry)!!) shouldBe depthTwoLeftRight
+        addGraftTesting(bstPrune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight,lEntry)!!) shouldBe depthTwoLeftRight
 
-        addGraft(prune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
-        addGraft(prune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft,sEntry)!!) shouldBe depthTwoLeftLeft
-        addGraft(prune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft,lEntry)!!) shouldBe depthTwoLeftLeft
+        addGraftTesting(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
+        addGraftTesting(bstPrune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft,sEntry)!!) shouldBe depthTwoLeftLeft
+        addGraftTesting(bstPrune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft,lEntry)!!) shouldBe depthTwoLeftLeft
 
-        addGraft(prune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
-        addGraft(prune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight,sEntry)!!) shouldBe depthTwoRightRight
-        addGraft(prune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight,mEntry)!!) shouldBe depthTwoRightRight
+        addGraftTesting(bstPrune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
+        addGraftTesting(bstPrune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight,sEntry)!!) shouldBe depthTwoRightRight
+        addGraftTesting(bstPrune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight,mEntry)!!) shouldBe depthTwoRightRight
 
-        addGraft(prune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
-        addGraft(prune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
-        addGraft(prune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
+        addGraftTesting(bstPrune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
+        addGraftTesting(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
+        addGraftTesting(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
     }
 
     test("co.delete no dups") {

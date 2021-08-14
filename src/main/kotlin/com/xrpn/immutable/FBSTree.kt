@@ -387,7 +387,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         override fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> =
             items.ffoldLeft(nul(), appender(allowDups))
 
-        // ===============
+        // =================
 
         override fun <B : Any> ofvi(vararg items: B): FBSTree<Int, B> = ofvi(items.iterator(), false)
         override fun <B : Any> ofvi(vararg items: B, allowDups: Boolean): FBSTree<Int, B> = ofvi(items.iterator(), allowDups)
@@ -513,7 +513,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         override fun <B: Any> IMBTree<String,B>.finsertDupSK(item: B, allowDups: Boolean): IMBTree<String, B> =
             bstInsert(this as FBSTree<String, B>, TKVEntry.ofStrKey(item), allowDups)
 
-        // =============== top level type specific implementation
+        // =============== top level type-specific implementation
 
         internal fun <A, B: Any> bstContains2(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> =
             bstFind(treeStub, item) != null
@@ -522,6 +522,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         internal fun <A, B: Any> bstDelete(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>, atMostOne: Boolean = false): FBSTree<A, B>
         where A: Any, A: Comparable<A> {
 
+            // TODO this may be worth memoizing
+
             fun buildReplacement(
                 eureka: FBSTNode<A, B>,
                 current: FBSTree<A, B>
@@ -529,8 +531,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 val newValue = /* find replacement value */ eureka.bRight.fleftMost()!!
                 val graftRight =  /* build new right subtree */
                     if ((eureka.bRight as FBSTNode).entry == newValue) eureka.bRight.bRight
-                    else prune(eureka.bRight, newValue)
-                val stub = /* remove all A */ prune(treeStub, eureka.entry)
+                    else bstPrune(eureka.bRight, newValue)
+                val stub = /* remove all A */ bstPrune(treeStub, eureka.entry)
                 val graftLeft = /* there may be duplicates */ (bstFind(current, item) as FBSTNode).bLeft
                 val replacement = /* build replacement */
                     FBSTNode(newValue, graftLeft, graftRight)
@@ -547,20 +549,20 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                                 val noDuplicates = last === first || atMostOne
                                 val found = if (atMostOne) first else last
                                 when (Pair(found.bLeft is FBSTNil, found.bRight is FBSTNil)) {
-                                    Pair(true, true) -> if (noDuplicates) /* just remove */ prune(treeStub, item) else {
+                                    Pair(true, true) -> if (noDuplicates) /* just remove */ bstPrune(treeStub, item) else {
                                         when(fitKey(item.getk(), first)) {
                                             FBTFIT.LEFT -> when (first.bRight) {
-                                                is FBSTNil -> prune(treeStub, item)
-                                                is FBSTNode -> addGraft(prune(treeStub, item), first.bRight)
+                                                is FBSTNil -> bstPrune(treeStub, item)
+                                                is FBSTNode -> addGraft(bstPrune(treeStub, item), first.bRight)
                                             }
                                             FBTFIT.RIGHT, FBTFIT.EQ -> when (first.bLeft) {
-                                                is FBSTNil -> prune(treeStub, item)
-                                                is FBSTNode -> addGraft(prune(treeStub, item), first.bLeft)
+                                                is FBSTNil -> bstPrune(treeStub, item)
+                                                is FBSTNode -> addGraft(bstPrune(treeStub, item), first.bLeft)
                                             }
                                         }
                                     }
                                     Pair(true, false) -> /* replace with right child */
-                                        if (noDuplicates) addGraft(prune(treeStub, item),found.bRight)
+                                        if (noDuplicates) addGraft(bstPrune(treeStub, item),found.bRight)
                                         else when(found.bRight) {
                                             is FBSTNil -> FBSTNil
                                             is FBSTNode -> {
@@ -570,7 +572,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                                             }
                                         }
                                     Pair(false, true) -> /* replace with left child */
-                                        if (noDuplicates) addGraft(prune(treeStub, item),found.bLeft)
+                                        if (noDuplicates) addGraft(bstPrune(treeStub, item),found.bLeft)
                                         else when (found.bLeft) {
                                             is FBSTNil -> FBSTNil
                                             is FBSTNode -> {
@@ -678,26 +680,66 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         }
 
+        // clip off the whole branch starting at, and inclusive of, a node with value clipMatch
+        internal fun <A, B: Any> bstPrune(treeStub: FBSTree<A, B>, clipMatch: TKVEntry<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> {
+
+            tailrec fun copy(stack: FStack<FBSTNode<A, B>>, acc: FBSTree<A, B>): Pair<FBSTree<A, B>, FStack<FBSTNode<A, B>>> {
+                return if (stack.isEmpty()) Pair(acc, stack) else {
+                    val (node, shortStack) = stack.pop()
+                    val (newStack, newAcc) = when (isChildMatch(node, clipMatch, ::fit)) {
+                        Pair(false, false) -> {
+                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
+                            Pair(ns, na)
+                        }
+                        Pair(true,  false) -> {
+                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val ns = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
+                            Pair(ns, na)
+                        }
+                        Pair(false,  true) -> {
+                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val ns = if (node.bLeft is FBSTNode) FStack.push(shortStack, node.bLeft) else shortStack
+                            Pair(ns, na)
+                        }
+                        else -> throw RuntimeException("impossible code path")
+                    }
+                    copy(newStack, newAcc)
+                }
+            }
+
+            return when {
+                ! bstContains2(treeStub, clipMatch) -> /* nothing to prune */ treeStub
+                treeStub.fempty() -> /* nothing to match */ FBSTNil
+                else -> when(bstParent(treeStub, clipMatch)) {
+                    is FBSTNil -> /* root; not found was handled above */ FBSTNil
+                    is FBSTNode -> copy(FStack.push(FStack.emptyFStack(), (treeStub as FBSTNode)), FBSTNil).first
+                }
+            }
+
+        }
+
         // =============== internals
+
+        // exposed for testing purposes ONLY
+        internal fun <A, B: Any> addGraftTesting(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> =
+            addGraft(treeStub, graft)
 
         private data class Trace<A, B: Any>(val treeStub: FBSTNode<A, B>, val direction: FBTFIT, val duplicate: Boolean = false) where A: Any, A: Comparable<A>
 
+        // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FBSTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             a.getk() < b.entry.getk() -> FBTFIT.LEFT
             a.getk() == b.entry.getk() -> FBTFIT.EQ
             else -> FBTFIT.RIGHT
         }
 
+        // the sorting order
         private fun <A, B: Any> fitKey(a: A, b: FBSTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             a < b.entry.getk() -> FBTFIT.LEFT
             a == b.entry.getk()-> FBTFIT.EQ
             else -> FBTFIT.RIGHT
-        }
-
-        internal fun <A, B: Any> isChildMatch(node: FBSTNode<A, B>, match: TKVEntry<A, B>): Pair<Boolean, Boolean> where A: Any, A: Comparable<A> {
-            val leftChildMatch = (node.bLeft is FBSTNode) && node.bLeft.entry == match
-            val rightChildMatch = (node.bRight is FBSTNode) && node.bRight.entry == match
-            return Pair(leftChildMatch, rightChildMatch)
         }
 
         private fun <A, B: Any, C: Any> isChildMatch(node: FBSTNode<A, B>, item: C, fitMode: (C, FBSTNode<A, B>) -> FBTFIT): Pair<Boolean, Boolean> where A: Any, A: Comparable<A> {
@@ -751,46 +793,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        // clip off the whole branch starting at, and inclusive of, a node with value clipMatch
-        internal fun <A, B: Any> prune(treeStub: FBSTree<A, B>, clipMatch: TKVEntry<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> {
-
-            tailrec fun copy(stack: FStack<FBSTNode<A, B>>, acc: FBSTree<A, B>): Pair<FBSTree<A, B>, FStack<FBSTNode<A, B>>> {
-                return if (stack.isEmpty()) Pair(acc, stack) else {
-                    val (node, shortStack) = stack.pop()
-                    val (newStack, newAcc) = when (isChildMatch(node, clipMatch)) {
-                        Pair(false, false) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
-                            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-                            val ns = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
-                            Pair(ns, na)
-                        }
-                        Pair(true,  false) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
-                            val ns = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-                            Pair(ns, na)
-                        }
-                        Pair(false,  true) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
-                            val ns = if (node.bLeft is FBSTNode) FStack.push(shortStack, node.bLeft) else shortStack
-                            Pair(ns, na)
-                        }
-                        else -> throw RuntimeException("impossible code path")
-                    }
-                    copy(newStack, newAcc)
-                }
-            }
-
-            return when {
-                ! bstContains2(treeStub, clipMatch) -> /* nothing to prune */ treeStub
-                treeStub.fempty() -> /* nothing to match */ FBSTNil
-                else -> when(bstParent(treeStub, clipMatch)) {
-                    is FBSTNil -> /* root; not found was handled above */ FBSTNil
-                    is FBSTNode -> copy(FStack.push(FStack.emptyFStack(), (treeStub as FBSTNode)), FBSTNil).first
-                }
-            }
-
-        }
-
         private fun <A, B: Any> enrichNode(node: FBSTNode<A, B>, tree: Trace<A, B>): FBSTNode<A, B> where A: Any, A: Comparable<A> =
             if (tree.duplicate) when (tree.direction) {
                 FBTFIT.RIGHT, FBTFIT.EQ -> FBSTNode(
@@ -828,7 +830,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // treeStub is a tree from which a node has been removed; graft is the only child of the removed node
         // NOTE: reinserting graft into treeStub MUST ALWAYS maintain the BST property (see ::fit for details)
         // there is a tight relationship between treeStub and graft -- this is not a general purpose utility
-        internal fun <A, B: Any> addGraft(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> =
+        private fun <A, B: Any> addGraft(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> =
             when (Pair(treeStub.fempty(), graft.fempty())) {
                 Pair(true, true) -> FBSTNil
                 Pair(true, false) -> graft
