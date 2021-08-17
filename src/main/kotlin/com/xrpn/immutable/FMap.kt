@@ -1,6 +1,5 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMBTreeTraversing.Companion.equal
 import com.xrpn.immutable.FRBTree.Companion.rbtFindValueOFKey
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FRBTree.Companion.rbtInserts
@@ -76,7 +75,8 @@ internal class FMapBody<out A, out B: Any> internal constructor (
         other is FMapBody<*, *> -> when {
             this.isEmpty() && other.body.fempty() -> true
             this.body.fempty() || other.body.fempty() -> false
-            this.body.froot()!!::class == other.body.froot()!!::class -> @Suppress("UNCHECKED_CAST") equal(this.body, other.body as FRBTree<A, B>)
+            this.body.froot()!!::class == other.body.froot()!!::class ->
+                @Suppress("UNCHECKED_CAST") FRBTree.equal2(this.body, other.body as FRBTree<A, B>)
             else -> false
         }
         else -> false

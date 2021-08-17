@@ -172,6 +172,64 @@ class FListGroupingTest : FunSpec({
     intListOfTwo.fzipWith(arrayOf("a","b","c").iterator()) shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
   }
 
+  test("zipWhen") {
+    intListOfNone.fzipWhen(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfNone.fzipWhen(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLNil
+
+    intListOfOne.fzipWhen(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfOne.fzipWhen(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfOne.fzipWhen(FList.of(*arrayOf<Int>(2))){a, b -> a == b} shouldBe FLNil
+    intListOfOne.fzipWhen(FList.of(*arrayOf<Int>(1, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfOne.fzipWhen(FList.of(*arrayOf<Int>(3, 1))){a, b -> a == b} shouldBe FLNil
+
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(2))){a, b -> a == b} shouldBe FLNil
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(1, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(3, 2))){a, b -> a == b} shouldBe FLCons(Pair(2,2),FLNil)
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(1, 2))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+    intListOfTwo.fzipWhen(FList.of(*arrayOf<Int>(1, 2, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(2, 3))){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(2, 3, 1))){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(1, 2))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(1, 5, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(3,3),FLNil))
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(1, 3, 5))){a, b -> a == b} shouldBe FLCons(Pair(1,1), FLNil)
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(1, 2, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLCons(Pair(3,3),FLNil)))
+    intListOfThree.fzipWhen(FList.of(*arrayOf<Int>(1, 2, 3, 4))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLCons(Pair(3,3),FLNil)))
+  }
+
+  test("zipWhile") {
+    intListOfNone.fzipWhile(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfNone.fzipWhile(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLNil
+
+    intListOfOne.fzipWhile(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfOne.fzipWhile(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfOne.fzipWhile(FList.of(*arrayOf<Int>(2))){a, b -> a == b} shouldBe FLNil
+    intListOfOne.fzipWhile(FList.of(*arrayOf<Int>(1, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfOne.fzipWhile(FList.of(*arrayOf<Int>(3, 1))){a, b -> a == b} shouldBe FLNil
+
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(1))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(2))){a, b -> a == b} shouldBe FLNil
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(1, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(3, 2))){a, b -> a == b} shouldBe FLNil
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(1, 2))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+    intListOfTwo.fzipWhile(FList.of(*arrayOf<Int>(1, 2, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>())){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(2, 3))){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(2, 3, 1))){a, b -> a == b} shouldBe FLNil
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(1, 2))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLNil))
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(1, 5, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLNil)
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(1, 3, 5))){a, b -> a == b} shouldBe FLCons(Pair(1,1), FLNil)
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(1, 2, 3))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLCons(Pair(3,3),FLNil)))
+    intListOfThree.fzipWhile(FList.of(*arrayOf<Int>(1, 2, 3, 4))){a, b -> a == b} shouldBe FLCons(Pair(1,1),FLCons(Pair(2,2),FLCons(Pair(3,3),FLNil)))
+  }
+
+  test("zipWhile iterable") {}
+
   test("fzipWithIndex") {
     FList.of(*arrayOf<String>()).fzipWithIndex() shouldBe FLNil
     strListOfOne.fzipWithIndex() shouldBe FLCons(Pair("a",0),FLNil)

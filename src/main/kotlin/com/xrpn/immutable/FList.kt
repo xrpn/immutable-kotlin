@@ -8,28 +8,28 @@ import com.xrpn.imapi.IMListCompanion
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
 
-    override fun equals(other: Any?): Boolean = when (this) {
-        is FLNil -> when (other) {
-            is FLNil -> true
-            is FLCons<*> -> false
-            is List<*> -> other.isEmpty()
-            is IMList<*> -> other.fempty()
-            else -> false
-        }
-        is FLCons -> when (other) {
-            is FLNil -> false
-            is FLCons<*> -> other == this
-            is List<*> -> other == this
-            is IMList<*> -> other == this
-            else -> false
-        }
-    }
-
-    override fun hashCode(): Int = when (this) {
-        is FLNil -> FLNil.hashCode()
-        is FLCons -> FLCons.hashCode(this)
-    }
-
+//    override fun equals(other: Any?): Boolean = when (this) {
+//        is FLNil -> when (other) {
+//            is FLNil -> true
+//            is FLCons<*> -> false
+//            is List<*> -> other.isEmpty()
+//            is IMList<*> -> other.fempty()
+//            else -> false
+//        }
+//        is FLCons -> when (other) {
+//            is FLNil -> false
+//            is FLCons<*> -> other == this
+//            is List<*> -> other == this
+//            is IMList<*> -> other == this
+//            else -> false
+//        }
+//    }
+//
+//    override fun hashCode(): Int = when (this) {
+//        is FLNil -> FLNil.hashCode()
+//        is FLCons -> FLCons.hashCode(this)
+//    }
+//
     // from Collection<A>
 
     override val size: Int by lazy { if (this is FLNil) 0 else this.ffoldLeft(0) { b, _ -> b + 1 } }
@@ -76,6 +76,16 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // traversing
 
+    override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = when (this) {
+        is FLNil -> rhs.fempty()
+        is FLCons<A> -> when {
+            this === rhs -> true
+            rhs.fempty() -> false
+            this.fsize() == rhs.fsize() -> FList.equal2(this, rhs)
+            else -> false
+        }
+    }
+
     override fun fforEach (f: (A) -> Unit): Unit {
 
         tailrec fun go(xs: FList<A>): Unit = when(xs) {
@@ -109,26 +119,23 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
     }
 
+    override fun fdropAll(items: IMList<@UnsafeVariance A>): FList<A> {
+        val aux: FRBTree<Int, A> = FRBTree.ofvi(items)
+        return this.ffoldLeft(this) { acc, item ->
+            if (aux.fcontainsKey(TKVEntry.intKeyOf(item))) acc.fdropItem(item) else acc
+        }
+    }
+
+    override fun fdropItem(item: @UnsafeVariance A): FList<A> = this.ffilterNot { it == item }
+
     override fun fdropFirst(isMatch: (A) -> Boolean): FList<A> {
         val (before, _, after) = ffindFirst(isMatch)
-        return fappend(before, after)
+        return flAppend(before, after)
     }
 
     override fun fdropRight(n: Int): FList<A> = when {
         n < 0 || size <= n -> FLNil
         else -> fsplitAt(size - n).first
-    }
-
-    // TODO ahh.. this is a mellow duplicate of ffilterNot entirely in terms of IMList
-    override fun fdropWhen(isMatch: (A) -> Boolean): IMList<A> {
-
-        tailrec fun dropMatch(l: IMList<A>, current: IMList<A>): IMList<A>  = when {
-            l.fempty() -> current
-            isMatch(l.fhead()!!) -> dropMatch(l.ftail(), current)
-            else -> dropMatch(l.ftail(), current.fprepend(l.fhead()!!))
-        }
-
-        return this.ffindFromLeft(isMatch)?.let { dropMatch(this, FLNil).freverse() } ?: this
     }
 
     override fun fdropWhile(isMatch: (A) -> Boolean): FList<A> {
@@ -183,6 +190,8 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     }
 
     override fun fgetOrNull(ix: Int): A? = atWantedIxPosition(ix, this.size,this, 0)
+
+    override fun fhasSubsequence(sub: IMList<@UnsafeVariance A>): Boolean = flHasSubsequence(this, sub.toFList())
 
     override fun fhead(): A? = when (this) {
         is FLNil -> null
@@ -393,6 +402,34 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this, xs, FLNil).freverse()
     }
 
+    override fun <B: Any> fzipWhen(xs: IMList<B>, isMatch: (A, B) -> Boolean): FList<Pair<A, B>> {
+
+        tailrec fun go(xsa: FList<A>, xsb: IMList<B>, acc: FList<Pair<A, B>>): FList<Pair<A, B>> =
+            if ((xsa is FLNil) || xsb.fempty()) acc
+            else go((xsa as FLCons).tail,
+                xsb.ftail(),
+                if (isMatch(xsa.head, xsb.fhead()!!)) FLCons(Pair(xsa.head, xsb.fhead()!!), acc) else acc)
+
+        return go(this, xs, FLNil).freverse()
+    }
+
+    override fun <B: Any> fzipWhile(xs: IMList<B>, isMatch: (A, B) -> Boolean): FList<Pair<A, B>> {
+
+        tailrec fun go(xsa: FList<A>, xsb: IMList<B>, acc: FList<Pair<A, B>>): FList<Pair<A, B>> = when {
+            (xsa is FLNil) || xsb.fempty() -> acc
+            else -> when {
+                ! isMatch(xsa.fhead()!!, xsb.fhead()!!) -> acc
+                else -> go(
+                    (xsa as FLCons).tail,
+                    xsb.ftail(),
+                    FLCons(Pair(xsa.head, xsb.fhead()!!), acc)
+                )
+            }
+        }
+
+        return go(this, xs, FLNil).freverse()
+    }
+
     override fun <B: Any> fzipWith(xs: Iterator<B>): FList<Pair<A,B>> {
 
         tailrec fun go(xsa: FList<A>, xsi: Iterator<B>, acc: FList<Pair<A,B>>):FList<Pair<A,B>> =
@@ -463,6 +500,14 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // =====
 
+    override fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
+
+    override fun fappendAll(elements: IMList<@UnsafeVariance A>): FList<A> = flAppend(this, elements.toFList())
+
+    override fun fprepend(item: @UnsafeVariance A): FList<A> = flSetHead(item, this)
+
+    override fun fprependAll(elements: IMList<@UnsafeVariance A>): FList<A> = flAppend(elements.toFList(), this)
+
     companion object: IMListCompanion {
 
         val NOT_FOUND: Int = -1
@@ -488,15 +533,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             return acc.freverse()
         }
 
-        override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FList<A> {
-            var acc : FList<A> = FLNil
-            if (! items.hasNext()) return acc
-            items.forEach {
-                acc = FLCons(f(it), acc)
-            }
-            return acc.freverse()
-        }
-
         override fun <A: Any> of(items: List<A>): FList<A> {
             var acc : FList<A> = FLNil
             if (items.isEmpty()) return acc
@@ -505,6 +541,15 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                 acc = FLCons(li.previous(), acc)
             }
             return acc
+        }
+
+        override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FList<A> {
+            var acc : FList<A> = FLNil
+            if (! items.hasNext()) return acc
+            items.forEach {
+                acc = FLCons(f(it), acc)
+            }
+            return acc.freverse()
         }
 
         override fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): FList<A> {
@@ -519,37 +564,53 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
         // ==========
 
-        override fun <A: Any> IMList<A>.fappend(item: A): IMList<A> = fsetLast(this.toFList(), item)
-
-        override fun <A: Any> IMList<A>.fappendAll(elements: Collection<A>): IMList<A> = fappend(this.toFList(), elements.toFList())
-
-        override fun <A: Any> IMList<A>.fhasSubsequence(sub: IMList<A>): Boolean = fhasSubsequence(this.toFList(), sub.toFList())
-
-        override fun <A: Any> IMList<A>.fprepend(item: A): IMList<A> = fsetHead(item, this.toFList())
-
-        override fun <A: Any> IMList<A>.fprependAll(elements: Collection<A>): IMList<A> = fappend(elements.toFList(), this.toFList())
-
-        override fun <A: Any> IMList<A>.fremove(item: A): IMList<A> = this.fdropWhen { it == item }
-
-        // TODO the following is a dog
-        override fun <A: Any> IMList<A>.fremoveAll(elements: Collection<A>): IMList<A> {
-            var res = this
-            for(element in elements) {
-                res = res.fremove(element).toFList()
-            }
-            return res
-        }
-
-        // ==========
-
-        override fun <A: Any> IMList<A>.equal(rhs: IMList<A>): Boolean = equal2(this.toFList(), rhs.toFList())
 
         override fun <A: Any> Collection<A>.toIMList(): IMList<A> = this.toFList()
 
-        override fun <A: Any> fappend(lead: FList<A>, after: FList<A>): FList<A> =
+        // ========== implementation
+
+//        TODO maybe...
+//        inline fun <reified A: Any, reified B: Any > flatten(rhs: FList<B>): FList<A> =
+//            @Suppress("UNCHECKED_CAST")
+//            if (isNested(rhs) && !rhs.isEmpty()) when (val hd = firstNotEmpty(rhs as FList<*>)) {
+//                is FLCons<*> -> if (hd.head is A) appendLists(rhs as FList<FList<A>>, FLNil) else FLNil
+//                else -> FLNil
+//            } else if (!rhs.isEmpty() && rhs.fhead()!! is A) rhs as FList<A>
+//            else FLNil
+
+        internal inline fun <reified A: Any, reified B: FList<A>> isNested(l: B): Boolean = when (l) {
+            is FLCons<*> -> (l.head is FLNil) || (l.head is B)
+            else -> false
+        }
+
+        internal inline fun <reified A: Any, reified B: FList<A>> firstNotEmpty(l: FList<A>): FList<A>? {
+            val iter = l.iterator() as FListIteratorFwd<A>
+            for ( el in iter) when (el) {
+                is FLCons<*> -> if (el is B && !el.fempty()) return el
+                else -> continue
+            }
+            return null
+        }
+
+        internal inline fun <reified A: Any, reified B: FList<A>> fflatten(rhs: FList<B>): FList<A> =
+            if (isNested(rhs) && !rhs.isEmpty()) fappendLists(rhs, FLNil)
+            else if (!rhs.isEmpty() && rhs.fhead()!! is A) rhs as B
+            else FLNil
+
+        internal fun <A: Any> fappendNested(rhs: FList<FList<A>>): FList<A> {
+            @Suppress("UNCHECKED_CAST")
+            return fappendLists(rhs, FLNil)
+        }
+
+        internal tailrec fun <A:Any> fappendLists(src: FList<FList<A>>, acc: FList<A>): FList<A> = when(src) {
+            is FLNil -> acc
+            is FLCons -> fappendLists(src.ftail(), flAppend(acc, src.head))
+        }
+
+        internal fun <A: Any> flAppend(lead: FList<A>, after: FList<A>): FList<A> =
             (lead.ffoldRight(after) { element, list -> FLCons(element, list) })
 
-        override fun <A: Any> fhasSubsequence(xsa: FList<A>, sub: FList<A>): Boolean {
+        internal fun <A: Any> flHasSubsequence(xsa: FList<A>, sub: FList<A>): Boolean {
 
             tailrec fun go(xsa: FList<A>, sub: FList<A>, partialMatch: Boolean): Boolean = when(sub) {
                 is FLNil -> true
@@ -568,65 +629,12 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             return go(xsa, sub, false)
         }
 
-        override fun <A: Any> fsetHead(x: A, xs: FList<A>): FList<A> = when (xs) {
+        internal fun <A: Any> flSetHead(x: A, xs: FList<A>): FList<A> = when (xs) {
             is FLNil -> FLCons(x, FLNil)
             else -> FLCons(x, FLCons(xs.fhead()!!, xs.ftail()))
         }
 
-        override fun <A: Any> fsetLast(lead: FList<A>, after: A): FList<A> = fappend(lead, FLCons(after, FLNil))
-
-        // ========== implementation
-
-        internal fun <A: Any> equal2(lhs: FList<A>, rhs: FList<A>): Boolean {
-
-            tailrec fun go(xsa: FList<A>, xsb: FList<A>, acc: FList<Pair<A,A>>):FList<Pair<A,A>> =
-                if ((xsa is FLNil) || (xsb is FLNil)) acc
-                else go((xsa as FLCons).tail,
-                    (xsb as FLCons).tail,
-                    FLCons(Pair(xsa.head, xsb.head), acc))
-
-            return if (lhs.size != rhs.size) false
-            else if (0 == lhs.size) true // i.e. they are both empty
-            else go(lhs, rhs, FLNil).ffoldLeft(true,{ predicate, pair -> predicate && (pair.first == pair.second)})
-        }
-
-//        TODO maybe...
-//        inline fun <reified A: Any, reified B: Any > flatten(rhs: FList<B>): FList<A> =
-//            @Suppress("UNCHECKED_CAST")
-//            if (isNested(rhs) && !rhs.isEmpty()) when (val hd = firstNotEmpty(rhs as FList<*>)) {
-//                is FLCons<*> -> if (hd.head is A) appendLists(rhs as FList<FList<A>>, FLNil) else FLNil
-//                else -> FLNil
-//            } else if (!rhs.isEmpty() && rhs.fhead()!! is A) rhs as FList<A>
-//            else FLNil
-
-        inline fun <reified A: Any, reified B: FList<A>> isNested(l: B): Boolean = when (l) {
-            is FLCons<*> -> (l.head is FLNil) || (l.head is B)
-            else -> false
-        }
-
-        internal inline fun <reified A: Any, reified B: FList<A>> firstNotEmpty(l: FList<A>): FList<A>? {
-            val iter = l.iterator() as FListIteratorFwd<A>
-            for ( el in iter) when (el) {
-                is FLCons<*> -> if (el is B && !el.fempty()) return el
-                else -> continue
-            }
-            return null
-        }
-
-        inline fun <reified A: Any, reified B: FList<A>> fflatten(rhs: FList<B>): FList<A> =
-            if (isNested(rhs) && !rhs.isEmpty()) fappendLists(rhs, FLNil)
-            else if (!rhs.isEmpty() && rhs.fhead()!! is A) rhs as B
-            else FLNil
-
-        fun <A: Any> fappendNested(rhs: FList<FList<A>>): FList<A> {
-            @Suppress("UNCHECKED_CAST")
-            return fappendLists(rhs, FLNil)
-        }
-
-        tailrec fun <A:Any> fappendLists(src: FList<FList<A>>, acc: FList<A>): FList<A> = when(src) {
-            is FLNil -> acc
-            is FLCons -> fappendLists(src.ftail(), fappend(acc, src.head))
-        }
+        internal fun <A: Any> flSetLast(lead: FList<A>, after: A): FList<A> = flAppend(lead, FLCons(after, FLNil))
 
         internal tailrec fun <A: Any> freduceLeft(xsa: FList<A>, f: (acc: A, A) -> A): A? = when (xsa) {
             is FLNil -> null
@@ -671,6 +679,13 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 object FLNil: FList<Nothing>() {
     override fun toString(): String = "FLNil"
     override fun hashCode(): Int = toString().hashCode()
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is IMList<*> -> other.fempty()
+        other is List<*> -> other.isEmpty()
+        else -> false
+    }
 }
 
 data class FLCons<out A: Any>(
@@ -682,24 +697,18 @@ data class FLCons<out A: Any>(
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
-        other is FLCons<*> -> when {
-            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
-            this.isEmpty() || other.isEmpty() -> false
-            this.fhead()!!::class == other.fhead()!!::class -> equal2(this, other)
+        other is IMList<*> -> when {
+            // foot in the door in case of additional implementations for IMList
+            this.isEmpty() && other.fempty() -> true // type erasure boo-boo
+            this.isEmpty() || other.fempty() -> false
+            this.fhead()!!::class == other.fhead()!!::class -> other.equal(this)
             else -> false
         }
         other is List<*> -> when {
             // necessary if FList is-a List to maintain reflexive, symmetric, transitive equality
             this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
             this.isEmpty() || other.isEmpty() -> false
-            this.fhead()!!::class == other.first()!!::class -> other == this
-            else -> false
-        }
-        other is IMList<*> -> when {
-            // foot in the door in case of additional implementations for IMList
-            this.isEmpty() && other.fempty() -> true // type erasure boo-boo
-            this.isEmpty() || other.fempty() -> false
-            this.fhead()!!::class == other.fhead()!!::class -> other.equal(this)
+            this.fhead()!!::class == other.first()!!::class -> (this.fhead() == other.first()) && other == this
             else -> false
         }
         else -> false
@@ -711,7 +720,7 @@ data class FLCons<out A: Any>(
     override fun toString(): String = show
 
     val hash: Int by lazy {
-        val aux: Long = ffoldLeft(0L) { code, h -> (h.hashCode() * 3 + code) }
+        val aux: Long = ffoldLeft(0L) { code, h -> code + (3L * h.hashCode().toLong()) }
         if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else DigestHash.crc32ci(aux.toBigInteger().toByteArray())
     }

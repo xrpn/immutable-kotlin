@@ -140,6 +140,8 @@ class FRBTreeFilteringTest : FunSpec({
             val tree: FRBTree<Int, Int> = of(values.iterator())
             tree.size shouldBe ora1
 
+            tree.ffind { true } shouldBe tree.preorder(reverse = true)
+
             val ora2 = ora1 / 2
             tree.ffindDistinct { it.getv() == ora1 } shouldBe null
             tree.ffindDistinct { it.getv() < ora2 } shouldBe null

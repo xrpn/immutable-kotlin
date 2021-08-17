@@ -295,6 +295,14 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
+    override fun toIMSet(): FSet<B>  {
+        TODO("Not yet implemented")
+    }
+
+    override fun equal(rhs: IMBTree<A, B>): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun fforEach(f: (TKVEntry<A, B>) -> Unit) {
         TODO("Not yet implemented")
     }
@@ -338,6 +346,110 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun fminDepth(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C : Any> fgroupBy(f: (TKVEntry<A, B>) -> C): Map<C, IMBTree<A, B>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair<IMBTree<A, B>, IMBTree<A, B>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C, D : Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C, D : Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C, D : Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMList<TKVEntry<C, D>> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C : Any> fmapv(f: (B) -> C): IMBTree<A, C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C : Any> fmapvToList(f: (B) -> C): IMList<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun freduce(f: (acc: B, B) -> B): B? {
+        TODO("Not yet implemented")
+    }
+
+    override fun finsert(item: TKVEntry<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun finsertDup(item: TKVEntry<A, B>, allowDups: Boolean): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun finserts(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun finsertsDups(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fcontains(item: TKVEntry<A, B>): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun fcontainsKey(key: A): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropItem(item: TKVEntry<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropAll(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffind(item: TKVEntry<A, B>): IMBTree<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindKey(key: A): IMBTree<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindLast(item: TKVEntry<A, B>): IMBTree<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindLastKey(key: A): IMBTree<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindValueOfKey(key: A): B? {
+        TODO("Not yet implemented")
+    }
+
+    override fun fparentOf(child: TKVEntry<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropItemAll(item: TKVEntry<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 

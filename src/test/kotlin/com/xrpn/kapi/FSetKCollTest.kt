@@ -68,7 +68,7 @@ class FSetKCollTest : FunSpec({
   }
 
   test("FSet equals miss") {
-    (intSetOfOne == FSet.of(*arrayOf(2))) shouldBe false
+    (intSetOfOne.equals(FSet.of(*arrayOf(2)))) shouldBe false
     (intSetOfTwo == setOf(1)) shouldBe false
     (intSetOfTwo == setOf(2)) shouldBe false
     (intSetOfTwo == setOf(2, 1)) shouldBe true

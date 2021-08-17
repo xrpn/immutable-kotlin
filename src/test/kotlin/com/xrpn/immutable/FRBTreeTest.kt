@@ -6,8 +6,6 @@ import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
 import com.xrpn.immutable.FRBTree.Companion.rbtContains2
 import com.xrpn.immutable.FRBTree.Companion.rbtDelete
-import com.xrpn.immutable.FRBTree.Companion.fcontains
-import com.xrpn.immutable.FRBTree.Companion.fcontainsKey
 import com.xrpn.immutable.FRBTree.Companion.rbtFind
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FRBTree.Companion.nul

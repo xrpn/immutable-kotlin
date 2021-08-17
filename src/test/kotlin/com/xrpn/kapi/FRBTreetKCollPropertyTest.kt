@@ -31,8 +31,8 @@ class FRBTreetKCollPropertyTest : FunSpec({
       val l = frbt.toSet()
       (frbt.size >= 0) shouldBe true
       (frbt == frbt) shouldBe true
-      (l == frbt) shouldBe true
-      (frbt == l) shouldBe true
+      (l.equals(frbt)) shouldBe true
+      (frbt.equals(l)) shouldBe true
     }
     Arb.frbtreeAsCollection<Char, Char>(Arb.char()).checkAll(repeats) { frbt ->
       val l = frbt.toSet()

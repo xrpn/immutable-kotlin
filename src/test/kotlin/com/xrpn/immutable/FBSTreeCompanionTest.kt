@@ -10,8 +10,6 @@ import com.xrpn.immutable.FBSTree.Companion.addGraftTesting
 import com.xrpn.immutable.FBSTree.Companion.bstContains2
 import com.xrpn.immutable.FBSTree.Companion.bstInsert
 import com.xrpn.immutable.FBSTree.Companion.bstDelete
-import com.xrpn.immutable.FBSTree.Companion.equal
-import com.xrpn.immutable.FBSTree.Companion.fcontains
 import io.kotest.assertions.fail
 import io.kotest.property.Arb
 import io.kotest.core.spec.style.FunSpec
@@ -38,7 +36,8 @@ class FBSTreeCompanionTest : FunSpec({
         (nul<Int, Int>() == nul<Int, Int>()) shouldBe true
         nul<Int, Int>().equal(nul<Int, Int>()) shouldBe true
         nul<Int, Int>().equal(FBSTNil) shouldBe true
-        FBSTNil.equal(nul<Int, Int>()) shouldBe true
+        // should not compile
+        // FBSTNil.equal(nul<Int, Int>()) shouldBe true
         FBSTNode(aEntry, FBSTNil, FBSTNil).equal(FBSTNode(aEntry, FBSTNil, FBSTNil)) shouldBe true
     }
 

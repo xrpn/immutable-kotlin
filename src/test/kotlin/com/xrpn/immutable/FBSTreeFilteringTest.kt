@@ -130,7 +130,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test("ffindDistinct (A)") {
+    test("ffind, ffindDistinct (A)") {
         // checkAll(PropTestConfig(seed = 5699135300091264211), Arb.int(20..100)) { n ->
         checkAll(50, Arb.int(20..100)) { n ->
             val values = Array(n) { i: Int -> TKVEntry.of(i, i) }
@@ -142,6 +142,8 @@ class FBSTreeFilteringTest : FunSpec({
             val tree1: FBSTree<Int, Int> = of(svalues.iterator())
             tree1.size shouldBe ora1
 
+            tree1.ffind { true } shouldBe tree1.preorder(reverse = true)
+
             val ora2 = ora1 / 2
             tree2.ffindDistinct { it.getv() == ora1 } shouldBe null
             tree2.ffindDistinct { it.getv() == ora2 } shouldBe null
@@ -149,7 +151,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test("ffindDistinct (B)") {
+    test("ffind, ffindDistinct (B)") {
         checkAll(50, Arb.int(20..100)) { n ->
             val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
             shuffled.shuffle()
@@ -161,6 +163,8 @@ class FBSTreeFilteringTest : FunSpec({
             val tree1: FBSTree<Int, Int> = of(svalues.iterator())
             tree1.size shouldBe ora1
 
+            tree1.ffind { true } shouldBe tree1.preorder(reverse = true)
+
             val ora2 = ora1 / 2
             tree2.ffindDistinct { it.getv() == ora1 } shouldBe null
             tree2.ffindDistinct { it.getv() == ora2 } shouldBe null
@@ -168,7 +172,7 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-    test("ffindDistinct (C)") {
+    test("ffind, ffindDistinct (C)") {
         checkAll(50, Arb.int(20..100)) { n ->
             val reversed = Array(n) { i: Int -> TKVEntry.of(i, i) }
             reversed.reverse()
@@ -179,6 +183,8 @@ class FBSTreeFilteringTest : FunSpec({
             tree2.size shouldBe (ora1 * 2)
             val tree1: FBSTree<Int, Int> = of(svalues.iterator())
             tree1.size shouldBe ora1
+
+            tree1.ffind { true } shouldBe tree1.preorder(reverse = true)
 
             val ora2 = ora1 / 2
             tree2.ffindDistinct { it.getv() == ora1 } shouldBe null

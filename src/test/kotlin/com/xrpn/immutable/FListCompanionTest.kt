@@ -1,13 +1,5 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.FList.Companion.fappend
-import com.xrpn.immutable.FList.Companion.fappendAll
-import com.xrpn.immutable.FList.Companion.equal
-import com.xrpn.immutable.FList.Companion.fhasSubsequence
-import com.xrpn.immutable.FList.Companion.fprepend
-import com.xrpn.immutable.FList.Companion.fprependAll
-import com.xrpn.immutable.FList.Companion.fremove
-import com.xrpn.immutable.FList.Companion.fremoveAll
 import com.xrpn.immutable.FList.Companion.toFList
 import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
@@ -176,33 +168,33 @@ class FListCompanionTest : FunSpec({
   }
 
   test("co.remove") {
-    intListOfNone.fremove(0) shouldBe FLNil
-    intListOfOne.fremove(0) shouldBe intListOfOne
-    intListOfOne.fremove(1) shouldBe FLNil
-    intListOfOne.fremove(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(2,1)).fremove(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(2,1,2)).fremove(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(1, 2, 1, 2)).fremove(2) shouldBe FLCons(1, intListOfOne)
-    intListOfSix.fremove(3) shouldBe FList.of(*arrayOf<Int>(1, 2, 2, 1))
-    intListOfSix.fremove(2) shouldBe FList.of(*arrayOf<Int>(1, 3, 3, 1))
-    intListOfSix.fremove(1) shouldBe FList.of(*arrayOf<Int>(2, 3, 3, 2))
+    intListOfNone.fdropItem(0) shouldBe FLNil
+    intListOfOne.fdropItem(0) shouldBe intListOfOne
+    intListOfOne.fdropItem(1) shouldBe FLNil
+    intListOfOne.fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1,2)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(1, 2, 1, 2)).fdropItem(2) shouldBe FLCons(1, intListOfOne)
+    intListOfSix.fdropItem(3) shouldBe FList.of(*arrayOf<Int>(1, 2, 2, 1))
+    intListOfSix.fdropItem(2) shouldBe FList.of(*arrayOf<Int>(1, 3, 3, 1))
+    intListOfSix.fdropItem(1) shouldBe FList.of(*arrayOf<Int>(2, 3, 3, 2))
   }
 
   test("co.removeAll") {
-    intListOfNone.fremoveAll(intListOfNone) shouldBe FLNil
-    intListOfOne.fremoveAll(intListOfNone) shouldBe intListOfOne
-    intListOfOne.fremoveAll(intListOfOne) shouldBe FLNil
-    intListOfOne.fremoveAll(intListOfTwo) shouldBe FLNil
-    FList.of(*arrayOf<Int>(2,1)).fremoveAll(intListOfThree) shouldBe FLNil
-    FList.of(*arrayOf<Int>(3,2,1)).fremoveAll(intListOfTwo) shouldBe FLCons(3, FLNil)
+    intListOfNone.fdropAll(intListOfNone) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfNone) shouldBe intListOfOne
+    intListOfOne.fdropAll(intListOfOne) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfTwo) shouldBe FLNil
+    FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree) shouldBe FLNil
+    FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
   }
 
   test("co.fappend") {
-    FList.fappend(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe FLNil
-    FList.fappend(intListOfNone, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(2,FLNil)
-    FList.fappend(intListOfOne, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
-    FList.fappend(intListOfOne, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
-    FList.fappend(intListOfTwo, FList.of(*arrayOf<Int>(3,4))) shouldBe
+    FList.flAppend(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe FLNil
+    FList.flAppend(intListOfNone, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(2,FLNil)
+    FList.flAppend(intListOfOne, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
+    FList.flAppend(intListOfOne, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
+    FList.flAppend(intListOfTwo, FList.of(*arrayOf<Int>(3,4))) shouldBe
             FLCons(1,FLCons(2,FLCons(3,FLCons(4,FLNil))))
   }
 
@@ -219,42 +211,42 @@ class FListCompanionTest : FunSpec({
   }
 
   test("co.fhasSubsequence") {
-    FList.fhasSubsequence(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe true
+    FList.flHasSubsequence(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe true
 
-    FList.fhasSubsequence(intListOfOne, intListOfNone) shouldBe true
-    FList.fhasSubsequence(intListOfOne, intListOfOne) shouldBe true
-    FList.fhasSubsequence(intListOfOne, intListOfTwo) shouldBe false
+    FList.flHasSubsequence(intListOfOne, intListOfNone) shouldBe true
+    FList.flHasSubsequence(intListOfOne, intListOfOne) shouldBe true
+    FList.flHasSubsequence(intListOfOne, intListOfTwo) shouldBe false
 
-    FList.fhasSubsequence(intListOfTwo, intListOfNone) shouldBe true
-    FList.fhasSubsequence(intListOfTwo, intListOfOne) shouldBe true
-    FList.fhasSubsequence(intListOfTwo, FLCons(2, FLNil)) shouldBe true
-    FList.fhasSubsequence(intListOfTwo, intListOfTwo) shouldBe true
-    FList.fhasSubsequence(intListOfTwo, intListOfTwo.freverse()) shouldBe false
-    FList.fhasSubsequence(intListOfTwo, intListOfThree) shouldBe false
+    FList.flHasSubsequence(intListOfTwo, intListOfNone) shouldBe true
+    FList.flHasSubsequence(intListOfTwo, intListOfOne) shouldBe true
+    FList.flHasSubsequence(intListOfTwo, FLCons(2, FLNil)) shouldBe true
+    FList.flHasSubsequence(intListOfTwo, intListOfTwo) shouldBe true
+    FList.flHasSubsequence(intListOfTwo, intListOfTwo.freverse()) shouldBe false
+    FList.flHasSubsequence(intListOfTwo, intListOfThree) shouldBe false
 
-    FList.fhasSubsequence(intListOfThree, intListOfNone) shouldBe true
-    FList.fhasSubsequence(intListOfThree, intListOfOne) shouldBe true
-    FList.fhasSubsequence(intListOfThree, FLCons(2, FLNil)) shouldBe true
-    FList.fhasSubsequence(intListOfThree, FLCons(3, FLNil)) shouldBe true
-    FList.fhasSubsequence(intListOfThree, intListOfTwo) shouldBe true
-    FList.fhasSubsequence(intListOfThree, FLCons(2, FLCons(3, FLNil))) shouldBe true
-    FList.fhasSubsequence(intListOfThree, FLCons(1, FLCons(3, FLNil))) shouldBe false
-    FList.fhasSubsequence(intListOfThree, intListOfTwo.freverse()) shouldBe false
-    FList.fhasSubsequence(intListOfThree, intListOfThree.freverse()) shouldBe false
-    FList.fhasSubsequence(intListOfThree, intListOfThree) shouldBe true
+    FList.flHasSubsequence(intListOfThree, intListOfNone) shouldBe true
+    FList.flHasSubsequence(intListOfThree, intListOfOne) shouldBe true
+    FList.flHasSubsequence(intListOfThree, FLCons(2, FLNil)) shouldBe true
+    FList.flHasSubsequence(intListOfThree, FLCons(3, FLNil)) shouldBe true
+    FList.flHasSubsequence(intListOfThree, intListOfTwo) shouldBe true
+    FList.flHasSubsequence(intListOfThree, FLCons(2, FLCons(3, FLNil))) shouldBe true
+    FList.flHasSubsequence(intListOfThree, FLCons(1, FLCons(3, FLNil))) shouldBe false
+    FList.flHasSubsequence(intListOfThree, intListOfTwo.freverse()) shouldBe false
+    FList.flHasSubsequence(intListOfThree, intListOfThree.freverse()) shouldBe false
+    FList.flHasSubsequence(intListOfThree, intListOfThree) shouldBe true
   }
 
   test("co.fsetHead") {
-    FList.fsetHead(1, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
-    FList.fsetHead(1, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
-    FList.fsetHead(1, FList.of(*arrayOf<Int>(2, 3))) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
+    FList.flSetHead(1, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
+    FList.flSetHead(1, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
+    FList.flSetHead(1, FList.of(*arrayOf<Int>(2, 3))) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
   }
 
   test("co.fsetLast") {
-    FList.fsetLast(intListOfNone,0) shouldBe FLCons(0,FLNil)
-    FList.fsetLast(intListOfOne,0) shouldBe FLCons(1,FLCons(0,FLNil))
-    FList.fsetLast(FList.of(*arrayOf<Int>(2,1)),0) shouldBe FLCons(2, FLCons(1,FLCons(0,FLNil)))
-    FList.fsetLast(FList.of(*arrayOf<Int>(3,2,1)), 0) shouldBe
+    FList.flSetLast(intListOfNone,0) shouldBe FLCons(0,FLNil)
+    FList.flSetLast(intListOfOne,0) shouldBe FLCons(1,FLCons(0,FLNil))
+    FList.flSetLast(FList.of(*arrayOf<Int>(2,1)),0) shouldBe FLCons(2, FLCons(1,FLCons(0,FLNil)))
+    FList.flSetLast(FList.of(*arrayOf<Int>(3,2,1)), 0) shouldBe
             FLCons(3,FLCons(2,FLCons(1,FLCons(0,FLNil))))
   }
 
