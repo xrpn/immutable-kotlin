@@ -1,5 +1,8 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTree
+import com.xrpn.imapi.IMList
+
 interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     val vc: Comparator<@UnsafeVariance A>?
@@ -23,10 +26,10 @@ interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @U
         fun <T: Any> T.toSAEntry(): TKVEntry<String, T> = ofStrKey(this)
         fun <B: Any> intKeyOf(item: B): Int = item.hashCode()
         fun <B: Any> strKeyOf(item: B): String = item.toString()
-        fun <B: Any> FList<B>.toIAEntries(): FList<TKVEntry<Int, B>> = this.fmap { a -> ofIntKey(a) }
-        fun <B: Any> FList<B>.toSAEntries(): FList<TKVEntry<String, B>> = this.fmap { a -> ofStrKey(a) }
-        fun <B: Any> FSet<B>.toIAList(): FList<TKVEntry<Int, B>> = this.fmapToList { a -> ofIntKey(a) }
-        fun <B: Any> FSet<B>.toSAList(): FList<TKVEntry<String, B>> = this.fmapToList { a -> ofStrKey(a) }
+        fun <B: Any> IMList<B>.toIAEntries(): IMList<TKVEntry<Int, B>> = this.fmap { a -> ofIntKey(a) }
+        fun <B: Any> IMList<B>.toSAEntries(): IMList<TKVEntry<String, B>> = this.fmap { a -> ofStrKey(a) }
+        fun <B: Any> IMBTree<Int, B>.toIAList(): IMList<TKVEntry<Int, B>> = this.preorder()
+        fun <B: Any> IMBTree<String, B>.toSAList(): IMList<TKVEntry<String, B>> = this.preorder()
         fun <B: Any> Collection<B>.toIAEntries(): FList<TKVEntry<Int, B>> = FList.ofMap(this.iterator()){ a -> ofIntKey(a) }
         fun <B: Any> Collection<B>.toSAEntries(): FList<TKVEntry<String, B>> = FList.ofMap(this.iterator()) { a -> ofStrKey(a) }
     }
@@ -50,7 +53,6 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
         }
 
     override fun equals(other: Any?): Boolean = equalsImpl<TKVEntryK<A,B>>(other)
-
 
     override fun getk(): A = k
     override fun getkc(): Comparable<A> = k

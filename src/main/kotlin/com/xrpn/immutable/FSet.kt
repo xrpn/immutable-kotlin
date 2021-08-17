@@ -5,14 +5,12 @@ import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMSet
 import com.xrpn.imapi.IMSetCompanion
-import com.xrpn.immutable.FList.Companion.toFList
 import com.xrpn.immutable.FRBTree.Companion.fcontainsIK
 import com.xrpn.immutable.FRBTree.Companion.finsertIK
 import com.xrpn.immutable.FRBTree.Companion.rbtDelete
 import com.xrpn.immutable.FRBTree.Companion.rbtDeletes
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FRBTree.Companion.rbtInserts
-import com.xrpn.immutable.TKVEntry.Companion.toIAEntries
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toIAList
 import kotlinx.coroutines.runBlocking
@@ -44,14 +42,12 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     // from Collection<A>
 
-    override fun isEmpty(): Boolean = this === FSetBody.empty
-
     override val size: Int by lazy { this.toFRBTree().size }
 
-    override fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(element)
+    override fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(FSetOfOne(element))
 
     override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
-        elements.forEach { if (!contains(it)) return false }
+        elements.forEach { if (!this.fcontains(FSetOfOne(it))) return false }
         return true
     }
 
@@ -75,17 +71,31 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     override fun toIMBTree(): IMBTree<Int, A> = this.toFRBTree()
 
+    override fun copy(): IMSet<A> = FSetBody(this.toFRBTree().ffold(FRBTree.nul()) { acc, tkv -> acc.finsert(tkv) })
+
+    override fun copyToMutableSet(): MutableSet<@UnsafeVariance A> = this.toFRBTree()
+        .ffold(mutableSetOf()) { acc, tkv -> acc.add(tkv.getv()); acc }
+
     // filtering
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean = fcontainsIK(this.toFRBTree(), item)
+    override fun fcontains(item: FSetOfOne<@UnsafeVariance A>): Boolean = fcontainsIK(this.toFRBTree(), item.one)
 
-    override fun fdropItem(item: @UnsafeVariance A): IMSet<A> {
-        val aux = rbtDelete(this.toFRBTree(), item.toIAEntry())
+    override fun fcontainsAny(items: IMSet<@UnsafeVariance A>): Boolean = try {
+        val outer = if (this.toIMBTree().fsize() < items.toIMBTree().fsize()) this.toIMBTree() else items.toIMBTree()
+        val mark = if (this.toIMBTree().fsize() < items.toIMBTree().fsize()) items.toIMBTree() else this.toIMBTree()
+        outer.ffold(0) { acc, tkv -> if(mark.fcontains(tkv)) throw BreakoutException() else acc+1 }
+        false
+    } catch (ex: BreakoutException) {
+        true
+    }
+
+    override fun fdropItem(item: FSetOfOne<@UnsafeVariance A>): FSet<A> {
+        val aux = rbtDelete(this.toFRBTree(), item.one.toIAEntry())
         return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
     }
 
-    override fun fdropAll(items: FSet<@UnsafeVariance A>): IMSet<A> {
-        val aux = rbtDeletes(this.toFRBTree(), items.toIAList())
+    override fun fdropAll(items: IMSet<@UnsafeVariance A>): FSet<A> {
+        val aux = rbtDeletes(this.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
         return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
     }
 
@@ -99,30 +109,22 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     }
 
     override fun fisSubsetOf(rhs: IMSet<@UnsafeVariance A>): Boolean {
-        val superset = rhs.toFSet().toFRBTree()
-        val subset = this.toFRBTree()
+        val superset = rhs.toIMBTree()
+        val subset = this.toIMBTree()
         return this.fsize() == subset.fcount(superset::fcontains)
     }
 
-    override fun fpick(): A? = this.toFRBTree().fpick()?.getv()
+    override fun fpick(): A? = this.toIMBTree().fpick()?.getv()
 
-    override fun fretainsOnly(items: IMSet<@UnsafeVariance A>): FSet<A>  =
-        retainImpl(this, items.toFList(), symmetricDifference = false)
+    override fun fAND(items: IMSet<@UnsafeVariance A>): FSet<A>  =
+        fsRetainImpl(this, items, symmetricDifference = false)
 
-    override fun fsymmetricDifference(items: IMSet<@UnsafeVariance A>): FSet<A> = TODO()
-
-    // ==========
-
-    override fun <A: Any> IMSet<A>.fretainsOnly(elements: Collection<A>): IMSet<A>
-
-    override fun <A: Any> IMSet<A>.fsymmetricDifference(elements: Collection<A>): IMSet<A> =
-        retainImpl(this.toFSet(), elements.toFList(), symmetricDifference = true)
-
-
+    override fun fXOR(items: IMSet<@UnsafeVariance A>): FSet<A> =
+        fsRetainImpl(this, items, symmetricDifference = true)
 
     // grouping
 
-    override fun fcombinations(size: Int): IMSet<IMSet<A>> {
+    override fun fcombinations(size: Int): FSet<IMSet<A>> {
         // all groups of "size" members from this set; order does not matter
         TODO("Not yet implemented")
     }
@@ -143,14 +145,14 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         TODO("Not yet implemented")
     }
 
-    override fun fpermutations(size: Int): IMSet<IMList<A>> {
+    override fun fpermutations(size: Int): FSet<IMList<A>> {
         // all groups of "size" members from this set; order does matter
         TODO("Not yet implemented")
     }
 
     override fun fpopAndReminder(): Pair<A?, FSet<A>> {
         val pop: A? = this.fpick()
-        val reminder: FSet<A> = pop?.let { this.fdropItem(it).toFSet() } ?: FSetBody.empty
+        val reminder = pop?.let { this.fdropItem(FSetOfOne(it)) } ?: FSetBody.empty
         return Pair(pop, reminder)
     }
 
@@ -180,13 +182,13 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     // altering
 
-    override fun fadd(item: @UnsafeVariance A): FSet<A> {
-        val aux = rbtInsert(this.toFRBTree(), item.toIAEntry())
+    override fun fadd(item: FSetOfOne<@UnsafeVariance A>): FSet<A> {
+        val aux = rbtInsert(this.toFRBTree(), item.one.toIAEntry())
         return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
     }
 
-    override fun faddAll(items: IMSet<@UnsafeVariance A>): IMSet<A> {
-        val aux = rbtInserts(this.toFRBTree(), items.toFSet().toIAList())
+    override fun fOR(items: IMSet<@UnsafeVariance A>): FSet<A> {
+        val aux = rbtInserts(this.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
         return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
     }
 
@@ -209,10 +211,13 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         return tkvMatches.fmap { tkv -> tkv.getv() }
     }
 
+    protected abstract fun toFRBTree(): FRBTree<Int, A>
+
     // private
-    private fun toFRBTree(): FRBTree<Int, A> = (this as FSetBody).body
 
     companion object: IMSetCompanion {
+
+        private class BreakoutException(): RuntimeException()
 
         override fun<A: Any> emptyIMSet(): FSet<A> = FSetBody.empty
 
@@ -263,152 +268,91 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
         // ==========
 
-        override fun <A : Any> Collection<A>.toIMSet(): IMSet<A> = of(this.iterator())
-
-        override fun <A: Any> finsertOrReplace(src: IMSet<A>, item: A): IMSet<A> {
-            val aux = FRBTree.rbtInsert(src.toFRBTree(), item.toIAEntry())
-            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-        }
-
-        override fun <A: Any> finsertsOrReplace(src: IMSet<A>, items: IMSet<A>): IMSet<A> {
-            val aux = FRBTree.rbtInserts(src.toFRBTree(), items.toFSet().toIAList())
-            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-        }
-
-        override  fun <A: Any> fdelete(src: IMSet<A>, item: A): IMSet<A> {
-            val aux = FRBTree.rbtDelete(src.toFRBTree(), item.toIAEntry())
-            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-        }
-
-        override fun <A: Any> fdeletes(src: IMSet<A>, items: IMSet<A>): IMSet<A>  {
-            val aux = FRBTree.rbtDeletes(src.toFRBTree(), items.toFSet().toIAList())
-            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-        }
-
-        override fun <A: Any> fretain(src: IMSet<A>, items: IMSet<A>): IMSet<A> {
-
-            tailrec fun go(l: FList<TKVEntry<Int, A>>, mark: IMSet<A>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when(l) {
-                is FLNil -> acc
-                is FLCons -> {
-                    val newAcc = if (mark.fcontains(l.head.getv())) FRBTree.rbtInsert(acc, l.head) else acc
-                    go(l.tail, mark, newAcc)
-                }
-            }
-
-            return if (src.fsize() < items.fsize()) {
-                val aux = go(src.toFSet().toIAList(), items, FRBTNil)
-                if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-            } else {
-                val aux = go(items.toFSet().toIAList(), src, FRBTNil)
-                if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
-            }
-        }
-
-        override fun <A: Any> fxordiff(src1: IMSet<A>, src2: IMSet<A>,): IMSet<A> {
-//            val itr1 = FTreeIterator(src1.toFRBTree())
-//            val itr2 = FTreeIterator(src2.toFRBTree())
-//            while(true) {
-//                val item1: TKVEntry<Int, A>? = itr1.nullableNext()
-//                val item2: TKVEntry<Int, A>? = itr1.nullableNext()
-//                TODO()
-//            }
-            TODO()
-        }
-
-        // ========== implementation
-
-        private fun <A: Any> retainImplSS(dest: FSet<A>, items: FList<A>, symmetricDifference: Boolean): FSet<A> {
-
-            val examinanda: FList<TKVEntry<Int, A>> = items.toIAEntries()
-            val underExam: FRBTree<Int, A> = rbtInserts(FRBTNil, examinanda)
-
-            tailrec fun goAnd(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when(l) {
-                is FLNil -> acc
-                is FLCons -> {
-                    val newAcc = if (underExam.fcontainsKey(l.head.getk())) rbtInsert(acc, l.head) else acc
-                    goAnd(l.tail, newAcc)
-                }
-            }
-
-            val inventory: FList<TKVEntry<Int, A>> = dest.toFRBTree().inorder()
-            val bothHave: FRBTree<Int, A> = goAnd(inventory, FRBTNil)
-
-            tailrec fun goXor(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when (l) {
-                is FLNil -> acc
-                is FLCons -> {
-                    val newAcc = if (bothHave.fcontainsKey(l.head.getk())) acc else FRBTree.rbtInsert(acc, l.head)
-                    goXor(l.tail, newAcc)
-                }
-            }
-
-            return if (symmetricDifference) {
-                val partial = goXor(examinanda, FRBTNil)
-                val simDiff = goXor(inventory, partial)
-                if (simDiff.isEmpty()) FSetBody.empty else FSetBody(simDiff)
-            } else if (bothHave.isEmpty()) FSetBody.empty else FSetBody(bothHave)
-
-        }
-
-        private fun <A: Any> retainImpl(dest: FSet<A>, items: FList<A>, symmetricDifference: Boolean): FSet<A> {
-
-            val examinanda: FList<TKVEntry<Int, A>> = items.toIAEntries()
-            val underExam: FRBTree<Int, A> = rbtInserts(FRBTNil, examinanda)
-
-            tailrec fun goAnd(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when(l) {
-                is FLNil -> acc
-                is FLCons -> {
-                    val newAcc = if (underExam.fcontainsKey(l.head.getk())) rbtInsert(acc, l.head) else acc
-                    goAnd(l.tail, newAcc)
-                }
-            }
-
-            val inventory: FList<TKVEntry<Int, A>> = dest.toFRBTree().inorder()
-            val bothHave: FRBTree<Int, A> = goAnd(inventory, FRBTNil)
-
-            tailrec fun goXor(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when (l) {
-                is FLNil -> acc
-                is FLCons -> {
-                    val newAcc = if (bothHave.fcontainsKey(l.head.getk())) acc else FRBTree.rbtInsert(acc, l.head)
-                    goXor(l.tail, newAcc)
-                }
-            }
-
-            return if (symmetricDifference) {
-                val partial = goXor(examinanda, FRBTNil)
-                val simDiff = goXor(inventory, partial)
-                if (simDiff.isEmpty()) FSetBody.empty else FSetBody(simDiff)
-            } else if (bothHave.isEmpty()) FSetBody.empty else FSetBody(bothHave)
-
-        }
-
-        // ==========
-
-        // TODO make this extensible
-        internal fun <A: Any> Collection<A>.toFSet(): FSet<A> = when (this) {
+        override fun <A : Any> Collection<A>.toIMSet(): IMSet<A> = when(this) {
             is FSet<A> -> this
             else -> of(this.iterator())
         }
 
-        // TODO make this extensible
-        internal fun <A: Any> IMSet<A>.toFSet(): FSet<A> = when (this) {
-            is FSet<A> -> this
-            else -> throw RuntimeException("cannot cast ${this::class.simpleName} to FSet")
+        internal fun <A: Any> fsInsertOrReplace(src: FSet<A>, item: A): FSet<A> {
+            val aux = rbtInsert(src.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
         }
 
-        // TODO make this extensible
-        internal fun <A: Any> IMSet<A>.toFRBTree(): FRBTree<Int, A> = (this.toFSet() as FSetBody).body
+        internal fun <A: Any> fsInsertsOrReplace(src: FSet<A>, items: FSet<A>): FSet<A> {
+            val aux = rbtInserts(src.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
+
+        internal fun <A: Any> fsDelete(src: FSet<A>, item: A): FSet<A> {
+            val aux = rbtDelete(src.toFRBTree(), item.toIAEntry())
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
+
+        internal fun <A: Any> fsDeletes(src: FSet<A>, items: FSet<A>): FSet<A>  {
+            val aux = rbtDeletes(src.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
+            return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
+        }
+
+        // ========== implementation
+
+        private fun <A: Any> fsRetainImpl(dest: FSet<A>, items: IMSet<A>, symmetricDifference: Boolean): FSet<A> {
+
+            val underExam: IMBTree<Int, A> = items.toIMBTree()
+
+            tailrec fun goAnd(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when(l) {
+                is FLNil -> acc
+                is FLCons -> {
+                    val newAcc = if (underExam.fcontainsKey(l.head.getk())) rbtInsert(acc, l.head) else acc
+                    goAnd(l.tail, newAcc)
+                }
+            }
+
+            val inventory: FList<TKVEntry<Int, A>> = dest.toFRBTree().inorder()
+            val bothHave: FRBTree<Int, A> = goAnd(inventory, FRBTNil)
+
+            tailrec fun goXor(l: FList<TKVEntry<Int, A>>, acc: FRBTree<Int, A>): FRBTree<Int, A> = when (l) {
+                is FLNil -> acc
+                is FLCons -> {
+                    val newAcc = if (bothHave.fcontainsKey(l.head.getk())) acc else FRBTree.rbtInsert(acc, l.head)
+                    goXor(l.tail, newAcc)
+                }
+            }
+
+            return if (symmetricDifference) {
+                val partial = goXor(FList.of(items.toIMBTree().toIAList()), FRBTNil)
+                val simDiff = goXor(inventory, partial)
+                if (simDiff.isEmpty()) FSetBody.empty else FSetBody(simDiff)
+            } else if (bothHave.isEmpty()) FSetBody.empty else FSetBody(bothHave)
+
+            /* TODO maybe
+            collapse(S): given a set of sets, return the union.[6] For example, collapse({{1}, {2, 3}}) == {1, 2, 3}. May be considered a kind of sum.
+            flatten(S): given a set consisting of sets and atomic elements (elements that are not sets), returns a set whose elements are the atomic elements of the original top-level set or elements of the sets it contains. In other words, remove a level of nesting – like collapse, but allow atoms. This can be done a single time, or recursively flattening to obtain a set of only atomic elements.[7] For example, flatten({1, {2, 3}}) == {1, 2, 3}.
+             */
+        }
 
     }
 
-    /* TODO
-    collapse(S): given a set of sets, return the union.[6] For example, collapse({{1}, {2, 3}}) == {1, 2, 3}. May be considered a kind of sum.
-    flatten(S): given a set consisting of sets and atomic elements (elements that are not sets), returns a set whose elements are the atomic elements of the original top-level set or elements of the sets it contains. In other words, remove a level of nesting – like collapse, but allow atoms. This can be done a single time, or recursively flattening to obtain a set of only atomic elements.[7] For example, flatten({1, {2, 3}}) == {1, 2, 3}.
-     */
+}
+
+class FSetOfOne<out A: Any> internal constructor (
+    val one: A
+): FSet<A>() {
+    val body: FRBTree<Int, A> by lazy { FRBTree.ofvi(one) }
+    override fun isEmpty(): Boolean = false
+    override fun equals(other: Any?): Boolean = FSetBody(body).equals(other)
+    val hash: Int by lazy { ((127L * (this.body.hashCode().toLong() + 17L)) / 131L).toInt() }
+    override fun hashCode(): Int = hash
+    val show: String by lazy { FSet::class.simpleName+"($one)" }
+    override fun toString(): String = show
+    override val size: Int = 1
+    override fun toFRBTree(): FRBTree<Int, A> = body
 }
 
 internal class FSetBody<out A: Any> internal constructor (
     val body: FRBTree<Int, A>
 ): FSet<A>() {
+
+    override fun isEmpty(): Boolean = this === empty
 
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -441,6 +385,8 @@ internal class FSetBody<out A: Any> internal constructor (
     override fun toString(): String = show
 
     override val size: Int by lazy { body.size }
+
+    override fun toFRBTree(): FRBTree<Int, A> = this.body
 
     companion object {
         val empty = FSetBody(FRBTNil)

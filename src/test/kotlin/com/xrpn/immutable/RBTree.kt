@@ -13,7 +13,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
 
-    fun copy(): RBTree<A, B> {
+    override fun copy(): RBTree<A, B> {
         val res = RBTree<A, B>()
         res.root = root?.deepClone()
         res.size = size
@@ -299,6 +299,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
+    override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> {
+        TODO("Not yet implemented")
+    }
+
     override fun equal(rhs: IMBTree<A, B>): Boolean {
         TODO("Not yet implemented")
     }
@@ -425,7 +429,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffind(item: TKVEntry<A, B>): IMBTree<A, B>? {
+    override fun ffindItem(item: TKVEntry<A, B>): IMBTree<A, B>? {
         TODO("Not yet implemented")
     }
 
@@ -433,7 +437,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffindLast(item: TKVEntry<A, B>): IMBTree<A, B>? {
+    override fun ffindLastItem(item: TKVEntry<A, B>): IMBTree<A, B>? {
         TODO("Not yet implemented")
     }
 

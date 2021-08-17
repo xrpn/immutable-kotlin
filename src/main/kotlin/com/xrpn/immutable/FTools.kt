@@ -11,14 +11,6 @@ fun <A, B> Triple<A, A, A>.tmap1(f: (A) -> B): Triple<B, B, B> = Triple(f(this.f
 fun <A, B, C, D, E, F> Triple<A, B, C>.tmap3(f: (A) -> D, g: (B) -> E, h: (C) -> F): Triple<D, E, F> = Triple(f(this.first), g(this.second), h(this.third))
 fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLCons(this.third, FLNil)))
 
-//abstract class DeepRecursiveScope<T, R> {
-//    abstract suspend fun callRecursive(value: T): R
-//}
-//
-//class DeepRecursiveFunction<T, R>(
-//    val block: suspend DeepRecursiveScope<T, R>.(T) -> R
-//)
-
 internal enum class FBTFIT {
     LEFT, RIGHT, EQ
 }

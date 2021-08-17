@@ -1,6 +1,12 @@
 package com.xrpn.immutable
 
-import kotlin.IllegalStateException
+//
+// W       W  I  P P P
+// W       W  I  P    P
+// W   W   W  I  P P P
+//  W W W W   I  P
+//   W   W    I  P
+//
 
 sealed class FQueue<out A: Any> {
 

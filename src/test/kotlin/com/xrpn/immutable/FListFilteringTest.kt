@@ -118,29 +118,29 @@ class FListFilteringTest : FunSpec({
   }
 
   test("ffindFromLeft") {
-    intListOfNone.ffindFromLeft { _ -> true } shouldBe null
-    intListOfNone.ffindFromLeft { _ -> false } shouldBe null
-    intListOfOne.ffindFromLeft { 0 < it } shouldBe 1
-    intListOfOne.ffindFromLeft { _ -> false } shouldBe null
-    intListOfThree.ffindFromLeft { 0 < it } shouldBe 1
-    intListOfThree.ffindFromLeft { 1 < it } shouldBe 2
-    intListOfThree.ffindFromLeft { 2 < it } shouldBe 3
-    intListOfThree.ffindFromLeft { 3 < it } shouldBe null
-    intListOfThree.ffindFromLeft { it < 3 } shouldBe 1
-    intListOfThree.ffindFromLeft { it < 2 } shouldBe 1
+    intListOfNone.ffind { _ -> true } shouldBe null
+    intListOfNone.ffind { _ -> false } shouldBe null
+    intListOfOne.ffind { 0 < it } shouldBe 1
+    intListOfOne.ffind { _ -> false } shouldBe null
+    intListOfThree.ffind { 0 < it } shouldBe 1
+    intListOfThree.ffind { 1 < it } shouldBe 2
+    intListOfThree.ffind { 2 < it } shouldBe 3
+    intListOfThree.ffind { 3 < it } shouldBe null
+    intListOfThree.ffind { it < 3 } shouldBe 1
+    intListOfThree.ffind { it < 2 } shouldBe 1
   }
 
   test("ffindFromRight") {
-    intListOfNone.ffindFromRight { _ -> true } shouldBe null
-    intListOfNone.ffindFromRight { _ -> false } shouldBe null
-    intListOfOne.ffindFromRight { 0 < it } shouldBe 1
-    intListOfOne.ffindFromRight { _ -> false } shouldBe null
-    intListOfThree.ffindFromRight { 0 < it } shouldBe 3
-    intListOfThree.ffindFromRight { 1 < it } shouldBe 3
-    intListOfThree.ffindFromRight { 2 < it } shouldBe 3
-    intListOfThree.ffindFromRight { 3 < it } shouldBe null
-    intListOfThree.ffindFromRight { it < 3 } shouldBe 2
-    intListOfThree.ffindFromRight { it < 2 } shouldBe 1
+    intListOfNone.ffindLast { _ -> true } shouldBe null
+    intListOfNone.ffindLast { _ -> false } shouldBe null
+    intListOfOne.ffindLast { 0 < it } shouldBe 1
+    intListOfOne.ffindLast { _ -> false } shouldBe null
+    intListOfThree.ffindLast { 0 < it } shouldBe 3
+    intListOfThree.ffindLast { 1 < it } shouldBe 3
+    intListOfThree.ffindLast { 2 < it } shouldBe 3
+    intListOfThree.ffindLast { 3 < it } shouldBe null
+    intListOfThree.ffindLast { it < 3 } shouldBe 2
+    intListOfThree.ffindLast { it < 2 } shouldBe 1
   }
 
   test("fgetOrNull") {

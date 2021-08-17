@@ -1,7 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.TKVEntry
-
 interface IMListCollecting<out A: Any> {
 //    fun holds(element: @UnsafeVariance A): Boolean // 	True if the list contains the element e
 //    fun superListOf(list: IMList<@UnsafeVariance A>): Boolean // 	True if the list contains the sequence s

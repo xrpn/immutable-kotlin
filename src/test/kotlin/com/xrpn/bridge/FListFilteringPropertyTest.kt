@@ -83,7 +83,7 @@ class FListFilteringPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
       val item = fl.get(ix)
-      fl.ffindFromLeft(matchEqual(item)) shouldBe fl.find(matchEqual(item))
+      fl.ffind(matchEqual(item)) shouldBe fl.find(matchEqual(item))
     }
   }
 
@@ -91,7 +91,7 @@ class FListFilteringPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
       val item = fl.get(ix)
-      fl.ffindFromRight(matchEqual(item)) shouldBe fl.findLast(matchEqual(item))
+      fl.ffindLast(matchEqual(item)) shouldBe fl.findLast(matchEqual(item))
     }
   }
 

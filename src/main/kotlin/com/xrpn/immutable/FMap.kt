@@ -4,6 +4,14 @@ import com.xrpn.immutable.FRBTree.Companion.rbtFindValueOFKey
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FRBTree.Companion.rbtInserts
 
+//
+// W       W  I  P P P
+// W       W  I  P    P
+// W   W   W  I  P P P
+//  W W W W   I  P
+//   W   W    I  P
+//
+
 sealed class FMap<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     fun isEmpty(): Boolean = this === FMapBody.empty

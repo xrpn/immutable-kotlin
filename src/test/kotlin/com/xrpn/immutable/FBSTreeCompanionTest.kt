@@ -6,7 +6,7 @@ import com.xrpn.immutable.FBSTree.Companion.bstParent
 import com.xrpn.immutable.FBSTree.Companion.bstPrune
 import com.xrpn.immutable.FBSTree.Companion.bstFind
 import com.xrpn.immutable.FBSTree.Companion.bstFindLast
-import com.xrpn.immutable.FBSTree.Companion.addGraftTesting
+import com.xrpn.immutable.FBSTree.Companion.addGraftTestingGremlin
 import com.xrpn.immutable.FBSTree.Companion.bstContains2
 import com.xrpn.immutable.FBSTree.Companion.bstInsert
 import com.xrpn.immutable.FBSTree.Companion.bstDelete
@@ -600,28 +600,28 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.addGraftTesting") {
-        addGraftTesting(FBSTNil, FBSTNil) shouldBe FBSTNil
-        addGraftTesting(depthOneFull, FBSTNil) shouldBe depthOneFull
-        addGraftTesting(FBSTNil, depthOneFull) shouldBe depthOneFull
+        addGraftTestingGremlin(FBSTNil, FBSTNil) shouldBe FBSTNil
+        addGraftTestingGremlin(depthOneFull, FBSTNil) shouldBe depthOneFull
+        addGraftTestingGremlin(FBSTNil, depthOneFull) shouldBe depthOneFull
 
-        addGraftTesting(bstPrune(depthOneFull, nEntry), FBSTNode(nEntry)) shouldBe depthOneFull
-        addGraftTesting(bstPrune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(bstPrune(depthOneFull, nEntry), FBSTNode(nEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(bstPrune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
 
-        addGraftTesting(bstPrune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
-        addGraftTesting(bstPrune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight,sEntry)!!) shouldBe depthTwoLeftRight
-        addGraftTesting(bstPrune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight,lEntry)!!) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight,sEntry)!!) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight,lEntry)!!) shouldBe depthTwoLeftRight
 
-        addGraftTesting(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
-        addGraftTesting(bstPrune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft,sEntry)!!) shouldBe depthTwoLeftLeft
-        addGraftTesting(bstPrune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft,lEntry)!!) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft,sEntry)!!) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft,lEntry)!!) shouldBe depthTwoLeftLeft
 
-        addGraftTesting(bstPrune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
-        addGraftTesting(bstPrune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight,sEntry)!!) shouldBe depthTwoRightRight
-        addGraftTesting(bstPrune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight,mEntry)!!) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight,sEntry)!!) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight,mEntry)!!) shouldBe depthTwoRightRight
 
-        addGraftTesting(bstPrune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
-        addGraftTesting(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
-        addGraftTesting(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
     }
 
     test("co.delete no dups") {

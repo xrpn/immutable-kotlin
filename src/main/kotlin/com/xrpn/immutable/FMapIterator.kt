@@ -1,5 +1,13 @@
 package com.xrpn.immutable
 
+//
+// W       W  I  P P P
+// W       W  I  P    P
+// W   W   W  I  P P P
+//  W W W W   I  P
+//   W   W    I  P
+//
+
 class FMapIterator<out A, out B: Any> internal constructor (val seed: FMap<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A,B>>, Sequence<TKVEntry<A,B>> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // iterator are inescapably stateful, mutable creatures

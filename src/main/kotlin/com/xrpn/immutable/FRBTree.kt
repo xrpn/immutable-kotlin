@@ -9,7 +9,6 @@ import java.math.BigInteger
 import kotlin.math.log2
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
-// sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // =========== Collection
 
@@ -51,8 +50,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     // =========== traversable
 
-    override fun toIMSet(): FSet<B> = FSet.of(this)
-
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when (this) {
         is FRBTNil -> rhs.fempty()
         is FRBTNode<A, B> -> when {
@@ -76,6 +73,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         traverse(this)
     }
+
+    override fun toIMSet(): FSet<B> = FSet.of(this)
+
+    override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+
+    override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
+        .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A,B>> {
 
@@ -155,24 +159,25 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = rbtFind(this, item) != null
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean = rbtFindKey(this, key) != null
+    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = rbtDeletes(this, items as FList<TKVEntry<A,B>>)
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtDelete(this, item)
     override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtDelete(this, item)
-    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = rbtDeletes(this, items as FList<TKVEntry<A,B>>)
 
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> =
         ffold(nul()){ acc: FRBTree<A, B>, item: TKVEntry<A, B> -> if (isMatch(item)) rbtInsert(acc, item) else acc }
 
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> = ffilter { !isMatch(it) }
 
-    override fun ffind(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>?= rbtFind(this, item)
-    override fun ffindKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
-    override fun ffindLast(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>?= rbtFind(this, item)
-    override fun ffindLastKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
-    override fun ffindValueOfKey(key: @UnsafeVariance A): B?= rbtFindValueOFKey(this, key)
-    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtParent(this, child)
-
     override fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): FList<TKVEntry<A, B>> =
         ffold(FLNil){ acc: FList<TKVEntry<A, B>>, item: TKVEntry<A, B> -> if (isMatch(item)) FLCons(item, acc) else acc }
+
+    override fun ffindItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>? =
+        rbtFind(this, item)
+
+    override fun ffindKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
+    override fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>?= rbtFind(this, item)
+    override fun ffindLastKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
+    override fun ffindValueOfKey(key: @UnsafeVariance A): B?= rbtFindValueOFKey(this, key)
 
     override fun fleftMost(): TKVEntry<A, B>? {
 
@@ -187,6 +192,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         return leftDescent(this)
     }
+
+    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtParent(this, child)
 
     override fun fpick(): TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
 
@@ -468,8 +475,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
                 }
             }
 
-            return if (!rbtContains2(treeStub, item)) treeStub
-            else {
+            return if (!rbtContains2(treeStub, item)) treeStub else {
                 val clipped = frbDelete(treeStub, item)
                 if (clipped is FRBTNode) {
                     val blackRoot = FRBTNode(clipped.entry, BLACK, clipped.bLeft, clipped.bRight)
@@ -483,7 +489,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> rbtDeletes(rbtDelete(treeStub, items.head), items.tail)
+                is FLCons -> if (treeStub.fcontains(items.head)) rbtDeletes(rbtDelete(treeStub, items.head), items.tail)
+                    else treeStub
             }
 
         // find the node with matching item
@@ -529,7 +536,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> rbtInserts(rbtInsert(treeStub, items.head), items.tail)
+                is FLCons -> if(treeStub.fcontains(items.head)) treeStub
+                    else rbtInserts(rbtInsert(treeStub, items.head), items.tail)
             }
 
         internal fun <A, B: Any> rbtParent(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B>

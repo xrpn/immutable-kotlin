@@ -34,3 +34,34 @@ fun defaultScope(logTag: String): CoroutineScope = CloseableCoroutineScope(
 fun uiScope(logTag: String): CoroutineScope = CloseableCoroutineScope(
     SupervisorJob() + Dispatchers.Main + uncaughtHandler(logTag)
 )
+
+//abstract class DeepRecursiveScope<T, R> {
+//    abstract suspend fun callRecursive(value: T): R
+//}
+//
+//class DeepRecursiveFunction<T, R>(
+//    val block: suspend DeepRecursiveScope<T, R>.(T) -> R
+//)
+
+
+//typealias Result = Pair<KFunction<*>?, Any?>
+//typealias Func = KFunction<Result>
+//
+//tailrec fun trampoline(f: Func, arg: Any?): Any? {
+//    val (f2,arg2) = f.call(arg)
+//    @Suppress("UNCHECKED_CAST")
+//    return if (f2 == null) arg2
+//    else trampoline(f2 as Func, arg2)
+//}
+//
+//fun odd(n: Int): Result =
+//    if (n == 0) null to false
+//    else ::even to n-1
+//
+//fun even(n: Int): Result =
+//    if (n == 0) null to true
+//    else ::odd to n-1
+//
+//fun mutualrecursion() {
+//    System.out.println(trampoline(::even, 9999999))
+//}

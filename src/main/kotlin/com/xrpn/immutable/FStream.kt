@@ -4,10 +4,14 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FStack.Companion.emptyFStack
 import com.xrpn.immutable.FStack.Companion.push
-//import kotlinx.coroutines.GlobalScope
-//import kotlinx.coroutines.async
-//import kotlinx.coroutines.delay
-// import kotlin.math.max
+
+//
+// W       W  I  P P P
+// W       W  I  P    P
+// W   W   W  I  P P P
+//  W W W W   I  P
+//   W   W    I  P
+//
 
 
 sealed class FStream<out A: Any> {

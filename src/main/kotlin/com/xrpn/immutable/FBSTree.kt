@@ -50,8 +50,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== traversable
 
-    override fun toIMSet(): FSet<B> = FSet.of(this)
-
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when (this) {
         is FBSTNil -> rhs.fempty()
         is FBSTNode<A, B> -> when {
@@ -75,6 +73,13 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         if (! this.fempty()) unwindStackForEach(FStack.push(FStack.emptyFStack(),this as FBSTNode), ::doForEach)
 
     }
+
+    override fun toIMSet(): FSet<B> = FSet.of(this)
+
+    override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+
+    override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
+        .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A, B>> {
 
@@ -166,9 +171,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = bstFind(this, item) != null
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean = bstFindKey(this, key) != null
+    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = bstDeletes(this, items as FList<TKVEntry<A,B>>)
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = bstDelete(this, item, atMostOne = true)
     override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = bstDelete(this, item, atMostOne = false)
-    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = bstDeletes(this, items as FList<TKVEntry<A,B>>)
 
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FBSTree<A, B> {
 
@@ -188,13 +193,11 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(FLNil, f4ffind)
     }
 
-    override fun ffind(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>? = bstFind(this, item)
+    override fun ffindItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>? = bstFind(this, item)
     override fun ffindKey(key: @UnsafeVariance A): FBSTree<A, B>? = bstFindKey(this, key)
-    override fun ffindLast(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>? = bstFindLast(this, item)
+    override fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>? = bstFindLast(this, item)
     override fun ffindLastKey(key: @UnsafeVariance A): FBSTree<A, B>? = bstFindLastKey(this, key)
     override fun ffindValueOfKey(key: @UnsafeVariance A): B? = bstFindValueOFKey(this, key)
-    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = bstParent(this, child)
-
 
     override fun fleftMost(): TKVEntry<A, B>? {
         tailrec fun leftDescent(bt: FBSTree<A, B>): TKVEntry<A, B>? =
@@ -208,6 +211,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         return leftDescent(this)
     }
+
+    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = bstParent(this, child)
 
     override fun fpick(): TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
 
@@ -586,10 +591,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     }
                 }
 
-            return when (bstContains2(treeStub, item)) {
-                false -> treeStub
-                true -> splice(item, treeStub, FLNil)
-            }
+            return if (!bstContains2(treeStub, item)) treeStub
+                else splice(item, treeStub, FLNil)
         }
 
         internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A,B>>): FBSTree<A, B>
@@ -709,7 +712,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // =============== internals
 
         // exposed for testing purposes ONLY
-        internal fun <A, B: Any> addGraftTesting(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> =
+        internal fun <A, B: Any> addGraftTestingGremlin(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> =
             addGraft(treeStub, graft)
 
         private data class Trace<A, B: Any>(val treeStub: FBSTNode<A, B>, val direction: FBTFIT, val duplicate: Boolean = false) where A: Any, A: Comparable<A>
@@ -918,27 +921,3 @@ internal data class FBSTNode<out A, out B: Any> (
     }
 
 }
-
-//typealias Result = Pair<KFunction<*>?, Any?>
-//typealias Func = KFunction<Result>
-//
-//tailrec fun trampoline(f: Func, arg: Any?): Any? {
-//    val (f2,arg2) = f.call(arg)
-//    @Suppress("UNCHECKED_CAST")
-//    return if (f2 == null) arg2
-//    else trampoline(f2 as Func, arg2)
-//}
-//
-//fun odd(n: Int): Result =
-//    if (n == 0) null to false
-//    else ::even to n-1
-//
-//fun even(n: Int): Result =
-//    if (n == 0) null to true
-//    else ::odd to n-1
-//
-//fun mutualrecursion() {
-//    System.out.println(trampoline(::even, 9999999))
-//}
-
-

@@ -2,6 +2,14 @@ package com.xrpn.immutable
 
 import com.xrpn.immutable.FStream.Companion.fsCons
 
+//
+// W       W  I  P P P
+// W       W  I  P    P
+// W   W   W  I  P P P
+//  W W W W   I  P
+//   W   W    I  P
+//
+
 class FStreamIterator<out A: Any>
         internal constructor (val seed: FStream<A>, val resettable: Boolean = false): Iterator<A>, Sequence<A> {
 

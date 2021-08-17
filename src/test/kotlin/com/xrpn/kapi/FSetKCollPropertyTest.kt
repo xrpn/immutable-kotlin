@@ -1,10 +1,11 @@
 package com.xrpn.kapi
 
 import com.xrpn.immutable.FList
-import com.xrpn.immutable.FList.Companion.toFList
+import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.char
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
@@ -59,9 +60,9 @@ class FSetKCollPropertyTest : FunSpec({
   }
 
   test("containsAll") {
-    Arb.fsetAsCollection<String, String>(Arb.string(0..10)).checkAll(repeats) { fs ->
+    Arb.fsetAsCollection<String, String>(Arb.string(0..10)).checkAll(repeats, PropTestConfig(seed = -6619752318048995269)) { fs ->
       val s = fs.toSet()
-      fs.containsAll(s.reversed()) shouldBe true
+      fs.containsAll(s) shouldBe true
     }
   }
 
@@ -414,7 +415,7 @@ class FSetKCollPropertyTest : FunSpec({
   test("zip array") {
     checkAll(5, Arb.fsetAsCollection<Int, Int>(Arb.int()), Arb.fsetAsCollection<Int, Int>(Arb.int())) { fl1, fl2  ->
       val l1: List<Int> = fl1.toList()
-      val a2: Array<Int> = FList.toArray(fl2.toFList())
+      val a2: Array<Int> = FList.toArray(FList.of(fl2.toIMList()))
       fl1.zip (a2) shouldBe l1.zip(a2)
     }
   }

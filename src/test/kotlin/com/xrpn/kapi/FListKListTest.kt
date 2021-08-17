@@ -3,7 +3,6 @@ package com.xrpn.kapi
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
-import com.xrpn.immutable.FList.Companion.toFList
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -241,11 +240,11 @@ class FListKListTest : FunSpec({
   }
 
   test("subList") {
-    intListOfSix.subList(0, 0).toFList() shouldBe (intListOfNone as FList<*>)
-    intListOfSix.subList(0, 1).toFList() shouldBe (intListOfOne as FList<*>)
-    intListOfSix.subList(0, 2).toFList() shouldBe (intListOfTwo as FList<*>)
-    intListOfSix.subList(0, 3).toFList() shouldBe (intListOfThree as FList<*>)
-    intListOfSix.subList(3, 6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
+    intListOfSix.subList(0, 0) shouldBe (intListOfNone as FList<*>)
+    intListOfSix.subList(0, 1) shouldBe (intListOfOne as FList<*>)
+    intListOfSix.subList(0, 2) shouldBe (intListOfTwo as FList<*>)
+    intListOfSix.subList(0, 3) shouldBe (intListOfThree as FList<*>)
+    intListOfSix.subList(3, 6) shouldBe (intListOfThree as FList<*>).freverse()
   }
 
   // typeclass
@@ -412,51 +411,51 @@ class FListKListTest : FunSpec({
   }
 
   test("dropLast") {
-    intListOfNone.dropLast(1).toFList() shouldBe intListOfNone
-    intListOfOne.dropLast(0).toFList()  shouldBe intListOfOne
-    intListOfOne.dropLast(1).toFList()  shouldBe intListOfNone
-    intListOfThree.dropLast(0).toFList()  shouldBe intListOfThree
-    intListOfThree.dropLast(1).toFList()  shouldBe FLCons(1, FLCons(2, FLNil))
-    intListOfThree.dropLast(2).toFList()  shouldBe FLCons(1, FLNil)
-    intListOfThree.dropLast(3).toFList()  shouldBe intListOfNone
+    intListOfNone.dropLast(1) shouldBe intListOfNone
+    intListOfOne.dropLast(0)  shouldBe intListOfOne
+    intListOfOne.dropLast(1)  shouldBe intListOfNone
+    intListOfThree.dropLast(0)  shouldBe intListOfThree
+    intListOfThree.dropLast(1)  shouldBe FLCons(1, FLCons(2, FLNil))
+    intListOfThree.dropLast(2)  shouldBe FLCons(1, FLNil)
+    intListOfThree.dropLast(3)  shouldBe intListOfNone
   }
 
   test("dropLastWhile") {
-    intListOfSix.dropLastWhile { it < 3 }.toFList() shouldBe FLCons(1, FLCons(2, FLCons(3, FLCons(3, FLNil))))
-    intListOfSix.dropLastWhile { it < 4 }.toFList() shouldBe intListOfNone
+    intListOfSix.dropLastWhile { it < 3 } shouldBe FLCons(1, FLCons(2, FLCons(3, FLCons(3, FLNil))))
+    intListOfSix.dropLastWhile { it < 4 } shouldBe intListOfNone
   }
 
   test("slice of range") {
-    intListOfSix.slice(0 until 0).toFList() shouldBe (intListOfNone as FList<*>)
-    intListOfSix.slice(0 until 1).toFList() shouldBe (intListOfOne as FList<*>)
-    intListOfSix.slice(0..1).toFList() shouldBe (intListOfTwo as FList<*>)
-    intListOfSix.slice(0 until 2).toFList() shouldBe (intListOfTwo as FList<*>)
-    intListOfSix.slice(0..2).toFList() shouldBe (intListOfThree as FList<*>)
-    intListOfSix.slice(0 until 3).toFList() shouldBe (intListOfThree as FList<*>)
-    intListOfSix.slice(3 until 6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
+    intListOfSix.slice(0 until 0) shouldBe (intListOfNone as FList<*>)
+    intListOfSix.slice(0 until 1) shouldBe (intListOfOne as FList<*>)
+    intListOfSix.slice(0..1) shouldBe (intListOfTwo as FList<*>)
+    intListOfSix.slice(0 until 2) shouldBe (intListOfTwo as FList<*>)
+    intListOfSix.slice(0..2) shouldBe (intListOfThree as FList<*>)
+    intListOfSix.slice(0 until 3) shouldBe (intListOfThree as FList<*>)
+    intListOfSix.slice(3 until 6) shouldBe (intListOfThree as FList<*>).freverse()
     // noteworthy
-    intListOfSix.slice(3..6).toFList() shouldBe (intListOfThree as FList<*>).freverse()
-    intListOfSix.slice(3..100).toFList() shouldBe (intListOfThree as FList<*>).freverse()
+    intListOfSix.slice(3..6) shouldBe (intListOfThree as FList<*>).freverse()
+    intListOfSix.slice(3..100) shouldBe (intListOfThree as FList<*>).freverse()
   }
 
   test("slice of iterable") {
-    intListOfFive.slice(listOf(0, 2, 3)).toFList() shouldBe listOf(1,3,2)
-    intListOfSix.slice(listOf(0, 2, 3)).toFList() shouldBe listOf(1,3,3)
+    intListOfFive.slice(listOf(0, 2, 3)) shouldBe listOf(1,3,2)
+    intListOfSix.slice(listOf(0, 2, 3)) shouldBe listOf(1,3,3)
   }
 
   test("takeLast") {
-    intListOfNone.takeLast(1).toFList() shouldBe intListOfNone
-    intListOfOne.takeLast(0).toFList()  shouldBe intListOfNone
-    intListOfOne.takeLast(1).toFList()  shouldBe intListOfOne
-    intListOfThree.takeLast(0).toFList()  shouldBe intListOfNone
-    intListOfThree.takeLast(1).toFList()  shouldBe FLCons(3, FLNil)
-    intListOfThree.takeLast(2).toFList()  shouldBe FLCons(2, FLCons(3, FLNil))
-    intListOfThree.takeLast(3).toFList()  shouldBe intListOfThree
+    intListOfNone.takeLast(1) shouldBe intListOfNone
+    intListOfOne.takeLast(0)  shouldBe intListOfNone
+    intListOfOne.takeLast(1)  shouldBe intListOfOne
+    intListOfThree.takeLast(0)  shouldBe intListOfNone
+    intListOfThree.takeLast(1)  shouldBe FLCons(3, FLNil)
+    intListOfThree.takeLast(2)  shouldBe FLCons(2, FLCons(3, FLNil))
+    intListOfThree.takeLast(3)  shouldBe intListOfThree
   }
 
   test("takeLastWhile") {
-    intListOfSix.takeLastWhile { it < 3 }.toFList() shouldBe FLCons(2, FLCons(1, FLNil))
-    intListOfSix.takeLastWhile { it < 4 }.toFList() shouldBe intListOfSix
+    intListOfSix.takeLastWhile { it < 3 } shouldBe FLCons(2, FLCons(1, FLNil))
+    intListOfSix.takeLastWhile { it < 4 } shouldBe intListOfSix
   }
 
   test("foldRight diff") {

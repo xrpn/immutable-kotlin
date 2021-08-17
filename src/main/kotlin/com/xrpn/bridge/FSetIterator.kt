@@ -1,11 +1,10 @@
 package com.xrpn.bridge
 
 import com.xrpn.immutable.FSet
-import com.xrpn.immutable.FSet.Companion.toFRBTree
 
 class FSetIterator<out A: Any> internal constructor(val seed: FSet<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
 
-    private val iter = FTreeIterator(seed.toFRBTree())
+    private val iter = FTreeIterator(seed.toIMBTree())
 
     // not thread safe
     override fun hasNext(): Boolean = iter.hasNext()

@@ -3,7 +3,7 @@ package com.xrpn.kapi
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
-import com.xrpn.immutable.FList.Companion.toFList
+import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -36,16 +36,16 @@ class FListKCollTest : FunSpec({
     (intListOfNone == FList.of(*arrayOf<Int>())) shouldBe true
     (intListOfNone.equals(emptyList<Int>())) shouldBe true
     (intListOfNone == emptyList<Int>()) shouldBe true
-    (intListOfNone == emptyList<Int>().toFList()) shouldBe true
+    (intListOfNone == emptyList<Int>().toIMList()) shouldBe true
     (intListOfNone == FList.of(*arrayOf(1))) shouldBe false
     (intListOfNone == listOf(1)) shouldBe false
-    (intListOfNone == listOf(1).toFList()) shouldBe false
+    (intListOfNone == listOf(1).toIMList()) shouldBe false
 
     (intListOfOne == FList.of(*arrayOf<Int>())) shouldBe false
     (intListOfOne == emptyList<Int>()) shouldBe false
     (intListOfOne == FList.of(*arrayOf(1))) shouldBe true
     (intListOfOne == listOf(1)) shouldBe true
-    (intListOfOne == listOf(1).toFList()) shouldBe true
+    (intListOfOne == listOf(1).toIMList()) shouldBe true
     (intListOfOne == FList.of(*arrayOf(1, 2))) shouldBe false
   }
 
@@ -330,52 +330,52 @@ class FListKCollTest : FunSpec({
   }
 
   test("drop 0") {
-    intListOfNone.drop(0).toFList() shouldBe FLNil
-    intListOfOne.drop(0).toFList() shouldBe intListOfOne
-    intListOfTwo.drop(0).toFList() shouldBe intListOfTwo
+    intListOfNone.drop(0).toIMList() shouldBe FLNil
+    intListOfOne.drop(0).toIMList() shouldBe intListOfOne
+    intListOfTwo.drop(0).toIMList() shouldBe intListOfTwo
   }
 
   test("drop 1") {
     val aux0: List<Int> = intListOfThree.drop(1)
-    val aux1: FList<Int> = aux0.toFList()
+    val aux1: FList<Int> = FList.of(aux0)
     aux1 shouldBe FLCons(2,FLCons(3,FLNil))
-    intListOfNone.drop(1).toFList() shouldBe FLNil
-    intListOfOne.drop(1).toFList() shouldBe FLNil
-    intListOfTwo.drop(1).toFList() shouldBe FLCons(2,FLNil)
+    intListOfNone.drop(1).toIMList() shouldBe FLNil
+    intListOfOne.drop(1).toIMList() shouldBe FLNil
+    intListOfTwo.drop(1).toIMList() shouldBe FLCons(2,FLNil)
   }
 
   test("drop 2") {
-    intListOfNone.drop(2).toFList() shouldBe FLNil
-    intListOfOne.drop(2).toFList() shouldBe FLNil
-    intListOfTwo.drop(2).toFList() shouldBe FLNil
-    intListOfThree.drop(2).toFList() shouldBe FLCons(3,FLNil)
-    FList.of(*arrayOf<Int>(1,2,3,4)).drop(2).toFList() shouldBe FLCons(3,FLCons(4,FLNil))
+    intListOfNone.drop(2).toIMList() shouldBe FLNil
+    intListOfOne.drop(2).toIMList() shouldBe FLNil
+    intListOfTwo.drop(2).toIMList() shouldBe FLNil
+    intListOfThree.drop(2).toIMList() shouldBe FLCons(3,FLNil)
+    FList.of(*arrayOf<Int>(1,2,3,4)).drop(2).toIMList() shouldBe FLCons(3,FLCons(4,FLNil))
   }
 
   test("drop 3") {
-    intListOfNone.drop(3).toFList() shouldBe FLNil
-    intListOfOne.drop(3).toFList() shouldBe FLNil
-    intListOfTwo.drop(3).toFList() shouldBe FLNil
-    intListOfThree.drop(3).toFList() shouldBe FLNil
-    FList.of(*arrayOf<Int>(1,2,3,4)).drop(3).toFList() shouldBe FLCons(4,FLNil)
+    intListOfNone.drop(3).toIMList() shouldBe FLNil
+    intListOfOne.drop(3).toIMList() shouldBe FLNil
+    intListOfTwo.drop(3).toIMList() shouldBe FLNil
+    intListOfThree.drop(3).toIMList() shouldBe FLNil
+    FList.of(*arrayOf<Int>(1,2,3,4)).drop(3).toIMList() shouldBe FLCons(4,FLNil)
   }
 
   test("dropWhile") {
-    intListOfNone.dropWhile { it > 1 }.toFList() shouldBe FLNil
-    intListOfOne.dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(2,1)).dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1)).dropWhile { it > 1 }.toFList()  shouldBe FLCons(1,FLNil)
+    intListOfNone.dropWhile { it > 1 }.toIMList() shouldBe FLNil
+    intListOfOne.dropWhile { it > 1 }.toIMList()  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(2,1)).dropWhile { it > 1 }.toIMList()  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1)).dropWhile { it > 1 }.toIMList()  shouldBe FLCons(1,FLNil)
     val a1 = FList.of(*arrayOf<Int>(3,2,1,0,3))
-    a1.dropWhile { it > 1 }.toFList() shouldBe FLCons(1,FLCons(0, FLCons(3,FLNil)))
-    a1.dropWhile { it > 2 }.toFList() shouldBe FLCons(2,FLCons(1,FLCons(0, FLCons(3,FLNil))))
+    a1.dropWhile { it > 1 }.toIMList() shouldBe FLCons(1,FLCons(0, FLCons(3,FLNil)))
+    a1.dropWhile { it > 2 }.toIMList() shouldBe FLCons(2,FLCons(1,FLCons(0, FLCons(3,FLNil))))
   }
 
   test("filter") {
-    intListOfNone.filter {0 == it % 2}.toFList() shouldBe FLNil
-    intListOfOne.filter {0 == it % 2}.toFList() shouldBe FLNil
-    intListOfTwo.filter {0 == it % 2}.toFList() shouldBe FLCons(2,FLNil)
-    intListOfThree.filter {0 == it % 2}.toFList() shouldBe FLCons(2,FLNil)
-    FList.of(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toFList() shouldBe FLCons(2,FLCons(4,FLNil))
+    intListOfNone.filter {0 == it % 2}.toIMList() shouldBe FLNil
+    intListOfOne.filter {0 == it % 2}.toIMList() shouldBe FLNil
+    intListOfTwo.filter {0 == it % 2}.toIMList() shouldBe FLCons(2,FLNil)
+    intListOfThree.filter {0 == it % 2}.toIMList() shouldBe FLCons(2,FLNil)
+    FList.of(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toIMList() shouldBe FLCons(2,FLCons(4,FLNil))
   }
 
   //  ignore
@@ -383,75 +383,75 @@ class FListKCollTest : FunSpec({
   //  test("filterIsInstance") {}
 
   test("filterNot") {
-    intListOfNone.filterNot {0 == it % 2}.toFList() shouldBe FLNil
-    intListOfOne.filterNot {0 == it % 2}.toFList() shouldBe FLCons(1,FLNil)
-    intListOfTwo.filterNot {0 == it % 2}.toFList() shouldBe FLCons(1,FLNil)
-    intListOfThree.filterNot {0 == it % 2}.toFList() shouldBe FLCons(1,FLCons(3,FLNil))
-    FList.of(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toFList() shouldBe FLCons(1,FLCons(3,FLNil))
+    intListOfNone.filterNot {0 == it % 2}.toIMList() shouldBe FLNil
+    intListOfOne.filterNot {0 == it % 2}.toIMList() shouldBe FLCons(1,FLNil)
+    intListOfTwo.filterNot {0 == it % 2}.toIMList() shouldBe FLCons(1,FLNil)
+    intListOfThree.filterNot {0 == it % 2}.toIMList() shouldBe FLCons(1,FLCons(3,FLNil))
+    FList.of(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toIMList() shouldBe FLCons(1,FLCons(3,FLNil))
   }
 
   //  ignore
   //  test("filterNotNull") {}
 
   test("take 0") {
-    intListOfNone.take(0).toFList() shouldBe FLNil
-    intListOfOne.take(0).toFList() shouldBe FLNil
-    intListOfTwo.take(0).toFList() shouldBe FLNil
+    intListOfNone.take(0).toIMList() shouldBe FLNil
+    intListOfOne.take(0).toIMList() shouldBe FLNil
+    intListOfTwo.take(0).toIMList() shouldBe FLNil
   }
 
   test("take 1") {
-    intListOfNone.take(1).toFList() shouldBe FLNil
-    intListOfOne.take(1).toFList() shouldBe intListOfOne
-    intListOfTwo.take(1).toFList() shouldBe intListOfOne
-    intListOfThree.take(1).toFList() shouldBe intListOfOne
+    intListOfNone.take(1).toIMList() shouldBe FLNil
+    intListOfOne.take(1).toIMList() shouldBe intListOfOne
+    intListOfTwo.take(1).toIMList() shouldBe intListOfOne
+    intListOfThree.take(1).toIMList() shouldBe intListOfOne
   }
 
   test("take 2") {
-    intListOfNone.take(2).toFList() shouldBe FLNil
-    intListOfOne.take(2).toFList() shouldBe intListOfOne
-    intListOfTwo.take(2).toFList() shouldBe intListOfTwo
-    intListOfThree.take(2).toFList() shouldBe intListOfTwo
+    intListOfNone.take(2).toIMList() shouldBe FLNil
+    intListOfOne.take(2).toIMList() shouldBe intListOfOne
+    intListOfTwo.take(2).toIMList() shouldBe intListOfTwo
+    intListOfThree.take(2).toIMList() shouldBe intListOfTwo
     FList.of(*arrayOf<Int>(1,2,3,4)).take(2) shouldBe intListOfTwo
   }
 
   test("take 3") {
-    intListOfNone.take(3).toFList() shouldBe FLNil
-    intListOfOne.take(3).toFList() shouldBe intListOfOne
-    intListOfTwo.take(3).toFList() shouldBe intListOfTwo
-    intListOfThree.take(3).toFList() shouldBe intListOfThree
-    FList.of(*arrayOf<Int>(1,2,3,4)).take(3).toFList() shouldBe intListOfThree
+    intListOfNone.take(3).toIMList() shouldBe FLNil
+    intListOfOne.take(3).toIMList() shouldBe intListOfOne
+    intListOfTwo.take(3).toIMList() shouldBe intListOfTwo
+    intListOfThree.take(3).toIMList() shouldBe intListOfThree
+    FList.of(*arrayOf<Int>(1,2,3,4)).take(3).toIMList() shouldBe intListOfThree
   }
 
   test("takeWhile") {
-    intListOfNone.takeWhile { it > 1 }.toFList() shouldBe FLNil
-    intListOfOne.takeWhile { it == 1 }.toFList()  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(2,1)).takeWhile { it > 1 }.toFList()  shouldBe FLCons(2,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1)).takeWhile { it > 1 }.toFList()  shouldBe FLCons(3,FLCons(2,FLNil))
-    FList.of(*arrayOf<Int>(3,2,1,0)).takeWhile { it != 1 }.toFList() shouldBe FLCons(3,FLCons(2,FLNil))
+    intListOfNone.takeWhile { it > 1 }.toIMList() shouldBe FLNil
+    intListOfOne.takeWhile { it == 1 }.toIMList()  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(2,1)).takeWhile { it > 1 }.toIMList()  shouldBe FLCons(2,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1)).takeWhile { it > 1 }.toIMList()  shouldBe FLCons(3,FLCons(2,FLNil))
+    FList.of(*arrayOf<Int>(3,2,1,0)).takeWhile { it != 1 }.toIMList() shouldBe FLCons(3,FLCons(2,FLNil))
   }
 
   test("reversed") {
-    intListOfNone.reversed().toFList() shouldBe FLNil
-    intListOfOne.reversed().toFList() shouldBe intListOfOne
-    intListOfTwo.reversed().toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
-    intListOfThree.reversed().toFList() shouldBe (intListOfThree as FList<Int>).freverse()
+    intListOfNone.reversed().toIMList() shouldBe FLNil
+    intListOfOne.reversed().toIMList() shouldBe intListOfOne
+    intListOfTwo.reversed().toIMList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.reversed().toIMList() shouldBe (intListOfThree as FList<Int>).freverse()
   }
 
   test("sorted") {
-    intListOfNone.sorted().toFList() shouldBe FLNil
-    intListOfOne.sorted().toFList() shouldBe intListOfOne
-    intListOfTwo.sorted().toFList() shouldBe intListOfTwo
-    intListOfThree.sorted().toFList() shouldBe intListOfThree
-    intListOfSix.sorted().toFList() shouldBe
+    intListOfNone.sorted().toIMList() shouldBe FLNil
+    intListOfOne.sorted().toIMList() shouldBe intListOfOne
+    intListOfTwo.sorted().toIMList() shouldBe intListOfTwo
+    intListOfThree.sorted().toIMList() shouldBe intListOfThree
+    intListOfSix.sorted().toIMList() shouldBe
             FLCons(1, FLCons(1, FLCons(2, FLCons(2, FLCons(3, FLCons(3, FLNil))))))
   }
 
   test("sortedDescending") {
-    intListOfNone.sortedDescending().toFList() shouldBe FLNil
-    intListOfOne.sortedDescending().toFList() shouldBe intListOfOne
-    intListOfTwo.sortedDescending().toFList() shouldBe  (intListOfTwo as FList<Int>).freverse()
-    intListOfThree.sortedDescending().toFList() shouldBe (intListOfThree as FList<Int>).freverse()
-    intListOfSix.sortedDescending().toFList() shouldBe
+    intListOfNone.sortedDescending().toIMList() shouldBe FLNil
+    intListOfOne.sortedDescending().toIMList() shouldBe intListOfOne
+    intListOfTwo.sortedDescending().toIMList() shouldBe  (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedDescending().toIMList() shouldBe (intListOfThree as FList<Int>).freverse()
+    intListOfSix.sortedDescending().toIMList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }
 
@@ -459,11 +459,11 @@ class FListKCollTest : FunSpec({
 
     fun reverseNumerical(t: Int): Int? = -t
 
-    intListOfNone.sortedBy(::reverseNumerical).toFList() shouldBe FLNil
-    intListOfOne.sortedBy(::reverseNumerical).toFList() shouldBe intListOfOne
-    intListOfTwo.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
-    intListOfThree.sortedBy(::reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).freverse()
-    intListOfSix.sortedBy(::reverseNumerical).toFList() shouldBe
+    intListOfNone.sortedBy(::reverseNumerical).toIMList() shouldBe FLNil
+    intListOfOne.sortedBy(::reverseNumerical).toIMList() shouldBe intListOfOne
+    intListOfTwo.sortedBy(::reverseNumerical).toIMList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedBy(::reverseNumerical).toIMList() shouldBe (intListOfThree as FList<Int>).freverse()
+    intListOfSix.sortedBy(::reverseNumerical).toIMList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }
 
@@ -471,11 +471,11 @@ class FListKCollTest : FunSpec({
 
     fun reverseNumerical(t: Int): Int? = -t
 
-    intListOfNone.sortedByDescending(::reverseNumerical).toFList() shouldBe FLNil
-    intListOfOne.sortedByDescending(::reverseNumerical).toFList() shouldBe intListOfOne
-    intListOfTwo.sortedByDescending(::reverseNumerical).toFList() shouldBe intListOfTwo
-    intListOfThree.sortedByDescending(::reverseNumerical).toFList() shouldBe intListOfThree
-    intListOfSix.sortedByDescending(::reverseNumerical).toFList() shouldBe
+    intListOfNone.sortedByDescending(::reverseNumerical).toIMList() shouldBe FLNil
+    intListOfOne.sortedByDescending(::reverseNumerical).toIMList() shouldBe intListOfOne
+    intListOfTwo.sortedByDescending(::reverseNumerical).toIMList() shouldBe intListOfTwo
+    intListOfThree.sortedByDescending(::reverseNumerical).toIMList() shouldBe intListOfThree
+    intListOfSix.sortedByDescending(::reverseNumerical).toIMList() shouldBe
             FLCons(1, FLCons(1, FLCons(2, FLCons(2, FLCons(3, FLCons(3, FLNil))))))
   }
 
@@ -489,11 +489,11 @@ class FListKCollTest : FunSpec({
       }
     }
 
-    intListOfNone.sortedWith(reverseNumerical).toFList() shouldBe FLNil
-    intListOfOne.sortedWith(reverseNumerical).toFList() shouldBe intListOfOne
-    intListOfTwo.sortedWith(reverseNumerical).toFList() shouldBe (intListOfTwo as FList<Int>).freverse()
-    intListOfThree.sortedWith(reverseNumerical).toFList() shouldBe (intListOfThree as FList<Int>).freverse()
-    intListOfSix.sortedWith(reverseNumerical).toFList() shouldBe
+    intListOfNone.sortedWith(reverseNumerical).toIMList() shouldBe FLNil
+    intListOfOne.sortedWith(reverseNumerical).toIMList() shouldBe intListOfOne
+    intListOfTwo.sortedWith(reverseNumerical).toIMList() shouldBe (intListOfTwo as FList<Int>).freverse()
+    intListOfThree.sortedWith(reverseNumerical).toIMList() shouldBe (intListOfThree as FList<Int>).freverse()
+    intListOfSix.sortedWith(reverseNumerical).toIMList() shouldBe
             FLCons(3, FLCons(3, FLCons(2, FLCons(2, FLCons(1, FLCons(1, FLNil))))))
   }
 
@@ -539,15 +539,15 @@ class FListKCollTest : FunSpec({
   }
 
   test("flatMap") {
-    intListOfNone.flatMap {it -> FLCons(it, FLNil)}.toFList() shouldBe FLNil
-    intListOfOne.flatMap {it -> FLCons(it, FLNil)}.toFList() shouldBe FLCons(1,FLNil)
+    intListOfNone.flatMap {it -> FLCons(it, FLNil)}.toIMList() shouldBe FLNil
+    intListOfOne.flatMap {it -> FLCons(it, FLNil)}.toIMList() shouldBe FLCons(1,FLNil)
     fun arrayBuilderConst(arg: Int) = Array<Int>(arg) { _ -> arg }
-    intListOfTwo.flatMap {FList.of(*arrayBuilderConst(it))}.toFList() shouldBe FLCons(1,FLCons(2,FLCons(2,FLNil)))
+    intListOfTwo.flatMap {FList.of(*arrayBuilderConst(it))}.toIMList() shouldBe FLCons(1,FLCons(2,FLCons(2,FLNil)))
     fun arrayBuilderIncrement(arg: Int) = Array<Int>(arg) { i -> arg + i }
-    intListOfTwo.flatMap {FList.of(*arrayBuilderIncrement(it))}.toFList() shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
-    intListOfThree.flatMap {FList.of(*arrayBuilderIncrement(it))}.toFList() shouldBe
+    intListOfTwo.flatMap {FList.of(*arrayBuilderIncrement(it))}.toIMList() shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
+    intListOfThree.flatMap {FList.of(*arrayBuilderIncrement(it))}.toIMList() shouldBe
         FLCons(1,FLCons(2,FLCons(3,FLCons(3,FLCons(4,FLCons(5,FLNil))))))
-    intListOfThree.flatMap { i -> FList.of(i, i) }.toFList() shouldBe
+    intListOfThree.flatMap { i -> FList.of(i, i) }.toIMList() shouldBe
         FLCons(1,FLCons(1,FLCons(2,FLCons(2,FLCons(3,FLCons(3,FLNil))))))
   }
 
@@ -577,9 +577,9 @@ class FListKCollTest : FunSpec({
   // }
 
   test("map") {
-    intListOfNone.map { it + 1}.toFList() shouldBe FLNil
-    intListOfOne.map { it + 1}.toFList() shouldBe FLCons(2,FLNil)
-    intListOfTwo.map { it + 1}.toFList() shouldBe FLCons(2,FLCons(3,FLNil))
+    intListOfNone.map { it + 1}.toIMList() shouldBe FLNil
+    intListOfOne.map { it + 1}.toIMList() shouldBe FLCons(2,FLNil)
+    intListOfTwo.map { it + 1}.toIMList() shouldBe FLCons(2,FLCons(3,FLNil))
   }
 
   // ignore
@@ -606,7 +606,7 @@ class FListKCollTest : FunSpec({
   }
 
   test("distinct") {
-    intListOfNone.distinct().toFList() shouldBe FLNil
+    intListOfNone.distinct().toIMList() shouldBe FLNil
     intListOfOne.distinct() shouldBe intListOfOne.toList()
     intListOfTwo.distinct() shouldBe intListOfTwo.toList()
     intListOfFive.distinct() shouldBe intListOfThree.toList()
@@ -617,7 +617,7 @@ class FListKCollTest : FunSpec({
 
     fun identity(oracle: Int) = oracle
 
-    intListOfNone.distinctBy(::identity).toFList() shouldBe FLNil
+    intListOfNone.distinctBy(::identity).toIMList() shouldBe FLNil
     intListOfOne.distinctBy(::identity) shouldBe intListOfOne.toList()
     intListOfTwo.distinctBy(::identity) shouldBe intListOfTwo.toList()
     intListOfFive.distinctBy(::identity) shouldBe intListOfThree.toList()
@@ -749,27 +749,27 @@ class FListKCollTest : FunSpec({
   }
 
   test("zip array") {
-    intListOfNone.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toFList() shouldBe FLNil
-    intListOfOne.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toFList() shouldBe FLNil
-    intListOfNone.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toFList() shouldBe FLNil
-    intListOfOne.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfTwo.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfOne.zip(arrayOf<String>("a","b")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfTwo.zip(arrayOf<String>("a", "b")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
-    intListOfThree.zip(arrayOf<String>("a", "b")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
-    intListOfTwo.zip(arrayOf<String>("a", "b", "c")){a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfNone.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
+    intListOfOne.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
+    intListOfNone.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
+    intListOfOne.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfTwo.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfOne.zip(arrayOf<String>("a","b")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfTwo.zip(arrayOf<String>("a", "b")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfThree.zip(arrayOf<String>("a", "b")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfTwo.zip(arrayOf<String>("a", "b", "c")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
   }
 
   test("zip iterable") {
-    intListOfNone.zip(listOf<String>()).toFList() shouldBe FLNil
-    intListOfOne.zip(listOf<String>()).toFList() shouldBe FLNil
-    intListOfNone.zip(listOf("a")).toFList() shouldBe FLNil
-    intListOfOne.zip(listOf("a")).toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfTwo.zip(listOf("a")).toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfOne.zip(listOf("a","b")).toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
-    intListOfTwo.zip(listOf("a","b")).toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
-    intListOfThree.zip(listOf("a","b")).toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
-    intListOfTwo.zip(listOf("a","b","c")).toFList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfNone.zip(listOf<String>()).toIMList() shouldBe FLNil
+    intListOfOne.zip(listOf<String>()).toIMList() shouldBe FLNil
+    intListOfNone.zip(listOf("a")).toIMList() shouldBe FLNil
+    intListOfOne.zip(listOf("a")).toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfTwo.zip(listOf("a")).toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfOne.zip(listOf("a","b")).toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
+    intListOfTwo.zip(listOf("a","b")).toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfThree.zip(listOf("a","b")).toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
+    intListOfTwo.zip(listOf("a","b","c")).toIMList() shouldBe FLCons(Pair(1,"a"),FLCons(Pair(2,"b"),FLNil))
   }
 
   // ignore

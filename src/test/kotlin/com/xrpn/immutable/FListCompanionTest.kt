@@ -1,6 +1,5 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.FList.Companion.toFList
 import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -353,7 +352,7 @@ class FListCompanionTest : FunSpec({
 
   test("co.toFList") {
     Arb.list(Arb.int()).checkAll(repeats) { l ->
-      l.toFList() shouldBe FList.of(l)
+      l shouldBe FList.of(l)
     }
   }
 

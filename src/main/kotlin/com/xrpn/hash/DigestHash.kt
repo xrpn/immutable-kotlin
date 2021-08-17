@@ -1,8 +1,8 @@
 package com.xrpn.hash
 
+import java.util.zip.Adler32
 import java.util.zip.CRC32
 import java.util.zip.CRC32C
-import java.util.zip.Adler32
 
 object DigestHash {
 
@@ -50,6 +50,4 @@ object DigestHash {
         if (v < Int.MIN_VALUE.toLong() || Int.MAX_VALUE.toLong() < v) throw RuntimeException(v.toString())
         return v.toInt()
     }
-
-
 }
