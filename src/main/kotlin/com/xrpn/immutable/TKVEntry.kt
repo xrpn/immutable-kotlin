@@ -8,6 +8,9 @@ interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @U
     val vc: Comparator<@UnsafeVariance A>?
         get() = null
 
+    // the natural sorting order is Comparable<A>, unless vc (a copmarator for A) is given.
+    // To sort by B, create a TKVEntryK<B, B> giving it a Comparator<B>.  It is trivial to make B Comparable if a Comparator exists. (And vice-versa)
+    // The current setup does not require B to be comparable -- only to have a key.
     override operator fun compareTo(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Int = vc?.compare(this.getk(), other.getk()) ?: getk().compareTo(other.getk())
 
     fun getk(): A

@@ -5,6 +5,7 @@ import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeCompanion
 import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMSet
 import java.math.BigInteger
 import kotlin.math.log2
 
@@ -80,8 +81,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         is FRBTNode<A, B> -> when {
             this === rhs -> true
             rhs.fempty() -> false
-            this.fsize() == rhs.fsize() -> equal2(this, rhs)
-            else -> false
+            else -> equal2(this, rhs)
         }
     }
 
@@ -871,6 +871,7 @@ internal data class FRBTNode<A, B: Any> (
 
     override fun toString(): String = show
 
+    // short of type erasure, this maintains reflexive, symmetric and transitive properties
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
@@ -886,6 +887,16 @@ internal data class FRBTNode<A, B: Any> (
             this.isEmpty() || other.fempty() -> false
             this.froot()!!::class == other.froot()!!::class ->
                 @Suppress("UNCHECKED_CAST") this.equal(other as IMBTree<A, B>)
+            else -> false
+        }
+        other is IMSet<*> -> when {
+            this.isEmpty() && other.fempty() -> true // type erasure boo-boo
+            this.isEmpty() || other.fempty() -> false
+            this.froot()?.getv()!!::class == other.fpick()!!::class -> when {
+                this.froot()!!::class == other.toIMBTree().froot()!!::class ->
+                    @Suppress("UNCHECKED_CAST") this.equal(other.toIMBTree() as IMBTree<A, B>)
+                else -> false
+            }
             else -> false
         }
         other is Set<*> -> when {

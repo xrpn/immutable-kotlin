@@ -1,7 +1,11 @@
 package com.xrpn.kapi
 
 import com.xrpn.bridge.FTreeIterator
-import com.xrpn.immutable.*
+import com.xrpn.immutable.TKVEntry
+import com.xrpn.immutable.FRBTree
+import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FList
+import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.FRBTree.Companion.NOT_FOUND
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntries
@@ -53,31 +57,40 @@ class FRBTreeKCollTest : FunSpec({
 
   test("FTree equals") {
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
-    (intFrbtOfNone.equals(emptySet<Int>())) shouldBe true
     (intFrbtOfNone == emptySet<Int>()) shouldBe true
-    (intFrbtOfNone == emptySet<Int>()) shouldBe true
+    (intFrbtOfNone == FSet.emptyIMSet<Int>()) shouldBe true
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf(1))) shouldBe false
     (intFrbtOfNone == setOf(1)) shouldBe false
-    (intFrbtOfNone == setOf(1)) shouldBe false
+    (intFrbtOfNone == FSet.of(1)) shouldBe false
 
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
     (intFrbtOfOne == emptySet<Int>()) shouldBe false
+    (intFrbtOfOne == FSet.emptyIMSet<Int>()) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1))) shouldBe true
     (intFrbtOfOne == setOf(1.toIAEntry())) shouldBe true
+    (intFrbtOfOne == FSet.of(1)) shouldBe true
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1, 2))) shouldBe false
   }
 
   test("FTree equals miss") {
-    (intFrbtOfOne.equals(FRBTree.ofvi(*arrayOf(2)))) shouldBe false
+    (intFrbtOfOne == (FRBTree.ofvi(*arrayOf(2)))) shouldBe false
     (intFrbtOfTwo == setOf(1.toIAEntry())) shouldBe false
     (intFrbtOfTwo == setOf(2.toIAEntry())) shouldBe false
     (intFrbtOfTwo == setOf(2.toIAEntry(), 1.toIAEntry())) shouldBe true
     (intFrbtOfTwo == setOf(1.toIAEntry(), 2.toIAEntry())) shouldBe true
+    intFrbtOfTwo.equals(FSet.of(1)) shouldBe false
+    (intFrbtOfTwo == FSet.of(2)) shouldBe false
+    (intFrbtOfTwo == FSet.of(2, 1)) shouldBe true
+    (intFrbtOfTwo == FSet.of(1, 2)) shouldBe true
     (intFrbtOfTwo == intFrbtOfThree) shouldBe false
     (intFrbtOfThree == setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry())) shouldBe true
     (intFrbtOfThree == setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry())) shouldBe true
     (intFrbtOfThree == setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry())) shouldBe true
     (intFrbtOfThree == setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry())) shouldBe true
+    (intFrbtOfThree == FSet.of(1, 2, 3)) shouldBe true
+    (intFrbtOfThree == FSet.of(1, 3, 2)) shouldBe true
+    (intFrbtOfThree == FSet.of(2, 1, 3)) shouldBe true
+    (intFrbtOfThree == FSet.of(3, 2, 1)) shouldBe true
   }
 
   test("Collections equals") {
@@ -85,8 +98,14 @@ class FRBTreeKCollTest : FunSpec({
     (emptySet<Int>() == intFrbtOfOne.toSet()) shouldBe false
     (setOf(1.toIAEntry()) == intFrbtOfOne) shouldBe true
     (setOf(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
+    (listOf(1.toIAEntry()) == intFrbtOfOne) shouldBe false
+    (listOf(1.toIAEntry()) == intFrbtOfOne.toList()) shouldBe true
+    (FSet.of(1) == intFrbtOfOne) shouldBe true
+    (FSet.of(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
     (setOf(1.toIAEntry()) == intFrbtOfTwo.toSet()) shouldBe false
+    (setOf(1.toIAEntry()) == intFrbtOfTwo.toList()) shouldBe false
     (setOf(1.toIAEntry(),2.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe false
+    (setOf(1.toIAEntry(),2.toIAEntry()) == intFrbtOfTwo.toSet()) shouldBe true
 
     (emptySet<Int>() == intFrbtOfNone) shouldBe true
     (emptySet<Int>() == intFrbtOfNone.toSet()) shouldBe true
@@ -156,6 +175,11 @@ class FRBTreeKCollTest : FunSpec({
     intFrbtOfThree.containsAll(intFrbtOfOneD) shouldBe false
     intFrbtOfThree.containsAll(intFrbtOfTwoB) shouldBe false
     intFrbtOfThree.containsAll(intFrbtOfTwoC) shouldBe false
+  }
+
+  test("iteration order") {
+    intFrbtOfThree shouldBe (intFrbtOfThree as FRBTree<Int, Int>).inorder()
+    intFrbtOfFive shouldBe (intFrbtOfFive as FRBTree<Int, Int>).inorder()
   }
 
   // Iterator -- methods
@@ -511,7 +535,7 @@ class FRBTreeKCollTest : FunSpec({
 
   test("reversed") {
     intFrbtOfNone.reversed() shouldBe emptyList()
-    intFrbtOfOne.reversed() shouldBe (intFrbtOfOne as FRBTree<Int,Int>).inorder(reverse = true)
+    intFrbtOfOne.reversed() shouldBe intFrbtOfOne
     intFrbtOfTwo.reversed() shouldBe (intFrbtOfTwo as FRBTree<Int,Int>).inorder(reverse = true)
     intFrbtOfThree.reversed() shouldBe (intFrbtOfThree as FRBTree<Int,Int>).inorder(reverse = true)
   }
@@ -534,18 +558,14 @@ class FRBTreeKCollTest : FunSpec({
 
   test("sortedBy") {
 
-    fun reverseNumerical(t: Int): Int? = -t
-
-    intFrbtOfNone.sortedBy(::reverseNumerical).toSet() shouldBe emptyList()
-    intFrbtOfOne.sortedBy(::reverseNumerical).toSet() shouldBe intFrbtOfOne
-    intFrbtOfTwo.sortedBy(::reverseNumerical).toSet() shouldBe intFrbtOfTwo
-    intFrbtOfThree.sortedBy(::reverseNumerical).toSet() shouldBe intFrbtOfThree
-    intFrbtOfSix.sortedBy(::reverseNumerical).toSet() shouldBe intFrbtOfThree
+    intFrbtOfNone.sortedBy(::reverseNumerical) shouldBe emptyList()
+    intFrbtOfOne.sortedBy(::reverseNumerical) shouldBe intFrbtOfOne
+    intFrbtOfTwo.sortedBy(::reverseNumerical) shouldBe (intFrbtOfTwo as FRBTree<Int, Int>).inorder(reverse = true)
+    intFrbtOfThree.sortedBy(::reverseNumerical) shouldBe (intFrbtOfThree as FRBTree<Int, Int>).inorder(reverse = true)
+    intFrbtOfSix.sortedBy(::reverseNumerical) shouldBe intFrbtOfThree.inorder(reverse = true)
   }
 
   test("sortedByDescending") {
-
-    fun reverseNumerical(t: Int): Int? = -t
 
     intFrbtOfNone.sortedByDescending(::reverseNumerical) shouldBe emptyList()
     intFrbtOfOne.sortedByDescending(::reverseNumerical) shouldBe intFrbtOfOne

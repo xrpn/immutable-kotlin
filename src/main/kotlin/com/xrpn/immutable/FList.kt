@@ -58,8 +58,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLCons<A> -> when {
             this === rhs -> true
             rhs.fempty() -> false
-            this.fsize() == rhs.fsize() -> FList.equal2(this, rhs)
-            else -> false
+            else -> FList.equal2(this, rhs)
         }
     }
 

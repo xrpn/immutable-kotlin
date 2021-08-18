@@ -60,8 +60,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         else -> when {
             this === rhs -> true
             rhs.fempty() -> false
-            this.fsize() == rhs.fsize() -> FSet.equal2(this, rhs)
-            else -> false
+            else -> FSet.equal2(this, rhs)
         }
     }
 
@@ -354,6 +353,7 @@ internal class FSetBody<out A: Any> internal constructor (
 
     override fun isEmpty(): Boolean = this === empty
 
+    // short of type erasure, this maintains reflexive, symmetric and transitive properties
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
@@ -364,11 +364,25 @@ internal class FSetBody<out A: Any> internal constructor (
                 @Suppress("UNCHECKED_CAST") this.equal(other as IMSet<A>)
             else -> false
         }
+        other is FRBTree<*,*> -> when {
+            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
+            this.isEmpty() || other.isEmpty() -> false
+            this.toFRBTree().froot()!!::class == other.froot()!!::class ->
+                @Suppress("UNCHECKED_CAST") this.toFRBTree().equal(other as IMBTree<Int, A>)
+            else -> false
+        }
         other is Set<*> -> when {
             this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
             this.isEmpty() || other.isEmpty() -> false
-            this.fpick()!!::class == other.first()!!::class -> this.fsize() == other.size && other.equals( this)
-            else -> false
+            this.fpick()!!::class == other.first()!!::class && this.fsize() == other.size ->
+                other.equals( this)
+            else -> {
+                val foo = this.fpick()!!::class
+                val aux = other.first()
+                val bar = aux!!::class
+                print("$foo $bar")
+                false
+            }
         }
         else -> false
     }

@@ -10,6 +10,7 @@ interface IMListCompanion {
         lhs === rhs -> true
         lhs.fsize() != rhs.fsize() -> false
         0 == lhs.fsize() -> true // i.e. they are both empty
+        // same elements in same order
         lhs.fzipWhile(rhs) { l, r ->  l == r }.fsize() == lhs.fsize() -> true
         else -> false
     }
