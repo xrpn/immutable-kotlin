@@ -53,7 +53,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     override fun iterator(): Iterator<A> = FSetIterator(this)
 
-    // traversing
+    // utility
 
     override fun equal(rhs: IMSet<@UnsafeVariance A>): Boolean = when {
         this.fempty() -> rhs.fempty()

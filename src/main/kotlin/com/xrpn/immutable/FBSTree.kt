@@ -48,7 +48,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         of a Binary Search Tree.
      */
 
-    // =========== traversable
+    // =========== utility
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when (this) {
         is FBSTNil -> rhs.fempty()
@@ -80,6 +80,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
         .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
+
+    // =========== traversable
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A, B>> {
 
@@ -708,6 +710,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
 
         }
+
+        internal inline fun <reified A, reified B: Any> toArray(fbst: FBSTree<A, B>): Array<TKVEntry<A, B>> where A: Any, A: Comparable<A> =
+            FTreeIterator.toArray(fbst.size, FTreeIterator(fbst))
 
         // =============== internals
 

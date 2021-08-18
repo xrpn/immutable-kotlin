@@ -6,17 +6,18 @@ import com.xrpn.immutable.FSet
 import com.xrpn.immutable.FSet.Companion.emptyIMSet
 import com.xrpn.immutable.FSet.Companion.of
 import com.xrpn.immutable.FSet.Companion.toIMSet
+import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.pmap1
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val intSetOfNone: Collection<Int> = FSet.of(*arrayOf<Int>())
-private val intSetOfOneA: Collection<Int> = FSet.of(*arrayOf<Int>(0))
-private val intSetOfOne: Collection<Int> = FSet.of(*arrayOf<Int>(1))
-private val intSetOfOneB: Collection<Int> = FSet.of(*arrayOf<Int>(2))
-private val intSetOfOneC: Collection<Int> = FSet.of(*arrayOf<Int>(3))
-private val intSetOfOneD: Collection<Int> = FSet.of(*arrayOf<Int>(4))
+private val intSetOfOneA: Collection<Int> = FSetOfOne(0)
+private val intSetOfOne: Collection<Int> = FSetOfOne(1)
+private val intSetOfOneB: Collection<Int> = FSetOfOne(2)
+private val intSetOfOneC: Collection<Int> = FSetOfOne(3)
+private val intSetOfOneD: Collection<Int> = FSetOfOne(4)
 private val intSetOfTwoA: Collection<Int> = FSet.of(*arrayOf<Int>(1,3))
 private val intSetOfTwo: Collection<Int> = FSet.of(*arrayOf<Int>(1,2))
 private val intSetOfTwoB: Collection<Int> = FSet.of(*arrayOf<Int>(0,2))
@@ -47,7 +48,7 @@ class FSetKCollTest : FunSpec({
   beforeTest {}
 
   fun <Z: Comparable<Z>> matchEqual(oracle: Z): (Z) -> Boolean = { aut: Z -> oracle == aut }
-  fun <Z: Comparable<Z>> matchLessThan(oracle: Z): (Z) -> Boolean = { aut: Z -> oracle > aut }
+  fun <Z: Comparable<Z>> matchLessThan(oracle: Z): (Z) -> Boolean = { aut: Z -> aut < oracle }
 
   // Any equals
 

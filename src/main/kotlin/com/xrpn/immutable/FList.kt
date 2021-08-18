@@ -51,7 +51,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         out (on most reasonable general purpose computers) of stack frames.
      */
 
-    // traversing
+    // utility
 
     override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = when (this) {
         is FLNil -> rhs.fempty()

@@ -12,7 +12,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.kotest.xrpn.frbtreeAsCollection
 
-class FRBTreetKCollPropertyTest : FunSpec({
+class FRBTreeKCollPropertyTest : FunSpec({
 
   beforeTest {}
 

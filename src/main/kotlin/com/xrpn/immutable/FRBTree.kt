@@ -10,6 +10,31 @@ import kotlin.math.log2
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("ffilterNot"))
+    fun dropWhile(predicate: (TKVEntry<A,B>) -> Boolean): List<TKVEntry<A,B>> = throw RuntimeException(predicate.toString())
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("ffilter()"))
+    fun takeWhile(predicate: (TKVEntry<A,B>) -> Boolean): List<TKVEntry<A,B>> = throw RuntimeException(predicate.toString())
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun windowed(size: Int, step: Int = 1, partialWindows: Boolean = false): List<List<TKVEntry<A,B>>> = throw RuntimeException("$size $step $partialWindows")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun <C> runningFold(initial: C, operation: (acc: C, TKVEntry<A,B>) -> C): List<C> = throw RuntimeException("$initial $operation")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun <C> runningFoldIndexed(initial: C, operation: (index: Int, acc: C, TKVEntry<A,B>) -> C): List<C> = throw RuntimeException("$initial $operation")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun runningReduce(operation: (acc: TKVEntry<A,B>, TKVEntry<A,B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): List<TKVEntry<A,B>> = throw RuntimeException("$operation")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun runningReduceIndexed(operation: (index: Int, acc: TKVEntry<A,B>, TKVEntry<A,B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): List<TKVEntry<A,B>> = throw RuntimeException("$operation")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun withIndex(): Iterable<IndexedValue<TKVEntry<A,B>>> = throw RuntimeException()
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun <C, D> zip(other: Array<out C>, transform: (a: TKVEntry<A,B>, b: C) -> D): List<D> = throw RuntimeException("$other, $transform")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun <C> zip(other: Iterable<C>): List<Pair<A, C>> = throw RuntimeException("$other")
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun zipWithNext(): List<Pair<A, A>> = throw RuntimeException()
+    @Deprecated("Tree has ambiguous ordering.", ReplaceWith("traverse first"))
+    fun <C> zipWithNext(transform: (a: TKVEntry<A,B>, b: TKVEntry<A,B>) -> C): List<C>  = throw RuntimeException("$transform")
+
     // =========== Collection
 
     override fun isEmpty(): Boolean = this is FRBTNil
@@ -48,7 +73,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         That paper retrieved from https://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf on Dec, 2020
      */
 
-    // =========== traversable
+    // =========== utility
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when (this) {
         is FRBTNil -> rhs.fempty()
@@ -80,6 +105,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
         .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
+
+    // =========== traversable
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A,B>> {
 
@@ -338,6 +365,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     }
 
     companion object: IMBTreeCompanion {
+
+        val NOT_FOUND = -1
 
         fun <A, B: Any> nul(): FRBTree<A, B> where A: Any, A: Comparable<A> = FRBTNil
 

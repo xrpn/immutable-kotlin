@@ -1,9 +1,6 @@
 package io.kotest.xrpn
 
-import com.xrpn.immutable.FList
-import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FSet
-import com.xrpn.immutable.TKVEntry
+import com.xrpn.immutable.*
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
@@ -68,3 +65,19 @@ fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
 ): Arb<Collection<TKVEntry<Int, A>>> = frbtree(arbB, range, f)
+
+fun <A: Any, B> Arb.Companion.fbstree(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
+): Arb<FBSTree<Int, A>> {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvi(cs.iterator()) }
+}
+
+fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
+): Arb<Collection<TKVEntry<Int, A>>> = fbstree(arbB, range, f)
