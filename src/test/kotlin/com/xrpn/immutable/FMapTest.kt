@@ -16,6 +16,8 @@ import io.kotest.property.arbitrary.int
 
 class FMapTest : FunSpec({
 
+    val repeatsLow = Pair(2, 40000)
+
     beforeTest {
     }
 
@@ -50,7 +52,7 @@ class FMapTest : FunSpec({
     }
 
     test("co general workout (property) random int-int").config(enabled = true) {
-        checkAll(3, Arb.int(10000..50000)) { n ->
+        checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
             val sorted = (Array(n) { i: Int -> TKVEntry.of(i, i) })
             val shuffled = (Array(n) { i: Int -> TKVEntry.of(i, i) })
             shuffled.shuffle()
@@ -96,7 +98,7 @@ class FMapTest : FunSpec({
     }
 
     test("co general workout (property) random str-str").config(enabled = true) {
-        checkAll(3, Arb.int(10000..50000)) { n ->
+        checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
             val sorted = (Array(n) { i: Int -> TKVEntry.of(i.toString(), i.toString()) })
             val shuffled = (Array(n) { i: Int -> TKVEntry.of(i.toString(), i.toString()) })
             shuffled.shuffle()

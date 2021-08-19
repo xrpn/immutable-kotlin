@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListFiltering
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -11,6 +12,7 @@ private val intListOfThree: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3)
 private val intListOfFour: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
 private val intListOfFourA: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
 private val intListOfFourB: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
+private val intListOfSix = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
 
 class FListFilteringTest : FunSpec({
 
@@ -53,6 +55,28 @@ class FListFilteringTest : FunSpec({
     intListOfThree.fdrop(-1) shouldBe FLNil
   }
 
+  test("fdropAll") {
+    intListOfNone.fdropAll(intListOfNone as IMList<Int>) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfNone) shouldBe intListOfOne
+    intListOfOne.fdropAll(intListOfOne as IMList<Int>) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfTwo as IMList<Int>) shouldBe FLNil
+    FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree as IMList<Int>) shouldBe FLNil
+    FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
+  }
+
+  test("fdropItem") {
+    intListOfNone.fdropItem(0) shouldBe FLNil
+    intListOfOne.fdropItem(0) shouldBe intListOfOne
+    intListOfOne.fdropItem(1) shouldBe FLNil
+    intListOfOne.fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1,2)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(1, 2, 1, 2)).fdropItem(2) shouldBe FLCons(1, intListOfOne as FList<Int>)
+    intListOfSix.fdropItem(3) shouldBe FList.of(*arrayOf<Int>(1, 2, 2, 1))
+    intListOfSix.fdropItem(2) shouldBe FList.of(*arrayOf<Int>(1, 3, 3, 1))
+    intListOfSix.fdropItem(1) shouldBe FList.of(*arrayOf<Int>(2, 3, 3, 2))
+  }
+
   test("fdropFirst") {
     intListOfNone.fdropFirst { it > 1 } shouldBe FLNil
     intListOfOne.fdropFirst { it > 1 }  shouldBe FLCons(1,FLNil)
@@ -77,18 +101,6 @@ class FListFilteringTest : FunSpec({
     intListOfThree.fdropRight(-3) shouldBe FLNil
   }
 
-  test("fdropWhile") {
-    intListOfNone.fdropWhile { it > 1 } shouldBe FLNil
-    intListOfOne.fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhile { it > 1 } shouldBe FLCons(1,FLCons(0,FLNil))
-    intListOfFour.fdropWhile { it > 1 } shouldBe intListOfFour
-    intListOfFourA.fdropWhile { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
-    intListOfFourA.fdropWhile { it < 3 } shouldBe FLCons(3, FLNil)
-    intListOfFourB.fdropWhile { it < 3 } shouldBe FLCons(3, FLCons(2, FLNil))
-  }
-
   test("fdropWhen") {
     intListOfNone.fdropWhen { it > 1 } shouldBe FLNil
     intListOfOne.fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
@@ -99,6 +111,18 @@ class FListFilteringTest : FunSpec({
     intListOfFourA.fdropWhen { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
     intListOfFourA.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
     intListOfFourB.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
+  }
+
+  test("fdropWhile") {
+    intListOfNone.fdropWhile { it > 1 } shouldBe FLNil
+    intListOfOne.fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1)).fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
+    FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhile { it > 1 } shouldBe FLCons(1,FLCons(0,FLNil))
+    intListOfFour.fdropWhile { it > 1 } shouldBe intListOfFour
+    intListOfFourA.fdropWhile { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
+    intListOfFourA.fdropWhile { it < 3 } shouldBe FLCons(3, FLNil)
+    intListOfFourB.fdropWhile { it < 3 } shouldBe FLCons(3, FLCons(2, FLNil))
   }
 
   test("ffilter") {
@@ -117,7 +141,7 @@ class FListFilteringTest : FunSpec({
     FList.of(*arrayOf<Int>(1,2,3,4)).ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
   }
 
-  test("ffindFromLeft") {
+  test("ffind") {
     intListOfNone.ffind { _ -> true } shouldBe null
     intListOfNone.ffind { _ -> false } shouldBe null
     intListOfOne.ffind { 0 < it } shouldBe 1
@@ -130,7 +154,7 @@ class FListFilteringTest : FunSpec({
     intListOfThree.ffind { it < 2 } shouldBe 1
   }
 
-  test("ffindFromRight") {
+  test("ffindLast") {
     intListOfNone.ffindLast { _ -> true } shouldBe null
     intListOfNone.ffindLast { _ -> false } shouldBe null
     intListOfOne.ffindLast { 0 < it } shouldBe 1
@@ -153,6 +177,33 @@ class FListFilteringTest : FunSpec({
     intListOfThree.fgetOrNull(1) shouldBe 2
     intListOfThree.fgetOrNull(2) shouldBe 3
     intListOfThree.fgetOrNull(3) shouldBe null
+  }
+
+  test("fhasSubsequence") {
+    intListOfNone.fhasSubsequence(FList.of(*arrayOf<Int>())) shouldBe true
+    intListOfNone.fhasSubsequence(intListOfOne as IMList<Int>) shouldBe false
+
+    intListOfOne.fhasSubsequence(intListOfNone as IMList<Int>) shouldBe true
+    intListOfOne.fhasSubsequence(intListOfOne) shouldBe true
+    intListOfOne.fhasSubsequence(intListOfTwo as IMList<Int>) shouldBe false
+
+    intListOfTwo.fhasSubsequence(intListOfNone) shouldBe true
+    intListOfTwo.fhasSubsequence(intListOfOne) shouldBe true
+    intListOfTwo.fhasSubsequence(FLCons(2, FLNil) as IMList<Int>) shouldBe true
+    intListOfTwo.fhasSubsequence(intListOfTwo) shouldBe true
+    intListOfTwo.fhasSubsequence(intListOfTwo.freverse()) shouldBe false
+    intListOfTwo.fhasSubsequence(intListOfThree as IMList<Int>) shouldBe false
+
+    intListOfThree.fhasSubsequence(intListOfNone) shouldBe true
+    intListOfThree.fhasSubsequence(intListOfOne) shouldBe true
+    intListOfThree.fhasSubsequence(FLCons(2, FLNil) as IMList<Int>) shouldBe true
+    intListOfThree.fhasSubsequence(FLCons(3, FLNil) as IMList<Int>) shouldBe true
+    intListOfThree.fhasSubsequence(intListOfTwo) shouldBe true
+    intListOfThree.fhasSubsequence(FLCons(2, FLCons(3, FLNil)) as IMList<Int>) shouldBe true
+    intListOfThree.fhasSubsequence(FLCons(1, FLCons(3, FLNil)) as IMList<Int>) shouldBe false
+    intListOfThree.fhasSubsequence(intListOfTwo.freverse()) shouldBe false
+    intListOfThree.fhasSubsequence(intListOfThree.freverse()) shouldBe false
+    intListOfThree.fhasSubsequence(intListOfThree) shouldBe true
   }
 
   test("fhead") {
@@ -197,7 +248,7 @@ class FListFilteringTest : FunSpec({
     intListOfThree.fslice(2, 3) shouldBe FLCons(3, FLNil)
   }
 
-  test("fslice (list)") {
+  test("fslice (IMList)") {
     intListOfThree.fslice(FLNil) shouldBe FLNil
     intListOfThree.fslice(FList.of(-1)) shouldBe FLNil
     intListOfThree.fslice(FList.of(0)) shouldBe intListOfOne
@@ -287,5 +338,4 @@ class FListFilteringTest : FunSpec({
     FList.of(*arrayOf<Int>(3,2,1)).ftakeWhile { it > 1 }  shouldBe FLCons(3,FLCons(2,FLNil))
     FList.of(*arrayOf<Int>(3,2,1,0)).ftakeWhile { it != 1 } shouldBe FLCons(3,FLCons(2,FLNil))
   }
-
 })

@@ -446,7 +446,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     companion object: IMBTreeCompanion {
 
-        val NOT_FOUND = -1
+        const val NOT_FOUND = -1
 
         fun <A, B: Any> nul(): FBSTree<A, B> where A: Any, A: Comparable<A> = FBSTNil
 
@@ -534,10 +534,23 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return res
         }
 
-        // =============== top level type-specific implementation
+        // =================
 
-        internal fun <A, B: Any> bstContains2(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> =
-            bstFind(treeStub, item) != null
+        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> = when(this) {
+            is FBSTree<*, *> -> this as FBSTree<A, B>
+            is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
+            is List<*> -> of(this.iterator())
+            is Set<*> -> of(this.iterator())
+            else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+        }
+
+        override fun <A, B: Any> Map<A, B>.toIMBTree(): FBSTree<A, B> where A: Any, A: Comparable<A> {
+            var res: FBSTree<A, B> = nul()
+            for (entry in this) { res = res.finsert(TKVEntry.of(entry.key, entry.value)) }
+            return res
+        }
+
+        // =============== top level type-specific implementation
 
         // delete entry from treeStub.
         internal fun <A, B: Any> bstDelete(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>, atMostOne: Boolean = false): FBSTree<A, B>
@@ -621,7 +634,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     }
                 }
 
-            return if (!bstContains2(treeStub, item)) treeStub
+            return if (!treeStub.fcontains(item)) treeStub
                 else splice(item, treeStub, FLNil)
         }
 
@@ -695,7 +708,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
-            return if (bstContains2(treeStub, childItem)) go(treeStub, childItem, Pair(FBSTNil, FBSTNil)).first else FBSTNil
+            return if (treeStub.fcontains(childItem)) go(treeStub, childItem, Pair(FBSTNil, FBSTNil)).first else FBSTNil
 
         }
 
@@ -729,7 +742,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
 
             return when {
-                ! bstContains2(treeStub, clipMatch) -> /* nothing to prune */ treeStub
+                ! treeStub.fcontains(clipMatch) -> /* nothing to prune */ treeStub
                 treeStub.fempty() -> /* nothing to match */ FBSTNil
                 else -> when(bstParent(treeStub, clipMatch)) {
                     is FBSTNil -> /* root; not found was handled above */ FBSTNil
@@ -911,7 +924,8 @@ internal data class FBSTNode<out A, out B: Any> (
             0 -> ""
             else -> "{$ns}"
         }
-        if (isLeaf()) "($entry@$sz)" else "($entry@$sz, <$bLeft, >$bRight)"
+//         if (isLeaf()) this.ffold("${FBSTree::class.simpleName}:") { } //"($entry@$sz)" else "($entry@$sz, <$bLeft, >$bRight)"
+        ""
     }
 
     override fun toString(): String = show

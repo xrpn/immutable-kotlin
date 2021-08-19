@@ -84,8 +84,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun fdrop(n: Int): FList<A> {
 
         tailrec fun dropNext(iter: Int, current: FList<A>): FList<A>  = when {
-            iter > n -> current
-            current is FLNil -> current
+            n < iter -> current
             else -> dropNext(iter+1, current.ftail())
         }
 
@@ -206,8 +205,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun ftake(n: Int): FList<A> {
 
         tailrec fun takeNext(iter: Int, current: FList<A>, acc: FList<A>): FList<A> = when {
-            iter > n -> acc
-            current is FLNil -> acc
+            n < iter -> acc
             else -> takeNext(iter+1, current.ftail(), FLCons(current.fhead()!!, acc))
         }
 
@@ -596,9 +594,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             is FLCons -> fappendLists(src.ftail(), flAppend(acc, src.head))
         }
 
-        internal fun <A: Any> flAppendIm(lead: IMList<A>, after: IMList<A>): IMList<A> =
-            (lead.ffoldRight(after) { element, list -> list.fappend(element) })
-
         internal fun <A: Any> flAppend(lead: FList<A>, after: FList<A>): FList<A> =
             (lead.ffoldRight(after) { element, list -> FLCons(element, list) })
 
@@ -677,23 +672,22 @@ data class FLCons<out A: Any>(
         this === other -> true
         other == null -> false
         other is IMList<*> -> when {
-            // foot in the door in case of additional implementations for IMList
-            this.isEmpty() && other.fempty() -> true // type erasure boo-boo
-            this.isEmpty() || other.fempty() -> false
-            this.fhead()!!::class == other.fhead()!!::class -> other.equal(this)
+            other.fempty() -> false
+            this.fhead()!!::class == other.fhead()!!::class ->
+                other.equal(this)
             else -> false
         }
         other is List<*> -> when {
             // necessary if FList is-a List to maintain reflexive, symmetric, transitive equality
-            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
-            this.isEmpty() || other.isEmpty() -> false
-            this.fhead()!!::class == other.first()!!::class -> (this.fhead() == other.first()) && other == this
+            other.isEmpty() -> false
+            this.fhead()!!::class == other.first()!!::class ->
+                (this.fsize() == other.size) && other == this
             else -> false
         }
         else -> false
     }
 
-    val show: String by lazy { (ffoldLeft("") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size) }
+    val show: String by lazy { (ffoldLeft("${FList::class.simpleName}:") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size) }
 
     // the data class built-in toString is not stack safe
     override fun toString(): String = show

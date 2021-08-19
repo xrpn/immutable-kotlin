@@ -4,10 +4,10 @@ import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 
 interface IMListAltering<out A: Any> {
-    fun fprepend(item: @UnsafeVariance A): IMList<A>
-    fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
     fun fappend(item: @UnsafeVariance A): IMList<A>
     fun fappendAll(elements: IMList<@UnsafeVariance A>): IMList<A>
+    fun fprepend(item: @UnsafeVariance A): IMList<A>
+    fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
 }
 
 interface IMSetAltering<out A: Any> {

@@ -366,12 +366,11 @@ class FStreamTest : FunSpec({
     intStreamOfThree().toFList() shouldBe FLCons(1, FLCons(2, FLCons(3, FLNil)))
   }
 
-  test("co.of FListIterator") {
-      TODO()
-//    FStream.of(FList.of(arrayOf<Int>().iterator()).iterator()) shouldBe FSNil
-//    FStream.of(FList.of(arrayOf<Int>(1).iterator()).iterator()).toFList() shouldBe FLCons(1,FLNil)
-//    FStream.of(FList.of(arrayOf<Int>(1,2).iterator()).iterator()).toFList() shouldBe FLCons(1,FLCons(2,FLNil))
-//    FStream.of(FList.of(arrayOf<Int>(1,2,3).iterator()).iterator()).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
+  test("co.of FListIterator").config(enabled = false) {
+    FStream.of(FList.of(arrayOf<Int>().iterator()).iterator()) shouldBe FSNil
+    FStream.of(FList.of(arrayOf<Int>(1).iterator()).iterator()).toFList() shouldBe FLCons(1,FLNil)
+    FStream.of(FList.of(arrayOf<Int>(1,2).iterator()).iterator()).toFList() shouldBe FLCons(1,FLCons(2,FLNil))
+    FStream.of(FList.of(arrayOf<Int>(1,2,3).iterator()).iterator()).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
   }
 
   test("co.prepend") {

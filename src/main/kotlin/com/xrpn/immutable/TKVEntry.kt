@@ -3,7 +3,7 @@ package com.xrpn.immutable
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
 
-interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>> where A: Any, A: Comparable<@UnsafeVariance A> {
+interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     val vc: Comparator<@UnsafeVariance A>?
         get() = null
@@ -23,6 +23,8 @@ interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @U
         fun <A: Comparable<A>, B: Any> of (key:A, value: B, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(key, value, cc)
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>): TKVEntry<A, B> = TKVEntryK(p.first, p.second)
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(p.first, p.second, cc)
+        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>): TKVEntry<A, B> = TKVEntryK(me.key, me.value)
+        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(me.key, me.value, cc)
         fun <B: Any> ofIntKey (item: B): TKVEntry<Int, B> = TKVEntryK(item.hashCode(), item)
         fun <B: Any> ofStrKey (item: B): TKVEntry<String, B> = TKVEntryK(item.toString(), item)
         fun <T: Any> T.toIAEntry(): TKVEntry<Int, T> = ofIntKey(this)
@@ -61,4 +63,8 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
     override fun getkc(): Comparable<A> = k
     override fun getv(): B = v
     override fun copy(): TKVEntry<A, B> = /* TODO */ this.copy(k=k, v=v)
+    override val key: A
+        get() = k
+    override val value: B
+        get() = v
 }

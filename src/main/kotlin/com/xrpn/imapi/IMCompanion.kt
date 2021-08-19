@@ -103,6 +103,9 @@ interface IMBTreeCompanion {
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, f: (B) -> C): IMBTree<String, C>
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): IMBTree<String, C>
 
+    fun <A, B: Any> Collection<TKVEntry<A, B>>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> Map<A, B>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
+
     fun <B: Any> fcontainsIK(t: IMBTree<Int,B>, item: B): Boolean = t.ffindItem(TKVEntry.ofIntKey(item)) != null
     fun <B: Any> fdeleteIK(t: IMBTree<Int,B>, item: B): IMBTree<Int,B> = t.fdropItem(TKVEntry.ofIntKey(item))
     fun <B: Any> ffindIK(t: IMBTree<Int,B>, item: B): IMBTree<Int,B>? = t.ffindItem(TKVEntry.ofIntKey(item))
@@ -116,4 +119,5 @@ interface IMBTreeCompanion {
     fun <B: Any> ffindLastSK(t: IMBTree<String,B>, item: B): IMBTree<String,B>? = t.ffindLastItem(TKVEntry.ofStrKey(item))
     fun <B: Any> finsertSK(t: IMBTree<String,B>, item: B): IMBTree<String, B> = t.finsert(TKVEntry.ofStrKey(item))
     fun <B: Any> finsertDupSK(t: IMBTree<String,B>, item: B, allowDups: Boolean): IMBTree<String, B> = t.finsertDup(TKVEntry.ofStrKey(item), allowDups)
+
 }

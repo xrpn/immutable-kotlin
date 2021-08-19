@@ -366,7 +366,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     companion object: IMBTreeCompanion {
 
-        val NOT_FOUND = -1
+        const val NOT_FOUND = -1
 
         fun <A, B: Any> nul(): FRBTree<A, B> where A: Any, A: Comparable<A> = FRBTNil
 
@@ -456,6 +456,23 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofvsMap(items, f)"))
         override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<String, C>  = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvsMap(items, f)
+
+        // =================
+
+        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FRBTree<A, B> where A: Any, A : Comparable<A> = when(this) {
+            is FBSTree<*, *> -> @Suppress("UNCHECKED_CAST") (FRBTree.of(this.postorder() as IMList<TKVEntry<A, B>>))
+            is FRBTree<*, *> -> this as FRBTree<A, B>
+            is Array<*> -> of(this.iterator())
+            is List<*> -> of(this.iterator())
+            is Set<*> -> of(this.iterator())
+            else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+        }
+
+        override fun <A, B: Any> Map<A, B>.toIMBTree(): FRBTree<A, B> where A: Any, A: Comparable<A> {
+            var res: FRBTree<A, B> = nul()
+            for (entry in this) { res = res.finsert(TKVEntry.of(entry.key, entry.value)) }
+            return res
+        }
 
         // =============== top level type-specific implementation
 

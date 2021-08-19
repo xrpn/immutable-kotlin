@@ -377,10 +377,10 @@ internal class FSetBody<out A: Any> internal constructor (
             this.fpick()!!::class == other.first()!!::class && this.fsize() == other.size ->
                 other.equals( this)
             else -> {
-                val foo = this.fpick()!!::class
-                val aux = other.first()
-                val bar = aux!!::class
-                print("$foo $bar")
+//                val foo = this.fpick()!!::class
+//                val aux = other.first()
+//                val bar = aux!!::class
+//                print("$foo $bar")
                 false
             }
         }
