@@ -2,12 +2,10 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.hash.DigestHash
-import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMBTreeCompanion
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMSet
+import com.xrpn.imapi.*
 import java.math.BigInteger
 import kotlin.math.log2
+
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -169,9 +167,18 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = rbtFind(this, item) != null
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean = rbtFindKey(this, key) != null
-    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = rbtDeletes(this, items as FList<TKVEntry<A,B>>)
-    override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtDelete(this, item)
-    override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtDelete(this, item)
+    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> {
+        // TODO memoization
+        return rbtDeletes(this, items as FList<TKVEntry<A,B>>)
+    }
+    override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
+        // TODO memoization
+        return rbtDelete(this, item)
+    }
+    override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
+        // TODO memoization
+        return rbtDelete(this, item)
+    }
 
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> =
         ffold(nul()){ acc: FRBTree<A, B>, item: TKVEntry<A, B> -> if (isMatch(item)) rbtInsert(acc, item) else acc }
@@ -188,6 +195,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     override fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>?= rbtFind(this, item)
     override fun ffindLastKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
     override fun ffindValueOfKey(key: @UnsafeVariance A): B?= rbtFindValueOFKey(this, key)
+    override fun fhasDups(): Boolean = false
+    override fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = false
 
     override fun fleftMost(): TKVEntry<A, B>? {
 
@@ -232,7 +241,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
 
-    override fun <C: Any> fgroupBy(f: (TKVEntry<A, B>) -> C): Map<C, FRBTree<A, B>> = TODO() //	A map of collections created by the function f
+    override fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, FRBTree<A, B>> where C: Any, C: Comparable<C>  = TODO() //	A map of collections created by the function f
 
     override fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ FRBTree<A, B>, /* false */ FRBTree<A, B>> {
 
@@ -248,7 +257,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         val pop: TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
         // computing the reminder can be very expensive, however; if traversal
         // will be for the full tree, .inorder() or .forEach() may be cheaper
-        val reminder: FRBTree<A, B> = pop?.let { rbtDelete(this, it) } ?: FRBTNil
+        val reminder: FRBTree<A, B> = pop?.let { this.fdropItem(it) } ?: FRBTNil
         return Pair(pop, reminder)
     }
 
@@ -820,6 +829,18 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
             }
             return if (nmin is FRBTNode) lrf23(nmin) else nmin
         }
+
+        private tailrec fun <A, B: Any> mergeAppender(t1: FRBTree<A, B>, t2: FRBTree<A, B>): FRBTree<A, B> where A: Any, A: Comparable<A> = when {
+            t1 is FRBTNil -> t2
+            t2 is FRBTNil -> t1
+            else -> if (t1.size < t2.size) {
+                    val (entry, stub) = t1.fpopAndReminder()
+                    mergeAppender(t2.finsert(entry!!), stub)
+                } else {
+                    val (entry, stub) = t2.fpopAndReminder()
+                    mergeAppender(t1.finsert(entry!!), stub)
+                }
+            }
 
         private fun <A, B: Any, C: Comparable<C>, D: Any> mapKvAppender(
             kf: (A) -> (C),

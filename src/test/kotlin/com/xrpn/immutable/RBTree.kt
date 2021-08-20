@@ -3,6 +3,7 @@ package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMMap
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
@@ -357,7 +358,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun <C : Any> fgroupBy(f: (TKVEntry<A, B>) -> C): Map<C, IMBTree<A, B>> {
+    override fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, RBTree<A, B>> where C: Any, C: Comparable<C> {
         TODO("Not yet implemented")
     }
 
@@ -450,6 +451,14 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun fdropItemAll(item: TKVEntry<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fisDup(item: TKVEntry<A, B>): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun fhasDups(): Boolean {
         TODO("Not yet implemented")
     }
 

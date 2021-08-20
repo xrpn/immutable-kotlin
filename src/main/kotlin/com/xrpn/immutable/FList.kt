@@ -4,6 +4,7 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
+import com.xrpn.imapi.IMMap
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
 
@@ -266,7 +267,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     }
 
-    override fun <B> fgroupBy(f: (A) -> B): Map<B, FList<A>> {
+    override fun <B> fgroupBy(f: (A) -> B): IMMap<B, FList<A>> where B: Any, B: Comparable<B> {
 
         /*
         tailrec fun go(xs: FList<A>, acc: MutableMap<B, FList<A>>): MutableMap<B, FList<A>> =

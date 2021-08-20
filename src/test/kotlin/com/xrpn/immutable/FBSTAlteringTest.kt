@@ -1,9 +1,16 @@
 package com.xrpn.immutable
 
+import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.checkAll
+import io.kotest.xrpn.flist
 
 class FBSTAlteringTest : FunSpec({
+
+    val repeats = 50
 
     beforeTest {}
 
@@ -238,4 +245,22 @@ class FBSTAlteringTest : FunSpec({
                         FBSTNil))
 
     }
+
+    test("finserts, finsertsDup (A)") {
+        FBSTree.nul<Int, Int>().finserts(FLNil).inorder() shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        FBSTree.nul<Int, Int>().finsertsDups(FLNil, allowDups = false) shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        FBSTree.nul<Int, Int>().finsertsDups(FLNil, allowDups = true) shouldBe FBSTree.emptyIMBTree<Int, Int>()
+    }
+
+    test("finserts, finsertsDup (B)") {
+        Arb.flist<Int, Int>(Arb.int(-25, 25)).checkAll(repeats) { fl ->
+            val flkv: FList<TKVEntry<String, Int>> = fl.fmap { it.toSAEntry() }
+            val l = flkv.copyToMutableList()
+            val s = l.toSet()
+            FBSTree.nul<String, Int>().finserts(flkv).inorder() shouldBe s.sorted()
+            FBSTree.nul<String, Int>().finsertsDups(flkv, allowDups = false).inorder() shouldBe s.sorted()
+            FBSTree.nul<String, Int>().finsertsDups(flkv, allowDups = true).inorder() shouldBe l.sorted()
+        }
+    }
+
 })

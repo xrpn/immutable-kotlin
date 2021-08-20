@@ -7,6 +7,9 @@ interface IMList<out A:Any>:
     IMListAltering<A>,
     IMListUtility<A>
 
+interface IMMap<out A, out B: Any>
+        where A: Any, A: Comparable<@UnsafeVariance A>
+
 interface IMSet<out A:Any>:
     IMSetFiltering<A>,
     IMSetGrouping<A>,

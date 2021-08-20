@@ -1,98 +1,24 @@
 package com.xrpn.immutable
 
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
+import com.xrpn.immutable.FBSTree.Companion.toIMBTree
+import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
+import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbstreeAllowDups
 import java.util.concurrent.atomic.AtomicInteger
 
 class FBSTreeTraversingTest : FunSpec({
 
+    val repeats = 50
+
     beforeTest {}
-
-    fun <A, B: Any> FBSTree<A, B>.quietAssert(tkv: TKVEntry<A, B>): Unit where A: Any, A: Comparable<A> =
-        when (val node = FBSTree.bstParent(this, tkv)) {
-            is FBSTNil -> Unit
-            is FBSTNode<A, B> -> {
-                fbtAssert(node)
-                Unit
-            }
-        }
-
-    test("sanity") {
-        wikiTree.forEach(wikiTree::quietAssert)
-        slideShareTree.forEach(wikiTree::quietAssert)
-        depthOneRight.forEach(depthOneRight::quietAssert)
-        depthOneLeft.forEach(depthOneRight::quietAssert)
-        depthOneFull.forEach(depthOneRight::quietAssert)
-        depthTwoLeftPartial.forEach(depthTwoLeftPartial::quietAssert)
-        depthTwoLeftRight.forEach(depthTwoLeftRight::quietAssert)
-        depthTwoLeftLeft.forEach(depthTwoLeftLeft::quietAssert)
-        depthTwoRightPartial.forEach(depthTwoRightPartial::quietAssert)
-        depthTwoRightRight.forEach(depthTwoRightRight::quietAssert)
-        depthTwoRightLeft.forEach(depthTwoRightLeft::quietAssert)
-    }
-
-    test ("forEach presorted") {
-
-        val counter = AtomicInteger(0)
-        val summer = AtomicInteger(0)
-        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
-        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
-        checkAll(50, Arb.int(20..100)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
-            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
-            tree.forEach(doCount)
-            counter.get() shouldBe n
-            counter.set(0)
-            tree.forEach(doSum)
-            summer.get() shouldBe oraSum
-            summer.set(0)
-        }
-    }
-
-    test ("forEach shuffled") {
-
-        val counter = AtomicInteger(0)
-        val summer = AtomicInteger(0)
-        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
-        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
-        checkAll(50, Arb.int(20..100)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            values.shuffle()
-            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
-            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
-            tree.forEach(doCount)
-            counter.get() shouldBe n
-            counter.set(0)
-            tree.forEach(doSum)
-            summer.get() shouldBe oraSum
-            summer.set(0)
-        }
-    }
-
-    test ("forEach reversed") {
-
-        val counter = AtomicInteger(0)
-        val summer = AtomicInteger(0)
-        val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
-        val doSum: (TKVEntry<Int, Int>) -> Unit = { tkv -> summer.addAndGet(tkv.getk()) }
-        checkAll(50, Arb.int(20..100)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            values.reverse()
-            val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
-            val tree: FBSTree<Int, Int> = FBSTree.of(values.iterator())
-            tree.forEach(doCount)
-            counter.get() shouldBe n
-            counter.set(0)
-            tree.forEach(doSum)
-            summer.get() shouldBe oraSum
-            summer.set(0)
-        }
-    }
 
     test("preorder") {
         FBSTNil.preorder() shouldBe FLNil
@@ -300,5 +226,12 @@ class FBSTreeTraversingTest : FunSpec({
                                         FLCons(bEntry,
                                             FLCons(fEntry, FLNil)))))))))
         slideShareTree.breadthFirst(reverse = true) shouldBe slideShareBreadthFirst.freverse()
+    }
+
+    test("values") {
+        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats, PropTestConfig(seed = -5060833568559122518)) { fbst ->
+            val lv = fbst.copyToMutableMap().map { it.value }.sorted()
+            fbst.inorderValues() shouldBe lv
+        }
     }
 })

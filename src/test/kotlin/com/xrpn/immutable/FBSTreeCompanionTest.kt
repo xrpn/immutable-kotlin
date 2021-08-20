@@ -1,34 +1,27 @@
 package com.xrpn.immutable
 
 import com.xrpn.immutable.FBSTree.Companion.NOT_FOUND
+import com.xrpn.immutable.FBSTree.Companion.addGraftTestingGremlin
+import com.xrpn.immutable.FBSTree.Companion.bstDelete
+import com.xrpn.immutable.FBSTree.Companion.bstFind
+import com.xrpn.immutable.FBSTree.Companion.bstInsert
+import com.xrpn.immutable.FBSTree.Companion.bstPrune
+import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.toIMBTree
-import com.xrpn.immutable.FBSTree.Companion.bstParent
-import com.xrpn.immutable.FBSTree.Companion.bstPrune
-import com.xrpn.immutable.FBSTree.Companion.bstFind
-import com.xrpn.immutable.FBSTree.Companion.bstFindLast
-import com.xrpn.immutable.FBSTree.Companion.addGraftTestingGremlin
-import com.xrpn.immutable.FBSTree.Companion.bstInsert
-import com.xrpn.immutable.FBSTree.Companion.bstDelete
-import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
-import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.TKVEntry.Companion.intKeyOf
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
-import io.kotest.assertions.fail
-import io.kotest.property.Arb
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
-import io.kotest.xrpn.fbstree
-import io.kotest.property.arbitrary.set
-import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-import io.kotest.xrpn.flist
+import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbstreeAllowDups
 import io.kotest.xrpn.frbtree
 import io.kotest.xrpn.fset
 import kotlin.random.Random.Default.nextInt
@@ -269,11 +262,12 @@ class FBSTreeCompanionTest : FunSpec({
             ssm.toIMBTree() shouldBe FBSTree.ofvs(*(l.toTypedArray()), allowDups = false)
         }
         Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
-            val s = frbt.toIMSet()
-            frbt.toIMBTree() shouldBe s.toIMBTree()
+            val lv = frbt.postorderValues().copyToMutableList().map{ it.toIAEntry() }
+            frbt.toIMBTree() shouldBe lv.toIMBTree()
         }
-        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
-            fbst.toIMBTree().preorder() shouldBe fbst.preorder()
+        Arb.fbstreeAllowDups<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+            val lv = fbst.postorderValues().copyToMutableList().map{ it.toIAEntry() }
+            fbst.toIMBTree() shouldBe lv.toIMBTree()
         }
         Arb.fset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
             val c: Collection<TKVEntry<Int, Int>> = fs.fmap { it.toIAEntry() }

@@ -1,12 +1,10 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FSetIterator
-import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMSet
-import com.xrpn.imapi.IMSetCompanion
+import com.xrpn.imapi.*
 import com.xrpn.immutable.FRBTree.Companion.fcontainsIK
 import com.xrpn.immutable.FRBTree.Companion.finsertIK
+import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.rbtDelete
 import com.xrpn.immutable.FRBTree.Companion.rbtDeletes
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
@@ -132,7 +130,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         TODO("Not yet implemented")
     }
 
-    override fun <B> fgroupBy(f: (A) -> B): Map<B, FSet<A>> {
+    override fun <B> fgroupBy(f: (A) -> B): IMMap<B, FSet<A>> where B: Any, B: Comparable<B> {
         TODO("Not yet implemented")
     }
 
@@ -163,9 +161,9 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         TODO("Not yet implemented")
     }
 
-    override fun <B> ffold(z: B, f: (acc: B, A) -> B): B {
-        TODO("Not yet implemented")
-    }
+    override fun <C: Any> ffold(z: C, f: (acc: C, A) -> C): C =
+        this.toFRBTree().ffoldv(z) { stub, tkv -> f(stub, tkv) }
+
 
     override fun <B : Any> fmap(f: (A) -> B): FSet<B> = FSetBody(this.toFRBTree().fmap { tkv -> f(tkv.getv()).toIAEntry() })
 

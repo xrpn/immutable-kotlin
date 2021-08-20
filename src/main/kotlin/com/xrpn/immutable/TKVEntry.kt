@@ -24,7 +24,7 @@ interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @U
         fun <A: Comparable<A>, B: Any> of (key:A, value: B, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(key, value, cc)
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>): TKVEntry<A, B> = TKVEntryK(p.first, p.second)
         fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(p.first, p.second, cc)
-        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>): TKVEntry<A, B> = TKVEntryK(me.key, me.value)
+        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>): TKVEntry<A, B> = if(me is TKVEntry<A,B>) me else TKVEntryK(me.key, me.value)
         fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(me.key, me.value, cc)
         fun <B: Any> ofIntKey (item: B): TKVEntry<Int, B> = TKVEntryK(item.hashCode(), item)
         fun <B: Any> ofStrKey (item: B): TKVEntry<String, B> = TKVEntryK(item.toString(), item)
