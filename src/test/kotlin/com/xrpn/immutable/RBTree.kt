@@ -385,15 +385,11 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun <C : Any> fmapv(f: (B) -> C): IMBTree<A, C> {
-        TODO("Not yet implemented")
-    }
-
     override fun <C : Any> fmapvToList(f: (B) -> C): IMList<C> {
         TODO("Not yet implemented")
     }
 
-    override fun freduce(f: (acc: B, B) -> B): B? {
+    override fun freduce(f: (acc: TKVEntry<A,B>, TKVEntry<A,B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A,B>? {
         TODO("Not yet implemented")
     }
 

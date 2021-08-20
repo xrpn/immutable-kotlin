@@ -622,13 +622,13 @@ class FBSTreeKCollTest : FunSpec({
 
   test("flatMap") {
     intFbstOfNone.flatMap{ FBSTree.ofvi(it) } shouldBe emptyList()
-    intFbstOfOne.flatMap{ FBSTree.ofvi(it) } shouldBe FBSTree.ofvi(1)
+    intFbstOfOne.flatMap{ FBSTree.ofvi(it) } shouldBe FBSTree.ofvi(1.toIAEntry())
     fun arrayBuilderConst(arg: Int) = Array(arg) { _ -> arg }
     intFbstOfTwo.flatMap {FBSTree.ofvi(*arrayBuilderConst(it.getv()))} shouldBe FBSTree.ofvi(1, 2)
     fun arrayBuilderIncrement(arg: Int) = Array(arg) { i -> (arg + i) }
     intFbstOfTwo.flatMap {FBSTree.ofvi(*arrayBuilderIncrement(it.getv()))} shouldBe FBSTree.ofvi(1, 2, 3)
     intFbstOfThree.flatMap {FBSTree.ofvi(*arrayBuilderIncrement(it.getv()))} shouldBe FList.of(1, 2, 3, 3, 4, 5).toIMList().toIAEntries()
-    intFbstOfThree.flatMap { i -> FBSTree.ofvi(i, i) } shouldBe intFbstOfThree
+    intFbstOfThree.flatMap { i -> FBSTree.ofvi(i, i) } shouldBe FBSTree.ofvi(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry(),)
   }
 
   // ignore

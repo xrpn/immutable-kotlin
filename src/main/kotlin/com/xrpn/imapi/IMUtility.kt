@@ -19,10 +19,12 @@ interface IMSetUtility<out A: Any> {
 
 interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
-    fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit
+    fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
+        if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.fpick()) { _, tkv -> f(tkv); tkv }; Unit }
     fun toIMSet(): IMSet<B>
     fun copy(): IMBTree<A, B>
-    fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B>
+    fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = (
+        this as IMBTree<A,B>).ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     companion object {
         fun <A, B: Any> strongEqual(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A> =

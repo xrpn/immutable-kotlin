@@ -5,6 +5,7 @@ import com.xrpn.hash.DigestHash.crc32ci
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMBTreeCompanion
 import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import java.math.BigInteger
@@ -41,18 +42,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun isEmpty(): Boolean = this is FBSTNil
 
-    override val size: Int by lazy {
-
-        fun accrue(stack: FStack<FBSTNode<A, B>>, acc: Int): Pair<Int, FStack<FBSTNode<A, B>>> {
-            val (node, shortStack) = stack.pop()
-            val newAcc: Int = acc + 1
-            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-            val newStack = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
-            return Pair(newAcc, newStack)
-        }
-
-        if (this.fempty()) 0 else unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), 0, ::accrue)
-    }
+    override val size: Int by lazy { if (this.fempty()) 0 else this.ffold(0) { acc, _ -> acc+1 } }
 
     override fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
         is FBSTNil -> false
@@ -86,26 +76,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
     }
 
-    override fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit {
-        // this is a modified preorder traverse
-        fun doForEach(stack: FStack<FBSTNode<A, B>>): FStack<FBSTNode<A, B>> {
-            val (node, shortStack) = stack.pop()
-            visitForEach(node, f)
-            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-            val newStack = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
-            return newStack
-        }
-
-        if (! this.fempty()) unwindStackForEach(FStack.push(FStack.emptyFStack(),this as FBSTNode), ::doForEach)
-
-    }
-
     override fun toIMSet(): FSet<B> = FSet.of(this)
 
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-
-    override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
-        .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     // =========== traversable
 
@@ -338,6 +311,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
+        // this is a modified preorder
         fun accrueForFold(stack: FStack<FBSTNode<A, B>>, acc: C): Pair<C, FStack<FBSTNode<A, B>>> {
             val (node, shortStack) = stack.pop()
             val newAcc: C = visitForFold(node, acc, f)
@@ -350,25 +324,16 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         else  unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), z, ::accrueForFold)
     }
 
-    override fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C {
+    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
+        this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
 
-        fun accrueForFoldv(stack: FStack<FBSTNode<A, B>>, acc: C): Pair<C, FStack<FBSTNode<A, B>>> {
-            val (node, shortStack) = stack.pop()
-            val newAcc: C = visitForFoldv(node, acc, f)
-            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-            val newStack = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
-            return Pair(newAcc, newStack)
+    override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
+        is FBSTNil -> null
+        is FBSTNode -> {
+            val (seedTkv, stub) = this.fpopAndReminder()
+            stub.ffold(seedTkv!!){ acc, tkv -> f(acc, tkv) }
         }
-
-        return if (this.fempty()) z
-        else  unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), z, ::accrueForFoldv)
     }
-
-    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = TODO() // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C, D: Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FList<TKVEntry<C, D>> where C: Any, C: Comparable<@UnsafeVariance C> = TODO() // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C: Any> fmapv(f: (B) -> C): FBSTree<A, C> = TODO()  // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C: Any> fmapvToList(f: (B) -> C): FList<C> = TODO()  // 	Return a new sequence by applying the function f to each element in the List
-    override fun freduce(f: (acc: B, B) -> @UnsafeVariance B): B? = TODO() // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 
     // =========== altering
 
@@ -392,11 +357,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     private fun <C> visitForFold(t: FBSTree<A, B>, acc: C, f: (acc: C, TKVEntry<A, B>) -> C): C = when(t) {
         is FBSTNil -> acc
         is FBSTNode -> f(acc, t.entry)
-    }
-
-    private fun <C> visitForFoldv(t: FBSTree<A, B>, acc: C, f: (acc: C, B) -> C): C = when(t) {
-        is FBSTNil -> acc
-        is FBSTNode -> f(acc, t.entry.getv())
     }
 
     private tailrec fun unwindStackForEach(stack: FStack<FBSTNode<A, B>>, accrue: (FStack<FBSTNode<A, B>>) -> FStack<FBSTNode<A, B>>): Unit =
@@ -536,17 +496,25 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // =================
 
-        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> = when(this) {
-            is FBSTree<*, *> -> this as FBSTree<A, B>
-            is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
-            is List<*> -> of(this.iterator())
-            is Set<*> -> of(this.iterator())
-            else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> {
+            val (ak, bk) = if (this.isEmpty()) return nul() else Pair(this.first().getk()::class, this.first().getv()::class)
+            when(this) {
+                is FBSTree<*, *> -> this as FBSTree<A, B>
+                is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
+                is IMSet<*> -> (this.toIMBTree() as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+                is List<*>, is Set<*> -> {
+                    var res = nul<A, B>()
+                    if (this.f)
+                    for(item in this) { res = res.finsertDup(item, allowDups = true) }
+                    res
+                }
+                else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+            }
         }
 
         override fun <A, B: Any> Map<A, B>.toIMBTree(): FBSTree<A, B> where A: Any, A: Comparable<A> {
             var res: FBSTree<A, B> = nul()
-            for (entry in this) { res = res.finsert(TKVEntry.of(entry.key, entry.value)) }
+            for (entry in this) { res = res.finsertDup(TKVEntry.of(entry), allowDups = true) }
             return res
         }
 
@@ -924,8 +892,7 @@ internal data class FBSTNode<out A, out B: Any> (
             0 -> ""
             else -> "{$ns}"
         }
-//         if (isLeaf()) this.ffold("${FBSTree::class.simpleName}:") { } //"($entry@$sz)" else "($entry@$sz, <$bLeft, >$bRight)"
-        ""
+        this.ffold("${FBSTree::class.simpleName}@$sz:") { acc, tkv -> "$acc($tkv)" }
     }
 
     override fun toString(): String = show
@@ -936,14 +903,17 @@ internal data class FBSTNode<out A, out B: Any> (
         other is FBSTNode<*, *> -> when {
             this.isEmpty() && other.isEmpty() -> true
             this.isEmpty() || other.isEmpty() -> false
-            this.entry::class == other.entry::class ->
-                @Suppress("UNCHECKED_CAST") equal2(this, other as FBSTNode<A, B> )
+            this.entry.getv()::class == other.entry.getv()::class &&
+                    this.entry.getk()::class == other.entry.getk()::class -> {
+                @Suppress("UNCHECKED_CAST") equal2(this, other as FBSTNode<A, B>)
+            }
             else -> false
         }
         other is IMBTree<*, *> -> when {
             this.isEmpty() && other.fempty() -> true
             this.isEmpty() || other.fempty() -> false
-            this.froot()!!::class == other.froot()!!::class ->
+            this.froot()?.getv()!!::class == other.froot()?.getv()!!::class &&
+                    this.froot()?.getk()!!::class == other.froot()?.getk()!!::class ->
                 @Suppress("UNCHECKED_CAST") this.equal(other as IMBTree<A, B>)
             else -> false
         }

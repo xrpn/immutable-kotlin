@@ -85,26 +85,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         }
     }
 
-    override fun fforEach(f: (TKVEntry<A, B>) -> Unit) {
-
-        fun traverse(t: FRBTree<A, B>): Unit = when (t) {
-            is FRBTNil -> Unit
-            is FRBTNode<A, B> -> {
-                f(t.entry)
-                traverse(t.bLeft)
-                traverse(t.bRight)
-            }
-        }
-
-        traverse(this)
-    }
-
     override fun toIMSet(): FSet<B> = FSet.of(this)
 
     override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-
-    override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = this
-        .ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     // =========== traversable
 
@@ -305,22 +288,15 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         return traverse(this, z)
     }
 
-    override fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C {
-
-        fun traverse(t: FRBTree<A, B>, acc: C): C =
-            when (t) {
-                is FRBTNil -> acc
-                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, f(acc, t.entry.getv())))
-            }
-
-        return traverse(this, z)
+    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
+        this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
+    override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
+        is FRBTNil -> null
+        is FRBTNode -> {
+            val (seedTkv, stub) = this.fpopAndReminder()
+            stub.ffold(seedTkv!!){ acc, tkv -> f(acc, tkv) }
+        }
     }
-
-    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = TODO() // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C, D: Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FList<TKVEntry<C, D>> where C: Any, C: Comparable<@UnsafeVariance C> = TODO() // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C: Any> fmapv(f: (B) -> C): FRBTree<A, C> = TODO()  // 	Return a new sequence by applying the function f to each element in the List
-    override fun <C: Any> fmapvToList(f: (B) -> C): FList<C> = TODO()  // 	Return a new sequence by applying the function f to each element in the List
-    override fun freduce(f: (acc: B, B) -> @UnsafeVariance B): B? = TODO() // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 
     fun <C: Any> mapi(f: (B) -> C): FRBTree<Int, C> =
         this.preorder(reverse = true).ffoldLeft(nul()) { t: FRBTree<Int, C>, e: TKVEntry<A, B> ->
@@ -895,25 +871,26 @@ internal data class FRBTNode<A, B: Any> (
         other is FRBTNode<*, *> -> when {
             this.isEmpty() && other.isEmpty() -> true
             this.isEmpty() || other.isEmpty() -> false
-            this.color == other.color && this.entry::class == other.entry::class ->
+            this.color == other.color &&
+                    this.entry.getv()::class == other.entry.getv()::class &&
+                    this.entry.getk()::class == other.entry.getk()::class ->
                 @Suppress("UNCHECKED_CAST") equal2(this, other as FRBTree<A, B>)
             else -> false
         }
         other is IMBTree<*, *> -> when {
             this.isEmpty() && other.fempty() -> true
             this.isEmpty() || other.fempty() -> false
-            this.froot()!!::class == other.froot()!!::class ->
+            this.froot()?.getv()!!::class == other.froot()?.getv()!!::class &&
+                    this.froot()?.getk()!!::class == other.froot()?.getk()!!::class->
                 @Suppress("UNCHECKED_CAST") this.equal(other as IMBTree<A, B>)
             else -> false
         }
         other is IMSet<*> -> when {
             this.isEmpty() && other.fempty() -> true // type erasure boo-boo
             this.isEmpty() || other.fempty() -> false
-            this.froot()?.getv()!!::class == other.fpick()!!::class -> when {
-                this.froot()!!::class == other.toIMBTree().froot()!!::class ->
-                    @Suppress("UNCHECKED_CAST") this.equal(other.toIMBTree() as IMBTree<A, B>)
-                else -> false
-            }
+            this.froot()?.getv()!!::class == other.fpick()!!::class &&
+                    this.froot()?.getk()!!::class == other.toIMBTree().froot()?.getk()!!::class ->
+                @Suppress("UNCHECKED_CAST") this.equal(other.toIMBTree() as IMBTree<A, B>)
             else -> false
         }
         other is Set<*> -> when {

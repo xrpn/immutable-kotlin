@@ -634,13 +634,13 @@ class FRBTreeKCollTest : FunSpec({
 
   test("flatMap") {
     intFrbtOfNone.flatMap{ FRBTree.ofvi(it) } shouldBe emptyList()
-    intFrbtOfOne.flatMap{ FRBTree.ofvi(it) } shouldBe FRBTree.ofvi(1)
+    intFrbtOfOne.flatMap{ FRBTree.ofvi(it) } shouldBe FRBTree.ofvi(1.toIAEntry())
     fun arrayBuilderConst(arg: Int) = Array(arg) { _ -> arg }
     intFrbtOfTwo.flatMap {FRBTree.ofvi(*arrayBuilderConst(it.getv()))} shouldBe FRBTree.ofvi(1, 2)
     fun arrayBuilderIncrement(arg: Int) = Array(arg) { i -> (arg + i) }
     intFrbtOfTwo.flatMap {FRBTree.ofvi(*arrayBuilderIncrement(it.getv()))} shouldBe FRBTree.ofvi(1, 2, 3)
     intFrbtOfThree.flatMap {FRBTree.ofvi(*arrayBuilderIncrement(it.getv()))} shouldBe FList.of(1, 2, 3, 3, 4, 5).toIMList().toIAEntries()
-    intFrbtOfThree.flatMap { i -> FRBTree.ofvi(i, i) } shouldBe intFrbtOfThree
+    intFrbtOfThree.flatMap { i -> FRBTree.ofvi(i, i) } shouldBe FRBTree.ofvi(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry(),)
   }
 
   // ignore

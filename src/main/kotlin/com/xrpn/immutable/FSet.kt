@@ -167,9 +167,8 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         TODO("Not yet implemented")
     }
 
-    override fun <B : Any> fmap(f: (A) -> B): FSet<B> {
-        TODO("Not yet implemented")
-    }
+    override fun <B : Any> fmap(f: (A) -> B): FSet<B> = FSetBody(this.toFRBTree().fmap { tkv -> f(tkv.getv()).toIAEntry() })
+
 
     override fun <B : Any> fmapToList(f: (A) -> B): FList<B> {
         TODO("Not yet implemented")

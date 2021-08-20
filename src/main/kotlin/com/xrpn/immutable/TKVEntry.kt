@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
+import kotlin.reflect.KClass
 
 interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -49,11 +50,14 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
         else -> k.hashCode()
     }
 
+    private val kClass: KClass<out A> by lazy { k::class }
+    private val vClass: KClass<out B> by lazy { v::class }
+
     private inline fun <reified Self: TKVEntryK<@UnsafeVariance A, @UnsafeVariance B>> equalsImpl(other: Any?): Boolean =
         when {
             this === other -> true
             other == null -> false
-            other is Self -> 0 == other.compareTo(this)
+            other is Self && this.kClass == other.kClass && this.vClass == other.vClass -> 0 == other.compareTo(this)
             else -> false
         }
 

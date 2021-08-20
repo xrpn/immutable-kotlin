@@ -13,28 +13,36 @@ import com.xrpn.immutable.FBSTree.Companion.bstInsert
 import com.xrpn.immutable.FBSTree.Companion.bstDelete
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FList.Companion.toIMList
+import com.xrpn.immutable.TKVEntry.Companion.intKeyOf
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import io.kotest.assertions.fail
 import io.kotest.property.Arb
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldStartWith
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
+import io.kotest.xrpn.fbstree
 import io.kotest.property.arbitrary.set
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
+import io.kotest.xrpn.flist
+import io.kotest.xrpn.frbtree
+import io.kotest.xrpn.fset
 import kotlin.random.Random.Default.nextInt
 
 private val intFbstOfNone = FBSTree.ofvi(*arrayOf<Int>())
 private val intFbstOfOne = FBSTree.ofvi(*arrayOf<Int>(1))
 private val intFbstOfTwo = FBSTree.ofvi(*arrayOf<Int>(1,2))
-private val intFbstOfThree = FBSTree.ofvi(*arrayOf<Int>(1,2,3))
-private val strFbstOfNone = FBSTree.ofvi(*arrayOf<String>())
-private val strFbstOfOne = FBSTree.ofvi(*arrayOf<String>("a"))
-private val strFbstOfTwo = FBSTree.ofvi(*arrayOf<String>("a","b"))
-private val strFbstOfThree = FBSTree.ofvi(*arrayOf<String>("a","b","c"))
+private val intFbstOfThree = FBSTree.ofvi(*arrayOf<Int>(2,1,3))
+private val intFbstOfFourA = FBSTree.ofvi(*arrayOf<Int>(2,1,3,1), allowDups = true)
+private val strFbstOfNone = FBSTree.ofvs(*arrayOf<String>())
+private val strFbstOfOne = FBSTree.ofvs(*arrayOf<String>("a"))
+private val strFbstOfTwo = FBSTree.ofvs(*arrayOf<String>("a","b"))
+private val strFbstOfThree = FBSTree.ofvs(*arrayOf<String>("b","a","c"))
+private val strFbstOfFourA = FBSTree.ofvs(*arrayOf<String>("b","a","c","a"))
 
 class FBSTreeCompanionTest : FunSpec({
 
@@ -64,7 +72,7 @@ class FBSTreeCompanionTest : FunSpec({
         for (i in (1..100)) {
             emptyIMBTree<Int,Int>().hashCode() shouldBe emptyIMBTree<Int,Int>().hashCode()
         }
-        intFbstOfTwo.toString() shouldStartWith "${FBSTree::class.simpleName}:"
+        intFbstOfTwo.toString() shouldStartWith "${FBSTree::class.simpleName}@"
         for (i in (1..100)) {
             intFbstOfTwo.hashCode() shouldBe intFbstOfTwo.hashCode()
         }
@@ -75,28 +83,46 @@ class FBSTreeCompanionTest : FunSpec({
 
     // IMBTreeCompanion
 
-    test("co.nul") {
-        nul<Int, Int>() shouldBe FBSTNil
-    }
-
     test("co.empty") {
         FBSTree.emptyIMBTree<Int, Int>() shouldBe FBSTNil
     }
 
     test("co.equal2") {
-
+        FBSTree.equal2(intFbstOfNone, FBSTree.ofvi(*arrayOf<Int>())) shouldBe true
+        FBSTree.equal2(intFbstOfNone, intFbstOfNone) shouldBe true
+        FBSTree.equal2(FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>())) shouldBe false
+        FBSTree.equal2(intFbstOfNone, FBSTree.ofvi(*arrayOf(1))) shouldBe false
+        FBSTree.equal2(intFbstOfOne, FBSTree.ofvi(*arrayOf<Int>(1))) shouldBe true
+        FBSTree.equal2(intFbstOfOne, intFbstOfOne) shouldBe true
+        FBSTree.equal2(FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
+        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1))) shouldBe false
+        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1, 2))) shouldBe true
+        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(2, 1))) shouldBe true
+        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
+        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
+        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
+        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
+        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
     }
 
     test("co.of varargs") {
+        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of varargs dups") {
+        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator") {
+        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator dups") {
+        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of IMList (dups and no dups)") {
@@ -119,14 +145,20 @@ class FBSTreeCompanionTest : FunSpec({
         FBSTree.of(slideSharePreorder) shouldBe slideShareTree
     }
 
-//    test("co.ofvi varargs") {
-//    }
-//
-//    test("co.ofvi varargs dups") {
-//    }
+    test("co.ofvi varargs") {
+        FBSTree.ofvi(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+    }
 
-//    test("co.ofvi iterator") {
-//    }
+    test("co.ofvi varargs dups") {
+        FBSTree.ofvi(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+    }
+
+    test("co.ofvi iterator") {
+        FBSTree.ofvi(arrayOf<Int>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+    }
 
     test("co.ofvi iterator (property)") {
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
@@ -140,71 +172,112 @@ class FBSTreeCompanionTest : FunSpec({
         }
     }
 
-//    test("co.ofvi iterator dups") {
-//    }
+    test("co.ofvi iterator dups") {
+        FBSTree.ofvi(arrayOf<Int>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+    }
 
     test("co.ofvi IMList") {
+        FBSTree.ofvi(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi IMList dups") {
+        FBSTree.ofvi(FList.emptyIMList(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
-//    test("co.ofvs varargs") {
-//    }
-//
-//    test("co.ofvs varargs dups") {
-//    }
+    test("co.ofvs varargs") {
+        FBSTree.ofvs(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
 
-//    test("co.ofvs iterator") {
-//    }
-//
-//    test("co.ofvs iterator dups") {
-//    }
+    test("co.ofvs varargs dups") {
+        FBSTree.ofvs(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
+
+    test("co.ofvs iterator") {
+        FBSTree.ofvs(arrayOf<Int>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
+
+    test("co.ofvs iterator dups") {
+        FBSTree.ofvs(arrayOf<Int>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
 
     test("co.ofvs IMList") {
+        FBSTree.ofvs(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs IMList dups") {
+        FBSTree.ofvs(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvs(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
-//    test("co.ofMap ABCD Iterator") {
-//    }
+    test("co.ofMap ABCD Iterator") {
+        FBSTree.ofMap(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
+    }
 
     test("co.ofMap ABCD Iterator dups") {
+        FBSTree.ofMap(emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
+        FBSTree.ofMap(listOf(1, 1, 2, 3).map{ TKVEntry.of(it, -it) }.iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
+                listOf(TKVEntry.of(1, "1"),TKVEntry.of(1, "1"),TKVEntry.of(2, "2"),TKVEntry.of(3, "3"))
     }
 
     test("co.ofviMap Iterator") {
+        FBSTree.ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        FBSTree.ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+                listOf(TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("2"), "2"),TKVEntry.of(intKeyOf("3"), "3"))
     }
 
     test("co.ofviMap Iterator dups") {
+        FBSTree.ofviMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
+        FBSTree.ofviMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+                listOf(TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("2"), "2"),TKVEntry.of(intKeyOf("3"), "3"))
     }
 
     test("co.ofvsMap Iterator") {
+        FBSTree.ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        FBSTree.ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+                listOf(TKVEntry.of("1", "1"),TKVEntry.of("2", "2"),TKVEntry.of("3", "3"))
     }
 
     test("co.ofvsMap Iterator dups") {
-    }
-
-    test("co.fcontainsIK") {
-
+        FBSTree.ofvsMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
+        FBSTree.ofvsMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+                listOf(TKVEntry.of("1", "1"),TKVEntry.of("1", "1"),TKVEntry.of("2", "2"),TKVEntry.of("3", "3"))
     }
 
     test("co.toIMBTree Collection") {
         Arb.list(Arb.int()).checkAll(repeats) { l ->
             val lim = l.map{ it.toIAEntry() }
             lim.toIMBTree() shouldBe FBSTree.ofvi(l.iterator(), allowDups = true)
-            lim.toIMBTree() shouldBe FBSTree.ofvi(l.toIntArray(), allowDups = true)
+            lim.toIMBTree() shouldBe FBSTree.ofvi(*(l.toTypedArray()), allowDups = true)
             val sim = l.map{ it.toIAEntry() }.toSet()
             sim.toIMBTree() shouldBe FBSTree.ofvi(l.iterator(), allowDups = false)
-            sim.toIMBTree() shouldBe FBSTree.ofvi(l.toIntArray(), allowDups = false)
+            sim.toIMBTree() shouldBe FBSTree.ofvi(*(l.toTypedArray()), allowDups = false)
         }
-        Arb.list(Arb.string((0..20))).checkAll(repeats) { l ->
+        Arb.list(Arb.int((0..20))).checkAll(repeats) { l ->
             val lsm = l.map{ it.toSAEntry() }
             lsm.toIMBTree() shouldBe FBSTree.ofvs(l.iterator(), allowDups = true)
-            lsm.toIMBTree() shouldBe FBSTree.ofvs(l.toTypedArray(), allowDups = true)
+            lsm.toIMBTree() shouldBe FBSTree.ofvs(*(l.toTypedArray()), allowDups = true)
             val ssm = l.map{ it.toSAEntry() }.toSet()
             ssm.toIMBTree() shouldBe FBSTree.ofvs(l.iterator(), allowDups = false)
-            ssm.toIMBTree() shouldBe FBSTree.ofvs(l.toTypedArray(), allowDups = false)
+            ssm.toIMBTree() shouldBe FBSTree.ofvs(*(l.toTypedArray()), allowDups = false)
+        }
+        Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
+            val s = frbt.toIMSet()
+            frbt.toIMBTree() shouldBe s.toIMBTree()
+        }
+        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+            fbst.toIMBTree().preorder() shouldBe fbst.preorder()
+        }
+        Arb.fset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
+            val c: Collection<TKVEntry<Int, Int>> = fs.fmap { it.toIAEntry() }
+            c.toIMBTree().equals(fs.toIMBTree()) shouldBe true
         }
     }
 
@@ -218,55 +291,84 @@ class FBSTreeCompanionTest : FunSpec({
         }
     }
 
-    test("co.fdeleteIK") {
+    test("co.fcontainsIK") {
+        FBSTree.fcontainsIK(intFbstOfThree, 1) shouldBe true
+        FBSTree.fcontainsIK(intFbstOfThree, 2) shouldBe true
+        FBSTree.fcontainsIK(intFbstOfThree, 3) shouldBe true
+        FBSTree.fcontainsIK(intFbstOfThree, 0) shouldBe false
+        FBSTree.fcontainsIK(intFbstOfThree, 4) shouldBe false
+    }
 
+    test("co.fdeleteIK") {
+        FBSTree.fdeleteIK(intFbstOfThree, 3) shouldBe intFbstOfTwo
     }
 
     test("co.ffindIK") {
-
+        FBSTree.ffindIK(intFbstOfFourA, 1) shouldBe FBSTree.ofvi(1, 1, allowDups = true)
+        FBSTree.ffindIK(intFbstOfFourA, 2) shouldBe intFbstOfThree
+        FBSTree.ffindIK(intFbstOfFourA, 3) shouldBe FBSTree.ofvi(3)
+        FBSTree.ffindIK(intFbstOfFourA, 0) shouldBe null
+        FBSTree.ffindIK(intFbstOfFourA, 4) shouldBe null
     }
 
     test("co.ffindLastIK") {
-
+        FBSTree.ffindLastIK(intFbstOfFourA, 1) shouldBe FBSTree.ofvi(1)
+        FBSTree.ffindLastIK(intFbstOfFourA, 2) shouldBe intFbstOfThree
+        FBSTree.ffindLastIK(intFbstOfFourA, 3) shouldBe FBSTree.ofvi(3)
+        FBSTree.ffindLastIK(intFbstOfFourA, 0) shouldBe null
+        FBSTree.ffindLastIK(intFbstOfFourA, 4) shouldBe null
     }
 
     test("co.finsertIK") {
-
+        FBSTree.finsertIK(intFbstOfTwo, 3) shouldBe intFbstOfThree
     }
 
     test("co.finsertDupIK") {
-
+        FBSTree.finsertDupIK(FBSTree.finsertDupIK(intFbstOfOne, 2, allowDups = true), 2, allowDups = true) shouldBe FBSTree.finsertDupIK(intFbstOfTwo, 2, allowDups = true)
     }
 
 
     test("co.fcontainsSK") {
-
+        FBSTree.fcontainsSK(strFbstOfThree, "a") shouldBe true
+        FBSTree.fcontainsSK(strFbstOfThree, "b") shouldBe true
+        FBSTree.fcontainsSK(strFbstOfThree, "c") shouldBe true
+        FBSTree.fcontainsSK(strFbstOfThree, "d") shouldBe false
     }
 
     test("co.fdeleteSK") {
-
+        FBSTree.fdeleteSK(strFbstOfThree, "c") shouldBe strFbstOfTwo
     }
 
     test("co.ffindSK") {
-
+        FBSTree.ffindSK(strFbstOfFourA, "a") shouldBe FBSTree.ofvs("a", "a", allowDups = true)
+        FBSTree.ffindSK(strFbstOfFourA, "b") shouldBe strFbstOfFourA
+        FBSTree.ffindSK(strFbstOfFourA, "c") shouldBe FBSTree.ofvs("c")
+        FBSTree.ffindSK(strFbstOfFourA, "d") shouldBe null
     }
 
     test("co.ffindLastSK") {
-
+        FBSTree.ffindLastSK(strFbstOfFourA, "a") shouldBe FBSTree.ofvs("a", "a", allowDups = true)
+        FBSTree.ffindLastSK(strFbstOfFourA, "b") shouldBe strFbstOfFourA
+        FBSTree.ffindLastSK(strFbstOfFourA, "c") shouldBe FBSTree.ofvs("c")
+        FBSTree.ffindLastSK(strFbstOfFourA, "d") shouldBe null
     }
 
     test("co.finsertSK") {
-
+        FBSTree.finsertSK(strFbstOfTwo, "c") shouldBe strFbstOfThree
     }
 
     test("co.finsertDupSK") {
-
+        FBSTree.finsertDupSK(FBSTree.finsertDupSK(strFbstOfOne, "b", allowDups = true), "b", allowDups = true) shouldBe FBSTree.finsertDupSK(strFbstOfTwo, "b", allowDups = true)
     }
 
     // implementation
 
     test("co.NOT_FOUND") {
         NOT_FOUND shouldBe -1
+    }
+
+    test("co.nul") {
+        nul<Int, Int>() shouldBe FBSTNil
     }
 
     test("co.bstDelete with dups (remove only one dup)") {
@@ -409,6 +511,14 @@ class FBSTreeCompanionTest : FunSpec({
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft,sEntry)!!) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft,mEntry)!!) shouldBe depthTwoRightLeft
+    }
+
+    test("co.toArray") {
+        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+            val ary: Array<TKVEntry<Int, Int>> = FBSTree.toArray(fbst)
+            fbst shouldBe FRBTree.of(ary.iterator())
+            fbst shouldBe FRBTree.of(*ary)
+        }
     }
 
 })
