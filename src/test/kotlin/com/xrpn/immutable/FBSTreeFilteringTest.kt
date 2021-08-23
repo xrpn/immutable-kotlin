@@ -66,7 +66,13 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("dropAll") {
-        TODO()
+        ofvi(1,2,3).fdropAll(FList.emptyIMList()) shouldBe ofvi(1,2,3)
+        ofvi(1,2,3).fdropAll(FList.of(1.toIAEntry(),2.toIAEntry())) shouldBe ofvi(3)
+        ofvi(1,2,3,4).fdropAll(FList.of(1.toIAEntry(),2.toIAEntry())) shouldBe ofvi(3, 4)
+        ofvi(1,2,3).fdropAll(FList.of(2.toIAEntry(),3.toIAEntry())) shouldBe ofvi(1)
+        ofvi(1,2,3,4).fdropAll(FList.of(2.toIAEntry(),3.toIAEntry())) shouldBe ofvi(1, 4)
+        ofvi(1,2,3).fdropAll(FList.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2)
+        ofvi(1,2,3,4).fdropAll(FList.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2, 4)
     }
 
     test("dropItem") {

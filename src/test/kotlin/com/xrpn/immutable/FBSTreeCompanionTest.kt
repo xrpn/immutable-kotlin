@@ -35,7 +35,7 @@ private val strFbstOfNone = FBSTree.ofvs(*arrayOf<String>())
 private val strFbstOfOne = FBSTree.ofvs(*arrayOf<String>("a"))
 private val strFbstOfTwo = FBSTree.ofvs(*arrayOf<String>("a","b"))
 private val strFbstOfThree = FBSTree.ofvs(*arrayOf<String>("b","a","c"))
-private val strFbstOfFourA = FBSTree.ofvs(*arrayOf<String>("b","a","c","a"))
+private val strFbstOfFourA = FBSTree.ofvs(*arrayOf<String>("b","a","c","a"), allowDups = true)
 
 class FBSTreeCompanionTest : FunSpec({
 
@@ -299,7 +299,7 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.ffindIK") {
         FBSTree.ffindIK(intFbstOfFourA, 1) shouldBe FBSTree.ofvi(1, 1, allowDups = true)
-        FBSTree.ffindIK(intFbstOfFourA, 2) shouldBe intFbstOfThree
+        FBSTree.ffindIK(intFbstOfFourA, 2) shouldBe intFbstOfFourA
         FBSTree.ffindIK(intFbstOfFourA, 3) shouldBe FBSTree.ofvi(3)
         FBSTree.ffindIK(intFbstOfFourA, 0) shouldBe null
         FBSTree.ffindIK(intFbstOfFourA, 4) shouldBe null
@@ -307,7 +307,7 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.ffindLastIK") {
         FBSTree.ffindLastIK(intFbstOfFourA, 1) shouldBe FBSTree.ofvi(1)
-        FBSTree.ffindLastIK(intFbstOfFourA, 2) shouldBe intFbstOfThree
+        FBSTree.ffindLastIK(intFbstOfFourA, 2) shouldBe intFbstOfFourA
         FBSTree.ffindLastIK(intFbstOfFourA, 3) shouldBe FBSTree.ofvi(3)
         FBSTree.ffindLastIK(intFbstOfFourA, 0) shouldBe null
         FBSTree.ffindLastIK(intFbstOfFourA, 4) shouldBe null
@@ -341,7 +341,7 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.ffindLastSK") {
-        FBSTree.ffindLastSK(strFbstOfFourA, "a") shouldBe FBSTree.ofvs("a", "a", allowDups = true)
+        FBSTree.ffindLastSK(strFbstOfFourA, "a") shouldBe FBSTree.ofvs("a")
         FBSTree.ffindLastSK(strFbstOfFourA, "b") shouldBe strFbstOfFourA
         FBSTree.ffindLastSK(strFbstOfFourA, "c") shouldBe FBSTree.ofvs("c")
         FBSTree.ffindLastSK(strFbstOfFourA, "d") shouldBe null

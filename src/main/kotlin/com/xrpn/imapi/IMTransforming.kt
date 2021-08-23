@@ -29,7 +29,7 @@ interface IMSetTransforming<out A: Any> {
 interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C>  // 	When working with sequences, it works like map followed by flatten
-    // since order is an ambiguous property of Set, f SHOULD be commutative
+    fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C>  // 	When working with sequences, it works like map followed by flatten    // since order is an ambiguous property of Set, f SHOULD be commutative
     fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
     // since order is an ambiguous property of Set, f SHOULD be commutative
     fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C = // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)

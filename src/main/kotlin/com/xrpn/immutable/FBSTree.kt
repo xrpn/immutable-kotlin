@@ -324,7 +324,10 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     // =========== transforming
 
     override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =  // 	When working with sequences, it works like map followed by flatten
-        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>)) }
+        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = false) }
+
+    override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =  // 	When working with sequences, it works like map followed by flatten
+        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = true) }
 
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
@@ -388,28 +391,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             unwindQueue(newQueue, newAcc, accrue)
         }
 
-//    fun <A, B> fold(ta: FBTree<A, B>, l: (A) -> B, b: (B, B) -> B): B = TODO()
-
-    fun <C: Any> mapi(f: (B) -> C): FBSTree<Int, C> =
-        this.preorder(reverse = true).ffoldLeft(nul()) { t: FBSTree<Int, C>, e: TKVEntry<A, B> ->
-            mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())))(t, e)
-        }
-
-//    fun <C: Any> maps(f: (B) -> C): FBSTree<String, C> =
-//        this.preorder(reverse = true).ffoldLeft(nul()) { t: FBSTree<String, C>, e: TKVEntry<A, B> ->
-//            mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())))(t, e)
-//        }
-
-    fun <C: Any> mapiDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<Int, C>) = { f ->
-        this.preorder(reverse = true).ffoldLeft(nul()) { t: FBSTree<Int, C>, e: TKVEntry<A, B> ->
-            mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())), allowDups)(t, e)
-        }}
-
-    fun <C: Any> mapsDup(allowDups: Boolean = true): ((B) -> (C)) -> (FBSTree<String, C>) = { f ->
-        this.preorder(reverse = true).ffoldLeft(nul()) { t: FBSTree<String, C>, e: TKVEntry<A, B> ->
-            mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())), allowDups)(t, e)
-        }}
-
     companion object: IMBTreeCompanion {
 
         private class BreakoutException(): RuntimeException()
@@ -472,7 +453,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // ===============
 
         override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> = ofMap(items, false, f)
-        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> {
+        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> {
             var res: FBSTree<C, D> = nul()
             for(item in items) {
                 res = bstInsert(res, f(item), allowDups)
@@ -843,15 +824,15 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 else -> reassemble(graft as FBSTNode, treeStub, FLNil, ::enrichNode)
             }
 
-        private tailrec fun <A, B: Any> mergeAppender(t1: FBSTree<A, B>, t2: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> = when {
+        private tailrec fun <A, B: Any> mergeAppender(t1: FBSTree<A, B>, t2: FBSTree<A, B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = when {
             t1 is FBSTNil -> t2
             t2 is FBSTNil -> t1
             else -> if (t1.size < t2.size) {
                 val (entry, stub) = t1.fpopAndReminder()
-                mergeAppender(t2.finsert(entry!!), stub)
+                mergeAppender(t2.finsertDup(entry!!, allowDups), stub, allowDups)
             } else {
                 val (entry, stub) = t2.fpopAndReminder()
-                mergeAppender(t1.finsert(entry!!), stub)
+                mergeAppender(t1.finsertDup(entry!!, allowDups), stub, allowDups)
             }
         }
 
@@ -864,16 +845,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         private fun <B: Any> appenderStrKey(withDups: Boolean): (FBSTree<String, B>, B) -> FBSTree<String, B> =
             { treeStub: FBSTree<String, B>, item: B -> bstInsert(treeStub, item.toSAEntry(), allowDups = withDups)}
 
-        private fun <A, B: Any, C: Comparable<C>, D: Any> mapAppender(
-                kf: (A) -> (C),
-                vf: (B) -> (D),
-                withDups: Boolean): (FBSTree<C, D>, TKVEntry<A, B>) -> FBSTree<C, D> where A: Any, A: Comparable<A> =
-            { treeStub: FBSTree<C, D>, item: TKVEntry<A, B> -> bstInsert(treeStub, TKVEntryK(kf(item.getk()), vf(item.getv())), allowDups = withDups)}
-
-        private fun <A, B: Any, C, D: Any> mapAppender(
-            mappedItem: TKVEntry<C, D>,
-            withDups: Boolean = false): (FBSTree<C, D>, TKVEntry<A, B>) -> FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> =
-            { treeStub: FBSTree<C, D>, _: TKVEntry<A, B> -> bstInsert(treeStub, mappedItem, allowDups = withDups)}
     }
 }
 
