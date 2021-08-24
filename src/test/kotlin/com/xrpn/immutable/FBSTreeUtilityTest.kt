@@ -26,6 +26,7 @@ class FBSTreeUtilityTest : FunSpec({
         FBSTree.fbtAssert(node)
         Unit
       }
+      null -> Unit
     }
 
   test("sanity") {

@@ -547,7 +547,7 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("fparentOf") {
-        nul<Int, String>().fparentOf(TKVEntry.ofIntKey("")) shouldBe FBSTNil
+        nul<Int, String>().fparentOf(TKVEntry.ofIntKey("")) shouldBe null
         FBSTNode(mEntry).fparentOf(mEntry) shouldBe FBSTNil
 
         depthOneLeft.fparentOf(lEntry) shouldBe depthOneLeft
@@ -571,7 +571,7 @@ class FBSTreeFilteringTest : FunSpec({
         wikiTree.fparentOf(fEntry)  /* parent of root */ shouldBe FBSTNil
         (wikiTree.fparentOf(cEntry) as FBSTNode).entry shouldBe dEntry
         (wikiTree.fparentOf(hEntry) as FBSTNode).entry shouldBe iEntry
-        wikiTree.fparentOf(zEntry) /* parent of missing value */ shouldBe FBSTNil
+        wikiTree.fparentOf(zEntry) /* parent of missing value */ shouldBe null
 
         (slideShareTree.fparentOf(n32Entry) as FBSTNode).entry shouldBe n17Entry
         (slideShareTree.fparentOf(n50Entry) as FBSTNode).entry shouldBe n78Entry

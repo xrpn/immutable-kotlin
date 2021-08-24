@@ -74,15 +74,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     // =========== utility
 
-    override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when (this) {
-        is FRBTNil -> rhs.fempty()
-        is FRBTNode<A, B> -> when {
-            this === rhs -> true
-            rhs.fempty() -> false
-            else -> equal2(this, rhs)
-        }
-    }
-
     override fun toIMSet(): FSet<B> = FSet.of(this)
 
     override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
@@ -91,15 +82,17 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A,B>> {
 
-        fun traverse(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
-            when (t) {
-                is FRBTNil -> acc
-                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, FLCons(t.entry, acc)))
-            }
-
+//        fun traverse(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+//            when (t) {
+//                is FRBTNil -> acc
+//                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, FLCons(t.entry, acc)))
+//            }
+        val fl = this.ffold(FList.emptyIMList<TKVEntry<A,B>>()) { acc, item -> FLCons(item, acc) }
         return when(reverse) {
-            true -> traverse(this, FLNil)
-            false -> traverse(this, FLNil).freverse()
+//            true -> traverse(this, FLNil)
+            true -> fl
+            false -> fl.freverse()
+//            false -> traverse(this, FLNil).freverse()
         }
     }
 
@@ -165,37 +158,65 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     // =========== filtering
 
-    override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = rbtFind(this, item) != null
-    override fun fcontainsKey(key: @UnsafeVariance A): Boolean = rbtFindKey(this, key) != null
+    override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
+        rbtFind(this, item) != null
+
+    override fun fcontainsKey(key: @UnsafeVariance A): Boolean =
+        rbtFindKey(this, key) != null
+
     override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> {
         // TODO memoization
         return rbtDeletes(this, items as FList<TKVEntry<A,B>>)
     }
+
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
         // TODO memoization
         return rbtDelete(this, item)
     }
+
     override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
         // TODO memoization
         return rbtDelete(this, item)
     }
 
-    override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> =
-        ffold(nul()){ acc: FRBTree<A, B>, item: TKVEntry<A, B> -> if (isMatch(item)) rbtInsert(acc, item) else acc }
+    override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> {
 
-    override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> = ffilter { !isMatch(it) }
+        // TODO common code
+        val ff4ffilter: (acc: FRBTree<A, B>, item: TKVEntry<A, B>) -> FRBTree<A, B> =
+            { acc, item -> if (isMatch(item)) rbtInsert(acc, item) else acc }
 
-    override fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): FList<TKVEntry<A, B>> =
-        ffold(FLNil){ acc: FList<TKVEntry<A, B>>, item: TKVEntry<A, B> -> if (isMatch(item)) FLCons(item, acc) else acc }
+        return ffold(nul(), ff4ffilter)
+    }
+
+    override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): FRBTree<A, B> =
+        ffilter { !isMatch(it) }
+
+    override fun ffind(isMatch: (TKVEntry<A, B>) -> Boolean): FList<TKVEntry<A, B>> {
+
+        // TODO common code
+        val f4ffind: (acc: FList<TKVEntry<A, B>>, item: TKVEntry<A, B>) -> FList<TKVEntry<A, B>> =
+            { acc, item -> if (isMatch(item)) FLCons(item, acc) else acc }
+
+        return ffold(FLNil, f4ffind)
+    }
 
     override fun ffindItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>? =
         rbtFind(this, item)
 
-    override fun ffindKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
-    override fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>?= rbtFind(this, item)
-    override fun ffindLastKey(key: @UnsafeVariance A): FRBTree<A, B>?= rbtFindKey(this, key)
-    override fun ffindValueOfKey(key: @UnsafeVariance A): B?= rbtFindValueOFKey(this, key)
+    override fun ffindKey(key: @UnsafeVariance A): FRBTree<A, B>? =
+        rbtFindKey(this, key)
+
+    override fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>? =
+        rbtFind(this, item)
+
+    override fun ffindLastKey(key: @UnsafeVariance A): FRBTree<A, B>? =
+        rbtFindKey(this, key)
+
+    override fun ffindValueOfKey(key: @UnsafeVariance A): B? =
+        rbtFindValueOFKey(this, key)
+
     override fun fhasDups(): Boolean = false
+
     override fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = false
 
     override fun fleftMost(): TKVEntry<A, B>? {
@@ -212,7 +233,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         return leftDescent(this)
     }
 
-    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtParent(this, child)
+    override fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>? =
+        rbtParent(this, child)
 
     override fun fpick(): TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
 
@@ -239,9 +261,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun fsize(): Int = size
 
-    override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
-
-    override fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, FRBTree<A, B>> where C: Any, C: Comparable<C>  = TODO() //	A map of collections created by the function f
+    override fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, FRBTree<A, B>> where C: Any, C: Comparable<C>  =
+        TODO() //	A map of collections created by the function f
 
     override fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ FRBTree<A, B>, /* false */ FRBTree<A, B>> {
 
@@ -253,10 +274,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     }
 
     override fun fpopAndReminder(): Pair<TKVEntry<A,B>?, FRBTree<A, B>> {
-        // pop will return elements in sorted order
         val pop: TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
-        // computing the reminder can be very expensive, however; if traversal
-        // will be for the full tree, .inorder() or .forEach() may be cheaper
+        // computing the reminder can be very expensive; if traversing
+        // the full tree, .inorder() or .forEach() may be cheaper
         val reminder: FRBTree<A, B> = pop?.let { this.fdropItem(it) } ?: FRBTNil
         return Pair(pop, reminder)
     }
@@ -285,12 +305,16 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     // =========== transforming
 
-    override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = TODO()  // 	When working with sequences, it works like map followed by flatten
-    override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = TODO()  // 	When working with sequences, it works like map followed by flatten
+    override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
+        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FRBTree<C, D>)) }
+
+    override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
+        fflatMap(f)
+
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
-        fun traverse(t: FRBTree<A, B>, acc: C): C =
-            when (t) {
+        // this is a generic preorder
+        fun traverse(t: FRBTree<A, B>, acc: C): C = when (t) {
                 is FRBTNil -> acc
                 is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, f(acc, t.entry)))
             }
@@ -300,6 +324,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
+
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FRBTNil -> null
         is FRBTNode -> {
@@ -308,22 +333,19 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         }
     }
 
-    fun <C: Any> mapi(f: (B) -> C): FRBTree<Int, C> =
-        this.preorder(reverse = true).ffoldLeft(nul()) { t: FRBTree<Int, C>, e: TKVEntry<A, B> ->
-            mapAppender<A, B, Int, C>(TKVEntry.ofIntKey(f(e.getv())))(t, e)
-        }
-
-    fun <C: Any> maps(f: (B) -> C): FRBTree<String, C> =
-        this.preorder(reverse = true).ffoldLeft(nul()) { t: FRBTree<String, C>, e: TKVEntry<A, B> ->
-            mapAppender<A, B, String, C>(TKVEntry.ofStrKey(f(e.getv())))(t, e)
-        }
-
     // =========== altering
 
-    override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = rbtInsert(this, item)
-    override fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): FRBTree<A, B> = rbtInsert(this, item)
-    override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = rbtInserts(this, items as FList<TKVEntry<A,B>>)
-    override fun finsertsDups(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FRBTree<A, B> = rbtInserts(this, items as FList<TKVEntry<A,B>>)
+    override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
+        rbtInsert(this, item)
+
+    override fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): FRBTree<A, B> =
+        rbtInsert(this, item)
+
+    override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> =
+        rbtInserts(this, items as FList<TKVEntry<A,B>>)
+
+    override fun finsertsDups(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FRBTree<A, B> =
+        rbtInserts(this, items as FList<TKVEntry<A,B>>)
 
     // =========== internals
 
@@ -362,56 +384,65 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         override fun <A, B: Any> of(vararg items: TKVEntry<A,B>): FRBTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator())
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(vararg items: TKVEntry<A, B>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items.iterator())
+        override fun <A, B : Any> of(vararg items: TKVEntry<A, B>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items.iterator())
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A,B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = FRBTNil
             for (item in items)  { res = rbtInsert(res, item) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
+        override fun <A, B : Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
         override fun <A, B: Any> of(items: IMList<TKVEntry<A,B>>): FRBTree<A,B> where A: Any, A: Comparable<A> =
             items.ffoldLeft(nul(), ::rbtInsert)
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
+        override fun <A, B : Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
 
         // =================
 
         override fun <B : Any> ofvi(vararg items: B): FRBTree<Int, B> = ofvi(items.iterator())
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(vararg items: B, allowDups: Boolean): FRBTree<Int, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items.iterator())
+        override fun <B : Any> ofvi(vararg items: B, allowDups: Boolean): FRBTree<Int, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items.iterator())
         override fun <B : Any> ofvi(items: Iterator<B>): FRBTree<Int, B> {
             var res: FRBTree<Int, B> = FRBTNil
             for (item in items) { res = rbtInsert(res, TKVEntry.ofIntKey(item))}
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(items: Iterator<B>, allowDups: Boolean): FRBTree<Int, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
+        override fun <B : Any> ofvi(items: Iterator<B>, allowDups: Boolean): FRBTree<Int, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
         override fun <B : Any> ofvi(items: IMList<B>): FRBTree<Int, B> {
             val f: (IMBTree<Int, B>, B) -> IMBTree<Int, B> = { stub, item -> finsertIK(stub, item) }
             return items.ffoldLeft(emptyIMBTree(), f) as FRBTree<Int, B>
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(items: IMList<B>, allowDups: Boolean): FRBTree<Int, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
+        override fun <B : Any> ofvi(items: IMList<B>, allowDups: Boolean): FRBTree<Int, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
 
         // =================
 
         override fun <B : Any> ofvs(vararg items: B): FRBTree<String, B> = ofvs(items.iterator())
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(vararg items: B, allowDups: Boolean): FRBTree<String, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items.iterator())
+        override fun <B : Any> ofvs(vararg items: B, allowDups: Boolean): FRBTree<String, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items.iterator())
         override fun <B : Any> ofvs(items: Iterator<B>): FRBTree<String, B> {
             var res: FRBTree<String, B> = FRBTNil
             for (item in items) { res = rbtInsert(res, TKVEntry.ofStrKey(item))}
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(items: Iterator<B>, allowDups: Boolean): FRBTree<String, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
+        override fun <B : Any> ofvs(items: Iterator<B>, allowDups: Boolean): FRBTree<String, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
         override fun <B : Any> ofvs(items: IMList<B>): FRBTree<String, B> {
             val f: (IMBTree<String, B>, B) -> IMBTree<String, B> = { stub, item -> finsertSK(stub, item) }
             return items.ffoldLeft(emptyIMBTree(), f) as FRBTree<String, B>
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(items: IMList<B>, allowDups: Boolean): FRBTree<String, B> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
+        override fun <B : Any> ofvs(items: IMList<B>, allowDups: Boolean): FRBTree<String, B> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
 
         // =================
 
@@ -421,7 +452,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofMap(items, f)"))
-        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofMap(items, f)
+        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofMap(items, f)
 
         // =================
 
@@ -431,7 +463,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofviMap(items, f)"))
-        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<Int, C> = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofviMap(items, f)
+        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<Int, C> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofviMap(items, f)
 
         // =================
 
@@ -441,7 +474,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofvsMap(items, f)"))
-        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<String, C>  = if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvsMap(items, f)
+        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<String, C>  =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvsMap(items, f)
 
         // =================
 
@@ -462,14 +496,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         // =============== top level type-specific implementation
 
-        internal fun <A, B: Any> rbtContains2(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): Boolean where A: Any, A: Comparable<A> =
-            rbtFind(treeStub, item) != null
-
         // delete entry from treeStub.  Rebalance the tree maintaining immutability as part of deletion.
         internal fun <A, B: Any> rbtDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B>
         where A: Any, A: Comparable<A> {
-
-            // TODO this may be worth memoizing
 
             fun frbDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B> = when (treeStub) {
                 is FRBTNil -> FRBTNil
@@ -507,7 +536,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
                 }
             }
 
-            return if (!rbtContains2(treeStub, item)) treeStub else {
+            return if (!treeStub.fcontains(item)) treeStub else {
                 val clipped = frbDelete(treeStub, item)
                 if (clipped is FRBTNode) {
                     val blackRoot = FRBTNode(clipped.entry, BLACK, clipped.bLeft, clipped.bRight)
@@ -572,8 +601,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
                     else rbtInserts(rbtInsert(treeStub, items.head), items.tail)
             }
 
-        internal fun <A, B: Any> rbtParent(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B>
+        internal fun <A, B: Any> rbtParent(treeStub: FRBTree<A, B>, childItem: TKVEntry<A, B>): FRBTree<A, B>?
         where A: Any, A: Comparable<A> {
+
+            // TODO common code
 
             tailrec fun go(
                 stub: FRBTree<A, B>,
@@ -581,7 +612,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
             ): Pair<FRBTree<A, B>, FRBTree<A, B>> = when (stub) {
                 is FRBTNil -> family
                 is FRBTNode -> {
-                    val next: Pair<FRBTree<A, B>, FRBTree<A, B>>? = when (fit(item, stub)) {
+                    val next: Pair<FRBTree<A, B>, FRBTree<A, B>>? = when (fit(childItem, stub)) {
                         FBTFIT.EQ -> null
                         FBTFIT.LEFT -> Pair(stub, stub.bLeft)
                         FBTFIT.RIGHT -> Pair(stub, stub.bRight)
@@ -590,14 +621,17 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
                 }
             }
 
-            return if (rbtContains2(treeStub, item)) go(treeStub, Pair(FRBTNil, FRBTNil)).first else FRBTNil
+            return when(treeStub) {
+                is FRBTNil -> null
+                is FRBTNode -> when {
+                    treeStub.froot()!! == childItem -> nul()
+                    treeStub.fcontains(childItem) -> go(treeStub, Pair(FRBTNil, FRBTNil)).first
+                    else -> null
+                }
+            }
         }
 
         // ================= used in tests
-
-        // TODO this is crude
-        internal fun <A, B: Any, C: Comparable<C>, D: Any> map(tree: FRBTree<A, B>, fk: (A) -> (C), fv: (B) -> D): FRBTree<C, D> where A: Any, A: Comparable<A> =
-            tree.preorder(reverse = true).ffoldLeft(nul(), mapKvAppender(fk, fv))
 
         internal const val RED = true
         internal const val BLACK = false
@@ -843,14 +877,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
                 }
             }
 
-        private fun <A, B: Any, C: Comparable<C>, D: Any> mapKvAppender(
-            kf: (A) -> (C),
-            vf: (B) -> (D)): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D> where A: Any, A: Comparable<A> =
-            { treeStub: FRBTree<C, D>, item: TKVEntry<A, B> -> rbtInsert(treeStub, TKVEntryK(kf(item.getk()), vf(item.getv()))) }
-
-        private fun <A, B: Any, C: Comparable<C>, D: Any> mapAppender(
-            mappedItem: TKVEntry<C, D>): (FRBTree<C, D>, TKVEntry<A, B>) -> FRBTree<C, D>  where A: Any, A: Comparable<A> =
-            { treeStub: FRBTree<C, D>, _: TKVEntry<A, B> -> rbtInsert(treeStub, mappedItem) }
     }
 }
 

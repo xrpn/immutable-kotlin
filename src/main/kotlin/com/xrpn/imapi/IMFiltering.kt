@@ -72,7 +72,7 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
     fun fleftMost(): TKVEntry<A, B>?
     fun fhasDups(): Boolean
     fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean
-    fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> // Returns the smallest super-tree of item; or the tree if item is root
+    fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>? // Returns the smallest super-tree of item; or the tree if item is root
     fun fpick(): TKVEntry<A, B>? // peek at one random element
     fun frightMost(): TKVEntry<A, B>?
     fun froot(): TKVEntry<A, B>?

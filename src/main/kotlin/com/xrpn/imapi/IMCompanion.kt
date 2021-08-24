@@ -57,20 +57,21 @@ interface IMSetCompanion {
     fun <A: Any> Collection<A>.toIMSet(): IMSet<A>
 }
 
+fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
+    rhs === lhs -> true
+    rhs.fsize() != lhs.fsize() -> false
+    0 == rhs.fsize() -> true
+    else -> {
+        val lhsInRhs = rhs.fcount(lhs::fcontains)
+        val rhsInLhs = lhs.fcount(rhs::fcontains)
+        lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
+    }
+}
+
 interface IMBTreeCompanion {
 
     fun <A, B: Any> emptyIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A>
-    fun <A, B: Any> equal2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
-        rhs === lhs -> true
-        rhs.fsize() != lhs.fsize() -> false
-        0 == rhs.fsize() -> true
-        else -> {
-            val lhsInRhs = rhs.fcount(lhs::fcontains)
-            val rhsInLhs = lhs.fcount(rhs::fcontains)
-            lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
-        }
-    }
-
+    fun <A, B: Any> equal2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = IMBTreeEqual2(rhs, lhs)
     fun <A, B: Any> of(vararg items: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>

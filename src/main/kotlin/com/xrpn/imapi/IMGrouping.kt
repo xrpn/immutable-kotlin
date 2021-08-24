@@ -36,7 +36,8 @@ interface IMSetGrouping<out A: Any> {
 
 interface IMBTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{
 
-    fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int // count the element that match the predicate
+    fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = // count the element that match the predicate
+        (this as IMBTree<A,B>).ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, IMBTree<A, B>> where C: Any, C: Comparable<C>//	A map of collections created by the function f
     fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ IMBTree<A, B>, /* false */ IMBTree<A, B>> // Two collections created by the predicate p
     fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
