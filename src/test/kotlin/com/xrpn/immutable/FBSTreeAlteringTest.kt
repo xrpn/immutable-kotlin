@@ -8,7 +8,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
-class FBSTAlteringTest : FunSpec({
+class FBSTreeAlteringTest : FunSpec({
 
     val repeats = 50
 

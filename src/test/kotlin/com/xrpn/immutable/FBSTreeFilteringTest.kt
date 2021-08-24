@@ -61,8 +61,8 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("dropAll (nil)") {
-        nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
-        nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FRBTree.emptyIMBTree()
+        nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FBSTree.emptyIMBTree()
+        nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FBSTree.emptyIMBTree()
     }
 
     test("dropAll") {
@@ -76,7 +76,7 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("dropItem") {
-        nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe FRBTree.emptyIMBTree()
+        nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe FBSTree.emptyIMBTree()
 
         tailrec fun <A: Comparable<A>, B: Any> goAll(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
             when (acc) {
@@ -305,8 +305,22 @@ class FBSTreeFilteringTest : FunSpec({
         nul<Int, Int>().ffindDistinct { true } shouldBe null
     }
 
+    test("ffind") {
+        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A,B>, acc: FList<TKVEntry<A,B>>): FList<A> =
+            when (acc) {
+                is FLNil -> FLNil
+                is FLCons -> {
+                    if (t.ffind{ it == acc.head }.fsize() != 1)  fail("not found: ${acc.head}")
+                    go(t, acc.tail)
+                }
+            }
+        go(wikiTree, wikiPreorder)
+        wikiTree.ffindItem(zEntry) shouldBe null
+        go(slideShareTree, slideShareBreadthFirst)
+        slideShareTree.ffindItem(TKVEntry.ofIntKey(100)) shouldBe null
+    }
+
     test("ffind, ffindDistinct (A)") {
-        // checkAll(PropTestConfig(seed = 5699135300091264211), Arb.int(20..100)) { n ->
         checkAll(repeats, Arb.int(20..100)) { n ->
             val values = Array(n) { i: Int -> TKVEntry.of(i, i) }
             val svalues = values + values

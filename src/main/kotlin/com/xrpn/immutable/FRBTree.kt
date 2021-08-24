@@ -597,7 +597,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> if(treeStub.fcontains(items.head)) treeStub
+                is FLCons -> if(treeStub.fcontains(items.head)) rbtInserts(treeStub, items.tail)
                     else rbtInserts(rbtInsert(treeStub, items.head), items.tail)
             }
 

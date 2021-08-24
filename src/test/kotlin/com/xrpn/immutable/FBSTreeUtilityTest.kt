@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -12,6 +13,11 @@ private val intFBSTreeOfNone = FBSTree.ofvi(*arrayOf<Int>())
 private val intFBSTreeOfOne = FBSTree.ofvi(*arrayOf<Int>(1))
 private val intFBSTreeOfTwo = FBSTree.ofvi(*arrayOf<Int>(1,2))
 private val intFBSTreeOfThree = FBSTree.ofvi(*arrayOf<Int>(1,2,3))
+private val intFRBTreeOfNone = FRBTree.ofvi(*arrayOf<Int>())
+private val intFRBTreeOfOne = FRBTree.ofvi(*arrayOf<Int>(1))
+private val intFRBTreeOfTwo = FRBTree.ofvi(*arrayOf<Int>(1,2))
+private val intFRBTreeOfThree = FRBTree.ofvi(*arrayOf<Int>(1,2,3))
+
 
 class FBSTreeUtilityTest : FunSpec({
 
@@ -43,25 +49,46 @@ class FBSTreeUtilityTest : FunSpec({
     depthTwoRightLeft.forEach(depthTwoRightLeft::quietAssert)
   }
 
-  test("equal") {
+  test("equal (A)") {
     intFBSTreeOfNone.equal(intFBSTreeOfNone) shouldBe true
 
     intFBSTreeOfNone.equal(intFBSTreeOfOne) shouldBe false
     intFBSTreeOfOne.equal(intFBSTreeOfNone) shouldBe false
-    intFBSTreeOfOne.equal(FBSTree.finsertIK(FRBTree.emptyIMBTree(),1)) shouldBe true
+    intFBSTreeOfOne.equal(FBSTree.finsertIK(emptyIMBTree(),1)) shouldBe true
     intFBSTreeOfOne.equal(intFBSTreeOfOne) shouldBe true
 
     intFBSTreeOfOne.equal(intFBSTreeOfTwo) shouldBe false
     intFBSTreeOfTwo.equal(intFBSTreeOfOne) shouldBe false
-    intFBSTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(FRBTree.emptyIMBTree(),1), 2)) shouldBe true
-    intFBSTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(FRBTree.emptyIMBTree(),2), 1)) shouldBe true
+    intFBSTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 2)) shouldBe true
+    intFBSTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),2), 1)) shouldBe true
     intFBSTreeOfTwo.equal(intFBSTreeOfTwo) shouldBe true
 
     intFBSTreeOfThree.equal(intFBSTreeOfTwo) shouldBe false
     intFBSTreeOfTwo.equal(intFBSTreeOfThree) shouldBe false
-    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(FRBTree.emptyIMBTree(),1), 3)) shouldBe false
-    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(FRBTree.emptyIMBTree(),3), 1)) shouldBe false
-    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(FRBTree.emptyIMBTree(),3), 2)) shouldBe false
+    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 3)) shouldBe false
+    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 1)) shouldBe false
+    intFBSTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 2)) shouldBe false
+  }
+
+  test("equal (B)") {
+    intFRBTreeOfNone.equal(intFBSTreeOfNone) shouldBe true
+
+    intFRBTreeOfNone.equal(intFBSTreeOfOne) shouldBe false
+    intFRBTreeOfOne.equal(intFBSTreeOfNone) shouldBe false
+    intFRBTreeOfOne.equal(FBSTree.finsertIK(emptyIMBTree(),1)) shouldBe true
+    intFRBTreeOfOne.equal(intFBSTreeOfOne) shouldBe true
+
+    intFRBTreeOfOne.equal(intFBSTreeOfTwo) shouldBe false
+    intFRBTreeOfTwo.equal(intFBSTreeOfOne) shouldBe false
+    intFRBTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 2)) shouldBe true
+    intFRBTreeOfTwo.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),2), 1)) shouldBe true
+    intFRBTreeOfTwo.equal(intFBSTreeOfTwo) shouldBe true
+
+    intFRBTreeOfThree.equal(intFBSTreeOfTwo) shouldBe false
+    intFRBTreeOfTwo.equal(intFBSTreeOfThree) shouldBe false
+    intFRBTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 3)) shouldBe false
+    intFRBTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 1)) shouldBe false
+    intFRBTreeOfThree.equal(FBSTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 2)) shouldBe false
   }
 
   test("forEach") {
@@ -142,7 +169,7 @@ class FBSTreeUtilityTest : FunSpec({
   test("toIMSet") {
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ims1: FSet<Int> = fbst.toIMSet()
-      (ims1 === fbst) shouldBe false
+      (ims1.toIMBTree() === fbst) shouldBe false
       ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
     }
   }
