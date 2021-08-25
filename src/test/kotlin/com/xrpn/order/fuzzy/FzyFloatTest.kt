@@ -1,6 +1,5 @@
 package com.xrpn.order.fuzzy
 
-import com.xrpn.order.fuzzy.FzyDouble.Companion.fzyEqual
 import com.xrpn.order.fuzzy.FzyFloat.Companion.asFzyFloat
 import com.xrpn.order.fuzzy.FzyFloat.Companion.fzyEqual
 import com.xrpn.order.fuzzy.FzyFloat.Companion.unity

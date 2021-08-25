@@ -480,7 +480,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
         // =================
 
         override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FRBTree<A, B> where A: Any, A : Comparable<A> = when(this) {
-            is FBSTree<*, *> -> @Suppress("UNCHECKED_CAST") (FRBTree.of(this.postorder() as IMList<TKVEntry<A, B>>))
+            is FBSTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
             is FRBTree<*, *> -> this as FRBTree<A, B>
             is Array<*> -> of(this.iterator())
             is List<*> -> of(this.iterator())
@@ -917,35 +917,30 @@ internal data class FRBTNode<A, B: Any> (
         this === other -> true
         other == null -> false
         other is FRBTNode<*, *> -> when {
-            this.isEmpty() && other.isEmpty() -> true
-            this.isEmpty() || other.isEmpty() -> false
-            this.color == other.color &&
-                    this.entry.getv()::class == other.entry.getv()::class &&
-                    this.entry.getk()::class == other.entry.getk()::class ->
-                @Suppress("UNCHECKED_CAST") equal2(this, other as FRBTree<A, B>)
-            else -> false
+            other.isEmpty() -> false
+            this.color != other.color -> false
+            this.entry.getk()::class != other.entry.getk()::class -> false
+            this.entry.getv()::class != other.entry.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as FRBTree<A, B>)
         }
         other is IMBTree<*, *> -> when {
-            this.isEmpty() && other.fempty() -> true
-            this.isEmpty() || other.fempty() -> false
-            this.froot()?.getv()!!::class == other.froot()?.getv()!!::class &&
-                    this.froot()?.getk()!!::class == other.froot()?.getk()!!::class->
-                @Suppress("UNCHECKED_CAST") this.equal(other as IMBTree<A, B>)
-            else -> false
+            other.fempty() -> false
+            this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
+            this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
+            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as IMBTree<A, B>)
         }
         other is IMSet<*> -> when {
-            this.isEmpty() && other.fempty() -> true // type erasure boo-boo
-            this.isEmpty() || other.fempty() -> false
-            this.froot()?.getv()!!::class == other.fpick()!!::class &&
-                    this.froot()?.getk()!!::class == other.toIMBTree().froot()?.getk()!!::class ->
-                @Suppress("UNCHECKED_CAST") this.equal(other.toIMBTree() as IMBTree<A, B>)
-            else -> false
+            other.fempty() -> false
+            this.froot()?.getk()!!::class != other.toIMBTree().froot()?.getk()!!::class -> false
+            this.froot()?.getv()!!::class != other.fpick()!!::class -> false
+            else -> @Suppress("UNCHECKED_CAST") equal2(this, other.toIMBTree() as IMBTree<A, B>)
         }
         other is Set<*> -> when {
-            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
-            this.isEmpty() || other.isEmpty() -> false
-            this.froot()!!::class == other.first()!!::class -> other == this
-            else -> false
+            other.isEmpty() -> false
+            this.froot()!!::class != other.first()!!::class -> false
+            this.froot()!!.getk()::class != (other.first()!! as TKVEntry<*, *>).getk()::class -> false
+            this.froot()!!.getv()::class != (other.first()!! as TKVEntry<*, *>).getv()::class -> false
+            else -> this.size == other.size && other == this
         }
         else -> false
     }

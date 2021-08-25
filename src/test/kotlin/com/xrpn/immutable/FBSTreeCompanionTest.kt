@@ -9,6 +9,12 @@ import com.xrpn.immutable.FBSTree.Companion.bstPrune
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.fbtAssert
 import com.xrpn.immutable.FBSTree.Companion.nul
+import com.xrpn.immutable.FBSTree.Companion.of
+import com.xrpn.immutable.FBSTree.Companion.ofMap
+import com.xrpn.immutable.FBSTree.Companion.ofvi
+import com.xrpn.immutable.FBSTree.Companion.ofviMap
+import com.xrpn.immutable.FBSTree.Companion.ofvs
+import com.xrpn.immutable.FBSTree.Companion.ofvsMap
 import com.xrpn.immutable.FBSTree.Companion.toIMBTree
 import com.xrpn.immutable.TKVEntry.Companion.intKeyOf
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
@@ -37,6 +43,13 @@ private val strFbstOfTwo = FBSTree.ofvs(*arrayOf<String>("a","b"))
 private val strFbstOfThree = FBSTree.ofvs(*arrayOf<String>("b","a","c"))
 private val strFbstOfFourA = FBSTree.ofvs(*arrayOf<String>("b","a","c","a"), allowDups = true)
 
+private val frbtOfNone = FRBTree.ofvi(*arrayOf<Int>())
+private val frbtOfOneX = FRBTree.ofvs(*arrayOf<Int>(1))
+private val frbtOfOneY = FRBTree.ofvi(*arrayOf<String>("A"))
+
+private val fbstOfOneX = FBSTree.ofvs(*arrayOf<Int>(1))
+private val fbstOfOneY = FBSTree.ofvi(*arrayOf<String>("A"))
+
 class FBSTreeCompanionTest : FunSpec({
 
     val repeats = 10
@@ -45,22 +58,34 @@ class FBSTreeCompanionTest : FunSpec({
     beforeTest {}
 
     test("equals") {
-        // stowaway, used to make up for missing coverage
         emptyIMBTree<Int,Int>().equals(null) shouldBe false
         emptyIMBTree<Int,Int>().equals(emptyIMBTree<Int,Int>()) shouldBe true
         emptyIMBTree<Int,Int>().equals(1) shouldBe false
         /* Sigh... */ intFbstOfNone.equals(strFbstOfNone) shouldBe true
+
         intFbstOfTwo.equals(null) shouldBe false
+        intFbstOfTwo.equals(intFbstOfNone) shouldBe false
+        intFbstOfTwo.equals(intFbstOfOne) shouldBe false
+        intFbstOfTwo.equals(intFbstOfTwo) shouldBe true
+
+        intFbstOfTwo.equals(fbstOfOneX) shouldBe false
+        intFbstOfTwo.equals(fbstOfOneY) shouldBe false
+
+        intFbstOfTwo.equals(frbtOfNone) shouldBe false
+        intFbstOfTwo.equals(frbtOfOneX) shouldBe false
+        intFbstOfTwo.equals(frbtOfOneY) shouldBe false
+
         intFbstOfTwo.equals(strFbstOfNone) shouldBe false
+        intFbstOfTwo.equals(strFbstOfOne) shouldBe false
         intFbstOfTwo.equals(strFbstOfTwo) shouldBe false
-//        intFbstOfTwo.equals(emptyList<Int>()) shouldBe false
-//        intFbstOfTwo.equals(listOf("foobar")) shouldBe false
-//        intFbstOfTwo.equals(listOf("foobar","babar")) shouldBe false
+        
+        intFbstOfTwo.equals(emptyList<Int>()) shouldBe false
+        intFbstOfTwo.equals(listOf("foobar")) shouldBe false
+        intFbstOfTwo.equals(listOf("foobar","babar")) shouldBe false
         intFbstOfTwo.equals(1) shouldBe false
     }
 
     test("toString") {
-        // stowaway, used to make up for missing coverage
         emptyIMBTree<Int,Int>().toString() shouldBe "FBSTNil"
         for (i in (1..100)) {
             emptyIMBTree<Int,Int>().hashCode() shouldBe emptyIMBTree<Int,Int>().hashCode()
@@ -74,10 +99,10 @@ class FBSTreeCompanionTest : FunSpec({
         }
     }
 
-    // IMBTreeCompanion
+    // =========================== IMBTreeCompanion
 
     test("co.empty") {
-        FBSTree.emptyIMBTree<Int, Int>() shouldBe FBSTNil
+        emptyIMBTree<Int, Int>() shouldBe FBSTNil
     }
 
     test("co.equal2") {
@@ -99,22 +124,22 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.of varargs") {
-        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe emptyIMBTree()
         FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of varargs dups") {
-        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe emptyIMBTree()
         FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator") {
-        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe emptyIMBTree()
         FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator dups") {
-        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
         FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
@@ -139,17 +164,17 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.ofvi varargs") {
-        FBSTree.ofvi(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
         FBSTree.ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi varargs dups") {
-        FBSTree.ofvi(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
         FBSTree.ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi iterator") {
-        FBSTree.ofvi(arrayOf<Int>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        FBSTree.ofvi(arrayOf<Int>().iterator()) shouldBe emptyIMBTree()
         FBSTree.ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
@@ -166,81 +191,81 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.ofvi iterator dups") {
-        FBSTree.ofvi(arrayOf<Int>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(arrayOf<Int>().iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi IMList") {
-        FBSTree.ofvi(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvi(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvi(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi IMList dups") {
-        FBSTree.ofvi(FList.emptyIMList(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvi(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(FList.emptyIMList(), allowDups = true) shouldBe emptyIMBTree()
+        ofvi(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvs varargs") {
-        FBSTree.ofvs(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(*arrayOf<Int>()) shouldBe emptyIMBTree()
+        ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs varargs dups") {
-        FBSTree.ofvs(*arrayOf<Int>()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(*arrayOf<Int>()) shouldBe emptyIMBTree()
+        ofvs(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs iterator") {
-        FBSTree.ofvs(arrayOf<Int>().iterator()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(arrayOf<Int>().iterator()) shouldBe emptyIMBTree()
+        ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs iterator dups") {
-        FBSTree.ofvs(arrayOf<Int>().iterator(), allowDups = true) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(arrayOf<Int>().iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs IMList") {
-        FBSTree.ofvs(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvs(FList.of(3,2,1,1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs IMList dups") {
-        FBSTree.ofvs(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.ofvs(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvs(FList.of(3,2,1,1), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofMap ABCD Iterator") {
-        FBSTree.ofMap(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
+        ofMap(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
     }
 
     test("co.ofMap ABCD Iterator dups") {
-        FBSTree.ofMap(emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
-        FBSTree.ofMap(listOf(1, 1, 2, 3).map{ TKVEntry.of(it, -it) }.iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
+        ofMap(emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
+        ofMap(listOf(1, 1, 2, 3).map{ TKVEntry.of(it, -it) }.iterator(), allowDups = true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
                 listOf(TKVEntry.of(1, "1"),TKVEntry.of(1, "1"),TKVEntry.of(2, "2"),TKVEntry.of(3, "3"))
     }
 
     test("co.ofviMap Iterator") {
-        FBSTree.ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
-        FBSTree.ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("2"), "2"),TKVEntry.of(intKeyOf("3"), "3"))
     }
 
     test("co.ofviMap Iterator dups") {
-        FBSTree.ofviMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
-        FBSTree.ofviMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+        ofviMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
+        ofviMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
                 listOf(TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("1"), "1"),TKVEntry.of(intKeyOf("2"), "2"),TKVEntry.of(intKeyOf("3"), "3"))
     }
 
     test("co.ofvsMap Iterator") {
-        FBSTree.ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
-        FBSTree.ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(TKVEntry.of("1", "1"),TKVEntry.of("2", "2"),TKVEntry.of("3", "3"))
     }
 
     test("co.ofvsMap Iterator dups") {
-        FBSTree.ofvsMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
-        FBSTree.ofvsMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+        ofvsMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
+        ofvsMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
                 listOf(TKVEntry.of("1", "1"),TKVEntry.of("1", "1"),TKVEntry.of("2", "2"),TKVEntry.of("3", "3"))
     }
 
@@ -355,7 +380,7 @@ class FBSTreeCompanionTest : FunSpec({
         FBSTree.finsertDupSK(FBSTree.finsertDupSK(strFbstOfOne, "b", allowDups = true), "b", allowDups = true) shouldBe FBSTree.finsertDupSK(strFbstOfTwo, "b", allowDups = true)
     }
 
-    // implementation
+    // =========================== implementation
 
     test("co.NOT_FOUND") {
         NOT_FOUND shouldBe -1
@@ -510,8 +535,8 @@ class FBSTreeCompanionTest : FunSpec({
     test("co.toArray") {
         Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val ary: Array<TKVEntry<Int, Int>> = FBSTree.toArray(fbst)
-            fbst shouldBe FRBTree.of(ary.iterator())
-            fbst shouldBe FRBTree.of(*ary)
+            fbst shouldBe of(ary.iterator())
+            fbst shouldBe of(*ary)
         }
     }
 

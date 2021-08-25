@@ -18,15 +18,8 @@ interface IMSetUtility<out A: Any> {
 }
 
 interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
-    fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when {
-        (this as IMBTree<A,B>).fempty() -> rhs.fempty()
-        else -> when {
-            this === rhs -> true
-            rhs.fempty() -> false
-            else -> IMBTreeEqual2(this, rhs)
-        }
-    }
-
+    fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
+        IMBTreeEqual2(this as IMBTree<A, B>, rhs)
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.fpick()) { _, tkv -> f(tkv); tkv }; Unit }
     fun toIMSet(): IMSet<B>

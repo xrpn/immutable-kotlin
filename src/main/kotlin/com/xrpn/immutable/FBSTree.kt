@@ -788,8 +788,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        private tailrec fun <A, B: Any, C: Any> findLast(treeStub: FBSTree<A, B>, item: C, fitMode: (C, FBSTNode<A, B>) -> FBTFIT): FBSTNode<A, B>?
-                where A: Any, A: Comparable<A> {
+        private tailrec fun <A, B: Any, C: Any> findLast(treeStub: FBSTree<A, B>, item: C, fitMode: (C, FBSTNode<A, B>) -> FBTFIT): FBSTNode<A, B>? where A: Any, A: Comparable<A> {
 
             fun checkOneDeeper(node: FBSTNode<A, B>): FBSTNode<A, B>? = when (isChildMatch(node, item, fitMode)) {
                 Pair(false, false) -> null
@@ -920,21 +919,16 @@ internal data class FBSTNode<out A, out B: Any> (
         this === other -> true
         other == null -> false
         other is FBSTNode<*, *> -> when {
-            this.isEmpty() && other.isEmpty() -> true
-            this.isEmpty() || other.isEmpty() -> false
-            this.entry.getv()::class == other.entry.getv()::class &&
-                    this.entry.getk()::class == other.entry.getk()::class -> {
-                @Suppress("UNCHECKED_CAST") equal2(this, other as FBSTNode<A, B>)
-            }
-            else -> false
+            other.isEmpty() -> false
+            this.entry.getk()::class != other.entry.getk()::class -> false
+            this.entry.getv()::class != other.entry.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as FBSTNode<A, B>)
         }
         other is IMBTree<*, *> -> when {
-            this.isEmpty() && other.fempty() -> true
-            this.isEmpty() || other.fempty() -> false
-            this.froot()?.getv()!!::class == other.froot()?.getv()!!::class &&
-                    this.froot()?.getk()!!::class == other.froot()?.getk()!!::class ->
-                @Suppress("UNCHECKED_CAST") this.equal(other as IMBTree<A, B>)
-            else -> false
+            other.fempty() -> false
+            this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
+            this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
+            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as IMBTree<A, B>)
         }
         else -> false
     }

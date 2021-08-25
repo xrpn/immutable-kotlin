@@ -59,8 +59,9 @@ interface IMSetCompanion {
 
 fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
     rhs === lhs -> true
+    rhs.fempty() && lhs.fempty() -> true
+    rhs.fempty() || lhs.fempty() -> false
     rhs.fsize() != lhs.fsize() -> false
-    0 == rhs.fsize() -> true
     else -> {
         val lhsInRhs = rhs.fcount(lhs::fcontains)
         val rhsInLhs = lhs.fcount(rhs::fcontains)
