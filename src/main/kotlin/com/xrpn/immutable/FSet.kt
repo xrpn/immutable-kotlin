@@ -152,18 +152,15 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     override fun fcombinations(size: Int): FSet<FSet<A>> {
 
-        // all groups of "size" members from this set; order does not matter
+        // all unique subsets up to "size" members from this set; order does not matter
 
-        tailrec fun gogo(item: A, fatSet: FSet<FSet<A>>, count: Int, acc: FSet<FSet<A>>) : FSet<FSet<A>> {
+        tailrec fun gogo(item: A, fatSet: FSet<FSet<A>>, acc: FSet<FSet<A>>) : FSet<FSet<A>> {
             val (pop, reminder) = fatSet.fpopAndReminder()
-            return when {
-                pop == null -> acc
-                else -> {
-                    val aux = pop.fadd(item.toSoO())
-                    if (size < aux.size) return acc
-                    val newAcc = acc.fadd(aux.toSoO())
-                    gogo(item, reminder, count, newAcc)
-                }
+            return if (pop == null) acc else {
+                val aux = pop.fadd(item.toSoO())
+                if (size < aux.size) return acc
+                val newAcc = acc.fadd(aux.toSoO())
+                gogo(item, reminder, newAcc)
             }
         }
 
@@ -171,7 +168,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
             val (pop, reminder) = shrink.fpopAndReminder()
             val newAcc = pop?.let {
                 val outer: FSet<FSet<A>> = acc.fadd(of(it).toSoO())
-                gogo(it, outer,  2, outer)
+                gogo(it, outer, outer)
             } ?: acc
             go(reminder, newAcc)
         }

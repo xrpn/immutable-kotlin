@@ -40,18 +40,40 @@ class FSetGroupingTest : FunSpec({
         intSetOfOne.fcombinations(1).equals(of(intSetOfOne)) shouldBe true
         intSetOfOne.fcombinations(2).equals(of(intSetOfOne)) shouldBe true
 
-        val aaa = intSetOfTwo.fcombinations(1)
-        aaa.equals(of(intSetOfOne, of(2))) shouldBe true
+        intSetOfTwo.fcombinations(1).equals(of(intSetOfOne, of(2))) shouldBe true
         intSetOfTwo.fcombinations(2).equals(of(of(1), of(2), of(1, 2))) shouldBe true
         intSetOfTwo.fcombinations(3).equals(of(of(1), of(2), of(1, 2))) shouldBe true
 
         intSetOfThree.fcombinations(1).equals(of(of(1), of(2), of(3))) shouldBe true
         val oracleA = of(of(1), of(2), of(3), of(1, 2), of(1, 3), of(3, 2))
-        val sss = intSetOfThree.fcombinations(2)
-        sss.equals(oracleA) shouldBe true
+        intSetOfThree.fcombinations(2).equals(oracleA) shouldBe true
         val oracleB = of(of(1), of(2), of(3), of(1, 2), of(1, 3), of(3, 2), of(3, 1, 2))
-        val foo = intSetOfThree.fcombinations(3)
-        foo.equals(oracleB) shouldBe true
+        intSetOfThree.fcombinations(3).equals(oracleB) shouldBe true
+        intSetOfThree.fcombinations(4).equals(oracleB) shouldBe true
+
+        intSetOfFour.fcombinations(1).equals(of(of(1), of(2), of(3), of(4))) shouldBe true
+        val oracleC = of(of(1), of(2), of(3), of(4), of(1, 2), of(1, 3), of(1, 4), of(2, 3), of(2, 4), of(3, 4))
+        intSetOfFour.fcombinations(2).equals(oracleC) shouldBe true
+        val oracleD = of(of(1), of(2), of(3), of(4),
+            of(1, 2), of(1, 3), of(1, 4),
+            of(2, 3), of(2, 4),
+            of(3, 4),
+            of(1, 2, 3), of(1, 2, 4),
+            of(1, 3, 4),
+            of(2, 3, 4)
+        )
+        intSetOfFour.fcombinations(3).equals(oracleD) shouldBe true
+        val oracleE = of(of(1), of(2), of(3), of(4),
+            of(1, 2), of(1, 3), of(1, 4),
+            of(2, 3), of(2, 4),
+            of(3, 4),
+            of(1, 2, 3), of(1, 2, 4),
+            of(1, 3, 4),
+            of(2, 3, 4),
+            of(1, 2, 3, 4)
+        )
+        intSetOfFour.fcombinations(4).equals(oracleE) shouldBe true
+        intSetOfFour.fcombinations(5).equals(oracleE) shouldBe true
     }
 
     test("fcount") { }
