@@ -4,6 +4,7 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
+import com.xrpn.imapi.IMListEqual2
 import com.xrpn.imapi.IMMap
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
@@ -54,14 +55,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // utility
 
-    override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = when (this) {
-        is FLNil -> rhs.fempty()
-        is FLCons<A> -> when {
-            this === rhs -> true
-            rhs.fempty() -> false
-            else -> FList.equal2(this, rhs)
-        }
-    }
+    override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = this.equals(rhs)
 
     override fun fforEach (f: (A) -> Unit): Unit {
 
@@ -674,16 +668,14 @@ data class FLCons<out A: Any>(
         other == null -> false
         other is IMList<*> -> when {
             other.fempty() -> false
-            this.fhead()!!::class == other.fhead()!!::class ->
-                other.equal(this)
-            else -> false
+            this.fhead()!!::class != other.fhead()!!::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMListEqual2(this, other as IMList<A>)
         }
         other is List<*> -> when {
-            // necessary if FList is-a List to maintain reflexive, symmetric, transitive equality
             other.isEmpty() -> false
-            this.fhead()!!::class == other.first()!!::class ->
-                (this.fsize() == other.size) && other == this
-            else -> false
+            this.fhead()!!::class != other.first()!!::class -> false
+            this.fsize() != other.size -> false
+            else -> other.equals(this)
         }
         else -> false
     }

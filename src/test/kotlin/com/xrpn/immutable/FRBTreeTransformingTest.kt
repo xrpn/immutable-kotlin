@@ -55,41 +55,6 @@ class FRBTreeTransformingTest : FunSpec({
         }
     }
 
-    test("fflatMapDup (A)") {
-        nul<Int,String>().fflatMapDup(true) { ttDepthOneRight } shouldBe nul()
-        nul<Int,String>().fflatMapDup(true) { tkv -> ttDepthOneRight.finsert(tkv) } shouldBe nul()
-        ttDepthOneRight.fflatMapDup(true) { nul<Int,String>() } shouldBe nul()
-        ttDepthOneRight.fflatMapDup(true) { tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
-        nul<Int,String>().flatMap{ ttDepthOneRight } shouldBe nul()
-        ttDepthOneRight.flatMap{ nul<Int,String>() } shouldBe nul()
-        ttDepthOneRight.flatMap{ tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
-    }
-
-    test("fflatMapDup (B)") {
-        checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int()), Arb.frbtree<Int, Int>(Arb.int())) { fbst1, fbst2 ->
-
-            var counter = 0
-            // there are no dups; this is a (very inefficient) set-union
-            val res: FRBTree<Int, Int> = fbst1.fflatMapDup(true) { tkv ->
-                val fbst: FRBTree<Int, Int> = fbst2.finsert(tkv)
-                fbst.fhasDups() shouldBe false
-                counter += fbst.size
-                fbst
-            }
-            res.fhasDups() shouldBe false
-
-            (counter <= (fbst1.size * (fbst2.size + 1))) shouldBe true
-            (res.fsize() <= (fbst1.size + fbst2.size)) shouldBe true
-            // 1 and 2 have no common elements
-            if (res.fsize() == (fbst1.size + fbst2.size)) { counter shouldBe (fbst1.size * (fbst2.size+1)) }
-
-            fbst2.fcount(res::fcontains) shouldBe fbst2.size
-            res.fcount(fbst2::fcontains) shouldBe fbst2.size
-            fbst1.fcount(res::fcontains) shouldBe fbst1.size
-            res.fcount(fbst1::fcontains) shouldBe fbst1.size
-        }
-    }
-
 //    test("ffold") {
 //        // this has already been tested aplenty as a means to get things done all over the place
 //    }

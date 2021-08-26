@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMListEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -65,14 +66,14 @@ class FListCompanionTest : FunSpec({
     FList.emptyIMList<Int>().fempty() shouldBe true
   }
 
-  test("co.equal2") {
-    FList.equal2(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe true
-    FList.equal2(FList.of(*arrayOf(1)), FList.of(*arrayOf<Int>())) shouldBe false
-    FList.equal2(intListOfNone, FList.of(*arrayOf(1))) shouldBe false
-    FList.equal2(intListOfOne, FList.of(*arrayOf<Int>(1))) shouldBe true
-    FList.equal2(FList.of(*arrayOf(1)), FList.of(*arrayOf<Int>(1, 2))) shouldBe false
-    FList.equal2(FList.of(*arrayOf<Int>(1, 2)), FList.of(*arrayOf(1))) shouldBe false
-    FList.equal2(FList.of(*arrayOf<Int>(1, 2)), FList.of(*arrayOf(1, 2))) shouldBe true
+  test("co.[ IMListEqual2 ]") {
+    IMListEqual2(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe true
+    IMListEqual2(FList.of(*arrayOf(1)), FList.of(*arrayOf<Int>())) shouldBe false
+    IMListEqual2(intListOfNone, FList.of(*arrayOf(1))) shouldBe false
+    IMListEqual2(intListOfOne, FList.of(*arrayOf<Int>(1))) shouldBe true
+    IMListEqual2(FList.of(*arrayOf(1)), FList.of(*arrayOf<Int>(1, 2))) shouldBe false
+    IMListEqual2(FList.of(*arrayOf<Int>(1, 2)), FList.of(*arrayOf(1))) shouldBe false
+    IMListEqual2(FList.of(*arrayOf<Int>(1, 2)), FList.of(*arrayOf(1, 2))) shouldBe true
   }
 
   test("co.of varargs") {

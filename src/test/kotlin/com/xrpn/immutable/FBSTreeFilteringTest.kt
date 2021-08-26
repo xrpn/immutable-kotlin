@@ -1,5 +1,7 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTreeEqual2
+import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.of
 import com.xrpn.immutable.FBSTree.Companion.ofvi
@@ -75,6 +77,21 @@ class FBSTreeFilteringTest : FunSpec({
         ofvi(1,2,3,4).fdropAll(FList.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2, 4)
     }
 
+    test("dropAlt (nil)") {
+        nul<Int, Int>().fdropAlt(emptyIMBTree<Int, Int>()) shouldBe FBSTree.emptyIMBTree()
+        nul<Int, Int>().fdropAlt(of(1.toIAEntry())) shouldBe FBSTree.emptyIMBTree()
+    }
+
+    test("dropAlt") {
+        ofvi(1,2,3).fdropAlt(FRBTree.emptyIMBTree<Int, Int>()) shouldBe ofvi(1,2,3)
+        ofvi(1,2,3).fdropAlt(FRBTree.of(1.toIAEntry(),2.toIAEntry())) shouldBe ofvi(3)
+        ofvi(1,2,3,4).fdropAlt(FRBTree.of(1.toIAEntry(),2.toIAEntry())) shouldBe ofvi(3, 4)
+        ofvi(1,2,3).fdropAlt(FRBTree.of(2.toIAEntry(),3.toIAEntry())) shouldBe ofvi(1)
+        ofvi(1,2,3,4).fdropAlt(FRBTree.of(2.toIAEntry(),3.toIAEntry())) shouldBe ofvi(1, 4)
+        ofvi(1,2,3).fdropAlt(FRBTree.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2)
+        ofvi(1,2,3,4).fdropAlt(FRBTree.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2, 4)
+    }
+
     test("dropItem") {
         nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe FBSTree.emptyIMBTree()
 
@@ -143,7 +160,7 @@ class FBSTreeFilteringTest : FunSpec({
         // remove only one
         val aux5a = slideShareTree.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
         val aux5b = aux5a.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
-        FBSTree.equal2(aux5b.fdropItem(slideShareTree.fleftMost()!!), aux5a) shouldBe true
+        IMBTreeEqual2(aux5b.fdropItem(slideShareTree.fleftMost()!!), aux5a) shouldBe true
     }
 
     test("ffdropItemAll") {

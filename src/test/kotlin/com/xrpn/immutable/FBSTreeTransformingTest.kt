@@ -100,6 +100,17 @@ class FBSTreeTransformingTest : FunSpec({
         }
     }
 
+    test("fmapDup") {
+        FBSTree.nul<Int, Int>().fmapDup(true) { 2.toIAEntry() } shouldBe FBSTNil
+        Arb.fbstreeAllowDups<Int, Int>(Arb.int((-50..50))).checkAll(repeats) { fbst ->
+            val sum = fbst.ffoldv(0) {acc, v -> acc+v }
+            val aut = fbst.fmapDup(true) { tkv -> TKVEntry.of(tkv.getk(), tkv.getv()*13) }
+            aut.fhasDups() shouldBe fbst.fhasDups()
+            val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
+            (sum * 13) shouldBe sum13
+        }
+    }
+
     test("fmapToList") {
         FBSTree.nul<Int, Int>().fmapToList { 2.toIAEntry() } shouldBe FBSTNil
         val f: (tkv: TKVEntry<Int,Int>) -> TKVEntry<Int,Int> = { tkv -> TKVEntry.of(tkv.getk(), tkv.getv()*13) }

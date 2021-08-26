@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.IMBTree
+import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -93,6 +94,11 @@ class FRBTreeAlteringTest : FunSpec({
         FRBTree.rbRootSane(aux8) shouldBe true
     }
 
+    test("finserts, finsertt NIL") {
+        nul<Int, Int>().finserts(FLNil).inorder() shouldBe FRBTree.emptyIMBTree<Int, Int>()
+        nul<Int, Int>().finsertt(FRBTree.emptyIMBTree()).inorder() shouldBe FRBTree.emptyIMBTree<Int, Int>()
+    }
+
     test("finsert item") {
         FRBTree.nul<Int,String>().finsert(mEntry) shouldBe FRBTNode(mEntry, FRBTree.BLACK)
         FRBTNode(mEntry).finsert(lEntry) shouldBe frbDepthOneLeft
@@ -100,32 +106,13 @@ class FRBTreeAlteringTest : FunSpec({
         ttDepthTwoRightPartial.finsert(rEntry) shouldBe frbDepthTwoRightLeft
     }
 
-    test("finsertDup item") {
-        FRBTree.nul<Int,String>().finsertDup(mEntry, allowDups = false) shouldBe FRBTNode(mEntry, FRBTree.BLACK)
-        FRBTree.nul<Int,String>()
-            .finsertDup(mEntry, allowDups = true)
-            .finsertDup(mEntry, allowDups = true) shouldBe FRBTNode(mEntry, FRBTree.BLACK)
-        FRBTNode(mEntry).finsertDup(lEntry, allowDups = false) shouldBe frbDepthOneLeft
-        FRBTNode(mEntry)
-            .finsertDup(lEntry, allowDups = true)
-            .finsertDup(lEntry, allowDups = true) shouldBe frbDepthOneLeft
-        frbDepthOneLeft.finsertDup(nEntry, allowDups = false) shouldBe frbDepthOneFull
-        frbDepthOneLeft
-            .finsertDup(nEntry, allowDups = true)
-            .finsertDup(nEntry, allowDups = true) shouldBe frbDepthOneFull
-        ttDepthTwoRightPartial.finsertDup(rEntry, allowDups = false) shouldBe frbDepthTwoRightLeft
-        ttDepthTwoRightPartial
-            .finsertDup(rEntry, allowDups = true)
-            .finsertDup(rEntry, allowDups = true) shouldBe frbDepthTwoRightLeft
-    }
-
-    test("finserts, finsertsDup") {
+    test("finserts, finsertt") {
         Arb.flist<Int, Int>(Arb.int(-25, 25)).checkAll(repeatsHigh.first, PropTestConfig(seed = -3400901283900794903)) { fl ->
+            val tab = FRBTree.ofvi(fl.iterator())
             val flkv: FList<TKVEntry<Int, Int>> = fl.fmap { it.toIAEntry() }
             val sl: List<TKVEntry<Int, Int>> = flkv.copyToMutableList().toSet().sorted()
-            FRBTree.nul<Int, Int>().finserts(flkv).inorder() shouldBe sl
-            FRBTree.nul<Int, Int>().finsertsDups(flkv, allowDups = false).inorder() shouldBe sl
-            FRBTree.nul<Int, Int>().finsertsDups(flkv, allowDups = true).inorder() shouldBe sl
+            nul<Int, Int>().finserts(flkv).inorder() shouldBe sl
+            nul<Int, Int>().finsertt(tab).inorder() shouldBe sl
         }
     }
 

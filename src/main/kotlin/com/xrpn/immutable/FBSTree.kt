@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
+import com.xrpn.hash.DigestHash
 import com.xrpn.hash.DigestHash.crc32ci
 import com.xrpn.imapi.*
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
@@ -63,6 +64,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== utility
 
+    override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
+
     override fun toIMSet(): FSet<B> = FSet.of(this)
 
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
@@ -70,26 +73,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     // =========== traversable
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A, B>> {
-
-//        fun accrue(stack: FStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, FStack<FBSTNode<A, B>>> {
-//            val (node, shortStack) = stack.pop()
-//            val newAcc: FList<TKVEntry<A, B>> = visit(node, acc)
-//            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-//            val newStack = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
-//            return Pair(newAcc, newStack)
-//        }
-//
-//        return if (this.fempty()) FLNil else when(reverse) {
-//            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue).freverse()
-//            true -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::accrue)
-//        }
         val fl = this.ffold(FList.emptyIMList<TKVEntry<A,B>>()) { acc, item -> FLCons(item, acc) }
-        return when(reverse) {
-//            true -> traverse(this, FLNil)
-            true -> fl
-            false -> fl.freverse()
-//            false -> traverse(this, FLNil).freverse()
-        }
+        return if(reverse) fl else fl.freverse()
     }
 
     override fun inorder(reverse: Boolean): FList<TKVEntry<A, B>> {
@@ -366,6 +351,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
 
+    override fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
+        this.ffold(nul()) { acc, tkv -> acc.finsertDup(f(tkv), allowDups) }
+
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FBSTNil -> null
         is FBSTNode -> {
@@ -385,7 +373,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> =
         bstInserts(this, items as FList<TKVEntry<A, B>>, allowDups = false)
 
-    override fun finsertsDups(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FBSTree<A, B> =
+    override fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FBSTree<A, B> =
         bstInserts(this, items as FList<TKVEntry<A, B>>, allowDups)
 
     // =========== internals
@@ -922,23 +910,23 @@ internal data class FBSTNode<out A, out B: Any> (
             other.isEmpty() -> false
             this.entry.getk()::class != other.entry.getk()::class -> false
             this.entry.getv()::class != other.entry.getv()::class -> false
-            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as FBSTNode<A, B>)
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FBSTNode<A, B>)
         }
         other is IMBTree<*, *> -> when {
             other.fempty() -> false
             this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
             this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
-            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as IMBTree<A, B>)
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
         }
         else -> false
     }
 
     val hash:Int by lazy {
         val aux: Long = this.ffold(0L) { acc, tkv -> when(val k = tkv.getk()) {
-            is Int -> acc + 3L * k.toLong()
-            is Long -> acc + 3L * k
-            is BigInteger -> acc + 3L * crc32ci(k.toByteArray()).toLong()
-            else -> acc + 3L * k.hashCode().toLong()
+            is Int -> ((9151L * (acc + 3541L)) / 9157L) + 2713L * k.toLong()
+            is Long -> ((9151L * (acc + 3541L)) / 9157L) + 1549L * k
+            is BigInteger -> ((9151L * (acc + 3541L)) / 9157L) + 1973L * DigestHash.crc32ci(k.toByteArray()).toLong()
+            else -> ((9151L * (acc + 3541L)) / 9157L) + 1109L * k.hashCode().toLong()
         }}
         if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else crc32ci(aux.toBigInteger().toByteArray())

@@ -3,18 +3,19 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 
+internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean = when {
+    lhs === rhs -> true
+    rhs.fempty() && lhs.fempty() -> true
+    rhs.fempty() || lhs.fempty() -> false
+    rhs.fsize() != lhs.fsize() -> false
+    // same elements in same order
+    lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize() -> true
+    else -> false
+}
+
 interface IMListCompanion {
 
     fun <A: Any> emptyIMList(): IMList<A>
-    fun <A: Any> equal2(lhs: IMList<A>, rhs: IMList<A>): Boolean = when {
-        lhs === rhs -> true
-        lhs.fsize() != rhs.fsize() -> false
-        0 == lhs.fsize() -> true // i.e. they are both empty
-        // same elements in same order
-        lhs.fzipWhile(rhs) { l, r ->  l == r }.fsize() == lhs.fsize() -> true
-        else -> false
-    }
-
     fun <A: Any> of(vararg items: A): IMList<A>
     fun <A: Any> of(items: Iterator<A>): IMList<A>
     fun <A: Any> of(items: List<A>): IMList<A>
@@ -28,16 +29,15 @@ interface IMListCompanion {
     fun <A: Any> Collection<A>.toIMList():IMList<A>
 }
 
+// because of type erasure, this is not entirely type safe, hence "internal"
+internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean = when {
+    lhs === rhs -> true
+    else -> IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
+}
+
 interface IMSetCompanion {
 
     fun <A: Any> emptyIMSet(): IMSet<A>
-    fun <A: Any> equal2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean = when {
-        lhs === rhs -> true
-        lhs.fsize() != rhs.fsize() -> false
-        0 == lhs.fsize() -> true // i.e. they are both empty
-        else -> lhs.toIMBTree().equal(rhs.toIMBTree())
-    }
-
     fun <A: Any> of(vararg items: A): IMSet<A>
     fun <A: Any> of(items: Iterator<A>): IMSet<A>
     fun <K, A: Any> of(items: IMBTree<K, A>): IMSet<A> where K: Any, K: Comparable<K>
@@ -57,7 +57,8 @@ interface IMSetCompanion {
     fun <A: Any> Collection<A>.toIMSet(): IMSet<A>
 }
 
-fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
+// because of type erasure, this is not entirely type safe, hence "internal"
+internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
     rhs === lhs -> true
     rhs.fempty() && lhs.fempty() -> true
     rhs.fempty() || lhs.fempty() -> false
@@ -72,7 +73,6 @@ fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean 
 interface IMBTreeCompanion {
 
     fun <A, B: Any> emptyIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> equal2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = IMBTreeEqual2(rhs, lhs)
     fun <A, B: Any> of(vararg items: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>

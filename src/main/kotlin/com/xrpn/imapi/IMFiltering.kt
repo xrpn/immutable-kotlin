@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FRBTree
 import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 
@@ -45,7 +46,10 @@ interface IMSetFiltering<out A: Any> {
     fun isSetOfOne() = this is FSetOfOne
     fun fpick(): A? // peek at one random element
     fun fAND(items: IMSet<@UnsafeVariance A>): IMSet<A>
+    fun fNOT(items: IMSet<@UnsafeVariance A>): IMSet<A> = fdropAll(items)
+    fun fOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
     fun fXOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
+
 }
 
 interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -53,6 +57,8 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
     fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fcontainsKey(key: @UnsafeVariance A): Boolean
     fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): IMBTree<A, B>
+    fun fdropAlt(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> =
+        items.ffold(this as IMBTree<A,B>)  { stub, tkv -> if (stub.fcontains(tkv)) stub.fdropItem(tkv) else stub }
     fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     fun fdropWhen(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p

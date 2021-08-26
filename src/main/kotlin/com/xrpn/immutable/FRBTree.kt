@@ -74,6 +74,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
     // =========== utility
 
+    override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
+
     override fun toIMSet(): FSet<B> = FSet.of(this)
 
     override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
@@ -308,8 +310,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
         this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FRBTree<C, D>)) }
 
+    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("fflatMap(f)"))
     override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
-        fflatMap(f)
+        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else fflatMap(f)
 
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
@@ -325,6 +328,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
 
+    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("fmap(f)"))
+    override fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
+        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else fmap(f)
+
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FRBTNil -> null
         is FRBTNode -> {
@@ -338,14 +345,16 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
         rbtInsert(this, item)
 
+    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("finsert(item)"))
     override fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): FRBTree<A, B> =
-        rbtInsert(this, item)
+        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else rbtInsert(this, item)
 
     override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> =
         rbtInserts(this, items as FList<TKVEntry<A,B>>)
 
-    override fun finsertsDups(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FRBTree<A, B> =
-        rbtInserts(this, items as FList<TKVEntry<A,B>>)
+    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("finserts(items)"))
+    override fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FRBTree<A, B> =
+        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else rbtInserts(this, items as FList<TKVEntry<A,B>>)
 
     // =========== internals
 
@@ -921,19 +930,19 @@ internal data class FRBTNode<A, B: Any> (
             this.color != other.color -> false
             this.entry.getk()::class != other.entry.getk()::class -> false
             this.entry.getv()::class != other.entry.getv()::class -> false
-            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as FRBTree<A, B>)
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FRBTree<A, B>)
         }
         other is IMBTree<*, *> -> when {
             other.fempty() -> false
             this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
             this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
-            else -> @Suppress("UNCHECKED_CAST") equal2(this, other as IMBTree<A, B>)
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
         }
         other is IMSet<*> -> when {
             other.fempty() -> false
             this.froot()?.getk()!!::class != other.toIMBTree().froot()?.getk()!!::class -> false
             this.froot()?.getv()!!::class != other.fpick()!!::class -> false
-            else -> @Suppress("UNCHECKED_CAST") equal2(this, other.toIMBTree() as IMBTree<A, B>)
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other.toIMBTree() as IMBTree<A, B>)
         }
         other is Set<*> -> when {
             other.isEmpty() -> false
@@ -947,10 +956,10 @@ internal data class FRBTNode<A, B: Any> (
 
     val hash:Int by lazy {
         val aux: Long = this.ffold(this.color.hashCode().toLong()) { acc, tkv -> when(val k = tkv.getk()) {
-            is Int -> acc + 3L * k.toLong()
-            is Long -> acc + 3L * k
-            is BigInteger -> acc + 3L * DigestHash.crc32ci(k.toByteArray()).toLong()
-            else -> acc + 3L * k.hashCode().toLong()
+            is Int -> ((9157L * (acc + 3539L)) / 9161L) + 2713L * k.toLong()
+            is Long -> ((9157L * (acc + 3539L)) / 9161L) + 1549L * k
+            is BigInteger -> ((9157L * (acc + 3539L)) / 9161L) + 1973L * DigestHash.crc32ci(k.toByteArray()).toLong()
+            else -> ((9157L * (acc + 3539L)) / 9161L) + 1109L * k.hashCode().toLong()
         }}
         if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
         else DigestHash.crc32ci(aux.toBigInteger().toByteArray())

@@ -24,6 +24,7 @@ interface IMListGrouping<out A: Any> {
 
 interface IMSetGrouping<out A: Any> {
 
+    fun <B: Any> fcartesian(rhs: IMSet<B>): IMSet<Pair<A, B>> // cartesian product
     fun fcombinations(size: Int): IMSet<IMSet<A>> // all groups of "size" members from this set; order does not matter
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f

@@ -66,6 +66,21 @@ class FRBTreeFilteringTest : FunSpec({
         ofvi(1, 2, 3, 4).fdropAll(FList.of(1.toIAEntry(),3.toIAEntry())) shouldBe ofvi(2, 4)
     }
 
+    test("dropAlt (nil)") {
+        FBSTree.nul<Int, Int>().fdropAlt(emptyIMBTree<Int, Int>()) shouldBe FBSTree.emptyIMBTree()
+        FBSTree.nul<Int, Int>().fdropAlt(of(1.toIAEntry())) shouldBe FBSTree.emptyIMBTree()
+    }
+
+    test("dropAlt") {
+        FBSTree.ofvi(1, 2, 3).fdropAlt(FBSTree.emptyIMBTree<Int, Int>()) shouldBe FBSTree.ofvi(1, 2, 3)
+        FBSTree.ofvi(1, 2, 3).fdropAlt(FBSTree.of(1.toIAEntry(),2.toIAEntry())) shouldBe FBSTree.ofvi(3)
+        FBSTree.ofvi(1, 2, 3, 4).fdropAlt(FBSTree.of(1.toIAEntry(),2.toIAEntry())) shouldBe FBSTree.ofvi(3, 4)
+        FBSTree.ofvi(1, 2, 3).fdropAlt(FBSTree.of(2.toIAEntry(),3.toIAEntry())) shouldBe FBSTree.ofvi(1)
+        FBSTree.ofvi(1, 2, 3, 4).fdropAlt(FBSTree.of(2.toIAEntry(),3.toIAEntry())) shouldBe FBSTree.ofvi(1, 4)
+        FBSTree.ofvi(1, 2, 3).fdropAlt(FBSTree.of(1.toIAEntry(),3.toIAEntry())) shouldBe FBSTree.ofvi(2)
+        FBSTree.ofvi(1, 2, 3, 4).fdropAlt(FBSTree.of(1.toIAEntry(),3.toIAEntry())) shouldBe FBSTree.ofvi(2, 4)
+    }
+
     test("fdropItem") {
         nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe FRBTree.emptyIMBTree()
 
@@ -258,14 +273,14 @@ class FRBTreeFilteringTest : FunSpec({
                     go(t, acc.tail, inorder)
                 }
             }
-        val aux1 = frbWikiTree.finsertDup(frbWikiTree.froot()!!, allowDups = true)
+        val aux1 = frbWikiTree.finsert(frbWikiTree.froot()!!)
         go(aux1, frbWikiPreorder, aux1.inorder())
-        val aux2 = frbWikiTree.finsertDup(frbWikiTree.froot()!!, allowDups = true)
-            .finsertDup(frbWikiTree.froot()!!, allowDups = true)
+        val aux2 = frbWikiTree.finsert(frbWikiTree.froot()!!)
+            .finsert(frbWikiTree.froot()!!)
         go(aux2, frbWikiPreorder, aux2.inorder())
-        val aux3 = frbWikiTree.finsertDup(frbWikiTree.fleftMost()!!, allowDups = true)
+        val aux3 = frbWikiTree.finsert(frbWikiTree.fleftMost()!!)
         go(aux3, frbWikiPreorder, aux3.inorder())
-        val aux4 = frbWikiTree.finsertDup(frbWikiTree.frightMost()!!, allowDups = true)
+        val aux4 = frbWikiTree.finsert(frbWikiTree.frightMost()!!)
         go(aux4, frbWikiPreorder, aux4.inorder())
         val aux5 = frbSlideShareTree.finsert(frbSlideShareTree.fleftMost()!!)
             .finsert(frbSlideShareTree.fleftMost()!!)

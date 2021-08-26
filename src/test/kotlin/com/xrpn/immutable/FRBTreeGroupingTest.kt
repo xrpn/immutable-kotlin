@@ -69,7 +69,7 @@ class FRBTreeGroupingTest  : FunSpec({
         val res = frbSlideShareTree.ffold(Pair(nul<Int, Int>(), frbSlideShareTree.fpopAndReminder())) { acc, _ ->
             val (rebuild, popAndStub) = acc
             val (pop, stub) = popAndStub
-            Pair(rebuild.finsertDup(pop!!, allowDups = true), stub.fpopAndReminder())
+            Pair(rebuild.finsert(pop!!), stub.fpopAndReminder())
         }
         res.first shouldBe slideShareTree
         val (lastPopped, lastReminder) = res.second

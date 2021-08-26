@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTreeEqual2
 import com.xrpn.immutable.FBSTree.Companion.NOT_FOUND
 import com.xrpn.immutable.FBSTree.Companion.addGraftTestingGremlin
 import com.xrpn.immutable.FBSTree.Companion.bstDelete
@@ -105,83 +106,83 @@ class FBSTreeCompanionTest : FunSpec({
         emptyIMBTree<Int, Int>() shouldBe FBSTNil
     }
 
-    test("co.equal2") {
-        FBSTree.equal2(intFbstOfNone, FBSTree.ofvi(*arrayOf<Int>())) shouldBe true
-        FBSTree.equal2(intFbstOfNone, intFbstOfNone) shouldBe true
-        FBSTree.equal2(FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>())) shouldBe false
-        FBSTree.equal2(intFbstOfNone, FBSTree.ofvi(*arrayOf(1))) shouldBe false
-        FBSTree.equal2(intFbstOfOne, FBSTree.ofvi(*arrayOf<Int>(1))) shouldBe true
-        FBSTree.equal2(intFbstOfOne, intFbstOfOne) shouldBe true
-        FBSTree.equal2(FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
-        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1))) shouldBe false
-        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1, 2))) shouldBe true
-        FBSTree.equal2(FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(2, 1))) shouldBe true
-        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
-        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
-        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
-        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
-        FBSTree.equal2(intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
+    test("co.[ IMBTreeEqual2 ]") {
+        IMBTreeEqual2 (intFbstOfNone, FBSTree.ofvi(*arrayOf<Int>())) shouldBe true
+        IMBTreeEqual2 (intFbstOfNone, intFbstOfNone) shouldBe true
+        IMBTreeEqual2 (FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>())) shouldBe false
+        IMBTreeEqual2 (intFbstOfNone, FBSTree.ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (intFbstOfOne, FBSTree.ofvi(*arrayOf<Int>(1))) shouldBe true
+        IMBTreeEqual2 (intFbstOfOne, intFbstOfOne) shouldBe true
+        IMBTreeEqual2 (FBSTree.ofvi(*arrayOf(1)), FBSTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
+        IMBTreeEqual2 (FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(1, 2))) shouldBe true
+        IMBTreeEqual2 (FBSTree.ofvi(*arrayOf<Int>(1, 2)), FBSTree.ofvi(*arrayOf(2, 1))) shouldBe true
+        IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
+        IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
+        IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
+        IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
+        IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
     }
 
     test("co.of varargs") {
-        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe emptyIMBTree()
-        FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe emptyIMBTree()
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of varargs dups") {
-        FBSTree.of(*arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe emptyIMBTree()
-        FBSTree.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(*arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe emptyIMBTree()
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator") {
-        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe emptyIMBTree()
-        FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe emptyIMBTree()
+        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of iterator dups") {
-        FBSTree.of(emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
-        FBSTree.of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
+        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of IMList (dups and no dups)") {
-        FBSTree.of<Int, Int>(FLNil) shouldBe FBSTNil
-        FBSTree.of(FList.of(*arrayOf(mEntry,lEntry,nEntry))) shouldBe FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(nEntry))
-        FBSTree.of(FList.of(*arrayOf(mEntry,cEntry,bEntry,dEntry,zEntry,bEntry)), allowDups = true) shouldBe
+        of<Int, Int>(FLNil) shouldBe FBSTNil
+        of(FList.of(*arrayOf(mEntry,lEntry,nEntry))) shouldBe FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(nEntry))
+        of(FList.of(*arrayOf(mEntry,cEntry,bEntry,dEntry,zEntry,bEntry)), allowDups = true) shouldBe
                 FBSTNode(mEntry,
                     FBSTNode(cEntry,
                         FBSTNode(bEntry, FBSTNil,
                             FBSTNode(bEntry, FBSTNil, FBSTNil)),
                         FBSTNode(dEntry, FBSTNil, FBSTNil)),
                     FBSTNode(zEntry, FBSTNil, FBSTNil))
-        FBSTree.of(FList.of(*arrayOf(mEntry,cEntry,bEntry,dEntry,zEntry,bEntry)) /*, allowDups = false */) shouldBe
+        of(FList.of(*arrayOf(mEntry,cEntry,bEntry,dEntry,zEntry,bEntry)) /*, allowDups = false */) shouldBe
                 FBSTNode(mEntry,
                     FBSTNode(cEntry,
                         FBSTNode(bEntry, FBSTNil, FBSTNil),
                         FBSTNode(dEntry, FBSTNil, FBSTNil)),
                     FBSTNode(zEntry, FBSTNil, FBSTNil))
-        FBSTree.of(wikiPreorder) shouldBe wikiTree
-        FBSTree.of(slideSharePreorder) shouldBe slideShareTree
+        of(wikiPreorder) shouldBe wikiTree
+        of(slideSharePreorder) shouldBe slideShareTree
     }
 
     test("co.ofvi varargs") {
-        FBSTree.ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
-        FBSTree.ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
+        ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi varargs dups") {
-        FBSTree.ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
-        FBSTree.ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(*arrayOf<Int>()) shouldBe emptyIMBTree()
+        ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi iterator") {
-        FBSTree.ofvi(arrayOf<Int>().iterator()) shouldBe emptyIMBTree()
-        FBSTree.ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(arrayOf<Int>().iterator()) shouldBe emptyIMBTree()
+        ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi iterator (property)") {
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
             val values = IntArray(n) { _: Int -> nextInt() }
-            val bst = FBSTree.ofvi(values.iterator(), allowDups = true)
+            val bst = ofvi(values.iterator(), allowDups = true)
             bst.size shouldBe n
             val aut = bst.inorder()
             values.sort()

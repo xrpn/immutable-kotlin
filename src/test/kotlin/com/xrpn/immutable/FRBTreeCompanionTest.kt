@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTreeEqual2
 import com.xrpn.immutable.FRBTree.Companion.NOT_FOUND
 import com.xrpn.immutable.FRBTree.Companion.BLACK
 import com.xrpn.immutable.FRBTree.Companion.RED
@@ -114,22 +115,22 @@ class FRBTreeCompanionTest : FunSpec({
         emptyIMBTree<Int, Int>() shouldBe FRBTNil
     }
 
-    test("co.equal2") {
-        FRBTree.equal2(intFrbtOfNone, FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
-        FRBTree.equal2(intFrbtOfNone, intFrbtOfNone) shouldBe true
-        FRBTree.equal2(FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
-        FRBTree.equal2(intFrbtOfNone, FRBTree.ofvi(*arrayOf(1))) shouldBe false
-        FRBTree.equal2(intFrbtOfOne, FRBTree.ofvi(*arrayOf<Int>(1))) shouldBe true
-        FRBTree.equal2(intFrbtOfOne, intFrbtOfOne) shouldBe true
-        FRBTree.equal2(FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
-        FRBTree.equal2(FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1))) shouldBe false
-        FRBTree.equal2(FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1, 2))) shouldBe true
-        FRBTree.equal2(FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(2, 1))) shouldBe true
-        FRBTree.equal2(intFrbtOfThree, FRBTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
-        FRBTree.equal2(intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
-        FRBTree.equal2(intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
-        FRBTree.equal2(intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
-        FRBTree.equal2(intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
+    test("co.[ IMBTreeEqual2 ]") {
+        IMBTreeEqual2 (intFrbtOfNone, FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
+        IMBTreeEqual2 (intFrbtOfNone, intFrbtOfNone) shouldBe true
+        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
+        IMBTreeEqual2 (intFrbtOfNone, FRBTree.ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (intFrbtOfOne, FRBTree.ofvi(*arrayOf<Int>(1))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfOne, intFrbtOfOne) shouldBe true
+        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
+        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1, 2))) shouldBe true
+        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(2, 1))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
     }
     
     test("co.of varargs") {
@@ -279,11 +280,6 @@ class FRBTreeCompanionTest : FunSpec({
         FRBTree.finsertIK(intFrbtOfTwo, 3) shouldBe intFrbtOfThree
     }
 
-    test("co.finsertDupIK") {
-        FRBTree.finsertDupIK(FRBTree.finsertDupIK(intFrbtOfOne, 2, allowDups = true), 2, allowDups = true) shouldBe FRBTree.finsertDupIK(intFrbtOfTwo, 2, allowDups = true)
-    }
-
-
     test("co.fcontainsSK") {
         FRBTree.fcontainsSK(strFrbtOfThree, "a") shouldBe true
         FRBTree.fcontainsSK(strFrbtOfThree, "b") shouldBe true
@@ -311,10 +307,6 @@ class FRBTreeCompanionTest : FunSpec({
 
     test("co.finsertSK") {
         FRBTree.finsertSK(strFrbtOfTwo, "c") shouldBe strFrbtOfThree
-    }
-
-    test("co.finsertDupSK") {
-        FRBTree.finsertDupSK(FRBTree.finsertDupSK(strFrbtOfOne, "b", allowDups = true), "b", allowDups = true) shouldBe FRBTree.finsertDupSK(strFrbtOfTwo, "b", allowDups = true)
     }
 
     // =========================== implementation
