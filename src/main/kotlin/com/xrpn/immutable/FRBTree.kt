@@ -673,7 +673,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
-            a.getk() == b.entry.getk() -> FBTFIT.EQ
+            a.getk() == b.entry.getk() -> {
+                // TODO XXXQQQXXX remove
+                val msg = "$a has same key as ${b.entry}"
+                if (msg.contains("FList") && !(a.equals(b.entry))) println(msg)
+                FBTFIT.EQ
+            }
             a.getk() < b.entry.getk() -> FBTFIT.LEFT
             else -> FBTFIT.RIGHT
         }
@@ -955,14 +960,14 @@ internal data class FRBTNode<A, B: Any> (
     }
 
     val hash:Int by lazy {
-        val aux: Long = this.ffold(this.color.hashCode().toLong()) { acc, tkv -> when(val k = tkv.getk()) {
-            is Int -> ((9157L * (acc + 3539L)) / 9161L) + 2713L * k.toLong()
-            is Long -> ((9157L * (acc + 3539L)) / 9161L) + 1549L * k
-            is BigInteger -> ((9157L * (acc + 3539L)) / 9161L) + 1973L * DigestHash.crc32ci(k.toByteArray()).toLong()
-            else -> ((9157L * (acc + 3539L)) / 9161L) + 1109L * k.hashCode().toLong()
-        }}
-        if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
-        else DigestHash.crc32ci(aux.toBigInteger().toByteArray())
+        val aux: Pair<Long, Long> = this.ffold(Pair(this.color.hashCode().toLong(), 1L)) { acc, tkv -> Pair(when(val k = tkv.getk()) {
+            is Int -> ((9161L * acc.first * acc.second) / 9157L) + 2713L * (k.toLong() + acc.second)
+            is Long -> ((9161L * acc.first * acc.second) / 9157L) + 1549L * (k + acc.second)
+            is BigInteger -> ((9161L * acc.first * acc.second) / 9157L) + 1973L * (DigestHash.crc32ci(k.toByteArray()).toLong()  + acc.second)
+            else -> ((9161L * acc.first * acc.second) / 9157L) + 1109L * (k.hashCode().toLong() + acc.second)
+        }, acc.second + 1) }
+        if (Int.MIN_VALUE.toLong() < aux.first && aux.first < Int.MAX_VALUE.toLong()) aux.first.toInt()
+        else DigestHash.crc32ci(aux.first.toBigInteger().toByteArray())
     }
 
     override fun hashCode(): Int = hash

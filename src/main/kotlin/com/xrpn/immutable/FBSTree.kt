@@ -922,14 +922,14 @@ internal data class FBSTNode<out A, out B: Any> (
     }
 
     val hash:Int by lazy {
-        val aux: Long = this.ffold(0L) { acc, tkv -> when(val k = tkv.getk()) {
-            is Int -> ((9151L * (acc + 3541L)) / 9157L) + 2713L * k.toLong()
-            is Long -> ((9151L * (acc + 3541L)) / 9157L) + 1549L * k
-            is BigInteger -> ((9151L * (acc + 3541L)) / 9157L) + 1973L * DigestHash.crc32ci(k.toByteArray()).toLong()
-            else -> ((9151L * (acc + 3541L)) / 9157L) + 1109L * k.hashCode().toLong()
-        }}
-        if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
-        else crc32ci(aux.toBigInteger().toByteArray())
+        val aux: Pair<Long, Long> = this.ffold(Pair(217619L, 1L)) { acc, tkv -> Pair(when(val k = tkv.getk()) {
+            is Int -> ((9161L * acc.first * acc.second) / 9151L) + 2713L * (k.toLong() + acc.second)
+            is Long -> ((9161L * acc.first * acc.second) / 9151L) + 1549L * (k + acc.second)
+            is BigInteger -> ((9161L * acc.first * acc.second) / 9151L) + 1973L * (DigestHash.crc32ci(k.toByteArray()).toLong()  + acc.second)
+            else -> ((9161L * acc.first * acc.second) / 9151L) + 1109L * (k.hashCode().toLong() + acc.second)
+        }, acc.second + 1) }
+        if (Int.MIN_VALUE.toLong() < aux.first && aux.first < Int.MAX_VALUE.toLong()) aux.first.toInt()
+        else crc32ci(aux.first.toBigInteger().toByteArray())
     }
 
     override fun hashCode(): Int = hash

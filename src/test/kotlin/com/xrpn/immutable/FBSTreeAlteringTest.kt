@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -247,10 +248,10 @@ class FBSTreeAlteringTest : FunSpec({
     }
 
     test("finserts, finsertt, finsertsDup (A)") {
-        FBSTree.nul<Int, Int>().finserts(FLNil).inorder() shouldBe FBSTree.emptyIMBTree<Int, Int>()
-        FBSTree.nul<Int, Int>().finsertt(FBSTree.emptyIMBTree()).inorder() shouldBe FBSTree.emptyIMBTree<Int, Int>()
-        FBSTree.nul<Int, Int>().finsertsDup(FLNil, allowDups = false) shouldBe FBSTree.emptyIMBTree<Int, Int>()
-        FBSTree.nul<Int, Int>().finsertsDup(FLNil, allowDups = true) shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        nul<Int, Int>().finserts(FLNil).inorder() shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        nul<Int, Int>().finsertt(FBSTree.emptyIMBTree()).inorder() shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        nul<Int, Int>().finsertsDup(FLNil, allowDups = false) shouldBe FBSTree.emptyIMBTree<Int, Int>()
+        nul<Int, Int>().finsertsDup(FLNil, allowDups = true) shouldBe FBSTree.emptyIMBTree<Int, Int>()
     }
 
     test("finserts, finsertt, finsertsDup (B)") {
@@ -259,10 +260,11 @@ class FBSTreeAlteringTest : FunSpec({
             val flkv: FList<TKVEntry<String, Int>> = fl.fmap { it.toSAEntry() }
             val l = flkv.copyToMutableList()
             val s = l.toSet()
-            FBSTree.nul<String, Int>().finserts(flkv).inorder() shouldBe s.sorted()
-            FBSTree.nul<String, Int>().finsertt(tab).inorder() shouldBe s.sorted()
-            FBSTree.nul<String, Int>().finsertsDup(flkv, allowDups = false).inorder() shouldBe s.sorted()
-            FBSTree.nul<String, Int>().finsertsDup(flkv, allowDups = true).inorder() shouldBe l.sorted()
+            nul<String, Int>().finserts(flkv).inorder() shouldBe s.sorted()
+            nul<String, Int>().finsertt(tab).inorder() shouldBe s.sorted()
+            tab.finsertt(FRBTree.nul()).inorder() shouldBe s.sorted()
+            nul<String, Int>().finsertsDup(flkv, allowDups = false).inorder() shouldBe s.sorted()
+            nul<String, Int>().finsertsDup(flkv, allowDups = true).inorder() shouldBe l.sorted()
         }
     }
 

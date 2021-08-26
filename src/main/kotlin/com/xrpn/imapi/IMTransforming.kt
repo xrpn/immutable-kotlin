@@ -13,6 +13,8 @@ interface IMListTransforming<out A: Any> {
     fun freduceLeft(f: (acc: A, A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
     fun freduceRight(f: (A, acc: A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from right to left
     fun freverse(): IMList<A>
+    fun frotr(): IMList<A> // (A, B, C).frot() becomes (C, A, B)
+    fun frotl(): IMList<A> // (A, B, C).frot() becomes (B, C, A)
 }
 
 interface IMSetTransforming<out A: Any> {

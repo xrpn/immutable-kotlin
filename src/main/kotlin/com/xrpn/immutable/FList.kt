@@ -465,6 +465,19 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun freverse(): FList<A> = this.ffoldLeft(emptyIMList(), { b, a -> FLCons(a,b)})
 
+    override fun frotr(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if( 1 == this.size) this else {
+            FLCons(this.flast()!!, this.fdropRight(1))
+        }
+    }
+
+    override fun frotl(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if( 1 == this.size) this else this.tail.fappend(this.head)
+    }
+
+
     // =====
 
     override fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
@@ -680,15 +693,17 @@ data class FLCons<out A: Any>(
         else -> false
     }
 
-    val show: String by lazy { (ffoldLeft("${FList::class.simpleName}:") { str, h -> "$str($h, #" }) + FLNil.toString()+")".repeat(size) }
+    val show: String by lazy { (ffoldLeft("${FList::class.simpleName}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
 
     // the data class built-in toString is not stack safe
     override fun toString(): String = show
 
     val hash: Int by lazy {
-        val aux: Long = ffoldLeft(0L) { code, h -> code + (3L * h.hashCode().toLong()) }
-        if (Int.MIN_VALUE.toLong() < aux && aux < Int.MAX_VALUE.toLong()) aux.toInt()
-        else DigestHash.crc32ci(aux.toBigInteger().toByteArray())
+        val aux: Pair<Long, Long> = this.ffoldLeft(Pair(217463L, 1L)) { acc, h ->
+            Pair(((5261L * acc.first * acc.second) / 5231L) + (2003L * (h.hashCode().toLong() + acc.second)), acc.second + 1L)
+        }
+        if (Int.MIN_VALUE.toLong() < aux.first && aux.first < Int.MAX_VALUE.toLong()) aux.first.toInt()
+        else DigestHash.crc32ci(aux.first.toBigInteger().toByteArray())
     }
 
     // the data class built-in hashCode is not stack safe

@@ -194,8 +194,32 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     }
 
     override fun fpermutations(size: Int): FSet<FList<A>> {
-        // all groups of "size" members from this set; order does matter
-        TODO()
+        if (size < 1 || this.size < size) return emptyIMSet()
+        val sizedCmbs: FSet<FSet<A>> = this.fcombinations(size).ffilter { it.size == size }
+
+        fun swapHead(l: FList<A>): FList<A> = when(l) {
+            is FLNil -> FLNil
+            is FLCons -> if (1 == l.size) l else FLCons(l.tail.fhead()!!, FLCons(l.head, l.tail.ftail()))
+        }
+
+        tailrec fun gogo(mark:FList<A>, current:FList<A>, acc: FSet<FList<A>>): FSet<FList<A>> {
+            val rotated: FList<A> = current.frotl()
+            return if (mark.equals(rotated)) acc.fOR(mark.toSoO()).fOR(swapHead(mark).toSoO()) else when(rotated) {
+                is FLNil -> acc
+                is FLCons -> gogo(mark, rotated, acc.fOR(rotated.toSoO()).fOR(swapHead(rotated).toSoO()))
+            }
+        }
+
+        tailrec fun go(shrink: FSet<FSet<A>>, acc: FSet<FList<A>>): FSet<FList<A>> = if (shrink.fempty()) acc else {
+            val (pop, reminder) = shrink.fpopAndReminder()
+            val newAcc: FSet<FList<A>> = pop?.let {
+                val mark: FList<A> = it.copyToFList()
+                gogo(mark, mark, acc)
+            } ?: acc
+            go(reminder, newAcc)
+        }
+
+        return go(sizedCmbs, emptyIMSet())
     }
 
     override fun fpopAndReminder(): Pair<A?, FSet<A>> {
@@ -349,9 +373,9 @@ class FSetOfOne<out A: Any> internal constructor (
     val body: FRBTree<Int, A> by lazy { FRBTree.ofvi(one) }
     override fun isEmpty(): Boolean = false
     override fun equals(other: Any?): Boolean = FSetBody(body).equals(other)
-    val hash: Int by lazy { ((9151L * (this.body.hashCode().toLong() + 3121L)) / 9161L).toInt() }
+    val hash: Int by lazy { ((131L * (this.body.hashCode().toLong() + 17L)) / 127L).toInt() }
     override fun hashCode(): Int = hash
-    val show: String by lazy { FSet::class.simpleName+"($one)" }
+    val show: String by lazy { FSetOfOne::class.simpleName+"($one)" }
     override fun toString(): String = show
     override val size: Int = 1
     override fun toFRBTree(): FRBTree<Int, A> = body
@@ -400,7 +424,7 @@ internal class FSetBody<out A: Any> internal constructor (
         else -> false
     }
 
-    val hash: Int by lazy { ((127L * (this.body.hashCode().toLong() + 17L)) / 131L).toInt() }
+    val hash: Int by lazy { ((131L * (this.body.hashCode().toLong() + 17L)) / 127L).toInt() }
 
     override fun hashCode(): Int = hash
 

@@ -130,4 +130,18 @@ class FListTransformingTest : FunSpec({
     intListOfThree.freduceRight(ss) shouldBe 0
     intListOfThreeA.freduceRight(ss) shouldBe 2
   }
+
+  test("frotl") {
+    intListOfNone.frotl() shouldBe intListOfNone
+    intListOfOne.frotl() shouldBe intListOfOne
+    intListOfTwo.frotl() shouldBe FLCons(2, FLCons(1, FLNil))
+    intListOfThree.frotl() shouldBe FLCons(2, FLCons(3, FLCons(1, FLNil)))
+  }
+
+  test("frotr") {
+    intListOfNone.frotr() shouldBe intListOfNone
+    intListOfOne.frotr() shouldBe intListOfOne
+    intListOfTwo.frotr() shouldBe FLCons(2, FLCons(1, FLNil))
+    intListOfThree.frotl() shouldBe FLCons(3, FLCons(1, FLCons(2, FLNil)))
+  }
 })

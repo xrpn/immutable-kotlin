@@ -100,7 +100,7 @@ class FRBTreeAlteringTest : FunSpec({
     }
 
     test("finsert item") {
-        FRBTree.nul<Int,String>().finsert(mEntry) shouldBe FRBTNode(mEntry, FRBTree.BLACK)
+        nul<Int,String>().finsert(mEntry) shouldBe FRBTNode(mEntry, FRBTree.BLACK)
         FRBTNode(mEntry).finsert(lEntry) shouldBe frbDepthOneLeft
         frbDepthOneLeft.finsert(nEntry) shouldBe frbDepthOneFull
         ttDepthTwoRightPartial.finsert(rEntry) shouldBe frbDepthTwoRightLeft
@@ -113,6 +113,7 @@ class FRBTreeAlteringTest : FunSpec({
             val sl: List<TKVEntry<Int, Int>> = flkv.copyToMutableList().toSet().sorted()
             nul<Int, Int>().finserts(flkv).inorder() shouldBe sl
             nul<Int, Int>().finsertt(tab).inorder() shouldBe sl
+            tab.finsertt(nul()).inorder() shouldBe sl
         }
     }
 
