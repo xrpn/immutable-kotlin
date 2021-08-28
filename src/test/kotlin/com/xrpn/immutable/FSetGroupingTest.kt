@@ -150,26 +150,26 @@ class FSetGroupingTest : FunSpec({
         fourByTwo.size shouldBe 12 // 4! / (4-2)!
         val fourByThree = intSetOfFour.fpermutations(3)
         fourByThree.size shouldBe 24 // 4! / (4-3)!
-//        val fourByFour = intSetOfFour.fpermutations(4)
-//        fourByFour.size shouldBe 24 // 4! / (4-4)!
+        val fourByFour = intSetOfFour.fpermutations(4)
+        fourByFour.size shouldBe 24 // 4! / (4-4)! == 4!
         intSetOfFour.fpermutations(5) shouldBe emptyIMSet()
 
-//        val fiveByOne = intSetOfFive.fpermutations(1)
-//        fiveByOne.size shouldBe 5 // 5! / (5-1)!
-//        val fiveByTwo = intSetOfFive.fpermutations(2)
-//        fiveByTwo.size shouldBe 20 // 5! / (5-2)!
-//        fiveByTwo.equals(oracleG) shouldBe true
-//        val fiveByThree = intSetOfFive.fpermutations(3)
-//        fiveByThree.size shouldBe 60 // 5! / (5-3)!
-//        val fiveByfour = intSetOfFive.fpermutations(4)
-//        fiveByfour.size shouldBe 120 // 5! / (5-4)!
-////        val fiveByfive = intSetOfFive.fpermutations(5)
-////        fiveByfive.size shouldBe 120 // 5! / (5-5)!
-//
-////        val sixByFive = intSetOfSix.fpermutations(5)
-////        sixByFive.size shouldBe 120 // 6! / (6-5)!
-//        val sixByFive = intSetOfSix.fpermutations(6)
-//        sixByFive.size shouldBe 720 // 6! / (6-6)!
+        val fiveByOne = intSetOfFive.fpermutations(1)
+        fiveByOne.size shouldBe 5 // 5! / (5-1)!
+        val fiveByTwo = intSetOfFive.fpermutations(2)
+        fiveByTwo.size shouldBe 20 // 5! / (5-2)!
+        fiveByTwo.equals(oracleG) shouldBe true
+        val fiveByThree = intSetOfFive.fpermutations(3)
+        fiveByThree.size shouldBe 60 // 5! / (5-3)!
+        val fiveByfour = intSetOfFive.fpermutations(4)
+        fiveByfour.size shouldBe 120 // 5! / (5-4)!
+        val fiveByfive = intSetOfFive.fpermutations(5)
+        fiveByfive.size shouldBe 120 // 5! / (5-5)!
+
+        val sixByFive = intSetOfSix.fpermutations(5)
+        sixByFive.size shouldBe 720 // 6! / (6-5)!
+        val sixBySix = intSetOfSix.fpermutations(6)
+        sixBySix.size shouldBe 720 // 6! / (6-6)!
 
     }
 

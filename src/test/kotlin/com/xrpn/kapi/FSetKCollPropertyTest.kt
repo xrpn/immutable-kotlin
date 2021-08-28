@@ -54,6 +54,7 @@ class FSetKCollPropertyTest : FunSpec({
   test("contains, all, any") {
     Arb.fsetAsCollection<String, String>(Arb.string(0..10)).checkAll(repeats) { fs ->
       val ss = fs.toSet()
+      ss.size shouldBe fs.size
       ss.all { s -> fs.contains(s) } shouldBe true
       ss.any { s -> fs.contains(s) } shouldBe true
     }

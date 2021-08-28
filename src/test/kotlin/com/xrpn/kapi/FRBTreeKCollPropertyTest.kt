@@ -28,25 +28,16 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("equals") {
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
-      val l = frbt.toSet()
       (frbt.size >= 0) shouldBe true
       (frbt == frbt) shouldBe true
-      (l.equals(frbt)) shouldBe true
-      (frbt.equals(l)) shouldBe true
     }
     Arb.frbtreeAsCollection<Char, Char>(Arb.char()).checkAll(repeats) { frbt ->
-      val l = frbt.toSet()
       (frbt.size >= 0) shouldBe true
       (frbt == frbt) shouldBe true
-      (l == frbt) shouldBe true
-      (frbt == l) shouldBe true
     }
     Arb.frbtreeAsCollection<String, String>(Arb.string(0..10)).checkAll(repeats) { frbt ->
-      val l = frbt.toSet()
       (frbt.size >= 0) shouldBe true
       (frbt == frbt) shouldBe true
-      (l == frbt) shouldBe true
-      (frbt == l) shouldBe true
     }
   }
 

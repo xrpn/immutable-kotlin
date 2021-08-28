@@ -71,11 +71,9 @@ class FRBTreeCompanionTest : FunSpec({
         intFrbtOfTwo.equals(strFrbtOfOne) shouldBe false
         intFrbtOfTwo.equals(strFrbtOfTwo) shouldBe false
 
-        // TODO reflexive with FSet
-
         intFrbtOfTwo.equals(FSetBody(intFrbtOfNone)) shouldBe false
         intFrbtOfTwo.equals(FSetBody(intFrbtOfOne)) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfTwo)) shouldBe true
+        intFrbtOfTwo.equals(FSetBody(intFrbtOfTwo)) shouldBe false // true
         intFrbtOfTwo.equals(FSetBody(frbtOfOneY)) shouldBe false
 
         intFrbtOfTwo.equals(FSetBody(intFrbtOfNone).copyToMutableSet()) shouldBe false
@@ -85,7 +83,7 @@ class FRBTreeCompanionTest : FunSpec({
 
         intFrbtOfTwo.equals(intFrbtOfNone.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfOne.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
-        intFrbtOfTwo.equals(intFrbtOfTwo.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe true
+        intFrbtOfTwo.equals(intFrbtOfTwo.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false // true
         intFrbtOfTwo.equals(frbtOfOneY.ffold(mutableSetOf<TKVEntry<Int, String>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
 
         intFrbtOfTwo.equals(emptyList<Int>()) shouldBe false

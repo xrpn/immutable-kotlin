@@ -1,8 +1,7 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FLCons
-import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
+import com.xrpn.immutable.FList.Companion.emptyIMList
 
 interface IMListTransforming<out A: Any> {
 
@@ -13,8 +12,9 @@ interface IMListTransforming<out A: Any> {
     fun freduceLeft(f: (acc: A, A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
     fun freduceRight(f: (A, acc: A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from right to left
     fun freverse(): IMList<A>
-    fun frotr(): IMList<A> // (A, B, C).frot() becomes (C, A, B)
-    fun frotl(): IMList<A> // (A, B, C).frot() becomes (B, C, A)
+    fun frotr(): IMList<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    fun frotl(): IMList<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
 interface IMSetTransforming<out A: Any> {
@@ -40,9 +40,9 @@ interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@Un
     fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
     fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
     fun <C, D: Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMList<TKVEntry<C, D>> where C: Any, C: Comparable<@UnsafeVariance C> =// 	Return a new sequence by applying the function f to each element in the List
-        this.ffold(FList.emptyIMList()) { acc, tkv -> FLCons(f(tkv), acc) }
+        this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
     fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
-        this.ffold(FList.emptyIMList()) { acc, tkv -> FLCons( f(tkv.getv()), acc) }
+        this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
     // since order is an ambiguous property of Tree, f SHOULD be commutative
     fun freduce(f: (acc: TKVEntry<A,B>, TKVEntry<A,B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A,B>? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 }

@@ -142,6 +142,14 @@ class FListTransformingTest : FunSpec({
     intListOfNone.frotr() shouldBe intListOfNone
     intListOfOne.frotr() shouldBe intListOfOne
     intListOfTwo.frotr() shouldBe FLCons(2, FLCons(1, FLNil))
-    intListOfThree.frotl() shouldBe FLCons(3, FLCons(1, FLCons(2, FLNil)))
+    intListOfThree.frotr() shouldBe FLCons(3, FLCons(1, FLCons(2, FLNil)))
   }
+
+  test("fswaph") {
+    intListOfNone.fswaph() shouldBe intListOfNone
+    intListOfOne.fswaph() shouldBe intListOfOne
+    intListOfTwo.fswaph() shouldBe FLCons(2, FLCons(1, FLNil))
+    intListOfThree.fswaph() shouldBe FLCons(2, FLCons(1, FLCons(3, FLNil)))
+  }
+
 })

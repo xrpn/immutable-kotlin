@@ -6,8 +6,7 @@ import com.xrpn.imapi.*
 import java.math.BigInteger
 import kotlin.math.log2
 
-
-sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
+sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     @Deprecated("Tree has ambiguous ordering.", ReplaceWith("ffilterNot"))
     fun dropWhile(predicate: (TKVEntry<A,B>) -> Boolean): List<TKVEntry<A,B>> = throw RuntimeException(predicate.toString())
@@ -83,19 +82,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
     // =========== traversable
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A,B>> {
-
-//        fun traverse(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
-//            when (t) {
-//                is FRBTNil -> acc
-//                is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, FLCons(t.entry, acc)))
-//            }
         val fl = this.ffold(FList.emptyIMList<TKVEntry<A,B>>()) { acc, item -> FLCons(item, acc) }
-        return when(reverse) {
-//            true -> traverse(this, FLNil)
-            true -> fl
-            false -> fl.freverse()
-//            false -> traverse(this, FLNil).freverse()
-        }
+        return if (reverse) fl else fl.freverse()
     }
 
     override fun inorder(reverse: Boolean): FList<TKVEntry<A,B>> {
@@ -673,12 +661,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, Set<TKVEntr
 
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
-            a.getk() == b.entry.getk() -> {
-                // TODO XXXQQQXXX remove
-                val msg = "$a has same key as ${b.entry}"
-                if (msg.contains("FList") && !(a.equals(b.entry))) println(msg)
-                FBTFIT.EQ
-            }
+            a.getk() == b.entry.getk() -> FBTFIT.EQ
             a.getk() < b.entry.getk() -> FBTFIT.LEFT
             else -> FBTFIT.RIGHT
         }
@@ -901,7 +884,7 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
         this === other -> true
         other == null -> false
         other is IMBTree<*, *> -> other.fempty()
-        other is Set<*> -> other.isEmpty()
+        // other is Set<*> -> other.isEmpty()
         else -> false
     }
 }
@@ -926,7 +909,7 @@ internal data class FRBTNode<A, B: Any> (
 
     override fun toString(): String = show
 
-    // short of type erasure, this maintains reflexive, symmetric and transitive properties
+    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
@@ -942,19 +925,6 @@ internal data class FRBTNode<A, B: Any> (
             this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
             this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
-        }
-        other is IMSet<*> -> when {
-            other.fempty() -> false
-            this.froot()?.getk()!!::class != other.toIMBTree().froot()?.getk()!!::class -> false
-            this.froot()?.getv()!!::class != other.fpick()!!::class -> false
-            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other.toIMBTree() as IMBTree<A, B>)
-        }
-        other is Set<*> -> when {
-            other.isEmpty() -> false
-            this.froot()!!::class != other.first()!!::class -> false
-            this.froot()!!.getk()::class != (other.first()!! as TKVEntry<*, *>).getk()::class -> false
-            this.froot()!!.getv()::class != (other.first()!! as TKVEntry<*, *>).getv()::class -> false
-            else -> this.size == other.size && other == this
         }
         else -> false
     }

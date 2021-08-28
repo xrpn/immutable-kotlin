@@ -157,7 +157,6 @@ class FRBTreeUtilityTest  : FunSpec({
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val ims1: FSet<Int> = frbt.toIMSet()
             (ims1.toIMBTree() === frbt) shouldBe true
-            ims1.equals(frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
     }

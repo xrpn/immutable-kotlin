@@ -27,7 +27,36 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
         this as IMBTree<A,B>).ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
 
     companion object {
-        fun <A, B: Any> strongEqual(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A> =
-            rhs.inorder() == lhs.inorder() && rhs.preorder() == lhs.preorder() && rhs.postorder() == lhs.postorder()
+        fun <A, B: Any> strongEqual(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A> {
+
+            // TODO remove in time
+            fun weakCheckf(res: Boolean): Boolean {
+                // lhs.hashCode() == rhs.hashCode() is too much for different type IMBTrees
+                val lhsSortedByKey = lhs.inorder()
+                val rhsSortedByKey = rhs.inorder()
+                val aux = if(res) lhsSortedByKey.hashCode() == rhsSortedByKey.hashCode() else lhsSortedByKey.hashCode() != rhsSortedByKey.hashCode()
+                if (!aux) {
+                    println("lhs: ${lhs.hashCode()}, $lhsSortedByKey")
+                    println("rhs: ${rhs.hashCode()}, ${rhs.inorder()}")
+                }
+                return aux
+            }
+
+            // TODO remove in time
+            fun strongCheckf(res: Boolean): Boolean {
+                if (rhs::class != lhs::class) return weakCheckf(res)
+                val aux = if(res) lhs.hashCode() == rhs.hashCode() else lhs.hashCode() != rhs.hashCode()
+                if (!aux) {
+                    println("lhs: ${lhs.hashCode()},\t${lhs.inorder()}")
+                    println("rhs: ${rhs.hashCode()},\t${rhs.inorder()}")
+                }
+                return aux
+            }
+
+            val res = rhs.inorder() == lhs.inorder() && rhs.preorder() == lhs.preorder() && rhs.postorder() == lhs.postorder()
+            // TODO remove in time
+            check(strongCheckf(res))
+            return res
+        }
     }
 }

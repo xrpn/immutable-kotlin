@@ -57,8 +57,8 @@ class FRBTreeKCollTest : FunSpec({
 
   test("FTree equals") {
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
-    (intFrbtOfNone == emptySet<Int>()) shouldBe true
-    (intFrbtOfNone == FSet.emptyIMSet<Int>()) shouldBe true
+    (intFrbtOfNone == emptySet<Int>()) shouldBe false
+    (intFrbtOfNone == FSet.emptyIMSet<Int>()) shouldBe false
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf(1))) shouldBe false
     (intFrbtOfNone == setOf(1)) shouldBe false
     (intFrbtOfNone == FSet.of(1)) shouldBe false
@@ -67,8 +67,8 @@ class FRBTreeKCollTest : FunSpec({
     (intFrbtOfOne == emptySet<Int>()) shouldBe false
     (intFrbtOfOne == FSet.emptyIMSet<Int>()) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1))) shouldBe true
-    (intFrbtOfOne == setOf(1.toIAEntry())) shouldBe true
-    (intFrbtOfOne == FSet.of(1)) shouldBe true
+    (intFrbtOfOne == setOf(1.toIAEntry())) shouldBe false
+    (intFrbtOfOne == FSet.of(1)) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1, 2))) shouldBe false
   }
 
@@ -76,38 +76,38 @@ class FRBTreeKCollTest : FunSpec({
     (intFrbtOfOne == (FRBTree.ofvi(*arrayOf(2)))) shouldBe false
     (intFrbtOfTwo == setOf(1.toIAEntry())) shouldBe false
     (intFrbtOfTwo == setOf(2.toIAEntry())) shouldBe false
-    (intFrbtOfTwo == setOf(2.toIAEntry(), 1.toIAEntry())) shouldBe true
-    (intFrbtOfTwo == setOf(1.toIAEntry(), 2.toIAEntry())) shouldBe true
+    (intFrbtOfTwo == setOf(2.toIAEntry(), 1.toIAEntry())) shouldBe false
+    (intFrbtOfTwo == setOf(1.toIAEntry(), 2.toIAEntry())) shouldBe false
     intFrbtOfTwo.equals(FSet.of(1)) shouldBe false
     (intFrbtOfTwo == FSet.of(2)) shouldBe false
-    (intFrbtOfTwo == FSet.of(2, 1)) shouldBe true
-    (intFrbtOfTwo == FSet.of(1, 2)) shouldBe true
+    (intFrbtOfTwo == FSet.of(2, 1)) shouldBe false
+    (intFrbtOfTwo == FSet.of(1, 2)) shouldBe false
     (intFrbtOfTwo == intFrbtOfThree) shouldBe false
-    (intFrbtOfThree == setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry())) shouldBe true
-    (intFrbtOfThree == setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry())) shouldBe true
-    (intFrbtOfThree == setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry())) shouldBe true
-    (intFrbtOfThree == setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry())) shouldBe true
-    (intFrbtOfThree == FSet.of(1, 2, 3)) shouldBe true
-    (intFrbtOfThree == FSet.of(1, 3, 2)) shouldBe true
-    (intFrbtOfThree == FSet.of(2, 1, 3)) shouldBe true
-    (intFrbtOfThree == FSet.of(3, 2, 1)) shouldBe true
+    (intFrbtOfThree == setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry())) shouldBe false
+    (intFrbtOfThree == setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry())) shouldBe false
+    (intFrbtOfThree == setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry())) shouldBe false
+    (intFrbtOfThree == setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry())) shouldBe false
+    (intFrbtOfThree == FSet.of(1, 2, 3)) shouldBe false
+    (intFrbtOfThree == FSet.of(1, 3, 2)) shouldBe false
+    (intFrbtOfThree == FSet.of(2, 1, 3)) shouldBe false
+    (intFrbtOfThree == FSet.of(3, 2, 1)) shouldBe false
   }
 
   test("Collections equals") {
     (emptySet<Int>() == intFrbtOfOne) shouldBe false
     (emptySet<Int>() == intFrbtOfOne.toSet()) shouldBe false
-    (setOf(1.toIAEntry()) == intFrbtOfOne) shouldBe true
+    (setOf(1.toIAEntry()) == intFrbtOfOne) shouldBe false
     (setOf(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
     (listOf(1.toIAEntry()) == intFrbtOfOne) shouldBe false
     (listOf(1.toIAEntry()) == intFrbtOfOne.toList()) shouldBe true
-    (FSet.of(1) == intFrbtOfOne) shouldBe true
+    (FSet.of(1) == intFrbtOfOne) shouldBe false
     (FSet.of(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
     (setOf(1.toIAEntry()) == intFrbtOfTwo.toSet()) shouldBe false
     (setOf(1.toIAEntry()) == intFrbtOfTwo.toList()) shouldBe false
     (setOf(1.toIAEntry(),2.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe false
     (setOf(1.toIAEntry(),2.toIAEntry()) == intFrbtOfTwo.toSet()) shouldBe true
 
-    (emptySet<Int>() == intFrbtOfNone) shouldBe true
+    (emptySet<Int>() == intFrbtOfNone) shouldBe false
     (emptySet<Int>() == intFrbtOfNone.toSet()) shouldBe true
     (setOf(1.toIAEntry()) == intFrbtOfNone.toSet()) shouldBe false
   }
@@ -116,13 +116,13 @@ class FRBTreeKCollTest : FunSpec({
     (setOf(2.toIAEntry()) == intFrbtOfOne) shouldBe false
     (setOf(1.toIAEntry()) == intFrbtOfTwo) shouldBe false
     (setOf(2.toIAEntry()) == intFrbtOfTwo) shouldBe false
-    (setOf(2.toIAEntry(), 1.toIAEntry()) == intFrbtOfTwo) shouldBe true
-    (setOf(1.toIAEntry(), 2.toIAEntry()) == intFrbtOfTwo) shouldBe true
+    (setOf(2.toIAEntry(), 1.toIAEntry()) == intFrbtOfTwo) shouldBe false
+    (setOf(1.toIAEntry(), 2.toIAEntry()) == intFrbtOfTwo) shouldBe false
     (setOf(1.toIAEntry(), 2.toIAEntry()) == intFrbtOfThree) shouldBe false
-    (setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry()) == intFrbtOfThree) shouldBe true
-    (setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry()) == intFrbtOfThree) shouldBe true
-    (setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry()) == intFrbtOfThree) shouldBe true
-    (setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry()) == intFrbtOfThree) shouldBe true
+    (setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry()) == intFrbtOfThree) shouldBe false
+    (setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry()) == intFrbtOfThree) shouldBe false
+    (setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry()) == intFrbtOfThree) shouldBe false
+    (setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry()) == intFrbtOfThree) shouldBe false
   }
 
   // Collection -- methods or fields
@@ -549,11 +549,11 @@ class FRBTreeKCollTest : FunSpec({
   }
 
   test("sortedDescending") {
-    intFrbtOfNone.sortedDescending().toSet() shouldBe emptyList()
-    intFrbtOfOne.sortedDescending().toSet() shouldBe intFrbtOfOne
-    intFrbtOfTwo.sortedDescending().toSet() shouldBe  intFrbtOfTwo
-    intFrbtOfThree.sortedDescending().toSet() shouldBe intFrbtOfThree
-    intFrbtOfSix.sortedDescending().toSet() shouldBe intFrbtOfThree
+    intFrbtOfNone.sortedDescending() shouldBe emptyList()
+    intFrbtOfOne.sortedDescending() shouldBe (intFrbtOfOne as FRBTree<Int,Int>).inorder(reverse = true)
+    intFrbtOfTwo.sortedDescending() shouldBe (intFrbtOfTwo as FRBTree<Int,Int>).inorder(reverse = true)
+    intFrbtOfThree.sortedDescending() shouldBe (intFrbtOfThree as FRBTree<Int,Int>).inorder(reverse = true)
+    intFrbtOfSix.sortedDescending() shouldBe (intFrbtOfThree).inorder(reverse = true)
   }
 
   test("sortedBy") {
@@ -840,22 +840,22 @@ class FRBTreeKCollTest : FunSpec({
     intFrbtOfTwo.union(intFrbtOf45) shouldBe intFrbtOf1245
 
     intFrbtOf13.union(intFrbtOfOne) shouldBe intFrbtOf13
-    intFrbtOf13.union(intFrbtOfTwo) shouldBe intFrbtOfThree
-    intFrbtOf13.union(intFrbtOfThree) shouldBe intFrbtOfThree
-    intFrbtOf13.union(intFrbtOf25) shouldBe intFrbtOf1235
+    intFrbtOf13.union(intFrbtOfTwo).sorted() shouldBe (intFrbtOfThree as FRBTree<Int,Int>).inorder()
+    intFrbtOf13.union(intFrbtOfThree).sorted() shouldBe intFrbtOfThree.inorder()
+    intFrbtOf13.union(intFrbtOf25).sorted() shouldBe (intFrbtOf1235 as FRBTree<Int,Int>).inorder()
     intFrbtOf13.union(intFrbtOf45) shouldBe intFrbtOf1345
 
-    intFrbtOf25.union(intFrbtOfOne) shouldBe intFrbtOf125
-    intFrbtOf25.union(intFrbtOfTwo) shouldBe intFrbtOf125
-    intFrbtOf25.union(intFrbtOfThree) shouldBe intFrbtOf1235
-    intFrbtOf25.union(intFrbtOf13) shouldBe intFrbtOf1235
-    intFrbtOf25.union(intFrbtOf45) shouldBe intFrbtOf245
+    intFrbtOf25.union(intFrbtOfOne).sorted() shouldBe (intFrbtOf125 as FRBTree<Int,Int>).inorder()
+    intFrbtOf25.union(intFrbtOfTwo).sorted() shouldBe intFrbtOf125.inorder()
+    intFrbtOf25.union(intFrbtOfThree).sorted() shouldBe intFrbtOf1235.inorder()
+    intFrbtOf25.union(intFrbtOf13).sorted() shouldBe intFrbtOf1235.inorder()
+    intFrbtOf25.union(intFrbtOf45).sorted() shouldBe (intFrbtOf245 as FRBTree<Int,Int>).inorder()
 
-    intFrbtOf45.union(intFrbtOfOne) shouldBe intFrbtOf145
-    intFrbtOf45.union(intFrbtOfTwo) shouldBe intFrbtOf1245
-    intFrbtOf45.union(intFrbtOfThree) shouldBe intFrbtOfFive
-    intFrbtOf45.union(intFrbtOf13) shouldBe intFrbtOf1345
-    intFrbtOf45.union(intFrbtOf25) shouldBe intFrbtOf245
+    intFrbtOf45.union(intFrbtOfOne).sorted() shouldBe (intFrbtOf145 as FRBTree<Int,Int>).inorder()
+    intFrbtOf45.union(intFrbtOfTwo).sorted() shouldBe (intFrbtOf1245 as FRBTree<Int,Int>).inorder()
+    intFrbtOf45.union(intFrbtOfThree).sorted() shouldBe (intFrbtOfFive as FRBTree<Int,Int>).inorder()
+    intFrbtOf45.union(intFrbtOf13).sorted() shouldBe (intFrbtOf1345 as FRBTree<Int,Int>).inorder()
+    intFrbtOf45.union(intFrbtOf25).sorted() shouldBe intFrbtOf245.inorder()
 
     intFrbtOfThree.union(intFrbtOfOne) shouldBe intFrbtOfThree
     intFrbtOfThree.union(intFrbtOfTwo) shouldBe intFrbtOfThree

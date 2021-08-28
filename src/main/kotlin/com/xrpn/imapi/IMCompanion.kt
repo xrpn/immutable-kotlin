@@ -3,14 +3,30 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 
-internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean = when {
-    lhs === rhs -> true
-    rhs.fempty() && lhs.fempty() -> true
-    rhs.fempty() || lhs.fempty() -> false
-    rhs.fsize() != lhs.fsize() -> false
-    // same elements in same order
-    lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize() -> true
-    else -> false
+internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean {
+
+    // TODO remove in time
+    fun checkf(res: Boolean): Boolean {
+        val aux = if(res) lhs.hashCode() == rhs.hashCode() else lhs.hashCode() != rhs.hashCode()
+        if (!aux) {
+            println("lhs: $lhs")
+            println("rhs: $rhs")
+        }
+        return aux
+    }
+
+    val res = when {
+        lhs === rhs -> true
+        rhs.fempty() && lhs.fempty() -> true
+        rhs.fempty() || lhs.fempty() -> false
+        rhs.fsize() != lhs.fsize() -> false
+        // same elements in same order
+        lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize() -> true
+        else -> false
+    }
+    // TODO remove in time
+    check(checkf(res))
+    return res
 }
 
 interface IMListCompanion {
@@ -58,7 +74,23 @@ interface IMSetCompanion {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> = when {
+// this is a "weak" equality test, concerned with element containment and disregarding tree shape
+internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> {
+
+    // TODO remove in time
+    fun checkf(res: Boolean): Boolean {
+        // lhs.hashCode() == rhs.hashCode() is the same as strong equality (too much for weaker containment equality)
+        val lhsSortedByKey = lhs.inorder()
+        val rhsSortedByKey = rhs.inorder()
+        val aux = if(res) lhsSortedByKey.hashCode() == rhsSortedByKey.hashCode() else lhsSortedByKey.hashCode() != rhsSortedByKey.hashCode()
+        if (!aux) {
+            println("lhs: ${lhs.hashCode()}, $lhsSortedByKey")
+            println("rhs: ${rhs.hashCode()}, ${rhs.inorder()}")
+        }
+        return aux
+    }
+
+    return when {
     rhs === lhs -> true
     rhs.fempty() && lhs.fempty() -> true
     rhs.fempty() || lhs.fempty() -> false
@@ -66,9 +98,12 @@ internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) :
     else -> {
         val lhsInRhs = rhs.fcount(lhs::fcontains)
         val rhsInLhs = lhs.fcount(rhs::fcontains)
-        lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
+        val res = lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
+        // TODO remove in time
+        check(checkf(res))
+        res
     }
-}
+}}
 
 interface IMBTreeCompanion {
 

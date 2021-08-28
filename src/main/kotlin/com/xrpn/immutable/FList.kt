@@ -477,6 +477,10 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLCons -> if( 1 == this.size) this else this.tail.fappend(this.head)
     }
 
+    override fun fswaph(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
+    }
 
     // =====
 
