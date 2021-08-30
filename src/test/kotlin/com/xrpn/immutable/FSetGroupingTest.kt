@@ -1,8 +1,8 @@
 package com.xrpn.immutable
 
 import com.xrpn.immutable.FSet.Companion.emptyIMSet
-import com.xrpn.immutable.FSetOfOne.Companion.toSoO
 import com.xrpn.immutable.FSet.Companion.of
+import com.xrpn.immutable.FSetOfOne.Companion.toSoO
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
@@ -15,18 +15,23 @@ private val intSetOfThree = FSet.of(1, 2, 3)
 private val intSetOfFour = FSet.of(1, 2, 3, 4)
 private val intSetOfFive = FSet.of(1, 2, 3, 4, 5)
 private val intSetOfSix = FSet.of(1, 2, 3, 4, 5, 6)
-private val oracleC = of(of(1), of(2), of(3), of(4),
+private val intSetOfSeven = FSet.of(1, 2, 3, 4, 5, 6, 7)
+private val intSetOfEight = FSet.of(1, 2, 3, 4, 5, 6, 7, 8)
+// private val strSetOfNine = FSet.of("Aa","Bb","Cc","Dd","Ee","Ff","Gg","Hh","Ii")
+private val intSetOfNine = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+private val oracleC: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4))
-private val oracleD = of(of(1), of(2), of(3), of(4),
+private val oracleD: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4),
                          of(1, 2, 3), of(1, 2, 4),
                          of(1, 3, 4),
                          of(2, 3, 4))
-private val oracleE = of(of(1), of(2), of(3), of(4),
+private val oracleE: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4),
@@ -34,13 +39,13 @@ private val oracleE = of(of(1), of(2), of(3), of(4),
                          of(1, 3, 4),
                          of(2, 3, 4),
                          of(1, 2, 3, 4))
-private val oracleF = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4),
+private val oracleF: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4),
                          FList.of(2, 1), FList.of(3, 1), FList.of(4, 1),
                          FList.of(2, 3), FList.of(2, 4),
                          FList.of(3, 2), FList.of(4, 2),
                          FList.of(3, 4),
                          FList.of(4, 3))
-private val oracleG = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4), FList.of(1, 5),
+private val oracleG: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4), FList.of(1, 5),
                          FList.of(2, 1), FList.of(3, 1), FList.of(4, 1), FList.of(5, 1),
                          FList.of(2, 3), FList.of(2, 4), FList.of(2, 5),
                          FList.of(3, 2), FList.of(4, 2), FList.of(5, 2),
@@ -50,6 +55,12 @@ private val oracleG = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4), FList.o
                          FList.of(5, 4))
 
 class FSetGroupingTest : FunSpec({
+
+    val repeats = 50
+    val longTest = 100
+    val verbose = false
+
+    beforeTest {}
 
     test("fcartesian") {
         intSetOfNone.fcartesian(intSetOfNone).equals(intSetOfNone) shouldBe true
@@ -115,6 +126,20 @@ class FSetGroupingTest : FunSpec({
         intSetOfSix.fcombinations(5).ffilter { it.size == 5 }.size shouldBe 6 // 6! / (6-5)! 5!
         intSetOfSix.fcombinations(6).size shouldBe 63
         intSetOfSix.fcombinations(6).ffilter { it.size == 6 }.size shouldBe 1 // 6! / (6-6)! 6!
+
+        intSetOfSeven.fcombinations(1).size shouldBe 7 // 7! / (7-1)! 1!
+        intSetOfSeven.fcombinations(2).size shouldBe 28
+        intSetOfSeven.fcombinations(2).ffilter { it.size == 2 }.size shouldBe 21 // 7! / (7-2)! 2!
+        intSetOfSeven.fcombinations(3).size shouldBe 63
+        intSetOfSeven.fcombinations(3).ffilter { it.size == 3 }.size shouldBe 35 // 7! / (7-3)! 3!
+        intSetOfSeven.fcombinations(4).size shouldBe 98
+        intSetOfSeven.fcombinations(4).ffilter { it.size == 4 }.size shouldBe 35 // 7! / (7-4)! 4!
+        intSetOfSeven.fcombinations(5).size shouldBe 119
+        intSetOfSeven.fcombinations(5).ffilter { it.size == 5 }.size shouldBe 21 // 7! / (7-5)! 5!
+        intSetOfSeven.fcombinations(6).size shouldBe 126
+        intSetOfSeven.fcombinations(6).ffilter { it.size == 6 }.size shouldBe 7 // 7! / (7-6)! 6!
+        intSetOfSeven.fcombinations(7).size shouldBe 127
+        intSetOfSeven.fcombinations(7).ffilter { it.size == 7 }.size shouldBe 1 // 7! / (7-7)! 7!
     }
 
     test("fcount") { }
@@ -165,11 +190,47 @@ class FSetGroupingTest : FunSpec({
         fiveByfour.size shouldBe 120 // 5! / (5-4)!
         val fiveByfive = intSetOfFive.fpermutations(5)
         fiveByfive.size shouldBe 120 // 5! / (5-5)!
+        intSetOfFive.fpermutations(6) shouldBe emptyIMSet()
 
+        val sixByOne = intSetOfSix.fpermutations(1)
+        sixByOne.size shouldBe 6 // 6! / (6-1)!
+        val sixByTwo = intSetOfSix.fpermutations(2)
+        sixByTwo.size shouldBe 30 // 6! / (6-2)!
+        val sixByThree = intSetOfSix.fpermutations(3)
+        sixByThree.size shouldBe 120 // 6! / (6-3)!
+        val sixByFour = intSetOfSix.fpermutations(4)
+        sixByFour.size shouldBe 360 // 6! / (6-4)!
         val sixByFive = intSetOfSix.fpermutations(5)
         sixByFive.size shouldBe 720 // 6! / (6-5)!
         val sixBySix = intSetOfSix.fpermutations(6)
-        sixBySix.size shouldBe 720 // 6! / (6-6)!
+        sixBySix.size shouldBe 720 // 6! / (6-6)! = 6!
+        intSetOfSix.fpermutations(7) shouldBe emptyIMSet()
+    }
+
+    test("fpermute") {
+        intSetOfNone.fpermute() shouldBe emptyIMSet()
+        intSetOfOne.fpermute() shouldBe of(intSetOfOne)
+        intSetOfTwo.fpermute() shouldBe FSet.of(FList.of(1,2),FList.of(2, 1))
+        intSetOfThree.fpermute().size shouldBe 6 // 3!
+        intSetOfFour.fpermute().size shouldBe 24 // 3!
+        intSetOfFive.fpermute().size shouldBe 120 // 5!
+
+        val sixpNow = System.currentTimeMillis()
+        val sixp = intSetOfSix.fpermute()
+        if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
+        sixp.size shouldBe 720 // 6!
+
+        val sevenpNow = System.currentTimeMillis()
+        val sevenp = intSetOfSeven.fpermute()
+        if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
+        sevenp.size shouldBe 5040 // 7!
+
+        if (longTest < repeats) {
+            val eightpNow = System.currentTimeMillis()
+            val eightp = intSetOfEight.fpermute()
+            if (verbose) println("eightp in ${System.currentTimeMillis() - eightpNow}")
+            eightp.size shouldBe 40320 // 8!
+        }
 
     }
 

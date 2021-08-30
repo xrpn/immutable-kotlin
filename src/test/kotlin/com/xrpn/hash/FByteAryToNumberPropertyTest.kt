@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.short
@@ -88,4 +89,43 @@ class FByteAryToNumberPropertyTest : FunSpec({
       byteToInt64(tba(s)) shouldBe s
     }
   }
+
+  test("intToByteArray") {
+    val high = (1 shl 24)
+    val low = -high
+    // not less than 3 bytes in length
+    Arb.int((high..Int.MAX_VALUE)).checkAll(repeats) { s ->
+      intToByteArray(s) shouldBe tba(s)
+    }
+    Arb.int((Int.MIN_VALUE..low)).checkAll(repeats) { s ->
+      intToByteArray(s) shouldBe tba(s)
+    }
+    // not more than 3 bytes in length
+    Arb.int((low..high)).checkAll(repeats) { s ->
+       byteToInt32(intToByteArray(s)) shouldBe s
+    }
+  }
+
+  test("shortToByteArray") {
+    Arb.short().checkAll(repeats) { s ->
+      byteToInt16(shortToByteArray(s)) shouldBe s
+    }
+  }
+
+  test("longToByteArray") {
+    val high: Long = (1L shl 56)
+    val low: Long = -high
+    // not less than 7 bytes in length
+    Arb.long(high..Long.MAX_VALUE).checkAll(repeats) { s ->
+      longToByteArray(s) shouldBe tba(s)
+    }
+    Arb.long(Long.MIN_VALUE..low).checkAll(repeats) { s ->
+      longToByteArray(s) shouldBe tba(s)
+    }
+    // not more than 7 bytes in length
+    Arb.long((low..high)).checkAll(repeats) { s ->
+      byteToInt64(longToByteArray(s)) shouldBe s
+    }
+  }
+
 })

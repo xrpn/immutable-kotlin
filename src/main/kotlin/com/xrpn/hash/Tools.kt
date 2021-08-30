@@ -55,3 +55,33 @@ fun ByteArray.toNumber(): Number = when {
     this.size <= 8 -> byteToInt64(this)
     else -> BigInteger(this)
 }
+
+fun shortToByteArray(value: Short): ByteArray {
+    val bytes = ByteArray(2)
+    val aux = intToByteArray(value.toInt())
+    bytes[1] = aux[3]
+    bytes[0] = aux[2]
+    return bytes
+}
+
+fun intToByteArray(value: Int): ByteArray {
+    val bytes = ByteArray(4)
+    bytes[3] = (value and 0xFF).toByte()
+    bytes[2] = ((value ushr 8) and 0xFF).toByte()
+    bytes[1] = ((value ushr 16) and 0xFF).toByte()
+    bytes[0] = ((value ushr 24) and 0xFF).toByte()
+    return bytes
+}
+
+fun longToByteArray(value: Long): ByteArray {
+    val bytes = ByteArray(8)
+    bytes[7] = (value and 0xFF).toByte()
+    bytes[6] = ((value ushr 8) and 0xFF).toByte()
+    bytes[5] = ((value ushr 16) and 0xFF).toByte()
+    bytes[4] = ((value ushr 24) and 0xFF).toByte()
+    bytes[3] = ((value ushr 32) and 0xFF).toByte()
+    bytes[2] = ((value ushr 40) and 0xFF).toByte()
+    bytes[1] = ((value ushr 48) and 0xFF).toByte()
+    bytes[0] = ((value ushr 56) and 0xFF).toByte()
+    return bytes
+}

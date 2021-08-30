@@ -3,17 +3,17 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 
-internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean {
-
-    // TODO remove in time
-    fun checkf(res: Boolean): Boolean {
-        val aux = if(res) lhs.hashCode() == rhs.hashCode() else lhs.hashCode() != rhs.hashCode()
-        if (!aux) {
-            println("lhs: $lhs")
-            println("rhs: $rhs")
-        }
-        return aux
+// TODO remove in time
+private fun checkf(res: Boolean, lhs: Any, rhs: Any): Boolean {
+    val aux = if(res) lhs.hashCode() == rhs.hashCode() else lhs.hashCode() != rhs.hashCode()
+    if (!aux) {
+        println("${lhs.hashCode()}\tlhs: $lhs")
+        println("${rhs.hashCode()}\trhs: $rhs")
     }
+    return aux
+}
+
+internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean {
 
     val res = when {
         lhs === rhs -> true
@@ -24,8 +24,9 @@ internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean {
         lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize() -> true
         else -> false
     }
+
     // TODO remove in time
-    check(checkf(res))
+    check(checkf(res, lhs, rhs))
     return res
 }
 
@@ -46,9 +47,16 @@ interface IMListCompanion {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean = when {
-    lhs === rhs -> true
-    else -> IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
+internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
+
+    val res = when {
+        lhs === rhs -> true
+        else -> IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
+    }
+
+    // TODO remove in time
+    check(checkf(res, lhs, rhs))
+    return res
 }
 
 interface IMSetCompanion {
@@ -77,33 +85,26 @@ interface IMSetCompanion {
 // this is a "weak" equality test, concerned with element containment and disregarding tree shape
 internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) : Boolean where A: Any, A: Comparable<A> {
 
-    // TODO remove in time
-    fun checkf(res: Boolean): Boolean {
-        // lhs.hashCode() == rhs.hashCode() is the same as strong equality (too much for weaker containment equality)
-        val lhsSortedByKey = lhs.inorder()
-        val rhsSortedByKey = rhs.inorder()
-        val aux = if(res) lhsSortedByKey.hashCode() == rhsSortedByKey.hashCode() else lhsSortedByKey.hashCode() != rhsSortedByKey.hashCode()
-        if (!aux) {
-            println("lhs: ${lhs.hashCode()}, $lhsSortedByKey")
-            println("rhs: ${rhs.hashCode()}, ${rhs.inorder()}")
+    val res = when {
+        rhs === lhs -> true
+        rhs.fempty() && lhs.fempty() -> true
+        rhs.fempty() || lhs.fempty() -> false
+        rhs.fsize() != lhs.fsize() -> false
+        else -> {
+            val lhsInRhs = rhs.fcount(lhs::fcontains)
+            val rhsInLhs = lhs.fcount(rhs::fcontains)
+            lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
         }
-        return aux
     }
 
-    return when {
-    rhs === lhs -> true
-    rhs.fempty() && lhs.fempty() -> true
-    rhs.fempty() || lhs.fempty() -> false
-    rhs.fsize() != lhs.fsize() -> false
-    else -> {
-        val lhsInRhs = rhs.fcount(lhs::fcontains)
-        val rhsInLhs = lhs.fcount(rhs::fcontains)
-        val res = lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
-        // TODO remove in time
-        check(checkf(res))
-        res
-    }
-}}
+    // TODO remove in time
+    // lhs.hashCode() == rhs.hashCode() is the same as strong equality (too much for weaker containment equality)
+    val lhsSortedByKey = lhs.inorder()
+    val rhsSortedByKey = rhs.inorder()
+    check(checkf(res, lhsSortedByKey, rhsSortedByKey))
+    return res
+
+}
 
 interface IMBTreeCompanion {
 

@@ -16,9 +16,6 @@ class FListTransformingTest : FunSpec({
 
   beforeTest {}
 
-//  afterTest { (testCase, result) ->
-//  }
-
   test("fflatMap") {
     intListOfNone.fflatMap {it -> FLCons(it, FLNil)} shouldBe FLNil
     intListOfOne.fflatMap {it -> FLCons(it, FLNil)} shouldBe FLCons(1,FLNil)

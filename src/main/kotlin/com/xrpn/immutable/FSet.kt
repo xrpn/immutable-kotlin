@@ -2,7 +2,6 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FSetIterator
 import com.xrpn.imapi.*
-import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FRBTree.Companion.finsertIK
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.rbtDelete
@@ -156,12 +155,13 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         // all unique subsets up to "size" members from this set; order does not matter
 
         tailrec fun gogo(item: A, fatSet: FSet<FSet<A>>, acc: FSet<FSet<A>>) : FSet<FSet<A>> {
-            val (pop, reminder) = fatSet.fpopAndReminder()
+            val (pop: FSet<A>?, reminder: FSet<FSet<A>>) = fatSet.fpopAndReminder()
             return if (pop == null) acc else {
-                val aux = pop.fadd(item.toSoO())
-                if (size < aux.size) return acc
-                val newAcc = acc.fadd(aux.toSoO())
-                gogo(item, reminder, newAcc)
+                if (pop.size < size) {
+                    val aux: FSet<A> = pop.fadd(item.toSoO())
+                    val newAcc: FSet<FSet<A>> = acc.fadd(aux.toSoO())
+                    gogo(item, reminder, newAcc)
+                } else gogo(item, reminder, acc)
             }
         }
 
@@ -196,61 +196,9 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     override fun fpermutations(size: Int): FSet<FList<A>> {
 
-        fun autoshift(specimen: FLCons<A>): FSet<FList<A>> = specimen.ffoldLeft(of(emptyIMList()))
-            { setOfList, a -> setOfList.fadd(specimen.fdropItem(a).fprepend(a).toSoO()) }
-
-        fun shiftReminder(items: FLCons<A>, reminder: FLCons<A>): FSet<FList<A>> {
-            val sr: FSet<FList<A>> = autoshift(reminder)
-            return sr.ffold(of(emptyIMList())) { setOfList, shiftedReminder -> setOfList.fadd(shiftedReminder.fprependAll(items).toSoO()) }
-        }
-
-        fun shiftItems(items: FLCons<A>, reminder: FLCons<A>): FSet<FList<A>> {
-            val si: FSet<FList<A>> = autoshift(items)
-            return si.ffold(of(emptyIMList())) { setOfList, shiftedItems -> setOfList.fadd(reminder.fprependAll(shiftedItems).toSoO()) }
-        }
-
-        tailrec fun rotate(reference:FList<A>, current:FList<A>, acc: FSet<FList<A>>): FSet<FList<A>> {
-            val rot = current.frotl()
-            return if (reference.equals(rot)) acc.fadd(reference.toSoO())
-                   else rotate(reference, rot, acc.fadd(rot.toSoO()))
-        }
-
-        tailrec fun rotoShifter(items: FLCons<A>, reminder: FLCons<A>, acc: FSet<FList<A>>): FSet<FList<A>> {
-            val rotr: FSet<FList<A>> = rotate(reminder, reminder, of(emptyIMList()))
-            val remAcc: FSet<FList<A>> = rotr.ffold(of(emptyIMList())) {
-                    setOfList, rrList -> setOfList.fOR(shiftReminder(items, rrList as FLCons<A>))
-            }
-            return when (reminder.tail) {
-                is FLNil -> acc.fOR(remAcc) // .fOR(itmAcc1)
-                is FLCons -> rotoShifter(FLCons(reminder.head, items), reminder.tail, acc.fOR(remAcc))
-            }
-        }
-
-        fun permute(reference:FList<A>, current:FList<A>): FSet<FList<A>> {
-            val rots: FSet<FList<A>> = rotate(reference, current, of(emptyIMList()))
-            return rots.ffold(of(emptyIMList())) { setOfList, rrList -> when(rrList) {
-                is FLCons -> when (rrList.tail) {
-                    is FLNil -> setOfList.fadd(rrList.toSoO())
-                    is FLCons -> {
-                        val tailr = rrList.tail.freverse()
-                        // val swaps: FSet<FList<A>> = of(rrList.tail, tailr).ffold(emptyIMSet()) { sol, ll -> sol.fadd(ll.fswaph().toSoO()) }
-                        val a1: FSet<FList<A>> = rotoShifter(FLCons(rrList.head, FLNil), rrList.tail, emptyIMSet())
-                        val a2: FSet<FList<A>> = rotoShifter(FLCons(rrList.head, FLNil), tailr as FLCons<A>, emptyIMSet())
-                        // val a3: FSet<FList<A>> = swaps.ffold(emptyIMSet()) { sol, swaptail -> sol.fOR(rotoShifter(FLCons(rrList.head, FLNil), swaptail as FLCons<A>, emptyIMSet())) }
-                        setOfList.fOR(a1).fOR(a2) //.fOR(a3)
-                    }
-                }
-                is FLNil -> throw RuntimeException() // setOfLists
-            }}
-        }
-
         tailrec fun go(shrink: FSet<FSet<A>>, acc: FSet<FList<A>>): FSet<FList<A>> = if (shrink.fempty()) acc else {
             val (pop, reminder) = shrink.fpopAndReminder()
-            val newAcc: FSet<FList<A>> = pop?.let {
-                val mark: FList<A> = it.copyToFList()
-                val aux = permute(mark, mark)
-                acc.fOR(aux)
-            } ?: acc
+            val newAcc: FSet<FList<A>> = pop?.let { acc.fOR(it.fpermute()) } ?: acc
             go(reminder, newAcc)
         }
 
@@ -258,6 +206,26 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
             val sizedCmbs: FSet<FSet<A>> = this.fcombinations(size).ffilter { it.size == size }
             go(sizedCmbs, emptyIMSet())
         }
+    }
+
+    override fun fpermute(): FSet<FList<A>> {
+        val res = when (this.size) {
+            0 -> emptyIMSet()
+            1 -> this.copyToFList().toSoO()
+            else -> {
+                val allItems: FSet<FList<A>> = this.fpermutations(1)
+                allItems.ffold(emptyIMSet()) { sol, listOf1 ->
+                    sol.fOR(this.fdropItem(listOf1.fhead()!!.toSoO()).fpermute().ffold(emptyIMSet()) { psol, pl ->
+                        psol.fadd(FLCons(listOf1.fhead()!!, pl).toSoO())
+                    })
+                }
+            }
+        }
+
+        // not stack safe for "large" sets and may suffer from hashCode conflicts
+        val factorial = { n: Int -> var acc = 1; for (i in (2..n)) { acc *= i }; acc }
+        check( this.isEmpty() || res.size == factorial(size))
+        return res
     }
 
     override fun fpopAndReminder(): Pair<A?, FSet<A>> {
@@ -294,8 +262,6 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         val aux = this.toFRBTree().finsert(item.one.toIAEntry())
         return if (aux.isEmpty()) FSetBody.empty else FSetBody(aux)
     }
-
-    // ==========
 
     //
     // =========
@@ -411,7 +377,7 @@ class FSetOfOne<out A: Any> internal constructor (
     val body: FRBTree<Int, A> by lazy { FRBTree.ofvi(one) }
     override fun isEmpty(): Boolean = false
     override fun equals(other: Any?): Boolean = FSetBody(body).equals(other)
-    val hash: Int by lazy { ((131L * (this.body.inorder().hashCode().toLong() + 17L)) / 127L).toInt() }
+    val hash: Int by lazy { (131 * (this.body.inorder().hashCode() + 17)) / 127 }
     override fun hashCode(): Int = hash
     val show: String by lazy { FSetOfOne::class.simpleName+"($one)" }
     override fun toString(): String = show
@@ -450,9 +416,9 @@ internal class FSetBody<out A: Any> internal constructor (
     }
 
     val hash: Int by lazy {
-        // hash of a FRBTree depends on the content, and on the shape of the tree;
+        // hash of a FRBTree depends on the content AND on the shape of the tree;
         // for set hash, the shape of the tree is irrelevant, whence the following
-        ((131L * (this.body.preorder().hashCode().toLong() + 17L)) / 127L).toInt()
+        (131 * (this.body.inorder().hashCode() + 17)) / 127
     }
 
     override fun hashCode(): Int = hash

@@ -1,7 +1,6 @@
 package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
 import com.xrpn.imapi.IMListEqual2
@@ -57,7 +56,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = this.equals(rhs)
 
-    override fun fforEach (f: (A) -> Unit): Unit {
+    override fun fforEach (f: (A) -> Unit) {
 
         tailrec fun go(xs: FList<A>): Unit = when(xs) {
             is FLNil -> Unit
@@ -703,11 +702,7 @@ data class FLCons<out A: Any>(
     override fun toString(): String = show
 
     val hash: Int by lazy {
-        val aux: Pair<Long, Long> = this.ffoldLeft(Pair(217463L, 1L)) { acc, h ->
-            Pair(((5261L * acc.first * acc.second) / 5231L) + (2003L * (h.hashCode().toLong() + acc.second)), acc.second + 1L)
-        }
-        if (Int.MIN_VALUE.toLong() < aux.first && aux.first < Int.MAX_VALUE.toLong()) aux.first.toInt()
-        else DigestHash.crc32ci(aux.first.toBigInteger().toByteArray())
+        this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
     }
 
     // the data class built-in hashCode is not stack safe

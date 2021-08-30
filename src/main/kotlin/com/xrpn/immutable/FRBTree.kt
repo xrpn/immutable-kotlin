@@ -1,9 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
-import com.xrpn.hash.DigestHash
 import com.xrpn.imapi.*
-import java.math.BigInteger
 import kotlin.math.log2
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -594,8 +592,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> if(treeStub.fcontains(items.head)) rbtInserts(treeStub, items.tail)
-                    else rbtInserts(rbtInsert(treeStub, items.head), items.tail)
+                is FLCons -> rbtInserts(rbtInsert(treeStub, items.head), items.tail)
             }
 
         internal fun <A, B: Any> rbtParent(treeStub: FRBTree<A, B>, childItem: TKVEntry<A, B>): FRBTree<A, B>?
@@ -661,9 +658,21 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
-            a.getk() == b.entry.getk() -> FBTFIT.EQ
-            a.getk() < b.entry.getk() -> FBTFIT.LEFT
-            else -> FBTFIT.RIGHT
+            a.getk() == b.entry.getk() -> {
+                // TODO remove later (hashcode conflict assertion)
+                check(a.getv().equals(b.entry.getv()))
+                FBTFIT.EQ
+            }
+            a.getk() < b.entry.getk() -> {
+                // TODO remove later (hashcode conflict assertion)
+                check(!a.getv().equals(b.entry.getv()))
+                FBTFIT.LEFT
+            }
+            else -> {
+                // TODO remove later (hashcode conflict assertion)
+                check(!a.getv().equals(b.entry.getv()))
+                FBTFIT.RIGHT
+            }
         }
 
         // the sorting order
@@ -930,14 +939,18 @@ internal data class FRBTNode<A, B: Any> (
     }
 
     val hash:Int by lazy {
-        val aux: Pair<Long, Long> = this.ffold(Pair(this.color.hashCode().toLong(), 1L)) { acc, tkv -> Pair(when(val k = tkv.getk()) {
-            is Int -> ((9161L * acc.first * acc.second) / 9157L) + 2713L * (k.toLong() + acc.second)
-            is Long -> ((9161L * acc.first * acc.second) / 9157L) + 1549L * (k + acc.second)
-            is BigInteger -> ((9161L * acc.first * acc.second) / 9157L) + 1973L * (DigestHash.crc32ci(k.toByteArray()).toLong()  + acc.second)
-            else -> ((9161L * acc.first * acc.second) / 9157L) + 1109L * (k.hashCode().toLong() + acc.second)
-        }, acc.second + 1) }
-        if (Int.MIN_VALUE.toLong() < aux.first && aux.first < Int.MAX_VALUE.toLong()) aux.first.toInt()
-        else DigestHash.crc32ci(aux.first.toBigInteger().toByteArray())
+        val seed: Int = when (val rk = this.froot()?.getk()) {
+            null -> 9161
+            is Int -> 1
+            is Long -> 1
+            else -> rk.hashCode()
+        }
+        this.ffold(seed) { acc, tkv -> when(val k = tkv.getk()) {
+                is Int -> 31 * acc + k
+                is Long -> 31 * acc + k.toInt()
+                else -> 31 * acc + k.hashCode()
+            }
+        }
     }
 
     override fun hashCode(): Int = hash
