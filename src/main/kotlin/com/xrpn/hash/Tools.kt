@@ -64,6 +64,8 @@ fun shortToByteArray(value: Short): ByteArray {
     return bytes
 }
 
+fun Short.to2ByteArray() = shortToByteArray(this)
+
 fun intToByteArray(value: Int): ByteArray {
     val bytes = ByteArray(4)
     bytes[3] = (value and 0xFF).toByte()
@@ -72,6 +74,8 @@ fun intToByteArray(value: Int): ByteArray {
     bytes[0] = ((value ushr 24) and 0xFF).toByte()
     return bytes
 }
+
+fun Int.to4ByteArray() = intToByteArray(this)
 
 fun longToByteArray(value: Long): ByteArray {
     val bytes = ByteArray(8)
@@ -85,3 +89,5 @@ fun longToByteArray(value: Long): ByteArray {
     bytes[0] = ((value ushr 56) and 0xFF).toByte()
     return bytes
 }
+
+fun Long.to8ByteArray() = longToByteArray(this)

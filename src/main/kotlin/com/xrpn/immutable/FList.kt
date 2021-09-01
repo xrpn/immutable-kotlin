@@ -1,10 +1,13 @@
 package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
+import com.xrpn.hash.longToByteArray
+import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
 import com.xrpn.imapi.IMListEqual2
 import com.xrpn.imapi.IMMap
+import java.util.zip.CRC32C
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
 
@@ -167,7 +170,11 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLCons -> this.head
     }
 
-    override fun finit(): FList<A> = ftake(this.size-1)
+    val flistInit: FList<A> by lazy {
+        ftake(this.size-1)
+    }
+
+    override fun finit(): FList<A> = flistInit
 
     override fun flast(): A? = atWantedIxPosition(this.size - 1, this.size, this, 0)
 
@@ -701,9 +708,23 @@ data class FLCons<out A: Any>(
     // the data class built-in toString is not stack safe
     override fun toString(): String = show
 
-    val hash: Int by lazy {
-        this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
-    }
+    val hash: Int by lazy { when (head) {
+        is Int -> {
+            val thisInt = @Suppress("UNCHECKED_CAST")(this as FList<Int>)
+            val checkSum = CRC32C()
+            thisInt.forEach { intItem -> checkSum.update(intItem) }
+            val aux: UInt = checkSum.value.toUInt()
+            (aux.toLong() - Int.MAX_VALUE).toInt()
+        }
+        is Long -> {
+            val thisLong = @Suppress("UNCHECKED_CAST")(this as FList<Long>)
+            val checkSum = CRC32C()
+            thisLong.forEach { longItem -> checkSum.update(longItem.to8ByteArray()) }
+            val aux: UInt = checkSum.value.toUInt()
+            (aux.toLong() - Int.MAX_VALUE).toInt()
+        }
+        else -> this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
+    } }
 
     // the data class built-in hashCode is not stack safe
     override fun hashCode(): Int = hash

@@ -43,6 +43,30 @@ internal var rbSlideShareTree = RBTree.of(frbSlideShareInorder)
 internal val frbSlideSharePreorder = frbSlideShareTree.preorder()
 internal val frbSlideSharePostorder = frbSlideShareTree.postorder()
 
+val reverseIntCompare: Comparator<Int> = Comparator { p0, p1 ->
+    when {
+        p0!! == p1!! -> 0
+        p0 < p1 -> 1
+        else -> -1
+    }
+}
+
+val intCompare: Comparator<Int> = Comparator { p0, p1 ->
+    when {
+        p0!! == p1!! -> 0
+        p0 < p1 -> 1
+        else -> -1
+    }
+}
+
+val reverseStrCompare: Comparator<String> = Comparator { p0, p1 ->
+    when {
+        p0!! == p1!! -> 0
+        p0 < p1 -> 1
+        else -> -1
+    }
+}
+
 val ttDepthOneRight: FRBTree<Int, String> =
     FRBTree.frbtPartAssert(
         FRBTNode(

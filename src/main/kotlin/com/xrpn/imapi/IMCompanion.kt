@@ -116,6 +116,11 @@ interface IMBTreeCompanion {
     fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
 
+    fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> where A: Any, A: Comparable<A>
+
     fun <B: Any> ofvi(vararg items: B): IMBTree<Int, B>
     fun <B: Any> ofvi(vararg items: B, allowDups: Boolean): IMBTree<Int, B>
     fun <B: Any> ofvi(items: Iterator<B>): IMBTree<Int, B>

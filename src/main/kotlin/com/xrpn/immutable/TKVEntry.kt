@@ -4,15 +4,34 @@ import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
 import kotlin.reflect.KClass
 
+
+internal fun <A, B:Any> TKVEntry<A, B>.fitKeyOnly(key: A): FBTFIT where A: Any, A: Comparable<A> = fitKeyToEntry(key,this)
+
+internal fun <A, B:Any> fitKeyToEntry(key: A, entry: TKVEntry<A, B>): FBTFIT where A: Any, A: Comparable<A> {
+    val outcome = entry.vc?.compare(key, entry.getk()) ?: key.compareTo(entry.getk())
+    return when {
+        outcome == 0 -> FBTFIT.EQ
+        outcome < 0 -> FBTFIT.LEFT
+        else -> FBTFIT.RIGHT
+    }
+}
+
 interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     val vc: Comparator<@UnsafeVariance A>?
         get() = null
 
-    // the natural sorting order is Comparable<A>, unless vc (a copmarator for A) is given.
+    // the natural sorting order is Comparable<A>, unless vc (a comparator for A) is given.
     // To sort by B, create a TKVEntryK<B, B> giving it a Comparator<B>.  It is trivial to make B Comparable if a Comparator exists. (And vice-versa)
     // The current setup does not require B to be comparable -- only to have a key.
-    override operator fun compareTo(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Int = vc?.compare(this.getk(), other.getk()) ?: getk().compareTo(other.getk())
+    override operator fun compareTo(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Int {
+        val localOutcome: Int = vc?.compare(this.getk(), other.getk()) ?: this.getk().compareTo(other.getk())
+        return if (vc === other.vc) localOutcome else {
+            val remoteOutcome = other.vc?.compare(other.getk(), this.getk()) ?: other.getk().compareTo(this.getk())
+            if (localOutcome == -remoteOutcome) localOutcome else
+                throw IllegalStateException(TKVEntryK.CANNOT_COMPARE)
+        }
+    }
 
     fun getk(): A
     fun getkc(): Comparable<@UnsafeVariance A>
@@ -71,4 +90,8 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
         get() = k
     override val value: B
         get() = v
+
+    companion object {
+        const val CANNOT_COMPARE = "incompatible comparators"
+    }
 }

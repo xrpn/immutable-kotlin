@@ -10,6 +10,7 @@ import com.xrpn.immutable.FRBTree.Companion.ofMap
 import com.xrpn.immutable.FRBTree.Companion.ofvi
 import com.xrpn.immutable.FRBTree.Companion.ofvs
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
+import com.xrpn.immutable.FRBTree.Companion.ofc
 import com.xrpn.immutable.FRBTree.Companion.ofviMap
 import com.xrpn.immutable.FRBTree.Companion.ofvsMap
 import com.xrpn.immutable.FRBTree.Companion.toIMBTree
@@ -154,6 +155,18 @@ class FRBTreeCompanionTest : FunSpec({
                     FRBTNode(zEntry, BLACK))
         of(wikiPreorder) shouldBe frbWikiTree
         of(slideSharePreorder) shouldBe frbSlideShareTree
+    }
+
+    test("co.ofc varargs") {
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int,Int>>()) shouldBe FRBTree.emptyIMBTree()
+        ofc(reverseStrCompare, 3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe
+                FList.of(3.toSAEntry(),2.toSAEntry(),1.toSAEntry())
+    }
+
+    test("co.ofc iterator") {
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe FRBTree.emptyIMBTree()
+        ofc(reverseStrCompare, listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe
+                listOf(3.toSAEntry(),2.toSAEntry(),1.toSAEntry())
     }
 
     test("co.ofvi varargs") {

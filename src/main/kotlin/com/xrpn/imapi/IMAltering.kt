@@ -1,6 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FRBTree
 import com.xrpn.immutable.FSetOfOne
 import com.xrpn.immutable.TKVEntry
 

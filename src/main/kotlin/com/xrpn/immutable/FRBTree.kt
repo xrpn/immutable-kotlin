@@ -269,8 +269,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return Pair(pop, reminder)
     }
 
-    // returns the max path length from the root of a tree to a leaf.
-    override fun fmaxDepth(): Int = when(this) {
+    val maxFrbDepth: Int by lazy { when(this) {
         is FRBTNode -> 1 + when(Pair(this.bLeft is FRBTNode, this.bRight is FRBTNode)) {
             Pair(true, true) -> Integer.max(this.bLeft.fmaxDepth(), this.bRight.fmaxDepth())
             Pair(false, true) -> this.bRight.fmaxDepth()
@@ -278,10 +277,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             else /* leaf */ -> 0
         }
         is FRBTNil -> 0
-    }
+    }}
 
-    // returns the minimum path length from the root of a tree to a leaf.
-    override fun fminDepth(): Int = when (this) {
+    // returns the max path length from the root of a tree to a leaf.
+    override fun fmaxDepth(): Int = maxFrbDepth
+
+    val minFrbDepth: Int by lazy { when (this) {
         is FRBTNode -> 1 + when (Pair(this.bLeft is FRBTNode, this.bRight is FRBTNode)) {
             Pair(true, true) -> Integer.min(this.bLeft.fminDepth(), this.bRight.fminDepth())
             Pair(false, true) -> this.bRight.fminDepth()
@@ -289,7 +290,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             else /* leaf */ -> 0
         }
         is FRBTNil -> 0
-    }
+    }}
+
+    // returns the minimum path length from the root of a tree to a leaf.
+    override fun fminDepth(): Int = minFrbDepth
 
     // =========== transforming
 
@@ -394,6 +398,23 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
         override fun <A, B : Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
+
+        // ===============
+
+        override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>): FRBTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items.iterator())
+        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
+        override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>, allowDups: Boolean): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items.iterator())
+        override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
+            var res: FRBTree<A, B> = nul()
+            for(item in items) {
+                res = rbtInsert(res, TKVEntry.of(item.getk(), item.getv(), cc))
+            }
+            return res
+        }
+        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofc(items)"))
+        override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items)
 
         // =================
 
@@ -574,8 +595,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     is FRBTNil -> FRBTNode(item, RED)
                     is FRBTNode -> {
                         val ofit = when (fit(item, treeStub)) {
-                            FBTFIT.EQ -> /* duplicate key */
-                                FRBTNode(item, treeStub.color, treeStub.bLeft, treeStub.bRight)
+                            FBTFIT.EQ -> /* duplicate key */ {
+                                // replace?  but why...
+                                // FRBTNode(item, treeStub.color, treeStub.bLeft, treeStub.bRight)
+                                // TODO remove in time
+                                check(item.getv().equals(treeStub.entry.getv()))
+                                treeStub
+                            }
                             FBTFIT.LEFT -> /* insert left */
                                 FRBTNode(treeStub.entry, treeStub.color, copyInsert(treeStub.bLeft, item), treeStub.bRight)
                             FBTFIT.RIGHT -> /* insert right */
@@ -586,7 +612,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
 
             val grown: FRBTNode<A, B> = copyInsert(treeStub, item)
-            return FRBTNode(grown.entry, BLACK, grown.bLeft, grown.bRight)
+            return rbtFind(treeStub, item)?.let{
+                val res = treeStub as FRBTNode<A, B>
+                // TODO remove in time
+                check(item.getv().equals(it.entry.getv()))
+                res
+            } ?: FRBTNode(grown.entry, BLACK, grown.bLeft, grown.bRight)
         }
 
         internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
@@ -658,12 +689,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
-            a.getk() == b.entry.getk() -> {
+            a == b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
                 check(a.getv().equals(b.entry.getv()))
                 FBTFIT.EQ
             }
-            a.getk() < b.entry.getk() -> {
+            a < b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
                 check(!a.getv().equals(b.entry.getv()))
                 FBTFIT.LEFT
@@ -675,12 +706,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        // the sorting order
-        private fun <A, B: Any> fitKey(k: A, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
-            k == b.entry.getk() -> FBTFIT.EQ
-            k < b.entry.getk() -> FBTFIT.LEFT
-            else -> FBTFIT.RIGHT
-        }
+        private fun <A, B: Any> fitKey(k: A, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = b.entry.fitKeyOnly(k)
 
         internal fun <A, B: Any> frbtPartAssert(n: FRBTNode<A, B>): FRBTNode<A, B> where A: Any, A: Comparable<A> {
             if (n.bLeft is FRBTNode) assert(isBstNode(n.bLeft) && isBalanced(n.bLeft) && n.bLeft.isDepthInvariant()) { "NOT L-SANE\n$n" }

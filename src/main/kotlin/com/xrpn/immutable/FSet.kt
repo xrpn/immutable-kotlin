@@ -186,7 +186,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     override fun findexed(offset: Int): FSet<Pair<A, Int>> {
         var index = offset - 1
-        return FSetBody(this.toFRBTree().fmap{ tkv -> index+=1; TKVEntry.of(tkv.getk(), Pair(tkv.getv(), index)) })
+        return FSetBody(this.toFRBTree().fmap{ tkv -> index+=1; Pair(tkv.getv(), index).toIAEntry() })
     }
 
     override fun fpartition(isMatch: (A) -> Boolean): Pair<FSet<A>, FSet<A>> {
@@ -195,6 +195,8 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     }
 
     override fun fpermutations(size: Int): FSet<FList<A>> {
+
+        // todo consider memoization
 
         tailrec fun go(shrink: FSet<FSet<A>>, acc: FSet<FList<A>>): FSet<FList<A>> = if (shrink.fempty()) acc else {
             val (pop, reminder) = shrink.fpopAndReminder()
@@ -208,7 +210,14 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         }
     }
 
-    override fun fpermute(): FSet<FList<A>> {
+    val permutedFSet: FSet<FList<A>> by lazy {
+
+        // TODO danger, Will Robinson!
+        // permuting sets larger than, say, n=8 elements, is entangled in
+        // the mechanics of hashCode conflicts and key selection since it
+        // requires hashing _all_ possible distinct lists with n items.
+        // The present hashCode scheme for hashing is not adequate.
+
         val res = when (this.size) {
             0 -> emptyIMSet()
             1 -> this.copyToFList().toSoO()
@@ -225,8 +234,10 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         // not stack safe for "large" sets and may suffer from hashCode conflicts
         val factorial = { n: Int -> var acc = 1; for (i in (2..n)) { acc *= i }; acc }
         check( this.isEmpty() || res.size == factorial(size))
-        return res
+        res
     }
+
+    override fun fpermute(): FSet<FList<A>> = permutedFSet
 
     override fun fpopAndReminder(): Pair<A?, FSet<A>> {
         val pop: A? = this.fpick()
@@ -238,9 +249,8 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     // transforming
 
-    override fun <B : Any> fflatMap(f: (A) -> IMSet<B>): FSet<B> {
-        TODO("Not yet implemented")
-    }
+    override fun <B : Any> fflatMap(f: (A) -> IMSet<B>): FSet<B> =
+        FSetBody(this.toFRBTree().fflatMap { tkv -> f(tkv.getv()).toIMBTree() })
 
     override fun <C: Any> ffold(z: C, f: (acc: C, A) -> C): C =
         this.toFRBTree().ffoldv(z) { stub, tkv -> f(stub, tkv) }
@@ -248,13 +258,11 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     override fun <B : Any> fmap(f: (A) -> B): FSet<B> =
         FSetBody(this.toFRBTree().fmap { tkv -> f(tkv.getv()).toIAEntry() })
 
-    override fun <B : Any> fmapToList(f: (A) -> B): FList<B> {
-        TODO("Not yet implemented")
-    }
+    override fun <B : Any> fmapToList(f: (A) -> B): FList<B> =
+        this.toFRBTree().ffold(FList.emptyIMList()) { l, tkv -> FLCons(f(tkv.getv()), l) }
 
-    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? {
-        TODO("Not yet implemented")
-    }
+    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? =
+        this.toFRBTree().freduce { acc, tkv -> f(acc.getv(), tkv.getv()).toIAEntry() }?.getv()
 
     // altering
 
@@ -269,7 +277,7 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
 
     fun copyToFList(): FList<A> = when {
         isEmpty() -> FLNil
-        else -> this.toFRBTree().preorder(reverse = true).fmap { it.getv() }
+        else -> this.fmapToList { it }
     }
 
     private fun ffilterToList(isMatch: (A) -> Boolean): FList<A> {

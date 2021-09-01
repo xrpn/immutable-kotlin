@@ -12,6 +12,7 @@ import com.xrpn.immutable.FBSTree.Companion.fbtAssert
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.of
 import com.xrpn.immutable.FBSTree.Companion.ofMap
+import com.xrpn.immutable.FBSTree.Companion.ofc
 import com.xrpn.immutable.FBSTree.Companion.ofvi
 import com.xrpn.immutable.FBSTree.Companion.ofviMap
 import com.xrpn.immutable.FBSTree.Companion.ofvs
@@ -124,8 +125,50 @@ class FBSTreeCompanionTest : FunSpec({
         IMBTreeEqual2 (intFbstOfThree, FBSTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
     }
 
-    test("co.of varargs") {
+
+    test("co.of varargs A") {
         of(*arrayOf<TKVEntry<Int,Int>>()) shouldBe emptyIMBTree()
+        of(7.toIAEntry(), 4.toIAEntry(), 9.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry()).inorder() shouldBe
+                listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+    }
+
+    test("co.of varargs A3") {
+        of(9.toIAEntry(), 4.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+    }
+
+    test("co.of varargs B") {
+        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry()).inorder() shouldBe
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+    }
+
+    test("co.of varargs B3") {
+        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+    }
+
+    test("co.of varargs C") {
+        of(9.toIAEntry(), 8.toIAEntry(), 7.toIAEntry(), 6.toIAEntry(), 5.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+    }
+
+    test("co.of varargs D") {
+        val foo = of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry())
+        println(foo)
+        val bar = foo.inorder()
+        println(bar)
+        bar shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
+
+    test("co.of varargs DD") {
+        val foo = of(3.toSAEntry(), 1.toSAEntry(), 2.toSAEntry())
+        println(foo)
+        val bar = foo.inorder()
+        println(bar)
+        bar shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
+
+    test("co.of varargs D1") {
         of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
@@ -162,6 +205,26 @@ class FBSTreeCompanionTest : FunSpec({
                     FBSTNode(zEntry, FBSTNil, FBSTNil))
         of(wikiPreorder) shouldBe wikiTree
         of(slideSharePreorder) shouldBe slideShareTree
+    }
+
+    test("co.ofc varargs") {
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int,Int>>()) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
+    }
+
+    test("co.ofc varargs dups") {
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int,Int>>(), allowDups = true) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
+    }
+
+    test("co.ofc iterator") {
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int,Int>>().iterator()) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
+    }
+
+    test("co.ofc iterator dups") {
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int,Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
     }
 
     test("co.ofvi varargs") {
