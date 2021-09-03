@@ -30,8 +30,8 @@ interface IMSetGrouping<out A: Any> {
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
-    fun fpermutations(size: Int): IMSet<IMList<A>> // all unique, non-empty collections (order does matter) of "size" members from this set
-    fun fpermute(): IMSet<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested.
+    fun fpermutations(size: Int): Collection<IMList<A>> // all unique, non-empty collections (order does matter) of "size" members from this set
+    fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested.
     fun fpopAndReminder(): Pair<A?, IMSet<A>>
     fun fsize(): Int // number of elements
 }

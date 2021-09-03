@@ -3,8 +3,8 @@ package com.xrpn.immutable
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.checkAll
 import io.kotest.property.arbitrary.int
+import io.kotest.property.checkAll
 
 private const val verbose = false
 
@@ -16,34 +16,34 @@ class RBTreeTest : FunSpec({
         var rbt = RBTree<Int, Int>()
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(0))
-        println("tree with 0                   $rbt")
+        if (verbose) println("tree with 0                   $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(1))
-        println("tree with 0,1                 $rbt")
+        if (verbose) println("tree with 0,1                 $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(2))
-        println("tree with 0,1,2               $rbt")
+        if (verbose) println("tree with 0,1,2               $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(3))
-        println("tree with 0,1,2,3             $rbt")
+        if (verbose) println("tree with 0,1,2,3             $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(4))
-        println("tree with 0,1,2,3,4           $rbt")
+        if (verbose) println("tree with 0,1,2,3,4           $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(5))
-        println("tree with 0,1,2,3,4,5         $rbt")
+        if (verbose) println("tree with 0,1,2,3,4,5         $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(6))
-        println("tree with 0,1,2,3,4,5,6       $rbt")
+        if (verbose) println("tree with 0,1,2,3,4,5,6       $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(7))
-        println("tree with 0,1,2,3,4,5,6,7     $rbt")
+        if (verbose) println("tree with 0,1,2,3,4,5,6,7     $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(8))
-        println("tree with 0,1,2,3,4,5,6,7,8   $rbt")
+        if (verbose) println("tree with 0,1,2,3,4,5,6,7,8   $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(9))
-        println("tree with 0,1,2,3,4,5,6,7,8,9 $rbt")
+        if (verbose) println("tree with 0,1,2,3,4,5,6,7,8,9 $rbt")
         rbt.rbSane() shouldBe true
     }
 
@@ -51,31 +51,31 @@ class RBTreeTest : FunSpec({
         var rbt = RBTree<Int, Int>()
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(8))
-        println("8: $rbt")
+        if (verbose) println("8: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(7))
-        println("7: $rbt")
+        if (verbose) println("7: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(6))
-        println("6: $rbt")
+        if (verbose) println("6: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(5))
-        println("5: $rbt")
+        if (verbose) println("5: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(4))
-        println("4: $rbt")
+        if (verbose) println("4: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(3))
-        println("3: $rbt")
+        if (verbose) println("3: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(2))
-        println("2: $rbt")
+        if (verbose) println("2: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(1))
-        println("1: $rbt")
+        if (verbose) println("1: $rbt")
         rbt.rbSane() shouldBe true
         rbt.insert(TKVEntry.ofIntKey(0))
-        println("0: $rbt")
+        if (verbose) println("0: $rbt")
         rbt.rbSane() shouldBe true
     }
 

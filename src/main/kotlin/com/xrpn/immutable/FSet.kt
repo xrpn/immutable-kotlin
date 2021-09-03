@@ -1,7 +1,10 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FSetIterator
+import com.xrpn.hash.JohnsonTrotter.jtPermutations
+import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FRBTree.Companion.finsertIK
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.rbtDelete
@@ -194,50 +197,117 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         return Pair(FSetBody(t), FSetBody(f))
     }
 
-    override fun fpermutations(size: Int): FSet<FList<A>> {
+    override fun fpermutations(size: Int): Collection<FList<A>> {
 
         // todo consider memoization
 
-        tailrec fun go(shrink: FSet<FSet<A>>, acc: FSet<FList<A>>): FSet<FList<A>> = if (shrink.fempty()) acc else {
+        tailrec fun goSmall(shrink: FSet<FSet<A>>, acc: FSet<FList<A>>): FSet<FList<A>> = if (shrink.fempty()) acc else {
             val (pop, reminder) = shrink.fpopAndReminder()
-            val newAcc: FSet<FList<A>> = pop?.let { acc.fOR(it.fpermute()) } ?: acc
-            go(reminder, newAcc)
+            val newAcc: FSet<FList<A>> = pop?.let { acc.fOR(it.fpermute() as FSet<FList<A>>) } ?: acc
+            goSmall(reminder, newAcc)
+        }
+
+        tailrec fun goLarge(shrink: FSet<FSet<A>>, acc: FList<FList<A>>): FList<FList<A>> = if (shrink.fempty()) acc else {
+            val (pop, reminder) = shrink.fpopAndReminder()
+            val newAcc: FList<FList<A>> = if (pop == null) acc else {
+                val perms = pop.fpermute() as FList<FList<A>>
+                perms.ffoldLeft(acc) { pacc, l -> FLCons(l, pacc) }
+            }
+            goLarge(reminder, newAcc)
         }
 
         return if (size < 1 || this.size < size) emptyIMSet() else {
             val sizedCmbs: FSet<FSet<A>> = this.fcombinations(size).ffilter { it.size == size }
-            go(sizedCmbs, emptyIMSet())
+            if (this.size < PERMUTATIONCARDLIMIT) goSmall(sizedCmbs, emptyIMSet()) else goLarge(sizedCmbs, emptyIMList())
         }
     }
 
-    val permutedFSet: FSet<FList<A>> by lazy {
+    // this not stack safe for "large" sets
+    private fun permuteRecursively(): FSet<FList<A>> = when (this.size) {
+        0 -> emptyIMSet()
+        1 -> this.copyToFList().toSoO()
+        else -> {
+            val allItems: FSet<FList<A>> = this.fpermutations(1) as FSet<FList<A>>
+            allItems.ffold(emptyIMSet()) { sol, listOf1 ->
+                sol.fOR(this.fdropItem(listOf1.fhead()!!.toSoO()).permuteRecursively().ffold(emptyIMSet()) { psol, pl ->
+                    psol.fadd(FLCons(listOf1.fhead()!!, pl).toSoO())
+                })
+            }
+        }
+    }
 
-        // TODO danger, Will Robinson!
-        // permuting sets larger than, say, n=8 elements, is entangled in
-        // the mechanics of hashCode conflicts and key selection since it
-        // requires hashing _all_ possible distinct lists with n items.
-        // The present hashCode scheme for hashing is not adequate.
+    val permutedFSet: Collection<FList<A>> by lazy {
 
-        val res = when (this.size) {
-            0 -> emptyIMSet()
-            1 -> this.copyToFList().toSoO()
-            else -> {
-                val allItems: FSet<FList<A>> = this.fpermutations(1)
-                allItems.ffold(emptyIMSet()) { sol, listOf1 ->
-                    sol.fOR(this.fdropItem(listOf1.fhead()!!.toSoO()).fpermute().ffold(emptyIMSet()) { psol, pl ->
-                        psol.fadd(FLCons(listOf1.fhead()!!, pl).toSoO())
-                    })
-                }
+        /*
+
+            Permuting sets larger than, say, n=8 elements, is entangled in
+            the mechanics of hashCode conflicts and key selection since it
+            may require hashing _all_ possible distinct lists with n items,
+            depending on how it is computed. If the hashCode is 32 bits,
+            permutations of sets larger than 8 elements must, by necessity,
+            be computed in a different way.  Explanation provided...
+
+        */
+
+        val res = if (this.size < PERMUTATIONCARDLIMIT) {
+
+            /*
+
+                The probability that 2 out of n items will have the same hashcode if
+                there are d available hashcode slots is (see also, for derivation,
+                https://en.wikipedia.org/wiki/Birthday_problem#Approximations)
+
+                                                -n(n-1)
+                             P(n, d) ~ 1 - exp(---------)
+                                                  2d
+
+                A set of q elements has q! permutations; the probability of a collision
+                for a 32-bit hashCode (for which d is 4,294,967,295) is therefore
+
+                                                -(q!)((q!)-1)
+                                P(q) ~ 1 - exp(----------------)
+                                                 2*4294967295
+
+                for q = 7 then that probability is ~0.003
+                for q = 8 then that probability is ~0.17
+                for q = 9 then that probability is ~0.9999997
+
+                The following recursive solution computes, for a set of size s,
+                all permutations of size (s-1) for each s elements.
+
+             */
+
+            // this is a FSet
+            permuteRecursively() // .ffold(emptyIMList<FList<A>>()) { acc, perm -> FLCons(perm, acc) }
+
+        } else {
+
+            /*
+
+                There are _many_ algorithms to compute permutations, see for
+                instance Sedgewick, Robert (1977),"Permutation generation methods",
+                ACM Comput. Surv., 9 (2): 137–164, doi:10.1145/356689.356692 or
+                Knuth, "Art of Computer Programming", vol. 4A.  Overall they are
+                all O(n!) with different coefficients (surprise...).  The iterative
+                Johnson-Trotter is efficient and relatively simple even if not, at
+                least in theory, the most efficient; but we are on a virtual
+                machine anyway, so no point in clock cycle counting.
+
+             */
+
+            val aryls: ArrayList<TKVEntry<Int, A>> = ArrayList(this.toFRBTree())
+            // this ends up being (_has_ to be, too many collisions for set) a FList
+            jtPermutations(aryls).fold(emptyIMList()) { l, aryl ->
+                FLCons(FList.ofMap(aryl) { tkv -> tkv.getv() }, l)
             }
         }
 
-        // not stack safe for "large" sets and may suffer from hashCode conflicts
-        val factorial = { n: Int -> var acc = 1; for (i in (2..n)) { acc *= i }; acc }
+        val factorial = { n: Int -> smallFact(n) }
         check( this.isEmpty() || res.size == factorial(size))
         res
     }
 
-    override fun fpermute(): FSet<FList<A>> = permutedFSet
+    override fun fpermute(): Collection<FList<A>> = permutedFSet
 
     override fun fpopAndReminder(): Pair<A?, FSet<A>> {
         val pop: A? = this.fpick()
@@ -293,8 +363,6 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
     // private
 
     companion object: IMSetCompanion {
-
-        private class BreakoutException(): RuntimeException()
 
         override fun<A: Any> emptyIMSet(): FSet<A> = FSetBody.empty
 
@@ -375,6 +443,12 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         flatten(S): given a set consisting of sets and atomic elements (elements that are not sets), returns a set whose elements are the atomic elements of the original top-level set or elements of the sets it contains. In other words, remove a level of nesting – like collapse, but allow atoms. This can be done a single time, or recursively flattening to obtain a set of only atomic elements.[7] For example, flatten({1, {2, 3}}) == {1, 2, 3}.
          */
 
+        internal inline fun <reified A> toArray(fset: FSet<A>): Array<A> where A: Any, A: Comparable<A> =
+            FSetIterator.toArray(fset.size, FSetIterator(fset))
+
+        private class BreakoutException(): RuntimeException()
+
+        private const val PERMUTATIONCARDLIMIT = 9
     }
 
 }

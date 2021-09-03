@@ -153,19 +153,11 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.of varargs D") {
-        val foo = of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry())
-        println(foo)
-        val bar = foo.inorder()
-        println(bar)
-        bar shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of varargs DD") {
-        val foo = of(3.toSAEntry(), 1.toSAEntry(), 2.toSAEntry())
-        println(foo)
-        val bar = foo.inorder()
-        println(bar)
-        bar shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 1.toSAEntry(), 2.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.of varargs D1") {

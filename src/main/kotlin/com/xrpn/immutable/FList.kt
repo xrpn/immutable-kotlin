@@ -1,7 +1,8 @@
 package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.hash.longToByteArray
+import com.xrpn.hash.DigestHash.murmur32
+import com.xrpn.hash.DigestHash.murmur64
 import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
@@ -469,7 +470,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return freduceLeft(xsar, ::g)
     }
 
-    override fun freverse(): FList<A> = this.ffoldLeft(emptyIMList(), { b, a -> FLCons(a,b)})
+    override fun freverse(): FList<A> = this.ffoldLeft(emptyIMList()) { b, a -> FLCons(a, b) }
 
     override fun frotr(): FList<A> = when(this) {
         is FLNil -> FLNil
@@ -708,22 +709,51 @@ data class FLCons<out A: Any>(
     // the data class built-in toString is not stack safe
     override fun toString(): String = show
 
-    val hash: Int by lazy { when (head) {
-        is Int -> {
+    val hash: Int by lazy {
+        val intKey: Boolean = head is TKVEntry<*,*> && (head.getk() is Int)
+        val longKey: Boolean = head is TKVEntry<*,*> && (head.getk() is Long)
+        when {
+        head is Int -> {
             val thisInt = @Suppress("UNCHECKED_CAST")(this as FList<Int>)
             val checkSum = CRC32C()
-            thisInt.forEach { intItem -> checkSum.update(intItem) }
+            thisInt.fforEach { intItem -> checkSum.update(intItem) }
             val aux: UInt = checkSum.value.toUInt()
             (aux.toLong() - Int.MAX_VALUE).toInt()
         }
-        is Long -> {
+        head is Long -> {
             val thisLong = @Suppress("UNCHECKED_CAST")(this as FList<Long>)
             val checkSum = CRC32C()
-            thisLong.forEach { longItem -> checkSum.update(longItem.to8ByteArray()) }
+            thisLong.fforEach { longItem -> checkSum.update(longItem.to8ByteArray()) }
             val aux: UInt = checkSum.value.toUInt()
             (aux.toLong() - Int.MAX_VALUE).toInt()
         }
-        else -> this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
+//        intKey -> {
+//            val thisIntKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Int,*>>)
+//            val checkSum = CRC32C()
+//            thisIntKey.fforEach { intKeyItem -> checkSum.update(intKeyItem.getk()) }
+//            val aux: UInt = checkSum.value.toUInt()
+//            (aux.toLong() - Int.MAX_VALUE).toInt()
+//        }
+//        longKey -> {
+//            val thisLongKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Long,*>>)
+//            val checkSum = CRC32C()
+//            thisLongKey.fforEach { longKeyItem -> checkSum.update(longKeyItem.getk().to8ByteArray()) }
+//            val aux: UInt = checkSum.value.toUInt()
+//            (aux.toLong() - Int.MAX_VALUE).toInt()
+//        }
+        intKey -> {
+            val thisIntKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Int,*>>)
+            thisIntKey.ffoldLeft(0) { acc, intKeyTkv -> acc + murmur32(intKeyTkv.getk().toLong()) }
+        }
+        longKey -> {
+            val thisLongKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Long,*>>)
+            val l = thisLongKey.ffoldLeft(0L) { acc, longKeyTkv -> acc + murmur64(longKeyTkv.getk()) }
+            val low = l.toInt()
+            val high = (l ushr 32).toInt()
+            low + high
+        }
+        else ->
+            this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
     } }
 
     // the data class built-in hashCode is not stack safe

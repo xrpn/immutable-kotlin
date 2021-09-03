@@ -22,14 +22,20 @@ interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @U
         get() = null
 
     // the natural sorting order is Comparable<A>, unless vc (a comparator for A) is given.
-    // To sort by B, create a TKVEntryK<B, B> giving it a Comparator<B>.  It is trivial to make B Comparable if a Comparator exists. (And vice-versa)
-    // The current setup does not require B to be comparable -- only to have a key.
+    // To sort by B, create a TKVEntryK<B, B> giving it a Comparator<B>.
+    // It is trivial to make B Comparable if a Comparator exists. (And vice-versa)
+    // The current setup does not require B to be comparable -- it only requires B to have a (comparable) key.
     override operator fun compareTo(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Int {
         val localOutcome: Int = vc?.compare(this.getk(), other.getk()) ?: this.getk().compareTo(other.getk())
         return if (vc === other.vc) localOutcome else {
             val remoteOutcome = other.vc?.compare(other.getk(), this.getk()) ?: other.getk().compareTo(this.getk())
-            if (localOutcome == -remoteOutcome) localOutcome else
-                throw IllegalStateException(TKVEntryK.CANNOT_COMPARE)
+            when {
+                localOutcome == 0 && remoteOutcome == 0 -> 0
+                localOutcome < 0 && 0 < remoteOutcome -> localOutcome
+                0 < localOutcome && remoteOutcome < 0 -> localOutcome
+                else -> // comparators disagree: broken symmetric, reflexive, transitive relation
+                    throw IllegalStateException(TKVEntryK.CANNOT_COMPARE)
+            }
         }
     }
 

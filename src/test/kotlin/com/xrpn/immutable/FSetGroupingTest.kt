@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.hash.JohnsonTrotter
 import com.xrpn.immutable.FSet.Companion.emptyIMSet
 import com.xrpn.immutable.FSet.Companion.of
 import com.xrpn.immutable.FSetOfOne.Companion.toSoO
@@ -17,7 +18,6 @@ private val intSetOfFive = FSet.of(1, 2, 3, 4, 5)
 private val intSetOfSix = FSet.of(1, 2, 3, 4, 5, 6)
 private val intSetOfSeven = FSet.of(1, 2, 3, 4, 5, 6, 7)
 private val intSetOfEight = FSet.of(1, 2, 3, 4, 5, 6, 7, 8)
-// private val strSetOfNine = FSet.of("Aa","Bb","Cc","Dd","Ee","Ff","Gg","Hh","Ii")
 private val intSetOfNine = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 private val oracleC: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
@@ -56,9 +56,9 @@ private val oracleG: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList
 
 class FSetGroupingTest : FunSpec({
 
-    val repeats = 50
-    val longTest = 100
-    val verbose = false
+    // val repeats = 50
+    val longTest = false
+    val verbose = true
 
     beforeTest {}
 
@@ -210,28 +210,58 @@ class FSetGroupingTest : FunSpec({
     test("fpermute") {
         intSetOfNone.fpermute() shouldBe emptyIMSet()
         intSetOfOne.fpermute() shouldBe of(intSetOfOne)
-        intSetOfTwo.fpermute() shouldBe FSet.of(FList.of(1,2),FList.of(2, 1))
+        intSetOfTwo.fpermute() shouldBe of(FList.of(1,2),FList.of(2, 1))
         intSetOfThree.fpermute().size shouldBe 6 // 3!
-        intSetOfFour.fpermute().size shouldBe 24 // 3!
-        intSetOfFive.fpermute().size shouldBe 120 // 5!
+
+        val fourp = intSetOfFour.fpermute()
+        fourp.size shouldBe 24 // 3!
+        val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFour.toIMBTree() as FRBTree<Int, Int>)
+        val p4jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMSet()) { s, aryl ->
+            s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
+        }
+        fourp.equals(p4jt) shouldBe true
+
+        val fivep = intSetOfFive.fpermute()
+        fivep.size shouldBe 120 // 5!
+        val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFive.toIMBTree() as FRBTree<Int, Int>)
+        val p5jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMSet()) { s, aryl ->
+            s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
+        }
+        fivep.equals(p5jt) shouldBe true
 
         val sixpNow = System.currentTimeMillis()
         val sixp = intSetOfSix.fpermute()
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
         sixp.size shouldBe 720 // 6!
+        val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSix.toIMBTree() as FRBTree<Int, Int>)
+        val p6jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMSet()) { s, aryl ->
+            s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
+        }
+        sixp.equals(p6jt) shouldBe true
 
         val sevenpNow = System.currentTimeMillis()
         val sevenp = intSetOfSeven.fpermute()
         if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
         sevenp.size shouldBe 5040 // 7!
+        val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSeven.toIMBTree() as FRBTree<Int, Int>)
+        val p7jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMSet()) { s, aryl ->
+            s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
+        }
+        sevenp.equals(p7jt) shouldBe true
 
-        if (longTest < repeats) {
+        if (longTest) {
+            // ~1.5 s on machine Avogadro
             val eightpNow = System.currentTimeMillis()
             val eightp = intSetOfEight.fpermute()
             if (verbose) println("eightp in ${System.currentTimeMillis() - eightpNow}")
             eightp.size shouldBe 40320 // 8!
-        }
 
+            // ~2 or 3 s on machine Avogadro
+            val ninepNow = System.currentTimeMillis()
+            val ninep = intSetOfNine.fpermute()
+            if (verbose) println("ninep in ${System.currentTimeMillis() - ninepNow}")
+            ninep.size shouldBe 362880 // 9!
+        }
     }
 
     test("fpopAndReminder") {
