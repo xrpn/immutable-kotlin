@@ -357,14 +357,6 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         else -> this.fmapToList { it }
     }
 
-    private fun ffilterToList(isMatch: (A) -> Boolean): FList<A> {
-        val tisMatch: (TKVEntry<Int, A>) -> Boolean = { tkv -> isMatch(tkv.getv()) }
-        val treeStub = this.toFRBTree()
-        var tkvMatches: FList<TKVEntry<Int, A>>
-        runBlocking(ioScope("FSet").coroutineContext) { tkvMatches = treeStub.ffind(tisMatch) }
-        return tkvMatches.fmap { tkv -> tkv.getv() }
-    }
-
     protected abstract fun toFRBTree(): FRBTree<Int, A>
 
     // private
@@ -427,26 +419,6 @@ sealed class FSet<out A: Any>: Set<A>, IMSet<A> {
         override fun <A : Any> Collection<A>.toIMSet(): IMSet<A> = when(this) {
             is FSet<A> -> this
             else -> of(this.iterator())
-        }
-
-        internal fun <A: Any> fsInsertOrReplace(src: FSet<A>, item: A): FSet<A> {
-            val aux = rbtInsert(src.toFRBTree(), item.toIAEntry())
-            return FSetBody.of(aux)
-        }
-
-        internal fun <A: Any> fsInsertsOrReplace(src: FSet<A>, items: FSet<A>): FSet<A> {
-            val aux = rbtInserts(src.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
-            return FSetBody.of(aux)
-        }
-
-        internal fun <A: Any> fsDelete(src: FSet<A>, item: A): FSet<A> {
-            val aux = rbtDelete(src.toFRBTree(), item.toIAEntry())
-            return FSetBody.of(aux)
-        }
-
-        internal fun <A: Any> fsDeletes(src: FSet<A>, items: FSet<A>): FSet<A>  {
-            val aux = rbtDeletes(src.toFRBTree(), FList.of(items.toIMBTree().toIAList()))
-            return FSetBody.of(aux)
         }
 
         /* TODO maybe

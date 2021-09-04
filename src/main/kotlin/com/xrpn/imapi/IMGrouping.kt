@@ -49,3 +49,9 @@ interface IMBTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@Unsafe
     fun fminDepth(): Int
     fun fsize(): Int // number of elements
 }
+
+interface IMStackGrouping<out A: Any> {
+
+    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
+    fun fsize(): Int // number of elements
+}

@@ -25,3 +25,10 @@ interface IMBTree<out A, out B: Any>:
     IMBTreeAltering<A, B>,
     IMBTreeUtility<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A>
+
+interface IMStack<out A:Any>:
+    IMStackFiltering<A>,
+    IMStackGrouping<A>,
+    IMStackTransforming<A>,
+    IMStackAltering<A>,
+    IMStackUtility<A>

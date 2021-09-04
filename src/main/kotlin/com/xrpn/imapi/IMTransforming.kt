@@ -46,3 +46,10 @@ interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@Un
     // since order is an ambiguous property of Tree, f SHOULD be commutative
     fun freduce(f: (acc: TKVEntry<A,B>, TKVEntry<A,B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A,B>? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 }
+
+interface IMStackTransforming<out A: Any> {
+
+    fun <B: Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> // Apply f to the top, pop, return the rest
+    fun freverse(): IMStack<A>
+    fun <B: Any> ftopMap(f: (A) -> B): B? // Apply f to the top
+}

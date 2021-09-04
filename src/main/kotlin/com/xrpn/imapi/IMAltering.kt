@@ -26,3 +26,9 @@ interface IMBTreeAltering<out A, out B: Any> where A: Any, A: Comparable<@Unsafe
         }
     fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): IMBTree<A, B>
 }
+
+interface IMStackAltering<out A: Any> {
+    fun fpop(): Pair<A?, IMStack<A>>
+    fun fpopOrThrow(): Pair<A, IMStack<A>>
+    fun fpush(top: @UnsafeVariance A): IMStack<A>
+}

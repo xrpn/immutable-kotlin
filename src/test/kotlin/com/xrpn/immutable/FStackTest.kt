@@ -1,58 +1,231 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.FStack.Companion.equal
+import com.xrpn.imapi.IMStackEqual2
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+private val itemA = "A"
+private val itemB = "B"
+private val itemC = "C"
+private val strStackOfNone = FStack.of(*arrayOf<String>())
+private val strStackOfOneA = FStack.of(*arrayOf<String>(itemA))
+private val strStackOfOneB = FStack.of(*arrayOf<String>(itemB))
+private val strStackOfOneC = FStack.of(*arrayOf<String>(itemC))
+private val strStackOfTwoAB = FStack.of(*arrayOf<String>(itemA, itemB))
+private val strStackOfTwoBA = FStack.of(*arrayOf<String>(itemB, itemA))
+private val strStackOfTwoBC = FStack.of(*arrayOf<String>(itemB, itemC))
+private val strStackOfTwoCB = FStack.of(*arrayOf<String>(itemC, itemB))
+private val strStackOfThree = FStack.of(*arrayOf<String>(itemA, itemB, itemC))
 
 class FStackTest : FunSpec({
 
-    beforeTest {
+    beforeTest {}
+
+    // altering
+
+    test("fpop") {
+        var aux = strStackOfNone.fpop()
+        aux.first shouldBe null
+        aux.second shouldBe strStackOfNone
+
+        aux = strStackOfOneA.fpop()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfNone
+
+        aux = strStackOfTwoAB.fpop()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfOneB
+
+        aux = strStackOfTwoBC.fpop()
+        aux.first shouldBe itemB
+        aux.second shouldBe strStackOfOneC
+
+        aux = strStackOfThree.fpop()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfTwoBC
+        aux = aux.second.fpop()
+        aux.first shouldBe itemB
+        aux.second shouldBe strStackOfOneC
+        aux = aux.second.fpop()
+        aux.first shouldBe itemC
+        aux.second shouldBe strStackOfNone
     }
 
-    test("isEmpty") {
-        FStack.emptyFStack<Int>().isEmpty() shouldBe true
-        FStackBody.of(FLCons("a", FLNil)).isEmpty() shouldBe false
+    test("fpopOrThrow") {
+        shouldThrow<IllegalStateException> {
+            strStackOfNone.fpopOrThrow()
+        }
+
+        var aux = strStackOfOneA.fpopOrThrow()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfNone
+
+        aux = strStackOfTwoAB.fpopOrThrow()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfOneB
+
+        aux = strStackOfTwoBC.fpopOrThrow()
+        aux.first shouldBe itemB
+        aux.second shouldBe strStackOfOneC
+
+        aux = strStackOfThree.fpopOrThrow()
+        aux.first shouldBe itemA
+        aux.second shouldBe strStackOfTwoBC
+        aux = aux.second.fpopOrThrow()
+        aux.first shouldBe itemB
+        aux.second shouldBe strStackOfOneC
+        aux = aux.second.fpopOrThrow()
+        aux.first shouldBe itemC
+        aux.second shouldBe strStackOfNone
+        shouldThrow<IllegalStateException> {
+            aux.second.fpopOrThrow()
+        }
     }
 
-    test("nullablePeek") {
-        FStack.emptyFStack<Int>().nullableTop() shouldBe null
-        FStackBody.of(FLCons("a", FLNil)).nullableTop() shouldBe "a"
-        FStackBody.of(FLCons("b", FLCons("a", FLNil))).nullableTop() shouldBe "b"
+    test("fpush") {
+        FStack.emptyIMStack<String>().fpush("a") shouldBe FStackBody.of(FLCons("a", FLNil))
+        FStackBody.of(FLCons("a", FLNil)).fpush("b") shouldBe FStackBody.of(FLCons("b", FLCons("a", FLNil)))
+
+        strStackOfNone.fpush(itemB) shouldBe strStackOfOneB
+        strStackOfOneA.fpush(itemB) shouldBe strStackOfTwoBA
+        strStackOfOneC.fpush(itemB) shouldBe strStackOfTwoBC
+        strStackOfOneC.fpush(itemB).fpush(itemA) shouldBe strStackOfThree
     }
 
-    //
-    // ================ companion object
-    //
+    // filtering
 
-    test("co.== throws") {
-        (FStack.emptyFStack<Int>() == FStack.emptyFStack<Int>()) shouldBe true
+    test("fdrop") {
+        strStackOfNone.fdrop(-1) shouldBe strStackOfNone
+        strStackOfNone.fdrop(0) shouldBe strStackOfNone
+        strStackOfNone.fdrop(1) shouldBe strStackOfNone
+
+        strStackOfOneA.fdrop(-1) shouldBe strStackOfOneA
+        strStackOfOneA.fdrop(0) shouldBe strStackOfOneA
+        strStackOfOneA.fdrop(1) shouldBe strStackOfNone
+        strStackOfOneA.fdrop(2) shouldBe strStackOfNone
+
+        strStackOfThree.fdrop(-1) shouldBe strStackOfThree
+        strStackOfThree.fdrop(0) shouldBe strStackOfThree
+        strStackOfThree.fdrop(1) shouldBe strStackOfTwoBC
+        strStackOfThree.fdrop(2) shouldBe strStackOfOneC
+        strStackOfThree.fdrop(3) shouldBe strStackOfNone
+        strStackOfThree.fdrop(4) shouldBe strStackOfNone
     }
 
-    test("co.empty") {
-        FStack.emptyFStack<Int>() shouldBe FStackBody.of(FLNil)
+    test("fdropIfMatch") {
+        strStackOfNone.fdropIfMatch {true} shouldBe strStackOfNone
+        strStackOfNone.fdropIfMatch {false} shouldBe strStackOfNone
+
+        strStackOfOneA.fdropIfMatch {false} shouldBe strStackOfOneA
+        strStackOfOneA.fdropIfMatch {true} shouldBe strStackOfNone
+        strStackOfOneA.fdropIfMatch { it == itemB } shouldBe strStackOfOneA
+        strStackOfOneA.fdropIfMatch { it == itemA } shouldBe strStackOfNone
+
+        strStackOfTwoAB.fdropIfMatch {false} shouldBe strStackOfTwoAB
+        strStackOfTwoAB.fdropIfMatch {true} shouldBe strStackOfOneB
+        strStackOfTwoAB.fdropIfMatch { it == itemB } shouldBe strStackOfTwoAB
+        strStackOfTwoAB.fdropIfMatch { it == itemA } shouldBe strStackOfOneB
+        strStackOfTwoBA.fdropIfMatch { it == itemB } shouldBe strStackOfOneA
+        strStackOfTwoBA.fdropIfMatch { it == itemA } shouldBe strStackOfTwoBA
     }
 
-    test("co.==") {
-        FStack.emptyFStack<Int>().equal(FStack.emptyFStack<Int>()) shouldBe true
+    test("fdropIfTop") {
+        strStackOfNone.fdropIfTop("FOO") shouldBe strStackOfNone
+        strStackOfNone.fdropIfTop(itemA) shouldBe strStackOfNone
+
+        strStackOfOneA.fdropIfTop("FOO") shouldBe strStackOfOneA
+        strStackOfOneA.fdropIfTop(itemB) shouldBe strStackOfOneA
+        strStackOfOneA.fdropIfTop(itemA) shouldBe strStackOfNone
+
+        strStackOfThree.fdropIfTop("FOO") shouldBe strStackOfThree
+        strStackOfThree.fdropIfTop(itemB) shouldBe strStackOfThree
+        strStackOfThree.fdropIfTop(itemA) shouldBe strStackOfTwoBC
+    }
+
+    test("fdropWhile") {
+        strStackOfNone.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfNone.fdropWhile {false} shouldBe strStackOfNone
+
+        strStackOfOneA.fdropWhile {false} shouldBe strStackOfOneA
+        strStackOfOneA.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfOneA.fdropWhile { it == "FOO" } shouldBe strStackOfOneA
+        strStackOfOneA.fdropWhile { it == itemA } shouldBe strStackOfNone
+
+        strStackOfThree.fdropWhile {false} shouldBe strStackOfThree
+        strStackOfThree.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfThree.fdropWhile { it == "FOO" } shouldBe strStackOfThree
+        strStackOfThree.fdropWhile { it == itemA } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropWhile { it < itemB } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropWhile { it < itemC } shouldBe strStackOfOneC
+        strStackOfThree.fdropWhile { itemB < it } shouldBe strStackOfThree
+    }
+
+    test("ftopMatch") {
+        strStackOfNone.ftopMatch {true} shouldBe false
+        strStackOfNone.ftopMatch {false} shouldBe false
+
+        strStackOfOneA.ftopMatch {false} shouldBe false
+        strStackOfOneA.ftopMatch {true} shouldBe true
+        strStackOfOneA.ftopMatch { it == itemB } shouldBe false
+        strStackOfOneA.ftopMatch { it == itemA } shouldBe true
+
+        strStackOfTwoAB.ftopMatch {false} shouldBe false
+        strStackOfTwoAB.ftopMatch {true} shouldBe true
+        strStackOfTwoAB.ftopMatch { it == itemB } shouldBe false
+        strStackOfTwoAB.ftopMatch { it == itemA } shouldBe true
+        strStackOfTwoBA.ftopMatch { it == itemB } shouldBe true
+        strStackOfTwoBA.ftopMatch { it == itemA } shouldBe false
+    }
+
+    test("fempty") {
+        FStack.emptyIMStack<Int>().fempty() shouldBe true
+        FStackBody.of(FLCons("a", FLNil)).fempty() shouldBe false
+    }
+
+    test("ftop") {
+        FStack.emptyIMStack<Int>().ftop() shouldBe null
+        FStackBody.of(FLCons("a", FLNil)).ftop() shouldBe "a"
+        FStackBody.of(FLCons("b", FLCons("a", FLNil))).ftop() shouldBe "b"
+        strStackOfNone.ftop() shouldBe null
+        strStackOfTwoAB.ftop() shouldBe itemA
+        strStackOfTwoBC.ftop() shouldBe itemB
+    }
+
+    test("ftopOrThrow") {
+        shouldThrow<IllegalStateException> {
+            strStackOfNone.ftopOrThrow()
+        }
+        strStackOfTwoAB.ftopOrThrow() shouldBe itemA
+        strStackOfTwoBC.ftopOrThrow() shouldBe itemB
+    }
+
+    // grouping
+
+    test("fcount") {}
+
+    test("fsize") {}
+
+    // transforming
+
+    test("fpopMap") {}
+
+    test("freverse") {}
+
+    test("ftopMap") {}
+
+    // utility
+
+    test("equal") {
+        FStack.emptyIMStack<Int>().equal(FStack.emptyIMStack<Int>()) shouldBe true
         FStackBody.of(FLCons("a", FLCons("b", FLNil))).equal(FStackBody.of(FLCons("a", FLCons("b", FLNil)))) shouldBe true
     }
 
-    test("co.push") {
-        FStack.push(FStack.emptyFStack(), "a") shouldBe FStackBody.of(FLCons("a", FLNil))
-        FStack.push(FStackBody.of(FLCons("a", FLNil)), "b") shouldBe FStackBody.of(FLCons("b", FLCons("a", FLNil)))
-    }
+    test("fforEach") {}
 
-    test("co.equal") {
-        FStack.equal2(FStack.emptyFStack<Int>(), FStack.emptyFStack<Int>()) shouldBe true
-        FStack.equal2(FStackBody.of(FLCons("a", FLNil)), FStackBody.of(FLCons("b", FLNil))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("b", FLNil)), FStackBody.of(FLCons("a", FLNil))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("a", FLNil)), FStackBody.of(FLCons("a", FLNil))) shouldBe true
-        FStack.equal2(FStackBody.of(FLCons("b", FLCons("a", FLNil))), FStackBody.of(FLCons("a", FLNil))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("a", FLCons("b", FLNil))), FStackBody.of(FLCons("a", FLNil))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("b", FLNil)), FStackBody.of(FLCons("b", FLCons("a", FLNil)))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("b", FLNil)), FStackBody.of(FLCons("b", FLCons("a", FLNil)))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("a", FLCons("b", FLNil))), FStackBody.of(FLCons("b", FLCons("a", FLNil)))) shouldBe false
-        FStack.equal2(FStackBody.of(FLCons("a", FLCons("b", FLNil))), FStackBody.of(FLCons("a", FLCons("b", FLNil)))) shouldBe true
-    }
+    test("copy") {}
+
+    test("toIMList") {}
+
+    test("copyToMutableList") {}
 
 })

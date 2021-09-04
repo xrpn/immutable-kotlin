@@ -12,7 +12,7 @@ import io.kotest.xrpn.fbstreeAllowDups
 
 class FBSTreeTransformingTest : FunSpec({
 
-    val repeats = 50
+    val repeats = 10
 
     beforeTest {}
 

@@ -52,8 +52,6 @@ internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
         else -> IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
     }
 
-    // TODO remove in time
-    check(checkf(res, lhs, rhs))
     return res
 }
 
@@ -157,4 +155,27 @@ interface IMBTreeCompanion {
     fun <B: Any> ffindLastSK(t: IMBTree<String,B>, item: B): IMBTree<String,B>? = t.ffindLastItem(TKVEntry.ofStrKey(item))
     fun <B: Any> finsertSK(t: IMBTree<String,B>, item: B): IMBTree<String, B> = t.finsert(TKVEntry.ofStrKey(item))
     fun <B: Any> finsertDupSK(t: IMBTree<String,B>, item: B, allowDups: Boolean): IMBTree<String, B> = t.finsertDup(TKVEntry.ofStrKey(item), allowDups)
+}
+
+internal fun <A: Any> IMStackEqual2(lhs: IMStack<A>, rhs: IMStack<A>): Boolean {
+
+    val res = when {
+        lhs === rhs -> true
+        else -> IMListEqual2(lhs.toIMList(), rhs.toIMList())
+    }
+
+    return res
+}
+
+interface IMStackCompanion {
+
+    fun <A: Any> emptyIMStack(): IMStack<A>
+    fun <A: Any> of(vararg items: A): IMStack<A>
+    fun <A: Any> of(items: Iterator<A>): IMStack<A>
+    fun <A: Any> of(items: List<A>): IMStack<A>
+    fun <A: Any> of(items: IMList<A>): IMStack<A>
+    fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): IMStack<A>
+    fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMStack<A>
+
+    fun <A: Any> Collection<A>.toIMStack():IMStack<A>
 }

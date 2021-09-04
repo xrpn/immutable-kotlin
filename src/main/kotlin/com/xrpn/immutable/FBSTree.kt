@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FStack.Companion.emptyIMStack
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 
@@ -76,28 +77,28 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun inorder(reverse: Boolean): FList<TKVEntry<A, B>> {
 
-        tailrec fun inoLeftDescent(t: FBSTree<A, B>, stack: FStack<FBSTNode<A, B>>): FStack<FBSTNode<A, B>> =
+        tailrec fun inoLeftDescent(t: FBSTree<A, B>, stack: IMStack<FBSTNode<A, B>>): IMStack<FBSTNode<A, B>> =
             when (t) {
                 is FBSTNil -> stack
-                is FBSTNode -> inoLeftDescent(t.bLeft, FStack.push(stack, t))
+                is FBSTNode -> inoLeftDescent(t.bLeft, stack.fpush(t))
             }
 
-        tailrec fun inoChangeDirection(stack: FStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, FStack<FBSTNode<A, B>>> =
-            when (stack.isEmpty()) {
+        tailrec fun inoChangeDirection(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> =
+            when (stack.fempty()) {
                 true -> Pair(acc, stack)
                 false -> {
-                    val (node, shortStack) = stack.pop()
+                    val (node, shortStack) = stack.fpopOrThrow()
                     val newAcc = visit(node, acc)
                     val remaining = inoLeftDescent(node.bRight, shortStack)
                     inoChangeDirection(remaining, newAcc)
                 }
             }
 
-        tailrec fun inoAccrue(stack: FStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, FStack<FBSTNode<A, B>>> {
-            if (stack.isEmpty()) return Pair(acc, stack)
-            val (current, shortStack) = stack.pop()
+        tailrec fun inoAccrue(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> {
+            if (stack.fempty()) return Pair(acc, stack)
+            val (current, shortStack) = stack.fpopOrThrow()
             val accruedAtLeft = inoLeftDescent(current, shortStack)
-            return when (accruedAtLeft.isEmpty()) {
+            return when (accruedAtLeft.fempty()) {
                 true -> Pair(acc, accruedAtLeft)
                 false -> {
                     val (newAcc, toDo) = inoChangeDirection(accruedAtLeft, acc)
@@ -107,24 +108,24 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
 
         return if (this.fempty()) FLNil else when(reverse) {
-            false -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::inoAccrue).freverse()
-            true -> unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), FLNil, ::inoAccrue)
+            false -> unwindStack(FStack.of(this as FBSTNode), FLNil, ::inoAccrue).freverse()
+            true -> unwindStack(FStack.of(this as FBSTNode), FLNil, ::inoAccrue)
         }
 
     }
 
     override fun postorder (reverse: Boolean): FList<TKVEntry<A, B>> {
 
-        fun accrue(stack: FStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, FStack<FBSTNode<A, B>>> {
-            val (node, shortStack) = stack.pop()
-            val auxStack = if (node.bLeft is FBSTNode) FStack.push(shortStack, node.bLeft) else shortStack
-            val newStack = if (node.bRight is FBSTNode) FStack.push(auxStack, node.bRight) else auxStack
+        fun accrue(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> {
+            val (node, shortStack) = stack.fpopOrThrow()
+            val auxStack = if (node.bLeft is FBSTNode) shortStack.fpush(node.bLeft) else shortStack
+            val newStack = if (node.bRight is FBSTNode) auxStack.fpush(node.bRight) else auxStack
             return Pair(visit(node,acc), newStack)
         }
 
         return if (this.fempty()) FLNil else when(reverse) {
-            false -> unwindStack(FStack.push(FStack.emptyFStack(), this as FBSTNode), FLNil, ::accrue)
-            true -> unwindStack(FStack.push(FStack.emptyFStack(), this as FBSTNode), FLNil, ::accrue).freverse()
+            false -> unwindStack(FStack.of(this as FBSTNode), FLNil, ::accrue)
+            true -> unwindStack(FStack.of(this as FBSTNode), FLNil, ::accrue).freverse()
         }
 
     }
@@ -337,16 +338,16 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
         // this is a generic preorder
-        fun accrueForFold(stack: FStack<FBSTNode<A, B>>, acc: C): Pair<C, FStack<FBSTNode<A, B>>> {
-            val (node, shortStack) = stack.pop()
+        fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: C): Pair<C, IMStack<FBSTNode<A, B>>> {
+            val (node, shortStack) = stack.fpopOrThrow()
             val newAcc: C = visitForFold(node, acc, f)
-            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-            val newStack = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
+            val auxStack = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
+            val newStack = if (node.bLeft is FBSTNode) auxStack.fpush(node.bLeft) else auxStack
             return Pair(newAcc, newStack)
         }
 
         return if (this.fempty()) z
-        else  unwindStack(FStack.push(FStack.emptyFStack(),this as FBSTNode), z, ::accrueForFold)
+        else  unwindStack(FStack.of(this as FBSTNode), z, ::accrueForFold)
     }
 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
@@ -389,10 +390,10 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         is FBSTNode -> f(acc, t.entry)
     }
 
-    private tailrec fun <C> unwindStack(stack: FStack<FBSTNode<A, B>>,
+    private tailrec fun <C> unwindStack(stack: IMStack<FBSTNode<A, B>>,
                                         acc: C,
-                                        accrue: (FStack<FBSTNode<A, B>>, C) -> Pair<C, FStack<FBSTNode<A, B>>>): C =
-        if (stack.isEmpty()) acc else {
+                                        accrue: (IMStack<FBSTNode<A, B>>, C) -> Pair<C, IMStack<FBSTNode<A, B>>>): C =
+        if (stack.fempty()) acc else {
             val (newAcc, newStack) = accrue(stack, acc)
             unwindStack(newStack, newAcc, accrue)
         }
@@ -707,24 +708,24 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // clip off the whole branch starting at, and inclusive of, a node with entry valued clipMatch
         internal fun <A, B: Any> bstPrune(treeStub: FBSTree<A, B>, clipMatch: TKVEntry<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> {
 
-            tailrec fun copy(stack: FStack<FBSTNode<A, B>>, acc: FBSTree<A, B>): Pair<FBSTree<A, B>, FStack<FBSTNode<A, B>>> {
-                return if (stack.isEmpty()) Pair(acc, stack) else {
-                    val (node, shortStack) = stack.pop()
+            tailrec fun copy(stack: IMStack<FBSTNode<A, B>>, acc: FBSTree<A, B>): Pair<FBSTree<A, B>, IMStack<FBSTNode<A, B>>> {
+                return if (stack.fempty()) Pair(acc, stack) else {
+                    val (node, shortStack) = stack.fpopOrThrow()
                     val (newStack, newAcc) = when (isChildMatch(node, clipMatch, ::fit)) {
                         Pair(noLeftMatch, noRightMatch) -> {
                             val na = bstInsert(acc, node.entry, allowDups = true)
-                            val auxStack = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
-                            val ns = if (node.bLeft is FBSTNode) FStack.push(auxStack, node.bLeft) else auxStack
+                            val auxStack = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) auxStack.fpush(node.bLeft) else auxStack
                             Pair(ns, na)
                         }
                         Pair(haveLeftMatch,  noRightMatch) -> {
                             val na = bstInsert(acc, node.entry, allowDups = true)
-                            val ns = if (node.bRight is FBSTNode) FStack.push(shortStack, node.bRight) else shortStack
+                            val ns = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
                             Pair(ns, na)
                         }
                         Pair(noLeftMatch,  haveRightMatch) -> {
                             val na = bstInsert(acc, node.entry, allowDups = true)
-                            val ns = if (node.bLeft is FBSTNode) FStack.push(shortStack, node.bLeft) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) shortStack.fpush(node.bLeft) else shortStack
                             Pair(ns, na)
                         }
                         else -> throw RuntimeException("impossible code path")
@@ -738,7 +739,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 treeStub.fempty() -> /* nothing to match */ FBSTNil
                 else -> when(bstParent(treeStub, clipMatch)!!) {
                     is FBSTNil -> /* root; not found was handled above */ FBSTNil
-                    is FBSTNode -> copy(FStack.push(FStack.emptyFStack(), (treeStub as FBSTNode)), FBSTNil).first
+                    is FBSTNode -> copy(FStack.of(treeStub as FBSTNode), FBSTNil).first
                 }
             }
 

@@ -1,9 +1,9 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
+import com.xrpn.imapi.IMStack
 import com.xrpn.immutable.FList.Companion.emptyIMList
-import com.xrpn.immutable.FStack.Companion.emptyFStack
-import com.xrpn.immutable.FStack.Companion.push
+import com.xrpn.immutable.FStack.Companion.emptyIMStack
 
 //
 // W       W  I  P P P
@@ -18,10 +18,10 @@ sealed class FStream<out A: Any> {
 
     fun isEmpty(): Boolean = this is FSNil
 
-    private tailrec fun <B: Any> unwind(stack: FStack<() -> B>, acc: FStream<B>): FStream<B> = when {
-        stack.isEmpty() -> acc
+    private tailrec fun <B: Any> unwind(stack: IMStack<() -> B>, acc: FStream<B>): FStream<B> = when {
+        stack.fempty() -> acc
         else -> {
-            val (item, shortStack) = stack.pop()
+            val (item, shortStack) = stack.fpopOrThrow()
             unwind(shortStack, fsCons(item, { acc }))
         }
     }
@@ -39,15 +39,15 @@ sealed class FStream<out A: Any> {
 
     fun reverseX(): FStream<A> {
 
-        tailrec fun accrue(xs: FStream<A>, acc: FStack<() -> A>): FStack<() -> A> =
+        tailrec fun accrue(xs: FStream<A>, acc: IMStack<() -> A>): IMStack<() -> A> =
             when (xs) {
                 is FSNil -> acc
-                is FSCons -> accrue(xs.tail(), push(acc, xs.head))
+                is FSCons -> accrue(xs.tail(), acc.fpush(xs.head))
             }
 
         return when (this) {
             is FSNil -> this
-            is FSCons -> unwind(FStack.reverse(accrue(this, emptyFStack())), emptyFStream())
+            is FSCons -> unwind(accrue(this, emptyIMStack()).freverse(), emptyFStream())
         }
     }
 
@@ -88,26 +88,26 @@ sealed class FStream<out A: Any> {
 
     fun take(n: Int): FStream<A> {
 
-        tailrec fun accrue(iter: Int, current: FStream<A>, acc: FStack<() -> A>): FStack<() -> A>  =
+        tailrec fun accrue(iter: Int, current: FStream<A>, acc: IMStack<() -> A>): IMStack<() -> A>  =
             when {
                 iter > n -> acc
                 current is FSNil -> acc
-                else -> accrue(iter+1, current.tail(), push(acc, (current as FSCons).head))
+                else -> accrue(iter+1, current.tail(), acc.fpush((current as FSCons).head))
             }
 
-        return unwind(accrue(1, this, emptyFStack()), emptyFStream())
+        return unwind(accrue(1, this, emptyIMStack()), emptyFStream())
     }
 
     fun takeWhile_a(p: (A) -> Boolean): FStream<A> {
 
-        tailrec fun accrue(current: FStream<A>, acc: FStack<() -> A>): FStack<() -> A>  =
+        tailrec fun accrue(current: FStream<A>, acc: IMStack<() -> A>): IMStack<() -> A>  =
             when {
                 current is FSNil -> acc
-                p(current.head()!!) -> accrue(current.tail(), push(acc, (current as FSCons).head))
+                p(current.head()!!) -> accrue(current.tail(), acc.fpush((current as FSCons).head))
                 else -> acc
             }
 
-        return unwind(accrue(this, emptyFStack()), emptyFStream())
+        return unwind(accrue(this, emptyIMStack()), emptyFStream())
     }
 
     fun takeWhile_b(p: (A) -> Boolean): FStream<A> =
@@ -118,16 +118,16 @@ sealed class FStream<out A: Any> {
         tailrec fun traverseToMatch(
             match: (A) -> Boolean,
             pos: FStream<A>,
-            acc: FStack<() -> A>): Triple<FStream<A>, A?, FStream<A>> =
+            acc: IMStack<() -> A>): Triple<FStream<A>, A?, FStream<A>> =
             when (pos) {
                 is FSNil -> Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
                 is FSCons -> when {
                     match(pos.head()) -> Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
-                    else -> traverseToMatch(match, pos.tail(), push(acc, pos.head))
+                    else -> traverseToMatch(match, pos.tail(), acc.fpush(pos.head))
                 }
             }
 
-        return traverseToMatch(isMatch, this, emptyFStack())
+        return traverseToMatch(isMatch, this, emptyIMStack())
     }
 
     fun exists(p: (A) -> Boolean): Boolean =

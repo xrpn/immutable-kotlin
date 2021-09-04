@@ -83,3 +83,14 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
     fun frightMost(): TKVEntry<A, B>?
     fun froot(): TKVEntry<A, B>?
 }
+
+interface IMStackFiltering<out A: Any> {
+    fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
+    fun fdropIfMatch(isMatch: (A) -> Boolean): IMStack<A> // True if top matches the oredicate
+    fun fdropIfTop(item: @UnsafeVariance A): IMStack<A>
+    fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> // Drop the top elements that match the predicate
+    fun ftopMatch(isMatch: (A) -> Boolean): Boolean // True if top matches the oredicate
+    fun fempty(): Boolean = ftop() == null
+    fun ftop(): A? // the top element
+    fun ftopOrThrow(): A // the top element
+}

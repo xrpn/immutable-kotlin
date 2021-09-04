@@ -60,3 +60,11 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
         }
     }
 }
+
+interface IMStackUtility<out A: Any> {
+    fun equal(rhs: IMStack<@UnsafeVariance A>): Boolean
+    fun fforEach (f: (A) -> Unit): Unit
+    fun copy(): IMStack<A>
+    fun toIMList(): IMList<A>
+    fun copyToMutableList(): MutableList<@UnsafeVariance A>
+}
