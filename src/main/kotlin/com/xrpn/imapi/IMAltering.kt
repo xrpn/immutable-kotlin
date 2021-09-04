@@ -8,6 +8,8 @@ interface IMListAltering<out A: Any> {
     fun fappendAll(elements: IMList<@UnsafeVariance A>): IMList<A>
     fun fprepend(item: @UnsafeVariance A): IMList<A>
     fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
+    operator fun plus(rhs: IMList<@UnsafeVariance A>): IMList<A>
+    operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
 }
 
 interface IMSetAltering<out A: Any> {

@@ -72,15 +72,15 @@ class FRBTreeCompanionTest : FunSpec({
         intFrbtOfTwo.equals(strFrbtOfOne) shouldBe false
         intFrbtOfTwo.equals(strFrbtOfTwo) shouldBe false
 
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfNone)) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfOne)) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfTwo)) shouldBe false // true
-        intFrbtOfTwo.equals(FSetBody(frbtOfOneY)) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfNone)) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfOne)) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfTwo)) shouldBe false // true
+        intFrbtOfTwo.equals(FSetBody.of(frbtOfOneY)) shouldBe false
 
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfNone).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfOne).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(intFrbtOfTwo).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FSetBody(frbtOfOneY).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfNone).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfOne).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(intFrbtOfTwo).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(FSetBody.of(frbtOfOneY).copyToMutableSet()) shouldBe false
 
         intFrbtOfTwo.equals(intFrbtOfNone.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfOne.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
@@ -94,14 +94,16 @@ class FRBTreeCompanionTest : FunSpec({
 
     }
 
-    test("toString()") {
+    test("toString() hashCode()") {
         emptyIMBTree<Int, Int>().toString() shouldBe "*"
+        val aux = emptyIMBTree<Int, Int>().hashCode()
         for (i in (1..100)) {
-            emptyIMBTree<Int, Int>().hashCode() shouldBe emptyIMBTree<Int, Int>().hashCode()
+             aux shouldBe emptyIMBTree<Int, Int>().hashCode()
         }
         intFrbtOfTwo.toString() shouldStartWith "([ "
+        val aux2 = intFrbtOfTwo.hashCode()
         for (i in (1..100)) {
-            intFrbtOfTwo.hashCode() shouldBe intFrbtOfTwo.hashCode()
+             aux2 shouldBe intFrbtOfTwo.hashCode()
         }
         for (i in (1..100)) {
             FRBTNode.hashCode(intFrbtOfTwo as FRBTNode<Int,Int>) shouldBe intFrbtOfTwo.hashCode()
@@ -115,21 +117,21 @@ class FRBTreeCompanionTest : FunSpec({
     }
 
     test("co.[ IMBTreeEqual2 ]") {
-        IMBTreeEqual2 (intFrbtOfNone, FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
+        IMBTreeEqual2 (intFrbtOfNone, ofvi(*arrayOf<Int>())) shouldBe true
         IMBTreeEqual2 (intFrbtOfNone, intFrbtOfNone) shouldBe true
-        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
-        IMBTreeEqual2 (intFrbtOfNone, FRBTree.ofvi(*arrayOf(1))) shouldBe false
-        IMBTreeEqual2 (intFrbtOfOne, FRBTree.ofvi(*arrayOf<Int>(1))) shouldBe true
+        IMBTreeEqual2 (ofvi(*arrayOf(1)), ofvi(*arrayOf<Int>())) shouldBe false
+        IMBTreeEqual2 (intFrbtOfNone, ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (intFrbtOfOne, ofvi(*arrayOf<Int>(1))) shouldBe true
         IMBTreeEqual2 (intFrbtOfOne, intFrbtOfOne) shouldBe true
-        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf(1)), FRBTree.ofvi(*arrayOf<Int>(1, 2))) shouldBe false
-        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1))) shouldBe false
-        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(1, 2))) shouldBe true
-        IMBTreeEqual2 (FRBTree.ofvi(*arrayOf<Int>(1, 2)), FRBTree.ofvi(*arrayOf(2, 1))) shouldBe true
-        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(1, 3, 2))) shouldBe true
-        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 3, 1))) shouldBe true
-        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(2, 1, 3))) shouldBe true
-        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 1, 2))) shouldBe true
-        IMBTreeEqual2 (intFrbtOfThree, FRBTree.ofvi(*arrayOf(3, 2, 1))) shouldBe true
+        IMBTreeEqual2 (ofvi(*arrayOf(1)), ofvi(*arrayOf<Int>(1, 2))) shouldBe false
+        IMBTreeEqual2 (ofvi(*arrayOf<Int>(1, 2)), ofvi(*arrayOf(1))) shouldBe false
+        IMBTreeEqual2 (ofvi(*arrayOf<Int>(1, 2)), ofvi(*arrayOf(1, 2))) shouldBe true
+        IMBTreeEqual2 (ofvi(*arrayOf<Int>(1, 2)), ofvi(*arrayOf(2, 1))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, ofvi(*arrayOf(1, 3, 2))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, ofvi(*arrayOf(2, 3, 1))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, ofvi(*arrayOf(2, 1, 3))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, ofvi(*arrayOf(3, 1, 2))) shouldBe true
+        IMBTreeEqual2 (intFrbtOfThree, ofvi(*arrayOf(3, 2, 1))) shouldBe true
     }
     
     test("co.of varargs") {

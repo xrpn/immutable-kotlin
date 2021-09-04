@@ -87,14 +87,16 @@ class FBSTreeCompanionTest : FunSpec({
         intFbstOfTwo.equals(1) shouldBe false
     }
 
-    test("toString") {
+    test("toString() hashCode()") {
         emptyIMBTree<Int,Int>().toString() shouldBe "FBSTNil"
+        val aux = emptyIMBTree<Int,Int>().hashCode()
         for (i in (1..100)) {
-            emptyIMBTree<Int,Int>().hashCode() shouldBe emptyIMBTree<Int,Int>().hashCode()
+             aux shouldBe emptyIMBTree<Int,Int>().hashCode()
         }
         intFbstOfTwo.toString() shouldStartWith "${FBSTree::class.simpleName}@"
+        val aux2 = intFbstOfTwo.hashCode()
         for (i in (1..100)) {
-            intFbstOfTwo.hashCode() shouldBe intFbstOfTwo.hashCode()
+             aux2 shouldBe intFbstOfTwo.hashCode()
         }
         for (i in (1..100)) {
             FBSTNode.hashCode(intFbstOfTwo as FBSTNode<Int,Int>) shouldBe intFbstOfTwo.hashCode()

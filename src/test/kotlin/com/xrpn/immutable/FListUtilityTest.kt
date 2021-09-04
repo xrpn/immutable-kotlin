@@ -44,6 +44,12 @@ class FListUtilityTest : FunSpec({
     val summer = AtomicInteger(0)
     val doCount: (Int) -> Unit = { counter.incrementAndGet() }
     val doSum: (Int) -> Unit = { v -> summer.addAndGet(v) }
+    intListOfNone.fforEach(doCount)
+    counter.get() shouldBe 0
+    intListOfNone.fforEach(doSum)
+    summer.get() shouldBe 0
+    counter.set(0)
+    summer.set(0)
     checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
       val oraSum = fl.ffoldLeft(0){ acc, el -> acc + el }
       fl.fforEach(doCount)
@@ -56,17 +62,21 @@ class FListUtilityTest : FunSpec({
   }
 
   test("copy") {
+    intListOfNone.copy() shouldBe intListOfNone
     checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
       val fl1 = fl.copy()
       (fl1 === fl) shouldBe false
       fl.equal(fl1) shouldBe true
+      fl1.equal(fl) shouldBe true
     }
   }
 
   test("copyToMutableList") {
+    intListOfNone.copyToMutableList() shouldBe mutableListOf()
     checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
       val ml: MutableList<Int> = fl.copyToMutableList()
       (fl == ml) shouldBe true
+      (ml == fl) shouldBe true
     }
   }
 

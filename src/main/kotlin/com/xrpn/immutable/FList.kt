@@ -489,7 +489,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
     }
 
-    // =====
+    // ===== altering
 
     override fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
 
@@ -504,6 +504,9 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FList -> flAppend(elements, this)
         else -> flAppend(of(elements), this)
     }
+
+    override operator fun plus(rhs: IMList<@UnsafeVariance A>): IMList<A> = this.fappendAll(of(rhs))
+    override operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A> = this.fdropAll(of(rhs))
 
     companion object: IMListCompanion {
 

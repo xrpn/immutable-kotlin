@@ -41,7 +41,7 @@ interface IMSetFiltering<out A: Any> {
     fun fempty(): Boolean = fpick() == null
     fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
-    fun ffind(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
+    fun ffindDistinct(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
     fun fisSubsetOf(rhs: IMSet<@UnsafeVariance A>): Boolean
     fun isSetOfOne() = this is FSetOfOne
     fun fpick(): A? // peek at one random element

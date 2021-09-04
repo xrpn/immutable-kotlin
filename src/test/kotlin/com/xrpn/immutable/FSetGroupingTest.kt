@@ -1,24 +1,28 @@
 package com.xrpn.immutable
 
 import com.xrpn.hash.JohnsonTrotter
+import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.immutable.FSet.Companion.emptyIMSet
 import com.xrpn.immutable.FSet.Companion.of
 import com.xrpn.immutable.FSetOfOne.Companion.toSoO
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val intSetOfNone = FSet.of(*arrayOf<Int>())
 private val intSetOfOne = FSet.of(1)
 private val intSetOfTwo = FSet.of(1, 2)
-private val intSetOfTwoOfst1 = FSet.of(2, 3)
-private val intSetOfTwoOfst2 = FSet.of(3, 4)
 private val intSetOfThree = FSet.of(1, 2, 3)
 private val intSetOfFour = FSet.of(1, 2, 3, 4)
+private val strSetOfFour = FSet.of("a","b","c","d")
 private val intSetOfFive = FSet.of(1, 2, 3, 4, 5)
 private val intSetOfSix = FSet.of(1, 2, 3, 4, 5, 6)
 private val intSetOfSeven = FSet.of(1, 2, 3, 4, 5, 6, 7)
 private val intSetOfEight = FSet.of(1, 2, 3, 4, 5, 6, 7, 8)
 private val intSetOfNine = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
+private val intSetOfTen = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+private val intSetOfEleven = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+private val intSetOfTwelve = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 
 private val oracleC: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
@@ -140,15 +144,67 @@ class FSetGroupingTest : FunSpec({
         intSetOfSeven.fcombinations(6).ffilter { it.size == 6 }.size shouldBe 7 // 7! / (7-6)! 6!
         intSetOfSeven.fcombinations(7).size shouldBe 127
         intSetOfSeven.fcombinations(7).ffilter { it.size == 7 }.size shouldBe 1 // 7! / (7-7)! 7!
+
+        fun tot(n: Int): Int {
+            var acc = 0
+            for (i in (1 ..n)) { acc += (smallFact(n) / (smallFact(n - i) * smallFact(i))) }
+            return acc
+        }
+
+        intSetOfEight.fcombinations(8).size shouldBe tot(8)
+        intSetOfEight.fcombinations(8).filter { it.size == 8 }.size shouldBe 1
+        intSetOfNine.fcombinations(9).size shouldBe tot(9)
+        intSetOfNine.fcombinations(9).filter { it.size == 9 }.size shouldBe 1
+        intSetOfTen.fcombinations(10).size shouldBe tot(10)
+        intSetOfTen.fcombinations(10).filter { it.size == 10 }.size shouldBe 1
+        intSetOfEleven.fcombinations(11).size shouldBe tot(11)
+        intSetOfEleven.fcombinations(11).filter { it.size == 11 }.size shouldBe 1
+        intSetOfTwelve.fcombinations(12).size shouldBe tot(12)
+        intSetOfTwelve.fcombinations(12).filter { it.size == 12 }.size shouldBe 1
     }
 
-    test("fcount") { }
+    test("fcount") {
+        intSetOfNone.fcount { true } shouldBe 0
+        intSetOfNone.fcount { false } shouldBe 0
+        intSetOfThree.fcount { it == 2 } shouldBe 1
+        intSetOfFour.fcount { it in 2..3 } shouldBe 2
+        intSetOfTen.fcount { true } shouldBe 10
+        intSetOfTen.fcount { false } shouldBe 0
+    }
 
-    test("fgroupBy") { }
+    test("fgroupBy").config(enabled = false) {
+        fail("need FMap done to make this happen")
+    }
 
-    test("findexed") { }
+    test("findexed") {
 
-    test("fpartition") { }
+        intSetOfNone.findexed() shouldBe emptyIMSet()
+
+        val ix4offset1: FSet<Pair<String, Int>> = strSetOfFour.findexed(1)
+        ix4offset1.fmap { p -> p.second }.equals(intSetOfFour) shouldBe true
+        ix4offset1.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
+
+        val ix4offset0: FSet<Pair<String, Int>> = strSetOfFour.findexed(0)
+        ix4offset0.fmap { p -> p.second+1 }.equals(intSetOfFour) shouldBe true
+        ix4offset0.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
+
+        val ix4offsetDefault: FSet<Pair<String, Int>> = strSetOfFour.findexed()
+        ix4offsetDefault.fmap { p -> p.second+1 }.equals(intSetOfFour) shouldBe true
+        ix4offsetDefault.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
+    }
+
+    test("fpartition") {
+        intSetOfNone.fpartition {true} shouldBe Pair(emptyIMSet(), emptyIMSet())
+        intSetOfNone.fpartition {false} shouldBe Pair(emptyIMSet(), emptyIMSet())
+
+        val (pt1, pf1) = intSetOfFour.fpartition { it < 3 }
+        pt1.equals(intSetOfTwo) shouldBe true
+        pf1.equals(intSetOfTwo.fmap { it+2 }) shouldBe true
+
+        val (pt2, pf2) = intSetOfFour.fpartition { it < 1 }
+        pt2.equals(intSetOfNone) shouldBe true
+        pf2.equals(intSetOfFour) shouldBe true
+    }
 
     test("fpermutations") {
 
@@ -205,6 +261,7 @@ class FSetGroupingTest : FunSpec({
         val sixBySix = intSetOfSix.fpermutations(6)
         sixBySix.size shouldBe 720 // 6! / (6-6)! = 6!
         intSetOfSix.fpermutations(7) shouldBe emptyIMSet()
+
     }
 
     test("fpermute") {
@@ -274,16 +331,31 @@ class FSetGroupingTest : FunSpec({
         oneReminder shouldBe  FSet.emptyIMSet<Int>()
 
         // this traverses slideShareTree popping one element at a time, and rebuilding the set with the popped element
-        val res = FSetBody(frbSlideShareTree).ffold(Pair(FSet.emptyIMSet<Int>(), FSetBody(frbSlideShareTree).fpopAndReminder())) { acc, _ ->
+        val res = FSetBody.of(frbSlideShareTree).ffold(Pair(FSet.emptyIMSet<Int>(), FSetBody.of(frbSlideShareTree).fpopAndReminder())) { acc, _ ->
             val (rebuild, popAndStub) = acc
             val (pop, stub) = popAndStub
             Pair(rebuild.fadd(pop!!.toSoO()), stub.fpopAndReminder())
         }
-        res.first.equals(FSetBody(frbSlideShareTree)) shouldBe true
+        res.first.equals(FSetBody.of(frbSlideShareTree)) shouldBe true
         val (lastPopped, lastReminder) = res.second
         lastPopped shouldBe null
         lastReminder shouldBe FSet.emptyIMSet<Int>()
     }
 
-    test("fsize") { }
+    test("fsize") {
+        intSetOfNone.fsize() shouldBe 0
+        intSetOfOne.fsize() shouldBe 1
+        intSetOfTwo.fsize() shouldBe 2
+        intSetOfThree.fsize() shouldBe 3
+        intSetOfFour.fsize() shouldBe 4
+        strSetOfFour.fsize() shouldBe 4
+        intSetOfFive.fsize() shouldBe 5
+        intSetOfSix.fsize() shouldBe 6
+        intSetOfSeven.fsize() shouldBe 7
+        intSetOfEight.fsize() shouldBe 8
+        intSetOfNine.fsize() shouldBe 9
+        intSetOfTen.fsize() shouldBe 10
+        intSetOfEleven.fsize() shouldBe 11
+        intSetOfTwelve.fsize() shouldBe 12
+    }
 })

@@ -44,15 +44,17 @@ class FListCompanionTest : FunSpec({
     intListOfTwo.equals(1) shouldBe false
   }
 
-  test("toString") {
+  test("toString() hashCode()") {
     // stowaway, used to make up for missing coverage
     FList.emptyIMList<Int>().toString() shouldBe "FLNil"
+    val aux = FList.emptyIMList<Int>().hashCode()
     for (i in (1..100)) {
-      FList.emptyIMList<Int>().hashCode() shouldBe FList.emptyIMList<Int>().hashCode()
+       aux shouldBe FList.emptyIMList<Int>().hashCode()
     }
     intListOfTwo.toString() shouldStartWith "${FList::class.simpleName}:"
+    val aux2 = intListOfTwo.hashCode()
     for (i in (1..100)) {
-      intListOfTwo.hashCode() shouldBe intListOfTwo.hashCode()
+      aux2 shouldBe intListOfTwo.hashCode()
     }
     for (i in (1..100)) {
       FLCons.hashCode(intListOfTwo as FLCons) shouldBe intListOfTwo.hashCode()
@@ -119,33 +121,25 @@ class FListCompanionTest : FunSpec({
   }
 
   test("plus") {
-    intListOfNone + intListOfNone shouldBe intListOfNone
-    intListOfNone.toList() + intListOfNone.toList() shouldBe intListOfNone.toList()
-    intListOfNone + intListOfOne shouldBe intListOfOne
-    intListOfNone.toList() + intListOfOne.toList() shouldBe intListOfOne.toList()
-    intListOfNone + intListOfThree shouldBe intListOfThree
-    intListOfNone.toList() + intListOfThree.toList() shouldBe intListOfThree.toList()
-    intListOfOne + intListOfThree shouldBe FLCons(1, intListOfThree)
-    intListOfOne.toList() + intListOfThree.toList() shouldBe FLCons(1, intListOfThree).toList()
-    intListOfTwo + intListOfThree shouldBe FLCons(1, FLCons(2, intListOfThree))
-    intListOfTwo.toList() + intListOfThree.toList() shouldBe FLCons(1, FLCons(2, intListOfThree)).toList()
+    val ilon: IMList<Int> = intListOfNone
+    val ilo1: IMList<Int> = intListOfOne
+    val ilo2: IMList<Int> = intListOfTwo
+
+    (ilon + ilo1) shouldBe intListOfOne
+    (ilo1 + ilon) shouldBe intListOfOne
+    (ilo1 + ilo2) shouldBe FList.of(1, 1, 2)
+    (ilo2 + ilo1) shouldBe FList.of(1, 2, 1)
   }
 
   test("minus") {
-    intListOfNone - intListOfNone shouldBe intListOfNone
-    intListOfNone.toList() - intListOfNone.toList() shouldBe intListOfNone.toList()
-    intListOfNone - intListOfOne shouldBe intListOfNone
-    intListOfNone.toList() - intListOfOne.toList() shouldBe intListOfNone.toList()
-    intListOfNone - intListOfThree shouldBe intListOfNone
-    intListOfNone.toList() - intListOfThree.toList() shouldBe intListOfNone.toList()
-    intListOfThree - intListOfOne shouldBe FLCons(2, FLCons(3, FLNil))
-    intListOfThree.toList() - intListOfOne.toList() shouldBe FLCons(2, FLCons(3, FLNil)).toList()
-    intListOfThree - intListOfTwo shouldBe FLCons(3, FLNil)
-    intListOfThree.toList() - intListOfTwo.toList() shouldBe FLCons(3, FLNil).toList()
-    intListOfThree - FLCons(3, FLNil) shouldBe intListOfTwo
-    intListOfThree.toList() - FLCons(3, FLNil).toList() shouldBe intListOfTwo.toList()
-    intListOfThree - FLCons(2, FLCons(3, FLNil)) shouldBe intListOfOne
-    intListOfThree.toList() - FLCons(2, FLCons(3, FLNil)).toList() shouldBe intListOfOne.toList()
+    val ilon: IMList<Int> = intListOfNone
+    val ilo1: IMList<Int> = intListOfOne
+    val ilo2: IMList<Int> = intListOfTwo
+
+    (ilon - ilo1) shouldBe intListOfNone
+    (ilo1 - ilon) shouldBe intListOfOne
+    (ilo1 - ilo2) shouldBe intListOfNone
+    (ilo2 - ilo1) shouldBe FList.of(2)
   }
 
   test("co.toIMList") {

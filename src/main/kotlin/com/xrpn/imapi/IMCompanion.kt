@@ -1,6 +1,7 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.FSetOfOne
+import com.xrpn.immutable.FSetOfOne.Companion.toSoO
 import com.xrpn.immutable.TKVEntry
 
 // TODO remove in time
@@ -40,9 +41,6 @@ interface IMListCompanion {
     fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): IMList<A>
     fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMList<A>
 
-    operator fun <A: Any> IMList<A>.plus(rhs: IMList<A>): IMList<A> = this.fappendAll(of(rhs))
-    operator fun <A: Any> IMList<A>.minus(rhs: IMList<A>): IMList<A> = this.fdropAll(of(rhs))
-
     fun <A: Any> Collection<A>.toIMList():IMList<A>
 }
 
@@ -73,10 +71,7 @@ interface IMSetCompanion {
     infix fun <A: Any> IMSet<A>.or(rhs: IMSet<A>): IMSet<A> = this.fOR(rhs)
     infix fun <A: Any> IMSet<A>.and(rhs: IMSet<A>): IMSet<A> = this.fAND(rhs)
     infix fun <A: Any> IMSet<A>.xor(rhs: IMSet<A>): IMSet<A> = this.fXOR(rhs)
-    operator fun <A: Any> IMSet<A>.plus(rhs: IMSet<A>): IMSet<A> = this.fOR(rhs)
-    operator fun <A: Any> IMSet<A>.plus(rhs: FSetOfOne<A>): IMSet<A> = this.fadd(rhs)
-    operator fun <A: Any> IMSet<A>.minus(rhs: IMSet<A>): IMSet<A> = this.fdropAll(rhs)
-    operator fun <A: Any> IMSet<A>.minus(rhs: FSetOfOne<A>): IMSet<A> = this.fdropItem(rhs)
+    infix fun <A: Any> IMSet<A>.not(rhs: IMSet<A>): IMSet<A> = this.fNOT(rhs)
 
     fun <A: Any> Collection<A>.toIMSet(): IMSet<A>
 }

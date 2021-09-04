@@ -16,7 +16,8 @@ internal fun <A, B:Any> fitKeyToEntry(key: A, entry: TKVEntry<A, B>): FBTFIT whe
     }
 }
 
-interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
+interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B>
+where A: Any, A: Comparable<@UnsafeVariance A> {
 
     val vc: Comparator<@UnsafeVariance A>?
         get() = null
@@ -70,10 +71,7 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
 
     override fun toString(): String = "[ $k:$v ]"
 
-    override fun hashCode(): Int = when {
-        k is Int -> k
-        else -> k.hashCode()
-    }
+    override fun hashCode(): Int = k.hashCode()
 
     private val kClass: KClass<out A> by lazy { k::class }
     private val vClass: KClass<out B> by lazy { v::class }
@@ -91,7 +89,7 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
     override fun getk(): A = k
     override fun getkc(): Comparable<A> = k
     override fun getv(): B = v
-    override fun copy(): TKVEntry<A, B> = /* TODO */ this.copy(k=k, v=v)
+    override fun copy(): TKVEntry<A, B> = this.copy(k=k, v=v, vc=vc)
     override val key: A
         get() = k
     override val value: B

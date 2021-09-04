@@ -3,6 +3,7 @@ package com.xrpn.kapi
 import com.xrpn.bridge.FSetIterator
 import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FSet.Companion.NOT_FOUND
 import com.xrpn.immutable.FSet.Companion.emptyIMSet
 import com.xrpn.immutable.FSet.Companion.of
 import com.xrpn.immutable.FSet.Companion.toIMSet
@@ -236,46 +237,46 @@ class FSetKCollTest : FunSpec({
   }
 
   test("indexOf") {
-    intSetOfNone.indexOf(0) shouldBe -1
+    intSetOfNone.indexOf(0) shouldBe NOT_FOUND
 
-    intSetOfOne.indexOf(0) shouldBe -1
+    intSetOfOne.indexOf(0) shouldBe NOT_FOUND
     intSetOfOne.indexOf(1) shouldBe 0
-    intSetOfOne.indexOf(2) shouldBe -1
+    intSetOfOne.indexOf(2) shouldBe NOT_FOUND
 
-    intSetOfTwo.indexOf(0) shouldBe -1
+    intSetOfTwo.indexOf(0) shouldBe NOT_FOUND
     val aux1 = intSetOfTwo.indexOf(1)
     (aux1 == 0 || aux1 == 1) shouldBe true
     val aux2 = intSetOfTwo.indexOf(2)
     ((aux2 == 0 || aux2 == 1) && (aux1 != aux2)) shouldBe true
-    intSetOfTwo.indexOf(3) shouldBe -1
+    intSetOfTwo.indexOf(3) shouldBe NOT_FOUND
   }
 
   test("indexOfirst") {
-    intSetOfNone.indexOfFirst(matchEqual(0)) shouldBe -1
+    intSetOfNone.indexOfFirst(matchEqual(0)) shouldBe NOT_FOUND
 
-    intSetOfOne.indexOfFirst(matchEqual(0)) shouldBe -1
+    intSetOfOne.indexOfFirst(matchEqual(0)) shouldBe NOT_FOUND
     intSetOfOne.indexOfFirst(matchEqual(1)) shouldBe 0
 
-    intSetOfSix.indexOfFirst(matchEqual(0)) shouldBe -1
+    intSetOfSix.indexOfFirst(matchEqual(0)) shouldBe NOT_FOUND
     val aux1 = intSetOfSix.indexOfFirst(matchEqual(1))
     (aux1 in (0..intSetOfSix.size)) shouldBe true
     val aux2 = intSetOfSix.indexOfFirst(matchEqual(2))
     (aux2 in (0..intSetOfSix.size) && aux1 != aux2) shouldBe true
-    intSetOfSix.indexOfFirst(matchEqual(30)) shouldBe -1
+    intSetOfSix.indexOfFirst(matchEqual(30)) shouldBe NOT_FOUND
   }
 
   test("indexOfLast") {
-    intSetOfNone.indexOfLast(matchEqual(0)) shouldBe -1
+    intSetOfNone.indexOfLast(matchEqual(0)) shouldBe NOT_FOUND
 
-    intSetOfOne.indexOfLast(matchEqual(0)) shouldBe -1
+    intSetOfOne.indexOfLast(matchEqual(0)) shouldBe NOT_FOUND
     intSetOfOne.indexOfLast(matchEqual(1)) shouldBe 0
 
-    intSetOfSix.indexOfLast(matchEqual(0)) shouldBe -1
+    intSetOfSix.indexOfLast(matchEqual(0)) shouldBe NOT_FOUND
     val aux1 = intSetOfSix.indexOfLast(matchEqual(1))
     (aux1 in (0..intSetOfSix.size)) shouldBe true
     val aux2 = intSetOfSix.indexOfLast(matchEqual(2))
     (aux2 in (0..intSetOfSix.size) && aux1 != aux2) shouldBe true
-    intSetOfSix.indexOfLast(matchEqual(30)) shouldBe -1
+    intSetOfSix.indexOfLast(matchEqual(30)) shouldBe NOT_FOUND
   }
 
   test("last") {
@@ -312,18 +313,18 @@ class FSetKCollTest : FunSpec({
 
   test("lastIndexOf") {
 
-    intSetOfNone.lastIndexOf(0) shouldBe -1
+    intSetOfNone.lastIndexOf(0) shouldBe NOT_FOUND
 
-    intSetOfOne.lastIndexOf(0) shouldBe -1
+    intSetOfOne.lastIndexOf(0) shouldBe NOT_FOUND
     intSetOfOne.lastIndexOf(1) shouldBe 0
 
-    intSetOfSix.lastIndexOf(0) shouldBe -1
+    intSetOfSix.lastIndexOf(0) shouldBe NOT_FOUND
 
     val aux1 = intSetOfSix.lastIndexOf(1)
     (aux1 in (0..intSetOfSix.size)) shouldBe true
     val aux2 = intSetOfSix.lastIndexOf(2)
     (aux2 in (0..intSetOfSix.size) && aux1 != aux2) shouldBe true
-    intSetOfSix.lastIndexOf(30) shouldBe -1
+    intSetOfSix.lastIndexOf(30) shouldBe NOT_FOUND
   }
 
   test("findlast") {
