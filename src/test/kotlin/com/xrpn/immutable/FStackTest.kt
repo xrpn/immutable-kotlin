@@ -1,13 +1,19 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMStackEqual2
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.checkAll
+import io.kotest.xrpn.flist
+import java.util.concurrent.atomic.AtomicInteger
+
 private val itemA = "A"
 private val itemB = "B"
 private val itemC = "C"
 private val strStackOfNone = FStack.of(*arrayOf<String>())
+private val intStackOfNone = FStack.of(*arrayOf<Int>())
 private val strStackOfOneA = FStack.of(*arrayOf<String>(itemA))
 private val strStackOfOneB = FStack.of(*arrayOf<String>(itemB))
 private val strStackOfOneC = FStack.of(*arrayOf<String>(itemC))
@@ -18,6 +24,8 @@ private val strStackOfTwoCB = FStack.of(*arrayOf<String>(itemC, itemB))
 private val strStackOfThree = FStack.of(*arrayOf<String>(itemA, itemB, itemC))
 
 class FStackTest : FunSpec({
+
+    val repeats = 50
 
     beforeTest {}
 
@@ -112,23 +120,6 @@ class FStackTest : FunSpec({
         strStackOfThree.fdrop(4) shouldBe strStackOfNone
     }
 
-    test("fdropIfMatch") {
-        strStackOfNone.fdropIfMatch {true} shouldBe strStackOfNone
-        strStackOfNone.fdropIfMatch {false} shouldBe strStackOfNone
-
-        strStackOfOneA.fdropIfMatch {false} shouldBe strStackOfOneA
-        strStackOfOneA.fdropIfMatch {true} shouldBe strStackOfNone
-        strStackOfOneA.fdropIfMatch { it == itemB } shouldBe strStackOfOneA
-        strStackOfOneA.fdropIfMatch { it == itemA } shouldBe strStackOfNone
-
-        strStackOfTwoAB.fdropIfMatch {false} shouldBe strStackOfTwoAB
-        strStackOfTwoAB.fdropIfMatch {true} shouldBe strStackOfOneB
-        strStackOfTwoAB.fdropIfMatch { it == itemB } shouldBe strStackOfTwoAB
-        strStackOfTwoAB.fdropIfMatch { it == itemA } shouldBe strStackOfOneB
-        strStackOfTwoBA.fdropIfMatch { it == itemB } shouldBe strStackOfOneA
-        strStackOfTwoBA.fdropIfMatch { it == itemA } shouldBe strStackOfTwoBA
-    }
-
     test("fdropIfTop") {
         strStackOfNone.fdropIfTop("FOO") shouldBe strStackOfNone
         strStackOfNone.fdropIfTop(itemA) shouldBe strStackOfNone
@@ -142,22 +133,39 @@ class FStackTest : FunSpec({
         strStackOfThree.fdropIfTop(itemA) shouldBe strStackOfTwoBC
     }
 
-    test("fdropWhile") {
-        strStackOfNone.fdropWhile {true} shouldBe strStackOfNone
-        strStackOfNone.fdropWhile {false} shouldBe strStackOfNone
+    test("fdropTopWhen") {
+        strStackOfNone.fdropTopWhen {true} shouldBe strStackOfNone
+        strStackOfNone.fdropTopWhen {false} shouldBe strStackOfNone
 
-        strStackOfOneA.fdropWhile {false} shouldBe strStackOfOneA
-        strStackOfOneA.fdropWhile {true} shouldBe strStackOfNone
-        strStackOfOneA.fdropWhile { it == "FOO" } shouldBe strStackOfOneA
-        strStackOfOneA.fdropWhile { it == itemA } shouldBe strStackOfNone
+        strStackOfOneA.fdropTopWhen {false} shouldBe strStackOfOneA
+        strStackOfOneA.fdropTopWhen {true} shouldBe strStackOfNone
+        strStackOfOneA.fdropTopWhen { it == itemB } shouldBe strStackOfOneA
+        strStackOfOneA.fdropTopWhen { it == itemA } shouldBe strStackOfNone
 
-        strStackOfThree.fdropWhile {false} shouldBe strStackOfThree
-        strStackOfThree.fdropWhile {true} shouldBe strStackOfNone
-        strStackOfThree.fdropWhile { it == "FOO" } shouldBe strStackOfThree
-        strStackOfThree.fdropWhile { it == itemA } shouldBe strStackOfTwoBC
-        strStackOfThree.fdropWhile { it < itemB } shouldBe strStackOfTwoBC
-        strStackOfThree.fdropWhile { it < itemC } shouldBe strStackOfOneC
-        strStackOfThree.fdropWhile { itemB < it } shouldBe strStackOfThree
+        strStackOfTwoAB.fdropTopWhen {false} shouldBe strStackOfTwoAB
+        strStackOfTwoAB.fdropTopWhen {true} shouldBe strStackOfOneB
+        strStackOfTwoAB.fdropTopWhen { it == itemB } shouldBe strStackOfTwoAB
+        strStackOfTwoAB.fdropTopWhen { it == itemA } shouldBe strStackOfOneB
+        strStackOfTwoBA.fdropTopWhen { it == itemB } shouldBe strStackOfOneA
+        strStackOfTwoBA.fdropTopWhen { it == itemA } shouldBe strStackOfTwoBA
+    }
+
+    test("fdropTopWhile") {
+        strStackOfNone.fdropTopWhile {true} shouldBe strStackOfNone
+        strStackOfNone.fdropTopWhile {false} shouldBe strStackOfNone
+
+        strStackOfOneA.fdropTopWhile {false} shouldBe strStackOfOneA
+        strStackOfOneA.fdropTopWhile {true} shouldBe strStackOfNone
+        strStackOfOneA.fdropTopWhile { it == "FOO" } shouldBe strStackOfOneA
+        strStackOfOneA.fdropTopWhile { it == itemA } shouldBe strStackOfNone
+
+        strStackOfThree.fdropTopWhile {false} shouldBe strStackOfThree
+        strStackOfThree.fdropTopWhile {true} shouldBe strStackOfNone
+        strStackOfThree.fdropTopWhile { it == "FOO" } shouldBe strStackOfThree
+        strStackOfThree.fdropTopWhile { it == itemA } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropTopWhile { it < itemB } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropTopWhile { it < itemC } shouldBe strStackOfOneC
+        strStackOfThree.fdropTopWhile { itemB < it } shouldBe strStackOfThree
     }
 
     test("ftopMatch") {
@@ -201,31 +209,113 @@ class FStackTest : FunSpec({
 
     // grouping
 
-    test("fcount") {}
+    test("fcount") {
+        strStackOfNone.fcount { true } shouldBe 0
+        strStackOfNone.fcount { false } shouldBe 0
+        strStackOfOneA.fcount { true } shouldBe 1
+        strStackOfOneA.fcount { false } shouldBe 0
+        strStackOfOneA.fcount { it == itemA } shouldBe 1
+        strStackOfOneA.fcount { it == itemB } shouldBe 0
+        strStackOfThree.fcount { it < itemB } shouldBe 1
+        strStackOfThree.fcount { it < itemC } shouldBe 2
+    }
 
-    test("fsize") {}
+    test("fsize") {
+        strStackOfNone.fsize() shouldBe 0
+        strStackOfOneA.fsize() shouldBe 1
+        strStackOfThree.fsize() shouldBe 3
+    }
 
     // transforming
 
-    test("fpopMap") {}
+    test("fpopMap") {
+        strStackOfNone.fpopMap { "Z" } shouldBe Pair(null, strStackOfNone)
+        strStackOfOneA.fpopMap { itemB } shouldBe Pair(itemB, strStackOfNone)
+        strStackOfTwoBC.fpopMap { itemA } shouldBe Pair(itemA, strStackOfOneC)
+        strStackOfTwoBC.fpopMap { it } shouldBe Pair(itemB, strStackOfOneC)
+        strStackOfThree.fpopMap { itemC } shouldBe Pair(itemC, strStackOfTwoBC)
+    }
 
-    test("freverse") {}
+    test("freverse") {
+        strStackOfNone.freverse() shouldBe strStackOfNone
+        strStackOfOneA.freverse() shouldBe strStackOfOneA
+        strStackOfTwoBC.freverse() shouldBe strStackOfTwoCB
+        strStackOfThree.freverse().ftop() shouldBe itemC
+        strStackOfThree.freverse().fpop().second shouldBe strStackOfTwoBA
+    }
 
-    test("ftopMap") {}
+    test("ftopMap") {
+        strStackOfNone.ftopMap { "Z" } shouldBe null
+        strStackOfOneA.ftopMap { itemB } shouldBe itemB
+        strStackOfTwoBC.ftopMap { itemA } shouldBe itemA
+        strStackOfTwoBC.ftopMap { it } shouldBe itemB
+        strStackOfThree.ftopMap { itemC } shouldBe itemC
+    }
 
     // utility
 
     test("equal") {
         FStack.emptyIMStack<Int>().equal(FStack.emptyIMStack<Int>()) shouldBe true
         FStackBody.of(FLCons("a", FLCons("b", FLNil))).equal(FStackBody.of(FLCons("a", FLCons("b", FLNil)))) shouldBe true
+        strStackOfNone.equal(strStackOfNone) shouldBe true
+        // should NOT compile strStackOfNone.equal(intStackOfNone)
+        strStackOfOneA.equal(strStackOfOneA) shouldBe true
+        strStackOfOneB.equal(strStackOfOneA) shouldBe false
+        strStackOfOneA.equal(strStackOfOneB) shouldBe false
+        strStackOfTwoAB.equal(strStackOfTwoAB) shouldBe true
+        strStackOfTwoBA.equal(strStackOfTwoAB) shouldBe false
+        strStackOfTwoAB.equal(strStackOfTwoBA) shouldBe false
     }
 
-    test("fforEach") {}
+    test("fforEach") {
+        val counter = AtomicInteger(0)
+        val summer = AtomicInteger(0)
+        val doCount: (Int) -> Unit = { counter.incrementAndGet() }
+        val doSum: (Int) -> Unit = { v -> summer.addAndGet(v) }
+        intStackOfNone.fforEach(doCount)
+        counter.get() shouldBe 0
+        intStackOfNone.fforEach(doSum)
+        summer.get() shouldBe 0
+        counter.set(0)
+        summer.set(0)
+        checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+            val oraSum = fl.ffoldLeft(0){ acc, el -> acc + el }
+            val fstack = FStackBody.of(fl)
+            fstack.fforEach(doCount)
+            counter.get() shouldBe fl.size
+            counter.set(0)
+            fstack.fforEach(doSum)
+            summer.get() shouldBe oraSum
+            summer.set(0)
+        }
+    }
 
-    test("copy") {}
+    test("copy") {
+        intStackOfNone.copy() shouldBe intStackOfNone
+        (intStackOfNone.copy() === intStackOfNone) shouldBe true
+        checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+            val fstack = FStackBody.of(fl)
+            val fstack1 = fstack.copy()
+            (fstack1 === fstack) shouldBe false
+            fstack.equal(fstack1) shouldBe true
+            fstack1.equal(fstack) shouldBe true
+        }
+    }
 
-    test("toIMList") {}
+    test("toIMList") {
+        intStackOfNone.toIMList() shouldBe FList.emptyIMList()
+        checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+            val fstack = FStackBody.of(fl)
+            fstack.toIMList().equal(fl) shouldBe true
+        }
+    }
 
-    test("copyToMutableList") {}
+    test("copyToMutableList") {
+        intStackOfNone.copyToMutableList() shouldBe mutableListOf()
+        checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+            val fstack = FStackBody.of(fl)
+            fstack.copyToMutableList() shouldBe fl.copyToMutableList()
+        }
+    }
 
 })

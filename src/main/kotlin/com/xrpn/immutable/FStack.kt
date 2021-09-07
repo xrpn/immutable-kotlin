@@ -5,6 +5,7 @@ import com.xrpn.imapi.IMStack
 import com.xrpn.imapi.IMStackCompanion
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
+import java.util.*
 
 sealed class FStack<out A: Any> : IMStack<A> {
 
@@ -13,16 +14,17 @@ sealed class FStack<out A: Any> : IMStack<A> {
     override fun fdrop(n: Int): IMStack<A> =
         if (0 < n) FStackBody.of(this.toFList().fdrop(n)) else this
 
-    override fun fdropIfMatch(isMatch: (A) -> Boolean): IMStack<A> =
-        FStackBody.of(this.toFList().fhead()?.let {
-            if(isMatch(it)) this.toFList().ftail() else this.toFList()
-        })
 
     override fun fdropIfTop(item: @UnsafeVariance A): IMStack<A> = ftop()?.let {
         if (it.equals(item)) fpopOrThrow().second else this
     } ?: this
 
-    override fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> =
+    override fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> =
+        FStackBody.of(this.toFList().fhead()?.let {
+            if(isMatch(it)) this.toFList().ftail() else this.toFList()
+        })
+
+    override fun fdropTopWhile(isMatch: (A) -> Boolean): IMStack<A> =
         FStackBody.of(this.toFList().fdropWhile(isMatch))
 
     override fun ftopMatch(isMatch: (A) -> Boolean): Boolean =
@@ -142,9 +144,13 @@ internal class FStackBody<out A: Any> private constructor (
         return body.hashCode()
     }
 
+    val show: String by lazy {
+        if (this.fempty()) FStack::class.simpleName+"(*)"
+        else this::class.simpleName+"("+body.ffoldLeft("") { str, h -> "$str{$h}" }+")"
+    }
+
     override fun toString(): String {
-        return if (this.fempty()) FStack::class.simpleName+"(EMPTY)"
-        else this::class.simpleName+"("+body.toString()+")"
+        return show
     }
 
     companion object {

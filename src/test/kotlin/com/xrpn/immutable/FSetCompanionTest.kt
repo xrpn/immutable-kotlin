@@ -127,41 +127,50 @@ class FSetCompanionTest : FunSpec({
 
     test("co.emptyIMSet"){
         emptyIMSet<Int>() shouldBe FSetBody.empty
+        (emptyIMSet<Int>() === FSetBody.empty) shouldBe true
     }
     
     test("co.of vararg"){
         of(*arrayOf()) shouldBe emptyIMSet()
+        (of(*arrayOf()) === emptyIMSet<Int>()) shouldBe true
     }
 
     test("co.of Iterator"){
         of(arrayOf<Int>().iterator()) shouldBe emptyIMSet()
+        (of(arrayOf<Int>().iterator()) === emptyIMSet<Int>()) shouldBe true
         of(arrayOf(1, 2, 3).iterator()).equal(intSetOfThree) shouldBe true
     }
 
     test("co.of IMBTree<K, A>"){
         of(FRBTree.nul<Int, Int>()) shouldBe emptyIMSet()
+        (of(FRBTree.nul<Int, Int>()) === emptyIMSet<Int>()) shouldBe true
         of(FBSTree.nul<Int, Int>()) shouldBe emptyIMSet()
+        (of(FBSTree.nul<Int, Int>()) === emptyIMSet<Int>()) shouldBe true
         of(FRBTree.ofvi(1, 2, 3)) shouldBe intSetOfThree
         of(FBSTree.ofvi(1, 2, 3)) shouldBe intSetOfThree
     }
 
     test("co.of IMList"){
         of(emptyIMList()) shouldBe emptyIMSet()
+        (of(emptyIMList()) === emptyIMSet<Int>()) shouldBe true
         of(FLCons(2, FLCons(3, FLCons(1, FLNil)))) shouldBe intSetOfThree
     }
 
     test("co.ofMap Iterator"){
         ofMap(arrayOf<Int>().iterator()){ it.toString() } shouldBe emptyIMSet()
+        (ofMap(arrayOf<Int>().iterator()){ it.toString() } === emptyIMSet<Int>()) shouldBe true
         ofMap(arrayOf(1, 2, 3).iterator()){ it.toString() } shouldBe strSetOfThree
     }
 
     test("co.ofMap IMList"){
         ofMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMSet()
+        (ofMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } === emptyIMSet<Int>()) shouldBe true
         ofMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toString() } shouldBe strSetOfThree
     }
 
     test("co.ofMap List"){
         ofMap(emptyList<Int>()){ it.toString() } shouldBe emptyIMSet()
+        (ofMap(emptyList<Int>()){ it.toString() } === emptyIMSet<Int>()) shouldBe true
         ofMap(listOf(1, 2, 3)){ it.toString() } shouldBe strSetOfThree
     }
 

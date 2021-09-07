@@ -63,6 +63,7 @@ class FListUtilityTest : FunSpec({
 
   test("copy") {
     intListOfNone.copy() shouldBe intListOfNone
+    (intListOfNone.copy() === intListOfNone) shouldBe true
     checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
       val fl1 = fl.copy()
       (fl1 === fl) shouldBe false

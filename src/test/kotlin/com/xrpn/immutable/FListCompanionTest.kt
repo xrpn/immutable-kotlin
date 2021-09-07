@@ -30,7 +30,6 @@ class FListCompanionTest : FunSpec({
   beforeTest {}
 
   test("equals") {
-    // stowaway, used to make up for missing coverage
     FList.emptyIMList<Int>().equals(null) shouldBe false
     FList.emptyIMList<Int>().equals(emptyList<Int>()) shouldBe true
     FList.emptyIMList<Int>().equals(1) shouldBe false
@@ -45,7 +44,6 @@ class FListCompanionTest : FunSpec({
   }
 
   test("toString() hashCode()") {
-    // stowaway, used to make up for missing coverage
     FList.emptyIMList<Int>().toString() shouldBe "FLNil"
     val aux = FList.emptyIMList<Int>().hashCode()
     for (i in (1..100)) {

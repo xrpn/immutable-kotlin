@@ -167,6 +167,7 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("toIMSet") {
+    intFBSTreeOfNone.toIMSet() shouldBe FSet.emptyIMSet()
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ims1: FSet<Int> = fbst.toIMSet()
       (ims1.toIMBTree() === fbst) shouldBe false
@@ -175,6 +176,8 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("copy") {
+    intFBSTreeOfNone.copy() shouldBe intFBSTreeOfNone
+    (intFBSTreeOfNone.copy() === intFBSTreeOfNone) shouldBe true
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val c1 = fbst.copy()
       (c1 === fbst) shouldBe false
@@ -183,6 +186,7 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("copyToMutableList") {
+    intFBSTreeOfNone.copyToMutableMap() shouldBe mutableMapOf()
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ml: MutableMap<Int, Int> = fbst.copyToMutableMap()
       if (ml.size != fbst.size) /* TODO there are duplicates */ true shouldBe true

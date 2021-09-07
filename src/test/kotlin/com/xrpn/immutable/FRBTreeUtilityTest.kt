@@ -154,6 +154,7 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("toIMSet") {
+        intFRBTreeOfNone.toIMSet() shouldBe FSet.emptyIMSet()
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val ims1: FSet<Int> = frbt.toIMSet()
             (ims1.toIMBTree() === frbt) shouldBe true
@@ -162,6 +163,8 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("copy") {
+        intFRBTreeOfNone.copy() shouldBe intFRBTreeOfNone
+        (intFRBTreeOfNone.copy() === intFRBTreeOfNone) shouldBe true
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val c1 = frbt.copy()
             (c1 === frbt) shouldBe false
@@ -170,6 +173,7 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("copyToMutableList") {
+        intFRBTreeOfNone.copyToMutableMap() shouldBe mutableMapOf()
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val ml: MutableMap<Int, Int> = frbt.copyToMutableMap()
             ml.size shouldBe frbt.size
