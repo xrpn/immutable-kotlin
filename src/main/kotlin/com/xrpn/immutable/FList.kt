@@ -1,8 +1,8 @@
 package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.hash.DigestHash.murmur32
-import com.xrpn.hash.DigestHash.murmur64
+import com.xrpn.hash.DigestHash.mrmr32
+import com.xrpn.hash.DigestHash.mrmr64
 import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
@@ -713,56 +713,73 @@ data class FLCons<out A: Any>(
     override fun toString(): String = show
 
     val hash: Int by lazy {
+        /*
+            Java's hashing (hash = 31 * hash + h.hashCode()) fails to distinguish among
+            list permumutations in combinatorial set-ups; hence the following complications.
+            The performance penalty is in the eye of the beholder, in case it matters.
+         */
+
         val intKey: Boolean = head is TKVEntry<*,*> && (head.getk() is Int)
         val longKey: Boolean = head is TKVEntry<*,*> && (head.getk() is Long)
         when {
-        head is Int -> {
-            val thisInt = @Suppress("UNCHECKED_CAST")(this as FList<Int>)
-            val checkSum = CRC32C()
-            thisInt.fforEach { intItem -> checkSum.update(intItem) }
-            val aux: UInt = checkSum.value.toUInt()
-            (aux.toLong() - Int.MAX_VALUE).toInt()
+            head is Int -> {
+                val thisInt = @Suppress("UNCHECKED_CAST")(this as FList<Int>)
+                if (useMr64) {
+                    thisInt.ffoldLeft(0) { acc, iKey -> acc + mrmr32(iKey.toLong()) }
+                } else {
+                    val checkSum = CRC32C()
+                    thisInt.fforEach { intItem -> checkSum.update(intItem) }
+                    val aux: UInt = checkSum.value.toUInt()
+                    (aux.toLong() - Int.MAX_VALUE).toInt()
+                }}
+            head is Long -> {
+                val thisLong = @Suppress("UNCHECKED_CAST")(this as FList<Long>)
+                if (useMr64) {
+                    val l = thisLong.ffoldLeft(0L) { acc, lKey -> acc + mrmr64(lKey) }
+                    val low = l.toInt()
+                    val high = (l ushr 32).toInt()
+                    low + high
+                } else {
+                    val checkSum = CRC32C()
+                    thisLong.fforEach { longItem -> checkSum.update(longItem.to8ByteArray()) }
+                    val aux: UInt = checkSum.value.toUInt()
+                    (aux.toLong() - Int.MAX_VALUE).toInt()
+                }}
+            intKey -> {
+                val thisIntKey = @Suppress("UNCHECKED_CAST") (this as FList<TKVEntry<Int, *>>)
+                if (useMr64) {
+                    thisIntKey.ffoldLeft(0) { acc, intKeyTkv -> acc + mrmr32(intKeyTkv.getk().toLong()) }
+                } else {
+                    val checkSum = CRC32C()
+                    thisIntKey.fforEach { intKeyTkv -> checkSum.update(intKeyTkv.getk()) }
+                    val aux: UInt = checkSum.value.toUInt()
+                    (aux.toLong() - Int.MAX_VALUE).toInt()
+                }}
+            longKey -> {
+                val thisLongKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Long,*>>)
+                if (useMr64) {
+                    val l = thisLongKey.ffoldLeft(0L) { acc, longKeyTkv -> acc + mrmr64(longKeyTkv.getk()) }
+                    val low = l.toInt()
+                    val high = (l ushr 32).toInt()
+                    low + high
+                } else {
+                    val checkSum = CRC32C()
+                    thisLongKey.fforEach { longKeyTkv -> checkSum.update(longKeyTkv.getk().to8ByteArray()) }
+                    val aux: UInt = checkSum.value.toUInt()
+                    (aux.toLong() - Int.MAX_VALUE).toInt()
+                }}
+            else -> this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() } /* fails the O(n!) tests */
         }
-        head is Long -> {
-            val thisLong = @Suppress("UNCHECKED_CAST")(this as FList<Long>)
-            val checkSum = CRC32C()
-            thisLong.fforEach { longItem -> checkSum.update(longItem.to8ByteArray()) }
-            val aux: UInt = checkSum.value.toUInt()
-            (aux.toLong() - Int.MAX_VALUE).toInt()
-        }
-//        intKey -> {
-//            val thisIntKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Int,*>>)
-//            val checkSum = CRC32C()
-//            thisIntKey.fforEach { intKeyItem -> checkSum.update(intKeyItem.getk()) }
-//            val aux: UInt = checkSum.value.toUInt()
-//            (aux.toLong() - Int.MAX_VALUE).toInt()
-//        }
-//        longKey -> {
-//            val thisLongKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Long,*>>)
-//            val checkSum = CRC32C()
-//            thisLongKey.fforEach { longKeyItem -> checkSum.update(longKeyItem.getk().to8ByteArray()) }
-//            val aux: UInt = checkSum.value.toUInt()
-//            (aux.toLong() - Int.MAX_VALUE).toInt()
-//        }
-        intKey -> {
-            val thisIntKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Int,*>>)
-            thisIntKey.ffoldLeft(0) { acc, intKeyTkv -> acc + murmur32(intKeyTkv.getk().toLong()) }
-        }
-        longKey -> {
-            val thisLongKey = @Suppress("UNCHECKED_CAST")(this as FList<TKVEntry<Long,*>>)
-            val l = thisLongKey.ffoldLeft(0L) { acc, longKeyTkv -> acc + murmur64(longKeyTkv.getk()) }
-            val low = l.toInt()
-            val high = (l ushr 32).toInt()
-            low + high
-        }
-        else ->
-            this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() }
-    } }
+    }
 
     // the data class built-in hashCode is not stack safe
     override fun hashCode(): Int = hash
 
     companion object {
+        // Note: about as good and as fast; will keep both (good for Bloom filters)
+        const val useCrc = false
+        const val useMr64 = !useCrc
+        //
         fun <A: Any> hashCode(cons: FLCons<A>) = cons.hash
     }
 }

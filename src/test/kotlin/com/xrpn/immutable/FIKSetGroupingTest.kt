@@ -208,6 +208,8 @@ class FIKSetGroupingTest : FunSpec({
 
     test("fpermutations") {
 
+        val permutationsNow = System.currentTimeMillis()
+
         intSetOfNone.fpermutations(-1).equals(intSetOfNone) shouldBe true
         intSetOfNone.fpermutations(0).equals(intSetOfNone) shouldBe true
         intSetOfNone.fpermutations(1).equals(intSetOfNone) shouldBe true
@@ -262,6 +264,7 @@ class FIKSetGroupingTest : FunSpec({
         sixBySix.size shouldBe 720 // 6! / (6-6)! = 6!
         intSetOfSix.fpermutations(7) shouldBe emptyIMSet()
 
+        if (verbose) println("permutations in ${System.currentTimeMillis() - permutationsNow}")
     }
 
     test("fpermute") {

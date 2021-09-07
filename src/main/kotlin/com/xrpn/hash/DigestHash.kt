@@ -4,6 +4,7 @@ import java.util.zip.Adler32
 import java.util.zip.CRC32
 import java.util.zip.CRC32C
 
+
 object DigestHash {
 
     fun crc32(input: ByteArray): UInt {
@@ -51,7 +52,7 @@ object DigestHash {
         return v.toInt()
     }
 
-    fun murmur64(hIn: Long): Long {
+    fun mrmr64(hIn: Long): Long {
         var h: Long = hIn
         h = h xor (h ushr 33)
         h *= -0xae502812aa7333L
@@ -61,8 +62,8 @@ object DigestHash {
         return h
     }
 
-    fun murmur32(h: Long): Int {
-        val l = murmur64(h)
+    fun mrmr32(hIn: Long): Int {
+        val l = mrmr64(hIn)
         val low = l.toInt()
         val high = (l ushr 32).toInt()
         return low + high
@@ -71,7 +72,9 @@ object DigestHash {
 }
 
 class HashFast {
+
     // after https://lemire.me/blog/2018/08/15/fast-strongly-universal-64-bit-hashing-everywhere/
+
     fun murmur(): Long {
         var answer: Long = 0
         for (x in 0..99999) {
@@ -116,6 +119,7 @@ class HashFast {
         var a2 = 0x68b665e6872bd1f4L
         var b2 = -0x49303062864ae24eL
         var c2 = 0x7a2b92ae912898c2L
+
         fun hash32_1(x: Long): Int {
             val low = x.toInt()
             val high = (x ushr 32).toInt()
@@ -134,15 +138,7 @@ class HashFast {
             return ((a1 * low + b1 * high + c1 ushr 32) or (a2 * low + b2 * high + c2 and -0x100000000L))
         }
 
-        fun murmur64(hIn: Long): Long {
-            var h = hIn
-            h = h xor (h ushr 33)
-            h *= -0xae502812aa7333L
-            h = h xor (h ushr 33)
-            h *= -0x3b314601e57a13adL
-            h = h xor (h ushr 33)
-            return h
-        }
+        fun murmur64(hIn: Long): Long = DigestHash.mrmr64(hIn)
 
         @JvmStatic
         fun main(args: Array<String>) {
