@@ -296,7 +296,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun toIMSet(): FSet<B>  {
+    override fun toIMSet(): FIKSet<B>  {
         TODO("Not yet implemented")
     }
 

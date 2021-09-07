@@ -1,8 +1,8 @@
 package com.xrpn.bridge
 
-import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FIKSet
 
-class FSetIterator<out A: Any> internal constructor(val seed: FSet<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
+class FIKSetIterator<out A: Any> internal constructor(val seed: FIKSet<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
 
     private val iter = FTreeIterator(seed.toIMBTree())
 
@@ -27,12 +27,12 @@ class FSetIterator<out A: Any> internal constructor(val seed: FSet<A>, val reset
 
         internal val MSG_EMPTY_ITERATOR = "empty iterator"
 
-        internal inline fun <reified A: Any> toArray(n: Int, fli: FSetIterator<A>) = Array<A>(n){ _ -> fli.next() }
+        internal inline fun <reified A: Any> toArray(n: Int, fli: FIKSetIterator<A>) = Array<A>(n){ _ -> fli.next() }
 
         fun <A, R> Sequence<A>.flatMap(
             transform: (A) -> Sequence<R>
         ): Sequence<R> = when (this) {
-            is FSetIterator -> this.nullableNext()?.let{ transform(it) } ?: emptySequence()
+            is FIKSetIterator -> this.nullableNext()?.let{ transform(it) } ?: emptySequence()
             else -> if (this.iterator().hasNext()) transform(this.iterator().next()) else emptySequence()
         }
     }

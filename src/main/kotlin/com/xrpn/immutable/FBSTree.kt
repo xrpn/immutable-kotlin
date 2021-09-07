@@ -64,7 +64,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMSet(): FSet<B> = FSet.of(this)
+    override fun toIMSet(): FIKSet<B> = FIKSet.of(this)
 
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
@@ -518,7 +518,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (this.isEmpty()) nul() else when(this) {
                 is FBSTree<*, *> -> this as FBSTree<A, B>
                 is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") (this as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-                is FSet<*> -> @Suppress("UNCHECKED_CAST") this.ffold(nul()) { acc, item -> acc.finsert(item as TKVEntry<A, B>) }
+                is FIKSet<*> -> @Suppress("UNCHECKED_CAST") this.ffold(nul()) { acc, item -> acc.finsert(item as TKVEntry<A, B>) }
                 is List<*> -> of(this.iterator(), allowDups = true)
                 is Set<*> -> of(this.iterator())
                 else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)

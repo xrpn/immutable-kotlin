@@ -3,7 +3,7 @@ package com.xrpn.kapi
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.TKVEntry
 import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FIKSet
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -58,17 +58,17 @@ class FRBTreeKCollTest : FunSpec({
   test("FTree equals") {
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
     (intFrbtOfNone == emptySet<Int>()) shouldBe false
-    (intFrbtOfNone == FSet.emptyIMSet<Int>()) shouldBe false
+    (intFrbtOfNone == FIKSet.emptyIMSet<Int>()) shouldBe false
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf(1))) shouldBe false
     (intFrbtOfNone == setOf(1)) shouldBe false
-    (intFrbtOfNone == FSet.of(1)) shouldBe false
+    (intFrbtOfNone == FIKSet.of(1)) shouldBe false
 
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
     (intFrbtOfOne == emptySet<Int>()) shouldBe false
-    (intFrbtOfOne == FSet.emptyIMSet<Int>()) shouldBe false
+    (intFrbtOfOne == FIKSet.emptyIMSet<Int>()) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1))) shouldBe true
     (intFrbtOfOne == setOf(1.toIAEntry())) shouldBe false
-    (intFrbtOfOne == FSet.of(1)) shouldBe false
+    (intFrbtOfOne == FIKSet.of(1)) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1, 2))) shouldBe false
   }
 
@@ -78,19 +78,19 @@ class FRBTreeKCollTest : FunSpec({
     (intFrbtOfTwo == setOf(2.toIAEntry())) shouldBe false
     (intFrbtOfTwo == setOf(2.toIAEntry(), 1.toIAEntry())) shouldBe false
     (intFrbtOfTwo == setOf(1.toIAEntry(), 2.toIAEntry())) shouldBe false
-    intFrbtOfTwo.equals(FSet.of(1)) shouldBe false
-    (intFrbtOfTwo == FSet.of(2)) shouldBe false
-    (intFrbtOfTwo == FSet.of(2, 1)) shouldBe false
-    (intFrbtOfTwo == FSet.of(1, 2)) shouldBe false
+    intFrbtOfTwo.equals(FIKSet.of(1)) shouldBe false
+    (intFrbtOfTwo == FIKSet.of(2)) shouldBe false
+    (intFrbtOfTwo == FIKSet.of(2, 1)) shouldBe false
+    (intFrbtOfTwo == FIKSet.of(1, 2)) shouldBe false
     (intFrbtOfTwo == intFrbtOfThree) shouldBe false
     (intFrbtOfThree == setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry())) shouldBe false
     (intFrbtOfThree == setOf(1.toIAEntry(), 3.toIAEntry(), 2.toIAEntry())) shouldBe false
     (intFrbtOfThree == setOf(2.toIAEntry(), 1.toIAEntry(), 3.toIAEntry())) shouldBe false
     (intFrbtOfThree == setOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry())) shouldBe false
-    (intFrbtOfThree == FSet.of(1, 2, 3)) shouldBe false
-    (intFrbtOfThree == FSet.of(1, 3, 2)) shouldBe false
-    (intFrbtOfThree == FSet.of(2, 1, 3)) shouldBe false
-    (intFrbtOfThree == FSet.of(3, 2, 1)) shouldBe false
+    (intFrbtOfThree == FIKSet.of(1, 2, 3)) shouldBe false
+    (intFrbtOfThree == FIKSet.of(1, 3, 2)) shouldBe false
+    (intFrbtOfThree == FIKSet.of(2, 1, 3)) shouldBe false
+    (intFrbtOfThree == FIKSet.of(3, 2, 1)) shouldBe false
   }
 
   test("Collections equals") {
@@ -100,8 +100,8 @@ class FRBTreeKCollTest : FunSpec({
     (setOf(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
     (listOf(1.toIAEntry()) == intFrbtOfOne) shouldBe false
     (listOf(1.toIAEntry()) == intFrbtOfOne.toList()) shouldBe true
-    (FSet.of(1) == intFrbtOfOne) shouldBe false
-    (FSet.of(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
+    (FIKSet.of(1) == intFrbtOfOne) shouldBe false
+    (FIKSet.of(1.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe true
     (setOf(1.toIAEntry()) == intFrbtOfTwo.toSet()) shouldBe false
     (setOf(1.toIAEntry()) == intFrbtOfTwo.toList()) shouldBe false
     (setOf(1.toIAEntry(),2.toIAEntry()) == intFrbtOfOne.toSet()) shouldBe false

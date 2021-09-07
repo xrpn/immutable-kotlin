@@ -1,28 +1,28 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.FSet.Companion.emptyIMSet
+import com.xrpn.immutable.FIKSet.Companion.emptyIMSet
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intSetOfNone = FSet.of(*arrayOf<Int>())
-private val intSetOfOne = FSet.of(1)
-private val intSetOfTwo = FSet.of(1, 2)
-private val intSetOfTwoOfst1 = FSet.of(2, 3)
-private val intSetOfThree = FSet.of(1, 2, 3)
-private val intSetOfFour = FSet.of(1, 2, 3, 4)
-private val intSetOfFive = FSet.of(1, 2, 3, 4, 5)
+private val intSetOfNone = FIKSet.of(*arrayOf<Int>())
+private val intSetOfOne = FIKSet.of(1)
+private val intSetOfTwo = FIKSet.of(1, 2)
+private val intSetOfTwoOfst1 = FIKSet.of(2, 3)
+private val intSetOfThree = FIKSet.of(1, 2, 3)
+private val intSetOfFour = FIKSet.of(1, 2, 3, 4)
+private val intSetOfFive = FIKSet.of(1, 2, 3, 4, 5)
 
 
-class FSetTransformingTest : FunSpec({
+class FIKSetTransformingTest : FunSpec({
 
     test("fflatMap") {
-        intSetOfNone.fflatMap {FSet.of(it)} shouldBe emptyIMSet()
-        intSetOfOne.fflatMap {FSet.of(it)}.equals(intSetOfOne) shouldBe true
+        intSetOfNone.fflatMap {FIKSet.of(it)} shouldBe emptyIMSet()
+        intSetOfOne.fflatMap {FIKSet.of(it)}.equals(intSetOfOne) shouldBe true
         fun arrayBuilderConst(arg: Int) = Array(arg) { arg }
-        intSetOfTwo.fflatMap {FSet.of(*arrayBuilderConst(it))}.equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fflatMap {FIKSet.of(*arrayBuilderConst(it))}.equals(intSetOfTwo) shouldBe true
         fun arrayBuilderIncrement(arg: Int) = Array(arg) { i -> arg + i }
-        intSetOfTwo.fflatMap {FSet.of(*arrayBuilderIncrement(it))}.equals(intSetOfThree) shouldBe true
-        intSetOfThree.fflatMap {FSet.of(*arrayBuilderIncrement(it))}.equals(intSetOfFive) shouldBe true
+        intSetOfTwo.fflatMap {FIKSet.of(*arrayBuilderIncrement(it))}.equals(intSetOfThree) shouldBe true
+        intSetOfThree.fflatMap {FIKSet.of(*arrayBuilderIncrement(it))}.equals(intSetOfFive) shouldBe true
     }
 
     test("ffold") {

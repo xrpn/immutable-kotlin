@@ -1,50 +1,50 @@
 package com.xrpn.kapi
 
-import com.xrpn.bridge.FSetIterator
+import com.xrpn.bridge.FIKSetIterator
 import com.xrpn.imapi.IMSet
-import com.xrpn.immutable.FSet
-import com.xrpn.immutable.FSet.Companion.NOT_FOUND
-import com.xrpn.immutable.FSet.Companion.emptyIMSet
-import com.xrpn.immutable.FSet.Companion.of
-import com.xrpn.immutable.FSet.Companion.toIMSet
-import com.xrpn.immutable.FSetOfOne
+import com.xrpn.immutable.FIKSet
+import com.xrpn.immutable.FIKSet.Companion.NOT_FOUND
+import com.xrpn.immutable.FIKSet.Companion.emptyIMSet
+import com.xrpn.immutable.FIKSet.Companion.of
+import com.xrpn.immutable.FIKSet.Companion.toIMSet
+import com.xrpn.immutable.FIKSetOfOne
 import com.xrpn.immutable.pmap1
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intSetOfNone: Collection<Int> = FSet.of(*arrayOf<Int>())
-private val intSetOfOneA: Collection<Int> = FSetOfOne(0)
-private val intSetOfOne: Collection<Int> = FSetOfOne(1)
-private val intSetOfOneB: Collection<Int> = FSetOfOne(2)
-private val intSetOfOneC: Collection<Int> = FSetOfOne(3)
-private val intSetOfOneD: Collection<Int> = FSetOfOne(4)
-private val intSetOfTwoA: Collection<Int> = FSet.of(*arrayOf<Int>(1,3))
-private val intSetOfTwo: Collection<Int> = FSet.of(*arrayOf<Int>(1,2))
-private val intSetOfTwoB: Collection<Int> = FSet.of(*arrayOf<Int>(0,2))
-private val intSetOfTwoC: Collection<Int> = FSet.of(*arrayOf<Int>(1,4))
-private val intSetOfThree: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3))
-private val intSetOfThreeA: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,5))
-private val intSetOfFive: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,4,5))
-private val intSetOfFiveA: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,2,1))
-private val intSetOfSix: Collection<Int> = FSet.of(*arrayOf<Int>(1,2,3,3,2,1))
-private val intSetOf2: Collection<Int> = FSet.of(2)
-private val intSetOf3: Collection<Int> = FSet.of(3)
-private val intSetOf4: Collection<Int> = FSet.of(4)
-private val intSetOf5: Collection<Int> = FSet.of(5)
-private val intSetOf13: Collection<Int> = FSet.of(1, 3)
-private val intSetOf23: Collection<Int> = FSet.of(2, 3)
-private val intSetOf25: Collection<Int> = FSet.of(2, 5)
-private val intSetOf45: Collection<Int> = FSet.of(4, 5)
-private val intSetOf125: Collection<Int> = FSet.of(1, 2, 5)
-private val intSetOf145: Collection<Int> = FSet.of(1, 4, 5)
-private val intSetOf245: Collection<Int> = FSet.of(2, 4, 5)
-private val intSetOf1245: Collection<Int> = FSet.of(1, 2, 4, 5)
-private val intSetOf1235: Collection<Int> = FSet.of(1, 2, 3, 5)
-private val intSetOf1345: Collection<Int> = FSet.of(1, 3, 4, 5)
+private val intSetOfNone: Collection<Int> = FIKSet.of(*arrayOf<Int>())
+private val intSetOfOneA: Collection<Int> = FIKSetOfOne(0)
+private val intSetOfOne: Collection<Int> = FIKSetOfOne(1)
+private val intSetOfOneB: Collection<Int> = FIKSetOfOne(2)
+private val intSetOfOneC: Collection<Int> = FIKSetOfOne(3)
+private val intSetOfOneD: Collection<Int> = FIKSetOfOne(4)
+private val intSetOfTwoA: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,3))
+private val intSetOfTwo: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2))
+private val intSetOfTwoB: Collection<Int> = FIKSet.of(*arrayOf<Int>(0,2))
+private val intSetOfTwoC: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,4))
+private val intSetOfThree: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2,3))
+private val intSetOfThreeA: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2,5))
+private val intSetOfFive: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2,3,4,5))
+private val intSetOfFiveA: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2,3,2,1))
+private val intSetOfSix: Collection<Int> = FIKSet.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSetOf2: Collection<Int> = FIKSet.of(2)
+private val intSetOf3: Collection<Int> = FIKSet.of(3)
+private val intSetOf4: Collection<Int> = FIKSet.of(4)
+private val intSetOf5: Collection<Int> = FIKSet.of(5)
+private val intSetOf13: Collection<Int> = FIKSet.of(1, 3)
+private val intSetOf23: Collection<Int> = FIKSet.of(2, 3)
+private val intSetOf25: Collection<Int> = FIKSet.of(2, 5)
+private val intSetOf45: Collection<Int> = FIKSet.of(4, 5)
+private val intSetOf125: Collection<Int> = FIKSet.of(1, 2, 5)
+private val intSetOf145: Collection<Int> = FIKSet.of(1, 4, 5)
+private val intSetOf245: Collection<Int> = FIKSet.of(2, 4, 5)
+private val intSetOf1245: Collection<Int> = FIKSet.of(1, 2, 4, 5)
+private val intSetOf1235: Collection<Int> = FIKSet.of(1, 2, 3, 5)
+private val intSetOf1345: Collection<Int> = FIKSet.of(1, 3, 4, 5)
 
 
-class FSetKCollTest : FunSpec({
+class FIKSetKCollTest : FunSpec({
 
   beforeTest {}
 
@@ -53,25 +53,25 @@ class FSetKCollTest : FunSpec({
 
   // Any equals
 
-  test("FSet equals") {
-    (intSetOfNone == FSet.of(*arrayOf<Int>())) shouldBe true
+  test("FIKSet equals") {
+    (intSetOfNone == FIKSet.of(*arrayOf<Int>())) shouldBe true
     (intSetOfNone.equals(emptySet<Int>())) shouldBe true
     (intSetOfNone == emptySet<Int>()) shouldBe true
     (intSetOfNone == emptySet<Int>().toIMSet()) shouldBe true
-    (intSetOfNone == FSet.of(*arrayOf(1))) shouldBe false
+    (intSetOfNone == FIKSet.of(*arrayOf(1))) shouldBe false
     (intSetOfNone == setOf(1)) shouldBe false
     (intSetOfNone == setOf(1).toIMSet()) shouldBe false
 
-    (intSetOfOne == FSet.of(*arrayOf<Int>())) shouldBe false
+    (intSetOfOne == FIKSet.of(*arrayOf<Int>())) shouldBe false
     (intSetOfOne == emptySet<Int>()) shouldBe false
-    (intSetOfOne == FSet.of(*arrayOf(1))) shouldBe true
+    (intSetOfOne == FIKSet.of(*arrayOf(1))) shouldBe true
     (intSetOfOne == setOf(1)) shouldBe true
     (intSetOfOne == setOf(1).toIMSet()) shouldBe true
-    (intSetOfOne == FSet.of(*arrayOf(1, 2))) shouldBe false
+    (intSetOfOne == FIKSet.of(*arrayOf(1, 2))) shouldBe false
   }
 
-  test("FSet equals miss") {
-    (intSetOfOne.equals(FSet.of(*arrayOf(2)))) shouldBe false
+  test("FIKSet equals miss") {
+    (intSetOfOne.equals(FIKSet.of(*arrayOf(2)))) shouldBe false
     (intSetOfTwo == setOf(1)) shouldBe false
     (intSetOfTwo == setOf(2)) shouldBe false
     (intSetOfTwo == setOf(2, 1)) shouldBe true
@@ -192,7 +192,7 @@ class FSetKCollTest : FunSpec({
   }
 
   test("iterator b") {
-    val itr = intSetOfFiveA.iterator() as FSetIterator<Int>
+    val itr = intSetOfFiveA.iterator() as FIKSetIterator<Int>
     for (i in (1..intSetOfFiveA.size)) {
       val tmp = itr.nullableNext()
       tmp?.let { true } shouldBe true
@@ -394,7 +394,7 @@ class FSetKCollTest : FunSpec({
     val aux0: Set<Int> = intSetOfThree.drop(1).toSet()
     val aux1: IMSet<Int> = aux0.toIMSet()
     (aux1.fsize() == intSetOfThree.size - 1) shouldBe true
-    intSetOfThree.containsAll(aux1 as FSet<Int>) shouldBe true
+    intSetOfThree.containsAll(aux1 as FIKSet<Int>) shouldBe true
     intSetOfNone.drop(1).toIMSet() shouldBe emptyIMSet()
     intSetOfOne.drop(1).toIMSet() shouldBe emptyIMSet()
     val aux2 = intSetOfTwo.drop(1).toSet()
@@ -411,7 +411,7 @@ class FSetKCollTest : FunSpec({
     (aux1.size == intSetOfThree.size - 2) shouldBe true
     intSetOfThree.containsAll(aux1) shouldBe true
 
-    val a2 = FSet.of(*arrayOf<Int>(1,2,3,4))
+    val a2 = FIKSet.of(*arrayOf<Int>(1,2,3,4))
     val aux2 = a2.drop(2).toSet()
     (aux2.size == a2.size - 2) shouldBe true
     a2.containsAll(aux2) shouldBe true
@@ -422,7 +422,7 @@ class FSetKCollTest : FunSpec({
     intSetOfOne.drop(3).toIMSet() shouldBe emptyIMSet()
     intSetOfTwo.drop(3).toIMSet() shouldBe emptyIMSet()
     intSetOfThree.drop(3).toIMSet() shouldBe emptyIMSet()
-    val a2 = FSet.of(*arrayOf<Int>(1,2,3,4))
+    val a2 = FIKSet.of(*arrayOf<Int>(1,2,3,4))
     val aux2 = a2.drop(3).toSet()
     (aux2.size == a2.size - 3) shouldBe true
     a2.containsAll(aux2) shouldBe true
@@ -431,16 +431,16 @@ class FSetKCollTest : FunSpec({
   test("dropWhile") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).dropWhile { it > 1 }
+      FIKSet.of(*arrayOf<Int>(2,1)).dropWhile { it > 1 }
     }
   }
 
   test("filter") {
     intSetOfNone.filter {0 == it % 2}.toIMSet() shouldBe emptyIMSet()
     intSetOfOne.filter {0 == it % 2}.toIMSet() shouldBe emptyIMSet()
-    intSetOfTwo.filter {0 == it % 2}.toIMSet() shouldBe FSet.of(2)
-    intSetOfThree.filter {0 == it % 2}.toIMSet() shouldBe FSet.of(2)
-    FSet.of(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toIMSet() shouldBe FSet.of(2, 4)
+    intSetOfTwo.filter {0 == it % 2}.toIMSet() shouldBe FIKSet.of(2)
+    intSetOfThree.filter {0 == it % 2}.toIMSet() shouldBe FIKSet.of(2)
+    FIKSet.of(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toIMSet() shouldBe FIKSet.of(2, 4)
   }
 
   //  ignore
@@ -449,10 +449,10 @@ class FSetKCollTest : FunSpec({
 
   test("filterNot") {
     intSetOfNone.filterNot {0 == it % 2}.toIMSet() shouldBe emptyIMSet()
-    intSetOfOne.filterNot {0 == it % 2}.toIMSet() shouldBe FSet.of(1)
-    intSetOfTwo.filterNot {0 == it % 2}.toIMSet() shouldBe FSet.of(1)
-    intSetOfThree.filterNot {0 == it % 2}.toIMSet() shouldBe FSet.of(1,3)
-    FSet.of(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toIMSet() shouldBe FSet.of(1, 3)
+    intSetOfOne.filterNot {0 == it % 2}.toIMSet() shouldBe FIKSet.of(1)
+    intSetOfTwo.filterNot {0 == it % 2}.toIMSet() shouldBe FIKSet.of(1)
+    intSetOfThree.filterNot {0 == it % 2}.toIMSet() shouldBe FIKSet.of(1,3)
+    FIKSet.of(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toIMSet() shouldBe FIKSet.of(1, 3)
   }
 
   //  ignore
@@ -489,7 +489,7 @@ class FSetKCollTest : FunSpec({
     aux2.size shouldBe 2
     intSetOfThree.containsAll(aux2) shouldBe true
 
-    val a3 = FSet.of(*arrayOf<Int>(1,2,3,4))
+    val a3 = FIKSet.of(*arrayOf<Int>(1,2,3,4))
     val aux3 = a3.take(2)
     aux3.size shouldBe 2
     a3.containsAll(aux3) shouldBe true
@@ -500,7 +500,7 @@ class FSetKCollTest : FunSpec({
     intSetOfOne.take(3).toIMSet() shouldBe intSetOfOne
     intSetOfTwo.take(3).toIMSet() shouldBe intSetOfTwo
     intSetOfThree.take(3).toIMSet() shouldBe intSetOfThree
-    val a3 = FSet.of(*arrayOf<Int>(1,2,3,4))
+    val a3 = FIKSet.of(*arrayOf<Int>(1,2,3,4))
     val aux3 = a3.take(3)
     aux3.size shouldBe 3
     a3.containsAll(aux3) shouldBe true
@@ -509,7 +509,7 @@ class FSetKCollTest : FunSpec({
   test("takeWhile") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).takeWhile { it > 1 }
+      FIKSet.of(*arrayOf<Int>(2,1)).takeWhile { it > 1 }
     }
   }
 
@@ -617,14 +617,14 @@ class FSetKCollTest : FunSpec({
   }
 
   test("flatMap") {
-    intSetOfNone.flatMap{ FSet.of(it) }.toIMSet() shouldBe emptyIMSet()
-    intSetOfOne.flatMap{ FSet.of(it) }.toIMSet() shouldBe FSet.of(1)
+    intSetOfNone.flatMap{ FIKSet.of(it) }.toIMSet() shouldBe emptyIMSet()
+    intSetOfOne.flatMap{ FIKSet.of(it) }.toIMSet() shouldBe FIKSet.of(1)
     fun arrayBuilderConst(arg: Int) = Array<Int>(arg) { _ -> arg }
-    intSetOfTwo.flatMap {FSet.of(*arrayBuilderConst(it))}.toIMSet() shouldBe FSet.of(1, 2)
+    intSetOfTwo.flatMap {FIKSet.of(*arrayBuilderConst(it))}.toIMSet() shouldBe FIKSet.of(1, 2)
     fun arrayBuilderIncrement(arg: Int) = Array<Int>(arg) { i -> arg + i }
-    intSetOfTwo.flatMap {FSet.of(*arrayBuilderIncrement(it))}.toIMSet() shouldBe FSet.of(1, 2, 3)
-    intSetOfThree.flatMap {FSet.of(*arrayBuilderIncrement(it))}.toIMSet() shouldBe FSet.of(1, 2, 3, 4, 5)
-    intSetOfThree.flatMap { i -> FSet.of(i, i) }.toIMSet() shouldBe intSetOfThree
+    intSetOfTwo.flatMap {FIKSet.of(*arrayBuilderIncrement(it))}.toIMSet() shouldBe FIKSet.of(1, 2, 3)
+    intSetOfThree.flatMap {FIKSet.of(*arrayBuilderIncrement(it))}.toIMSet() shouldBe FIKSet.of(1, 2, 3, 4, 5)
+    intSetOfThree.flatMap { i -> FIKSet.of(i, i) }.toIMSet() shouldBe intSetOfThree
   }
 
   // ignore
@@ -654,8 +654,8 @@ class FSetKCollTest : FunSpec({
 
   test("map") {
     intSetOfNone.map { it + 1}.toIMSet() shouldBe emptyIMSet()
-    intSetOfOne.map { it + 1}.toIMSet() shouldBe FSet.of(2)
-    intSetOfTwo.map { it + 1}.toIMSet() shouldBe FSet.of(2, 3)
+    intSetOfOne.map { it + 1}.toIMSet() shouldBe FIKSet.of(2)
+    intSetOfTwo.map { it + 1}.toIMSet() shouldBe FIKSet.of(2, 3)
   }
 
   // ignore
@@ -954,7 +954,7 @@ class FSetKCollTest : FunSpec({
     shouldThrow<RuntimeException> {
       val ss = { acc: Int, b: Int -> b + acc }
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).runningFold(1, ss)
+      FIKSet.of(*arrayOf<Int>(2,1)).runningFold(1, ss)
     }
   }
 
@@ -962,7 +962,7 @@ class FSetKCollTest : FunSpec({
     shouldThrow<RuntimeException> {
       val ss = { index: Int, acc: Int, b: Int -> b + acc + index }
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).runningFoldIndexed(1, ss)
+      FIKSet.of(*arrayOf<Int>(2,1)).runningFoldIndexed(1, ss)
     }
   }
 
@@ -970,7 +970,7 @@ class FSetKCollTest : FunSpec({
     shouldThrow<RuntimeException> {
       val ss = { acc: Int, b: Int -> b + acc }
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).runningReduce(ss)
+      FIKSet.of(*arrayOf<Int>(2,1)).runningReduce(ss)
     }
   }
 
@@ -978,7 +978,7 @@ class FSetKCollTest : FunSpec({
     shouldThrow<RuntimeException> {
       val ss = { index: Int, acc: Int, b: Int -> b + acc + index }
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).runningReduceIndexed(ss)
+      FIKSet.of(*arrayOf<Int>(2,1)).runningReduceIndexed(ss)
     }
   }
 
@@ -990,35 +990,35 @@ class FSetKCollTest : FunSpec({
   test("windowed") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).windowed(2)
+      FIKSet.of(*arrayOf<Int>(2,1)).windowed(2)
     }
   }
 
   test("zip array") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).zip(arrayOf<String>()){a, b -> Pair(a,b)}
+      FIKSet.of(*arrayOf<Int>(2,1)).zip(arrayOf<String>()){a, b -> Pair(a,b)}
     }
   }
 
   test("zip iterable") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).zip(setOf<String>())
+      FIKSet.of(*arrayOf<Int>(2,1)).zip(setOf<String>())
     }
   }
 
   test("zipWithNext") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).zipWithNext()
+      FIKSet.of(*arrayOf<Int>(2,1)).zipWithNext()
     }
   }
 
   test("zipWithNext transform") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FSet.of(*arrayOf<Int>(2,1)).zipWithNext { a, b -> Pair(a, b) }
+      FIKSet.of(*arrayOf<Int>(2,1)).zipWithNext { a, b -> Pair(a, b) }
     }
   }
 })

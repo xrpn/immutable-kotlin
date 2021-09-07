@@ -2,40 +2,40 @@ package com.xrpn.immutable
 
 import com.xrpn.hash.JohnsonTrotter
 import com.xrpn.hash.JohnsonTrotter.smallFact
-import com.xrpn.immutable.FSet.Companion.emptyIMSet
-import com.xrpn.immutable.FSet.Companion.of
-import com.xrpn.immutable.FSetOfOne.Companion.toSoO
+import com.xrpn.immutable.FIKSet.Companion.emptyIMSet
+import com.xrpn.immutable.FIKSet.Companion.of
+import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intSetOfNone = FSet.of(*arrayOf<Int>())
-private val intSetOfOne = FSet.of(1)
-private val intSetOfTwo = FSet.of(1, 2)
-private val intSetOfThree = FSet.of(1, 2, 3)
-private val intSetOfFour = FSet.of(1, 2, 3, 4)
-private val strSetOfFour = FSet.of("a","b","c","d")
-private val intSetOfFive = FSet.of(1, 2, 3, 4, 5)
-private val intSetOfSix = FSet.of(1, 2, 3, 4, 5, 6)
-private val intSetOfSeven = FSet.of(1, 2, 3, 4, 5, 6, 7)
-private val intSetOfEight = FSet.of(1, 2, 3, 4, 5, 6, 7, 8)
-private val intSetOfNine = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
-private val intSetOfTen = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-private val intSetOfEleven = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-private val intSetOfTwelve = FSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+private val intSetOfNone = FIKSet.of(*arrayOf<Int>())
+private val intSetOfOne = FIKSet.of(1)
+private val intSetOfTwo = FIKSet.of(1, 2)
+private val intSetOfThree = FIKSet.of(1, 2, 3)
+private val intSetOfFour = FIKSet.of(1, 2, 3, 4)
+private val strSetOfFour = FIKSet.of("a","b","c","d")
+private val intSetOfFive = FIKSet.of(1, 2, 3, 4, 5)
+private val intSetOfSix = FIKSet.of(1, 2, 3, 4, 5, 6)
+private val intSetOfSeven = FIKSet.of(1, 2, 3, 4, 5, 6, 7)
+private val intSetOfEight = FIKSet.of(1, 2, 3, 4, 5, 6, 7, 8)
+private val intSetOfNine = FIKSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9)
+private val intSetOfTen = FIKSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+private val intSetOfEleven = FIKSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+private val intSetOfTwelve = FIKSet.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 
-private val oracleC: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
+private val oracleC: FIKSet<FIKSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4))
-private val oracleD: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
+private val oracleD: FIKSet<FIKSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4),
                          of(1, 2, 3), of(1, 2, 4),
                          of(1, 3, 4),
                          of(2, 3, 4))
-private val oracleE: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
+private val oracleE: FIKSet<FIKSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 2), of(1, 3), of(1, 4),
                          of(2, 3), of(2, 4),
                          of(3, 4),
@@ -43,13 +43,13 @@ private val oracleE: FSet<FSet<Int>> = of(of(1), of(2), of(3), of(4),
                          of(1, 3, 4),
                          of(2, 3, 4),
                          of(1, 2, 3, 4))
-private val oracleF: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4),
+private val oracleF: FIKSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4),
                          FList.of(2, 1), FList.of(3, 1), FList.of(4, 1),
                          FList.of(2, 3), FList.of(2, 4),
                          FList.of(3, 2), FList.of(4, 2),
                          FList.of(3, 4),
                          FList.of(4, 3))
-private val oracleG: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4), FList.of(1, 5),
+private val oracleG: FIKSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList.of(1, 4), FList.of(1, 5),
                          FList.of(2, 1), FList.of(3, 1), FList.of(4, 1), FList.of(5, 1),
                          FList.of(2, 3), FList.of(2, 4), FList.of(2, 5),
                          FList.of(3, 2), FList.of(4, 2), FList.of(5, 2),
@@ -58,7 +58,7 @@ private val oracleG: FSet<FList<Int>> = of(FList.of(1, 2), FList.of(1, 3), FList
                          FList.of(4, 5),
                          FList.of(5, 4))
 
-class FSetGroupingTest : FunSpec({
+class FIKSetGroupingTest : FunSpec({
 
     // val repeats = 50
     val longTest = false
@@ -180,15 +180,15 @@ class FSetGroupingTest : FunSpec({
 
         intSetOfNone.findexed() shouldBe emptyIMSet()
 
-        val ix4offset1: FSet<Pair<String, Int>> = strSetOfFour.findexed(1)
+        val ix4offset1: FIKSet<Pair<String, Int>> = strSetOfFour.findexed(1)
         ix4offset1.fmap { p -> p.second }.equals(intSetOfFour) shouldBe true
         ix4offset1.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
 
-        val ix4offset0: FSet<Pair<String, Int>> = strSetOfFour.findexed(0)
+        val ix4offset0: FIKSet<Pair<String, Int>> = strSetOfFour.findexed(0)
         ix4offset0.fmap { p -> p.second+1 }.equals(intSetOfFour) shouldBe true
         ix4offset0.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
 
-        val ix4offsetDefault: FSet<Pair<String, Int>> = strSetOfFour.findexed()
+        val ix4offsetDefault: FIKSet<Pair<String, Int>> = strSetOfFour.findexed()
         ix4offsetDefault.fmap { p -> p.second+1 }.equals(intSetOfFour) shouldBe true
         ix4offsetDefault.fmap { p -> p.first }.equals(strSetOfFour) shouldBe true
     }
@@ -273,7 +273,7 @@ class FSetGroupingTest : FunSpec({
         val fourp = intSetOfFour.fpermute()
         fourp.size shouldBe 24 // 3!
         val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFour.toIMBTree() as FRBTree<Int, Int>)
-        val p4jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMSet()) { s, aryl ->
+        val p4jt: FIKSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMSet()) { s, aryl ->
             s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
         }
         fourp.equals(p4jt) shouldBe true
@@ -281,7 +281,7 @@ class FSetGroupingTest : FunSpec({
         val fivep = intSetOfFive.fpermute()
         fivep.size shouldBe 120 // 5!
         val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFive.toIMBTree() as FRBTree<Int, Int>)
-        val p5jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMSet()) { s, aryl ->
+        val p5jt: FIKSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMSet()) { s, aryl ->
             s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
         }
         fivep.equals(p5jt) shouldBe true
@@ -291,7 +291,7 @@ class FSetGroupingTest : FunSpec({
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
         sixp.size shouldBe 720 // 6!
         val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSix.toIMBTree() as FRBTree<Int, Int>)
-        val p6jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMSet()) { s, aryl ->
+        val p6jt: FIKSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMSet()) { s, aryl ->
             s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
         }
         sixp.equals(p6jt) shouldBe true
@@ -301,7 +301,7 @@ class FSetGroupingTest : FunSpec({
         if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
         sevenp.size shouldBe 5040 // 7!
         val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSeven.toIMBTree() as FRBTree<Int, Int>)
-        val p7jt: FSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMSet()) { s, aryl ->
+        val p7jt: FIKSet<FList<Int>> = JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMSet()) { s, aryl ->
             s.fadd(FList.ofMap(aryl) { tkv -> tkv.getv() }.toSoO())
         }
         sevenp.equals(p7jt) shouldBe true
@@ -322,24 +322,24 @@ class FSetGroupingTest : FunSpec({
     }
 
     test("fpopAndReminder") {
-        val (nilPop, nilReminder) = FSet.emptyIMSet<Int>().fpopAndReminder()
+        val (nilPop, nilReminder) = FIKSet.emptyIMSet<Int>().fpopAndReminder()
         nilPop shouldBe null
-        nilReminder shouldBe FSet.emptyIMSet<Int>()
+        nilReminder shouldBe FIKSet.emptyIMSet<Int>()
 
-        val (onePop, oneReminder) = FSet.of(1).fpopAndReminder()
+        val (onePop, oneReminder) = FIKSet.of(1).fpopAndReminder()
         onePop shouldBe 1
-        oneReminder shouldBe  FSet.emptyIMSet<Int>()
+        oneReminder shouldBe  FIKSet.emptyIMSet<Int>()
 
         // this traverses slideShareTree popping one element at a time, and rebuilding the set with the popped element
-        val res = FSetBody.of(frbSlideShareTree).ffold(Pair(FSet.emptyIMSet<Int>(), FSetBody.of(frbSlideShareTree).fpopAndReminder())) { acc, _ ->
+        val res = FIKSetBody.of(frbSlideShareTree).ffold(Pair(FIKSet.emptyIMSet<Int>(), FIKSetBody.of(frbSlideShareTree).fpopAndReminder())) { acc, _ ->
             val (rebuild, popAndStub) = acc
             val (pop, stub) = popAndStub
             Pair(rebuild.fadd(pop!!.toSoO()), stub.fpopAndReminder())
         }
-        res.first.equals(FSetBody.of(frbSlideShareTree)) shouldBe true
+        res.first.equals(FIKSetBody.of(frbSlideShareTree)) shouldBe true
         val (lastPopped, lastReminder) = res.second
         lastPopped shouldBe null
-        lastReminder shouldBe FSet.emptyIMSet<Int>()
+        lastReminder shouldBe FIKSet.emptyIMSet<Int>()
     }
 
     test("fsize") {

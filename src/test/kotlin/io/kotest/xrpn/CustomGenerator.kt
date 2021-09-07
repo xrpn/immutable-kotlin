@@ -32,10 +32,10 @@ fun <A: Any, B> Arb.Companion.fset(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FSet<A>> {
+): Arb<FIKSet<A>> {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
-    return Arb.set(arbB, range).map { bs -> FSet.ofMap(bs.iterator(), f) }
+    return Arb.set(arbB, range).map { bs -> FIKSet.ofMap(bs.iterator(), f) }
 }
 
 fun <A: Any, B> Arb.Companion.fsetAsSet(

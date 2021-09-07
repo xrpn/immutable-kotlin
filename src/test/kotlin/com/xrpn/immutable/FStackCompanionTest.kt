@@ -13,13 +13,9 @@ private val strStackOfNone = FStack.of(*arrayOf<String>())
 private val intStackOfNone = FStack.of(*arrayOf<Int>())
 private val strStackOfOne = FStack.of(*arrayOf<String>(itemA))
 private val intStackOfOne = FStack.of(*arrayOf<Int>(1))
-private val strStackOfOneB = FStack.of(*arrayOf<String>(itemB))
-private val strStackOfOneC = FStack.of(*arrayOf<String>(itemC))
 private val strStackOfTwo = FStack.of(*arrayOf<String>(itemA, itemB))
+private val strStackOfTwoN = FStack.of(*arrayOf<String>("1", "2"))
 private val intStackOfTwo = FStack.of(*arrayOf<Int>(1, 2))
-private val strStackOfTwoBA = FStack.of(*arrayOf<String>(itemB, itemA))
-private val strStackOfTwoBC = FStack.of(*arrayOf<String>(itemB, itemC))
-private val strStackOfTwoCB = FStack.of(*arrayOf<String>(itemC, itemB))
 private val strStackOfThree = FStack.of(*arrayOf<String>(itemA, itemB, itemC))
 private val intStackOfThree = FStack.of(*arrayOf<Int>(1, 2, 3))
 
@@ -28,13 +24,16 @@ class FStackCompanionTest : FunSpec({
     beforeTest {}
 
     test("equals") {
-        FStack.emptyIMStack<Int>().equals(null) shouldBe false
-        FStack.emptyIMStack<Int>().equals(1) shouldBe false
-        FStack.emptyIMStack<Int>().equals("") shouldBe false
+        emptyIMStack<Int>().equals(null) shouldBe false
+        emptyIMStack<Int>().equals(1) shouldBe false
+        emptyIMStack<Int>().equals("") shouldBe false
         /* Sigh... */ strStackOfNone.equals(intStackOfNone) shouldBe true
         intStackOfTwo.equals(null) shouldBe false
         intStackOfTwo.equals(strStackOfNone) shouldBe false
         intStackOfTwo.equals(strStackOfTwo) shouldBe false
+        strStackOfTwo.equals(intStackOfTwo) shouldBe false
+        intStackOfTwo.equals(strStackOfTwoN) shouldBe false
+        strStackOfTwoN.equals(intStackOfTwo) shouldBe false
         intStackOfTwo.equals("foobar") shouldBe false
         intStackOfTwo.equals(3) shouldBe false
     }
@@ -98,7 +97,7 @@ class FStackCompanionTest : FunSpec({
         FStack.of(listOf(1,2,3)) shouldBe FStackBody.of(FLCons(1,FLCons(2,FLCons(3,FLNil))))
     }
 
-    test("co.of IMStack") {
+    test("co.of IMList") {
     }
 
     test("co.ofMap iterator") {
@@ -114,6 +113,4 @@ class FStackCompanionTest : FunSpec({
         strStackOfTwo shouldBe FStack.ofMap(listOf(0, 1)) { a -> (a+'A'.code).toChar().toString() }
         strStackOfThree shouldBe FStack.ofMap(listOf(0, 1, 2)) { a -> (a+'A'.code).toChar().toString() }
     }
-
-
 })

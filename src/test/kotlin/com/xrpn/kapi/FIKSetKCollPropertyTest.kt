@@ -12,7 +12,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fsetAsCollection
 
-class FSetKCollPropertyTest : FunSpec({
+class FIKSetKCollPropertyTest : FunSpec({
 
   beforeTest {}
 

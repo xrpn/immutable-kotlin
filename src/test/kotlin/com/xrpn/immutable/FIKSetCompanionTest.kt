@@ -2,15 +2,15 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.FList.Companion.emptyIMList
-import com.xrpn.immutable.FSet.Companion.NOT_FOUND
-import com.xrpn.immutable.FSet.Companion.emptyIMSet
-import com.xrpn.immutable.FSet.Companion.or
-import com.xrpn.immutable.FSet.Companion.and
-import com.xrpn.immutable.FSet.Companion.xor
-import com.xrpn.immutable.FSet.Companion.not
-import com.xrpn.immutable.FSet.Companion.toIMSet
-import com.xrpn.immutable.FSet.Companion.of
-import com.xrpn.immutable.FSet.Companion.ofMap
+import com.xrpn.immutable.FIKSet.Companion.NOT_FOUND
+import com.xrpn.immutable.FIKSet.Companion.emptyIMSet
+import com.xrpn.immutable.FIKSet.Companion.or
+import com.xrpn.immutable.FIKSet.Companion.and
+import com.xrpn.immutable.FIKSet.Companion.xor
+import com.xrpn.immutable.FIKSet.Companion.not
+import com.xrpn.immutable.FIKSet.Companion.toIMSet
+import com.xrpn.immutable.FIKSet.Companion.of
+import com.xrpn.immutable.FIKSet.Companion.ofMap
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -20,16 +20,16 @@ import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fset
 
-private val intSetOfNone: FSet<Int> = FSet.of(*arrayOf())
-private val strSetOfNone: FSet<String> = FSet.of(*arrayOf())
-private val intSetOfOne = FSet.of(1)
-private val strSetOfOne = FSet.of("a")
-private val intSetOfTwo = FSet.of(1, 2)
-private val intSetOfTwoOfst1 = FSet.of(2, 3)
-private val intSetOfTwoOfst2 = FSet.of(3, 4)
-private val intSetOfThree = FSet.of(1, 2, 3)
-private val strSetOfThree = FSet.of("1", "2", "3")
-private val intSetOfFour = FSet.of(1, 2, 3, 4)
+private val intSetOfNone: FIKSet<Int> = FIKSet.of(*arrayOf())
+private val strSetOfNone: FIKSet<String> = FIKSet.of(*arrayOf())
+private val intSetOfOne = FIKSet.of(1)
+private val strSetOfOne = FIKSet.of("a")
+private val intSetOfTwo = FIKSet.of(1, 2)
+private val intSetOfTwoOfst1 = FIKSet.of(2, 3)
+private val intSetOfTwoOfst2 = FIKSet.of(3, 4)
+private val intSetOfThree = FIKSet.of(1, 2, 3)
+private val strSetOfThree = FIKSet.of("1", "2", "3")
+private val intSetOfFour = FIKSet.of(1, 2, 3, 4)
 
 private val kSetOfNone: Set<Int> = setOf(*arrayOf())
 private val ksSetOfNone: Set<String> = setOf(*arrayOf())
@@ -39,7 +39,7 @@ private val kSetOfTwo = setOf(1, 2)
 private val kSetOfTwoOfst1 = setOf(2, 3)
 private val kSetOfThree = setOf(1, 2, 3)
 
-class FSetCompanionTest : FunSpec({
+class FIKSetCompanionTest : FunSpec({
 
     val repeats = 50
 
@@ -107,27 +107,27 @@ class FSetCompanionTest : FunSpec({
     }
 
     test("toString() hashCode()") {
-        emptyIMSet<Int>().toString() shouldBe "FSet(EMPTY)"
+        emptyIMSet<Int>().toString() shouldBe "FIKSet(EMPTY)"
 
         val aux = emptyIMSet<Int>().hashCode()
         for (i in (1..100)) {
             aux shouldBe emptyIMSet<Int>().hashCode()
         }
-        intSetOfTwo.toString() shouldStartWith "FSetBody("
+        intSetOfTwo.toString() shouldStartWith "FIKSetBody("
         val aux2 = intSetOfTwo.hashCode()
         for (i in (1..100)) {
             aux2 shouldBe intSetOfTwo.hashCode()
         }
         for (i in (1..100)) {
-            FSet.hashCode(intSetOfTwo) shouldBe intSetOfTwo.hashCode()
+            FIKSet.hashCode(intSetOfTwo) shouldBe intSetOfTwo.hashCode()
         }
     }
 
     // IMSetCompanion
 
     test("co.emptyIMSet"){
-        emptyIMSet<Int>() shouldBe FSetBody.empty
-        (emptyIMSet<Int>() === FSetBody.empty) shouldBe true
+        emptyIMSet<Int>() shouldBe FIKSetBody.empty
+        (emptyIMSet<Int>() === FIKSetBody.empty) shouldBe true
     }
     
     test("co.of vararg"){
@@ -189,8 +189,8 @@ class FSetCompanionTest : FunSpec({
 
         (intSetOfThree or intSetOfNone).equal(intSetOfThree) shouldBe true
         (intSetOfThree or intSetOfThree).equal(intSetOfThree) shouldBe true
-        (FSet.of(2) or intSetOfThree).equal(intSetOfThree) shouldBe true
-        (intSetOfThree or FSet.of(2)).equal(intSetOfThree) shouldBe true
+        (FIKSet.of(2) or intSetOfThree).equal(intSetOfThree) shouldBe true
+        (intSetOfThree or FIKSet.of(2)).equal(intSetOfThree) shouldBe true
     }
     
     test("co.and"){
@@ -209,8 +209,8 @@ class FSetCompanionTest : FunSpec({
 
         (intSetOfThree and intSetOfNone).equal(intSetOfNone) shouldBe true
         (intSetOfThree and intSetOfThree).equal(intSetOfThree) shouldBe true
-        (FSet.of(2) and intSetOfThree).equal(FSet.of(2)) shouldBe true
-        (intSetOfThree and FSet.of(2)).equal(FSet.of(2)) shouldBe true
+        (FIKSet.of(2) and intSetOfThree).equal(FIKSet.of(2)) shouldBe true
+        (intSetOfThree and FIKSet.of(2)).equal(FIKSet.of(2)) shouldBe true
     }
     
     test("co.xor"){
@@ -219,18 +219,18 @@ class FSetCompanionTest : FunSpec({
 
         (intSetOfOne xor intSetOfNone).equal(intSetOfOne) shouldBe true
         (intSetOfOne xor intSetOfOne).equal(intSetOfNone) shouldBe true
-        (intSetOfOne xor intSetOfThree).equal(FSet.of(2,3)) shouldBe true
-        (intSetOfThree xor intSetOfOne).equal(FSet.of(2,3)) shouldBe true
+        (intSetOfOne xor intSetOfThree).equal(FIKSet.of(2,3)) shouldBe true
+        (intSetOfThree xor intSetOfOne).equal(FIKSet.of(2,3)) shouldBe true
 
         (intSetOfTwo xor intSetOfNone).equal(intSetOfTwo) shouldBe true
         (intSetOfTwo xor intSetOfTwo).equal(intSetOfNone) shouldBe true
-        (intSetOfTwo xor intSetOfThree).equal(FSet.of(3)) shouldBe true
-        (intSetOfThree xor intSetOfTwo).equal(FSet.of(3)) shouldBe true
+        (intSetOfTwo xor intSetOfThree).equal(FIKSet.of(3)) shouldBe true
+        (intSetOfThree xor intSetOfTwo).equal(FIKSet.of(3)) shouldBe true
 
         (intSetOfThree xor intSetOfNone).equal(intSetOfThree) shouldBe true
         (intSetOfThree xor intSetOfThree).equal(intSetOfNone) shouldBe true
-        (FSet.of(2) xor intSetOfThree).equal(FSet.of(1,3)) shouldBe true
-        (intSetOfThree xor FSet.of(2)).equal(FSet.of(1,3)) shouldBe true
+        (FIKSet.of(2) xor intSetOfThree).equal(FIKSet.of(1,3)) shouldBe true
+        (intSetOfThree xor FIKSet.of(2)).equal(FIKSet.of(1,3)) shouldBe true
     }
 
     test("co.not"){
@@ -240,17 +240,17 @@ class FSetCompanionTest : FunSpec({
         (intSetOfOne not intSetOfNone).equal(intSetOfOne) shouldBe true
         (intSetOfOne not intSetOfOne).equal(intSetOfNone) shouldBe true
         (intSetOfOne not intSetOfThree).equal(intSetOfNone) shouldBe true
-        (intSetOfThree not intSetOfOne).equal(FSet.of(2,3)) shouldBe true
+        (intSetOfThree not intSetOfOne).equal(FIKSet.of(2,3)) shouldBe true
 
         (intSetOfTwo not intSetOfNone).equal(intSetOfTwo) shouldBe true
         (intSetOfTwo not intSetOfTwo).equal(intSetOfNone) shouldBe true
         (intSetOfTwo not intSetOfThree).equal(intSetOfNone) shouldBe true
-        (intSetOfThree not intSetOfTwo).equal(FSet.of(3)) shouldBe true
+        (intSetOfThree not intSetOfTwo).equal(FIKSet.of(3)) shouldBe true
 
         (intSetOfThree not intSetOfNone).equal(intSetOfThree) shouldBe true
         (intSetOfThree not intSetOfThree).equal(intSetOfNone) shouldBe true
-        (FSet.of(2) not intSetOfThree).equal(intSetOfNone) shouldBe true
-        (intSetOfThree not FSet.of(2)).equal(FSet.of(1,3)) shouldBe true
+        (FIKSet.of(2) not intSetOfThree).equal(intSetOfNone) shouldBe true
+        (intSetOfThree not FIKSet.of(2)).equal(FIKSet.of(1,3)) shouldBe true
     }
 
     test("co.toIMSet()"){
@@ -272,9 +272,9 @@ class FSetCompanionTest : FunSpec({
 
     test("co.toArray"){
         Arb.fset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
-            val ary: Array<Int> = FSet.toArray(fs)
-            fs.equal(FSet.of(ary.iterator())) shouldBe true
-            fs.equal(FSet.of(*ary)) shouldBe true
+            val ary: Array<Int> = FIKSet.toArray(fs)
+            fs.equal(FIKSet.of(ary.iterator())) shouldBe true
+            fs.equal(FIKSet.of(*ary)) shouldBe true
         }
     }
 

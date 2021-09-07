@@ -1,7 +1,7 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FSetOfOne
-import com.xrpn.immutable.FSetOfOne.Companion.toSoO
+import com.xrpn.immutable.FIKSetOfOne
+import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import com.xrpn.immutable.TKVEntry
 
 // TODO remove in time

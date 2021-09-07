@@ -1,6 +1,6 @@
 package com.xrpn.immutable
 
-import com.xrpn.immutable.FSetOfOne.Companion.toSoO
+import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -8,16 +8,16 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fset
 
-private val intSetOfNone = FSet.of(*arrayOf<Int>())
-private val intSetOfOne = FSet.of(1)
-private val intSetOfTwo = FSet.of(1, 2)
-private val intSetOfTwoOfst1 = FSet.of(2, 3)
-private val intSetOfTwoOfst2 = FSet.of(3, 4)
-private val intSetOfThree = FSet.of(1, 2, 3)
-private val intSetOfFour = FSet.of(1, 2, 3, 4)
-private val intSetMaverick = FSet.of(113, 97)
+private val intSetOfNone = FIKSet.of(*arrayOf<Int>())
+private val intSetOfOne = FIKSet.of(1)
+private val intSetOfTwo = FIKSet.of(1, 2)
+private val intSetOfTwoOfst1 = FIKSet.of(2, 3)
+private val intSetOfTwoOfst2 = FIKSet.of(3, 4)
+private val intSetOfThree = FIKSet.of(1, 2, 3)
+private val intSetOfFour = FIKSet.of(1, 2, 3, 4)
+private val intSetMaverick = FIKSet.of(113, 97)
 
-class FSetFilteringTest : FunSpec({
+class FIKSetFilteringTest : FunSpec({
 
     val repeats = 50
     
@@ -79,13 +79,13 @@ class FSetFilteringTest : FunSpec({
         intSetOfOne.fdropItem(1.toSoO()).equal(intSetOfNone) shouldBe true
         
         intSetOfTwo.fdropItem(0.toSoO()).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropItem(1.toSoO()).equal(FSet.of(2)) shouldBe true
+        intSetOfTwo.fdropItem(1.toSoO()).equal(FIKSet.of(2)) shouldBe true
         intSetOfTwo.fdropItem(2.toSoO()).equal(intSetOfOne) shouldBe true
         intSetOfTwo.fdropItem(3.toSoO()).equal(intSetOfTwo) shouldBe true
 
         intSetOfThree.fdropItem(0.toSoO()).equal(intSetOfThree) shouldBe true
-        intSetOfThree.fdropItem(1.toSoO()).equal(FSet.of(2, 3)) shouldBe true
-        intSetOfThree.fdropItem(2.toSoO()).equal(FSet.of(1, 3)) shouldBe true
+        intSetOfThree.fdropItem(1.toSoO()).equal(FIKSet.of(2, 3)) shouldBe true
+        intSetOfThree.fdropItem(2.toSoO()).equal(FIKSet.of(1, 3)) shouldBe true
         intSetOfThree.fdropItem(3.toSoO()).equal(intSetOfTwo) shouldBe true
         intSetOfThree.fdropItem(4.toSoO()).equal(intSetOfThree) shouldBe true
     }
@@ -96,13 +96,13 @@ class FSetFilteringTest : FunSpec({
         intSetOfOne.fdropAll(1.toSoO()).equal(intSetOfNone) shouldBe true
 
         intSetOfTwo.fdropAll(0.toSoO()).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropAll(1.toSoO()).equal(FSet.of(2)) shouldBe true
+        intSetOfTwo.fdropAll(1.toSoO()).equal(FIKSet.of(2)) shouldBe true
         intSetOfTwo.fdropAll(2.toSoO()).equal(intSetOfOne) shouldBe true
         intSetOfTwo.fdropAll(3.toSoO()).equal(intSetOfTwo) shouldBe true
 
         intSetOfThree.fdropAll(0.toSoO()).equal(intSetOfThree) shouldBe true
-        intSetOfThree.fdropAll(1.toSoO()).equal(FSet.of(2, 3)) shouldBe true
-        intSetOfThree.fdropAll(2.toSoO()).equal(FSet.of(1, 3)) shouldBe true
+        intSetOfThree.fdropAll(1.toSoO()).equal(FIKSet.of(2, 3)) shouldBe true
+        intSetOfThree.fdropAll(2.toSoO()).equal(FIKSet.of(1, 3)) shouldBe true
         intSetOfThree.fdropAll(3.toSoO()).equal(intSetOfTwo) shouldBe true
         intSetOfThree.fdropAll(4.toSoO()).equal(intSetOfThree) shouldBe true
     }
@@ -116,7 +116,7 @@ class FSetFilteringTest : FunSpec({
         intSetOfOne.fdropAll(intSetMaverick).equal(intSetOfOne) shouldBe true
 
         intSetOfTwo.fdropAll(intSetOfNone).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropAll(intSetOfOne).equal(FSet.of(2)) shouldBe true
+        intSetOfTwo.fdropAll(intSetOfOne).equal(FIKSet.of(2)) shouldBe true
         intSetOfTwo.fdropAll(intSetOfFour).equal(intSetOfNone) shouldBe true
         intSetOfTwo.fdropAll(intSetMaverick).equal(intSetOfTwo) shouldBe true
 
@@ -217,8 +217,8 @@ class FSetFilteringTest : FunSpec({
 
         intSetOfThree.fAND(intSetOfNone).equal(intSetOfNone) shouldBe true
         intSetOfThree.fAND(intSetOfThree).equal(intSetOfThree) shouldBe true
-        FSet.of(2).fAND(intSetOfThree).equal(FSet.of(2)) shouldBe true
-        intSetOfThree.fAND(FSet.of(2)).equal(FSet.of(2)) shouldBe true
+        FIKSet.of(2).fAND(intSetOfThree).equal(FIKSet.of(2)) shouldBe true
+        intSetOfThree.fAND(FIKSet.of(2)).equal(FIKSet.of(2)) shouldBe true
     }
 
     test("fNOT") {
@@ -228,17 +228,17 @@ class FSetFilteringTest : FunSpec({
         intSetOfOne.fNOT(intSetOfNone).equal(intSetOfOne) shouldBe true
         intSetOfOne.fNOT(intSetOfOne).equal(intSetOfNone) shouldBe true
         intSetOfOne.fNOT(intSetOfThree).equal(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(intSetOfOne).equal(FSet.of(2,3)) shouldBe true
+        intSetOfThree.fNOT(intSetOfOne).equal(FIKSet.of(2,3)) shouldBe true
 
         intSetOfTwo.fNOT(intSetOfNone).equal(intSetOfTwo) shouldBe true
         intSetOfTwo.fNOT(intSetOfTwo).equal(intSetOfNone) shouldBe true
         intSetOfTwo.fNOT(intSetOfThree).equal(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(intSetOfTwo).equal(FSet.of(3)) shouldBe true
+        intSetOfThree.fNOT(intSetOfTwo).equal(FIKSet.of(3)) shouldBe true
 
         intSetOfThree.fNOT(intSetOfNone).equal(intSetOfThree) shouldBe true
         intSetOfThree.fNOT(intSetOfThree).equal(intSetOfNone) shouldBe true
-        FSet.of(2).fNOT(intSetOfThree).equal(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(FSet.of(2)).equal(FSet.of(1,3)) shouldBe true
+        FIKSet.of(2).fNOT(intSetOfThree).equal(intSetOfNone) shouldBe true
+        intSetOfThree.fNOT(FIKSet.of(2)).equal(FIKSet.of(1,3)) shouldBe true
     }
 
     test("fOR") {
@@ -256,8 +256,8 @@ class FSetFilteringTest : FunSpec({
 
         intSetOfThree.fOR(intSetOfNone).equal(intSetOfThree) shouldBe true
         intSetOfThree.fOR(intSetOfThree).equal(intSetOfThree) shouldBe true
-        FSet.of(2).fOR(intSetOfThree).equal(intSetOfThree) shouldBe true
-        intSetOfThree.fOR(FSet.of(2)).equal(intSetOfThree) shouldBe true
+        FIKSet.of(2).fOR(intSetOfThree).equal(intSetOfThree) shouldBe true
+        intSetOfThree.fOR(FIKSet.of(2)).equal(intSetOfThree) shouldBe true
     }
 
     test("fXOR") {
@@ -266,17 +266,17 @@ class FSetFilteringTest : FunSpec({
 
         intSetOfOne.fXOR(intSetOfNone).equal(intSetOfOne) shouldBe true
         intSetOfOne.fXOR(intSetOfOne).equal(intSetOfNone) shouldBe true
-        intSetOfOne.fXOR(intSetOfThree).equal(FSet.of(2,3)) shouldBe true
-        intSetOfThree.fXOR(intSetOfOne).equal(FSet.of(2,3)) shouldBe true
+        intSetOfOne.fXOR(intSetOfThree).equal(FIKSet.of(2,3)) shouldBe true
+        intSetOfThree.fXOR(intSetOfOne).equal(FIKSet.of(2,3)) shouldBe true
 
         intSetOfTwo.fXOR(intSetOfNone).equal(intSetOfTwo) shouldBe true
         intSetOfTwo.fXOR(intSetOfTwo).equal(intSetOfNone) shouldBe true
-        intSetOfTwo.fXOR(intSetOfThree).equal(FSet.of(3)) shouldBe true
-        intSetOfThree.fXOR(intSetOfTwo).equal(FSet.of(3)) shouldBe true
+        intSetOfTwo.fXOR(intSetOfThree).equal(FIKSet.of(3)) shouldBe true
+        intSetOfThree.fXOR(intSetOfTwo).equal(FIKSet.of(3)) shouldBe true
 
         intSetOfThree.fXOR(intSetOfNone).equal(intSetOfThree) shouldBe true
         intSetOfThree.fXOR(intSetOfThree).equal(intSetOfNone) shouldBe true
-        FSet.of(2).fXOR(intSetOfThree).equal(FSet.of(1,3)) shouldBe true
-        intSetOfThree.fXOR(FSet.of(2)).equal(FSet.of(1,3)) shouldBe true
+        FIKSet.of(2).fXOR(intSetOfThree).equal(FIKSet.of(1,3)) shouldBe true
+        intSetOfThree.fXOR(FIKSet.of(2)).equal(FIKSet.of(1,3)) shouldBe true
     }
 })

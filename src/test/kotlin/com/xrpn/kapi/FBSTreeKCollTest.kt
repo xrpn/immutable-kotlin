@@ -4,7 +4,7 @@ import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.TKVEntry
 import com.xrpn.immutable.FBSTree
 import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FSet
+import com.xrpn.immutable.FIKSet
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -79,10 +79,10 @@ class FBSTreeKCollTest : FunSpec({
     (intFbstOfOne.equals(FBSTree.ofvi(*arrayOf(2)))) shouldBe false
     (intFbstOfOne.equals(FBSTree.ofvi(*arrayOf(2)))) shouldBe false
     (intFbstOfTwo == setOf(1.toIAEntry(), 2.toIAEntry())) shouldBe false
-    (intFbstOfTwo == FSet.of(1, 2)) shouldBe false
+    (intFbstOfTwo == FIKSet.of(1, 2)) shouldBe false
     (intFbstOfTwo == intFbstOfThree) shouldBe false
     (intFbstOfThree == setOf(1.toIAEntry(), 2.toIAEntry(), 3.toIAEntry())) shouldBe false
-    (intFbstOfThree == FSet.of(1, 2, 3)) shouldBe false
+    (intFbstOfThree == FIKSet.of(1, 2, 3)) shouldBe false
   }
 
   test("Collections equals") {
@@ -90,7 +90,7 @@ class FBSTreeKCollTest : FunSpec({
     (emptySet<Int>() == intFbstOfOne.toSet()) shouldBe false
     (setOf(1.toIAEntry()) == intFbstOfOne) shouldBe false
     (setOf(1.toIAEntry()) == intFbstOfOne) shouldBe false
-    (FSet.of(1) == intFbstOfOne) shouldBe false
+    (FIKSet.of(1) == intFbstOfOne) shouldBe false
     (setOf(1.toIAEntry()) == intFbstOfOne.toSet()) shouldBe true
     (setOf(1.toIAEntry(),2.toIAEntry()) == intFbstOfTwo.toSet()) shouldBe true
     (listOf(1.toIAEntry()) == intFbstOfOne.toList()) shouldBe true

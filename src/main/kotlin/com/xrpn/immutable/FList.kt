@@ -571,7 +571,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
         override fun <A: Any> Collection<A>.toIMList(): IMList<A> = when(this) {
             is FList -> this
-            is FSet -> this.copyToFList()
+            is FIKSet -> this.copyToFList()
             is List -> of(this)
             else -> of(this.iterator())
         }

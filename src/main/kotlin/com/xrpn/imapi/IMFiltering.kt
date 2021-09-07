@@ -1,7 +1,7 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FSetOfOne
+import com.xrpn.immutable.FIKSetOfOne
 import com.xrpn.immutable.TKVEntry
 
 interface IMListFiltering<out A: Any> {
@@ -33,9 +33,9 @@ interface IMListFiltering<out A: Any> {
 }
 
 interface IMSetFiltering<out A: Any> {
-    fun fcontains(item: FSetOfOne<@UnsafeVariance A>): Boolean
+    fun fcontains(item: FIKSetOfOne<@UnsafeVariance A>): Boolean
     fun fcontainsAny(items: IMSet<@UnsafeVariance A>): Boolean
-    fun fdropItem(item: FSetOfOne<@UnsafeVariance A>): IMSet<A>
+    fun fdropItem(item: FIKSetOfOne<@UnsafeVariance A>): IMSet<A>
     fun fdropAll(items: IMSet<@UnsafeVariance A>): IMSet<A>
     fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
     fun fempty(): Boolean = fpick() == null
@@ -43,7 +43,7 @@ interface IMSetFiltering<out A: Any> {
     fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
     fun ffindDistinct(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
     fun fisSubsetOf(rhs: IMSet<@UnsafeVariance A>): Boolean
-    fun isSetOfOne() = this is FSetOfOne
+    fun isSetOfOne() = this is FIKSetOfOne
     fun fpick(): A? // peek at one random element
     fun fAND(items: IMSet<@UnsafeVariance A>): IMSet<A>
     fun fNOT(items: IMSet<@UnsafeVariance A>): IMSet<A> = fdropAll(items)

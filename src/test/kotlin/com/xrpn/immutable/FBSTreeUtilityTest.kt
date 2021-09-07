@@ -167,9 +167,9 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("toIMSet") {
-    intFBSTreeOfNone.toIMSet() shouldBe FSet.emptyIMSet()
+    intFBSTreeOfNone.toIMSet() shouldBe FIKSet.emptyIMSet()
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
-      val ims1: FSet<Int> = fbst.toIMSet()
+      val ims1: FIKSet<Int> = fbst.toIMSet()
       (ims1.toIMBTree() === fbst) shouldBe false
       ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
     }

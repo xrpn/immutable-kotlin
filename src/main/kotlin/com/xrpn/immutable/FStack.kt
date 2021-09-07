@@ -5,9 +5,12 @@ import com.xrpn.imapi.IMStack
 import com.xrpn.imapi.IMStackCompanion
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
-import java.util.*
 
-sealed class FStack<out A: Any> : IMStack<A> {
+sealed class FStack<out A: Any>: IMStack<A> {
+
+    val size: Int by lazy { this.toFList().size }
+
+    fun isEmpty(): Boolean = this.toFList().isEmpty()
 
     // ============ filtering
 
@@ -95,8 +98,6 @@ sealed class FStack<out A: Any> : IMStack<A> {
         return Pair(body.fhead()!!, FStackBody.of(body.ftail()))
     }
 
-    override fun hashCode(): Int = this.toFList().hashCode()
-
     companion object: IMStackCompanion {
 
         override fun <A: Any> emptyIMStack(): FStack<A> = FStackBody.empty
@@ -160,4 +161,5 @@ internal class FStackBody<out A: Any> private constructor (
         }
         fun <A: Any> hashCode(s: FStackBody<A>) = s.hashCode()
     }
+
 }
