@@ -1,4 +1,4 @@
-package com.xrpn.bridge
+package com.xrpn.kapi
 
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
@@ -9,7 +9,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
-class FListTransformingPropertyTest : FunSpec({
+class FListKListPropertyExtendedTest : FunSpec({
 
   val repeats = 10
 

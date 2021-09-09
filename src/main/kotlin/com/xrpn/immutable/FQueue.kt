@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FQueueIterator
 import com.xrpn.hash.DigestHash.lChecksumHashCode
 import com.xrpn.hash.DigestHash.lChecksumHashCodeReverse
 import com.xrpn.hash.MrMr64
@@ -14,6 +15,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     fun isEmpty(): Boolean = this === empty
 
     val size: Int by lazy { this.fsize() }
+
+    fun iterator(): FQueueIterator<A> = FQueueIterator(this)
 
     // ============ filtering
 

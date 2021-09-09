@@ -59,6 +59,23 @@ class FStackTest : FunSpec({
         aux.second shouldBe strStackOfNone
     }
 
+    test("pop vs ierator") {
+        val iter = strStackOfThree.iterator()
+
+        tailrec fun go(s: FStack<String>) {
+            if (s.fempty()) {
+                iter.hasNext() shouldBe false
+                return
+            }
+            val (item, shortStack) = s.fpop()
+            iter.nullableNext() shouldBe item
+            go(shortStack)
+        }
+
+        go(strStackOfThree)
+    }
+
+
     test("fpopOrThrow") {
         shouldThrow<IllegalStateException> {
             strStackOfNone.fpopOrThrow()

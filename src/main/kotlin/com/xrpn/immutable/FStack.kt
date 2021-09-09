@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FStackIterator
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMStack
 import com.xrpn.imapi.IMStackCompanion
@@ -12,20 +13,22 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     fun isEmpty(): Boolean = this.toFList().isEmpty()
 
+    fun iterator(): FStackIterator<A> = FStackIterator(this)
+
     // ============ filtering
 
-    override fun fdrop(n: Int): IMStack<A> =
+    override fun fdrop(n: Int): FStack<A> =
         if (0 < n) FStackBody.of(this.toFList().fdrop(n)) else this
 
 
-    override fun fdropIfTop(item: @UnsafeVariance A): IMStack<A> = ftop()?.let {
+    override fun fdropIfTop(item: @UnsafeVariance A): FStack<A> = ftop()?.let {
         if (it.equals(item)) fpopOrThrow().second else this
     } ?: this
 
-    override fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> =
+    override fun fdropTopWhen(isMatch: (A) -> Boolean): FStack<A> =
         if (ftopMatch(isMatch)) FStackBody.of(this.toFList().ftail()) else this
 
-    override fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> =
+    override fun fdropWhile(isMatch: (A) -> Boolean): FStack<A> =
         FStackBody.of(this.toFList().fdropWhile(isMatch))
 
     override fun ftopMatch(isMatch: (A) -> Boolean): Boolean =
@@ -66,7 +69,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fpopOrThrow(): Pair<A, FStack<A>> =
         ftop()?.let { buildPair() } ?: throw IllegalStateException("pop from empty stack")
 
-    override fun fpush(top: @UnsafeVariance A): IMStack<A> =
+    override fun fpush(top: @UnsafeVariance A): FStack<A> =
         FStackBody.of(FLCons(top, this.toFList()))
 
     // ============ utility
@@ -80,7 +83,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun toIMList(): IMList<A> =
         this.toFList()
 
-    override fun copy(): IMStack<A> =
+    override fun copy(): FStack<A> =
         FStackBody.of(this.toFList().copy())
 
     override fun copyToMutableList(): MutableList<@UnsafeVariance A> =
@@ -100,25 +103,25 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
         override fun <A: Any> emptyIMStack(): FStack<A> = FStackBody.empty
 
-        override fun <A : Any> of(vararg items: A): IMStack<A> =
+        override fun <A : Any> of(vararg items: A): FStack<A> =
             FStackBody.of(FList.of(items.iterator()))
 
-        override fun <A : Any> of(items: Iterator<A>): IMStack<A> =
+        override fun <A : Any> of(items: Iterator<A>): FStack<A> =
             FStackBody.of(FList.of(items))
 
-        override fun <A : Any> of(items: List<A>): IMStack<A> =
+        override fun <A : Any> of(items: List<A>): FStack<A> =
             FStackBody.of(FList.of(items))
 
-        override fun <A : Any> of(items: IMList<A>): IMStack<A> =
+        override fun <A : Any> of(items: IMList<A>): FStack<A> =
             FStackBody.of(items as FList<A>)
 
-        override fun <B, A : Any> ofMap(items: Iterator<B>, f: (B) -> A): IMStack<A> =
+        override fun <B, A : Any> ofMap(items: Iterator<B>, f: (B) -> A): FStack<A> =
             FStackBody.of(FList.ofMap(items, f))
 
-        override fun <A : Any, B> ofMap(items: List<B>, f: (B) -> A): IMStack<A> =
+        override fun <A : Any, B> ofMap(items: List<B>, f: (B) -> A): FStack<A> =
             FStackBody.of(FList.ofMap(items, f))
 
-        override fun <A : Any> Collection<A>.toIMStack(): IMStack<A> =
+        override fun <A : Any> Collection<A>.toIMStack(): FStack<A> =
             FStackBody.of(this.toIMList() as FList<A>)
     }
 

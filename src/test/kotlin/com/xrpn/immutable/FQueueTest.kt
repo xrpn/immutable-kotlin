@@ -158,6 +158,22 @@ class FQueueTest : FunSpec({
     qC shouldBe emptyIMQueue()
   }
 
+  test("dequeue vs ierator") {
+    val iter = intQueueOfThreer2B.iterator()
+
+    tailrec fun go(q: FQueue<Int>) {
+      if (q.fempty()) {
+        iter.hasNext() shouldBe false
+        return
+      }
+      val (item, shortQueue) = q.fdequeue()
+      iter.nullableNext() shouldBe item
+      go(shortQueue)
+    }
+
+    go(intQueueOfThreer2B)
+  }
+
   test("fdequeueOrThrow") {
     shouldThrow<IllegalStateException> {
       intQueueOfNoneNR.fdequeueOrThrow()
