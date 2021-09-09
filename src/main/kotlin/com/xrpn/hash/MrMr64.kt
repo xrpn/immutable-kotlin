@@ -1,19 +1,16 @@
 package com.xrpn.hash
 
 import java.nio.ByteBuffer
-import java.util.zip.Checksum
 
-class MrMr64: Checksum {
+class MrMr64: LChecksum {
 
-    private val c1: Long = -0xae502812aa7333L
-    private val c2: Long = -0x3b314601e57a13adL
-    private var murmur64: Long = initial
+    private var mister64: Long = initial
 
     override fun update(p0: Int) =
         update(p0.toLong())
 
-    fun update(p0: Long) {
-        murmur64 += DigestHash.mrmr64(p0)
+    override fun update(p0: Long) {
+        mister64 = mrmr64(p0 + mrmr64(mister64))
     }
 
     /*
@@ -64,11 +61,29 @@ class MrMr64: Checksum {
         }
     }
 
-    override fun getValue(): Long = murmur64
+    override fun getValue(): Long = mister64
 
-    override fun reset() { murmur64 = initial }
+    override fun getIntValue(): Int {
+        val l = mister64
+        return (l xor (l ushr 32)).toInt()
+    }
+
+    override fun reset() { mister64 = initial }
 
     companion object {
+
         private const val initial: Long = 0L
+        private const val c1: Long = -0xae502812aa7333L
+        private const val c2: Long = -0x3b314601e57a13adL
+
+        fun mrmr64(hIn: Long): Long {
+            var h: Long = hIn
+            h = h xor (h ushr 33)
+            h *= c1
+            h = h xor (h ushr 33)
+            h *= c2
+            h = h xor (h ushr 33)
+            return h
+        }
     }
 }

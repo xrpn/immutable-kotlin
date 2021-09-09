@@ -132,15 +132,15 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
 
         fun accrue(q: FQueue<FRBTNode<A,B>>, acc: FList<TKVEntry<A,B>>): Pair<FList<TKVEntry<A,B>>, FQueue<FRBTNode<A,B>>> {
-            val (node, dequeued) = q.dequeue()
-            val q1 = if (node.bLeft is FRBTNil) dequeued else FQueue.enqueue(dequeued, node.bLeft as FRBTNode)
-            val q2 = if (node.bRight is FRBTNil) q1 else FQueue.enqueue(q1, node.bRight as FRBTNode)
+            val (node, dequeued) = q.fdequeueOrThrow()
+            val q1 = if (node.bLeft is FRBTNil) dequeued else dequeued.fenqueue(node.bLeft as FRBTNode)
+            val q2 = if (node.bRight is FRBTNil) q1 else q1.fenqueue(node.bRight as FRBTNode)
             return Pair(FLCons(node.entry, acc), q2)
         }
 
         return if (this.fempty()) FLNil else when(reverse) {
-            true -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FRBTNode), FLNil, ::accrue)
-            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FRBTNode), FLNil, ::accrue).freverse()
+            true -> unwindQueue(FQueue.emptyIMQueue<FRBTNode<A, B>>().fenqueue(this as FRBTNode), FLNil, ::accrue)
+            false -> unwindQueue(FQueue.emptyIMQueue<FRBTNode<A, B>>().fenqueue(this as FRBTNode), FLNil, ::accrue).freverse()
         }
     }
 
@@ -687,21 +687,31 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // ================= internals
 
+        private fun <A, B: Any> checkf(a: TKVEntry<A, B>, b: FRBTNode<A, B>, haze: Boolean): Boolean where A: Any, A: Comparable<A> {
+            val res = a.getv().equals(b.entry.getv())
+            val goodness = if (haze) !res else res
+            if (!goodness) {
+                println("${a.getv().hashCode()}:${a.getv()}, $a")
+                println("${b.entry.getv().hashCode()}:${b.entry.getv()}, ${b.entry}")
+            }
+            return goodness
+        }
+
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             a == b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(a.getv().equals(b.entry.getv()))
+                check(checkf(a, b, false))
                 FBTFIT.EQ
             }
             a < b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(!a.getv().equals(b.entry.getv()))
+                check(checkf(a, b, true))
                 FBTFIT.LEFT
             }
             else -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(!a.getv().equals(b.entry.getv()))
+                check(checkf(a, b, true))
                 FBTFIT.RIGHT
             }
         }

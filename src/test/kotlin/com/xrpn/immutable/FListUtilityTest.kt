@@ -61,6 +61,43 @@ class FListUtilityTest : FunSpec({
     }
   }
 
+  test("forEach and reverse print").config(enabled = false) {
+    val doPrint: (Int) -> Unit = { v -> println(v) }
+    intListOfThree.fforEach(doPrint)
+    intListOfThree.fforEachReverse(doPrint)
+  }
+
+  test("forEachReverse") {
+    val counter = AtomicInteger(0)
+    val summer = AtomicInteger(0)
+    val differ = AtomicInteger(0)
+    val doCount: (Int) -> Unit = { counter.incrementAndGet() }
+    val doSum: (Int) -> Unit = { v -> summer.addAndGet(v) }
+    val doDiff: (Int) -> Unit = { v -> differ.addAndGet(-v) }
+    intListOfNone.fforEachReverse(doCount)
+    counter.get() shouldBe 0
+    intListOfNone.fforEachReverse(doSum)
+    summer.get() shouldBe 0
+    intListOfNone.fforEachReverse(doDiff)
+    differ.get() shouldBe 0
+    counter.set(0)
+    summer.set(0)
+    differ.set(0)
+    checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+      val oraSum = fl.ffoldLeft(0){ acc, el -> acc + el }
+      val oraDiff = fl.freverse().ffoldLeft(0){ acc, el -> acc - el }
+      fl.fforEachReverse(doCount)
+      counter.get() shouldBe fl.size
+      counter.set(0)
+      fl.fforEachReverse(doSum)
+      summer.get() shouldBe oraSum
+      summer.set(0)
+      fl.fforEachReverse(doDiff)
+      differ.get() shouldBe oraDiff
+      differ.set(0)
+    }
+  }
+
   test("copy") {
     intListOfNone.copy() shouldBe intListOfNone
     (intListOfNone.copy() === intListOfNone) shouldBe true

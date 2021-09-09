@@ -5,6 +5,7 @@ import com.xrpn.immutable.TKVEntry
 interface IMListUtility<out A: Any> {
     fun equal(rhs: IMList<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
+    fun fforEachReverse (f: (A) -> Unit): Unit
     fun copy(): IMList<A>
     fun copyToMutableList(): MutableList<@UnsafeVariance A>
 }
@@ -65,6 +66,14 @@ interface IMStackUtility<out A: Any> {
     fun equal(rhs: IMStack<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMStack<A>
+    fun toIMList(): IMList<A>
+    fun copyToMutableList(): MutableList<@UnsafeVariance A>
+}
+
+interface IMQueueUtility<out A: Any> {
+    fun equal(rhs: IMQueue<@UnsafeVariance A>): Boolean
+    fun fforEach (f: (A) -> Unit): Unit
+    fun copy(): IMQueue<A>
     fun toIMList(): IMList<A>
     fun copyToMutableList(): MutableList<@UnsafeVariance A>
 }

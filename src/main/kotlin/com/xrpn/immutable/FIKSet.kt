@@ -4,11 +4,11 @@ import com.xrpn.bridge.FIKSetIterator
 import com.xrpn.hash.JohnsonTrotter.jtPermutations
 import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FRBTree.Companion.finsertIK
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
-import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 
 sealed class FIKSet<out A: Any>: Set<A>, IMSet<A> {

@@ -1,7 +1,7 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.TKVEntry
 import com.xrpn.immutable.FList.Companion.emptyIMList
+import com.xrpn.immutable.TKVEntry
 
 interface IMListTransforming<out A: Any> {
 
@@ -52,4 +52,11 @@ interface IMStackTransforming<out A: Any> {
     fun <B: Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> // Apply f to the top, pop, return the rest
     fun freverse(): IMStack<A>
     fun <B: Any> ftopMap(f: (A) -> B): B? // Apply f to the top
+}
+
+interface IMQueueTransforming<out A: Any> {
+
+    fun <B: Any> fdequeueMap(f: (A) -> B): Pair<B?, IMQueue<A>> // Apply f to the top, pop, return the rest
+    fun freverse(): IMQueue<A>
+    fun <B: Any> fpeekMap(f: (A) -> B): B? // Apply f to the top
 }

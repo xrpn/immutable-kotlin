@@ -1,7 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FIKSetOfOne
-import com.xrpn.immutable.FIKSetOfOne.Companion.toSoO
 import com.xrpn.immutable.TKVEntry
 
 // TODO remove in time
@@ -178,4 +176,17 @@ interface IMStackCompanion {
     fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMStack<A>
 
     fun <A: Any> Collection<A>.toIMStack():IMStack<A>
+}
+
+interface IMQueueCompanion {
+
+    fun <A: Any> emptyIMQueue(): IMQueue<A>
+    fun <A: Any> of(vararg items: A, readyToDequeue: Boolean = false): IMQueue<A>
+    fun <A: Any> of(items: Iterator<A>, readyToDequeue: Boolean = false): IMQueue<A>
+    fun <A: Any> of(items: List<A>): IMQueue<A> // yes, ready to dequeue
+    fun <A: Any> of(items: IMList<A>): IMQueue<A> // yes, ready to dequeue
+    fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A, readyToDequeue: Boolean = false): IMQueue<A>
+    fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMQueue<A>  // yes, ready to dequeue
+
+    fun <A: Any> Collection<A>.toIMQueue():IMQueue<A>
 }

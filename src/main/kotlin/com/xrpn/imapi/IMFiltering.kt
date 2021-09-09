@@ -1,6 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FRBTree
 import com.xrpn.immutable.FIKSetOfOne
 import com.xrpn.immutable.TKVEntry
 
@@ -88,9 +87,28 @@ interface IMStackFiltering<out A: Any> {
     fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
     fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> // True if top matches the oredicate
     fun fdropIfTop(item: @UnsafeVariance A): IMStack<A>
-    fun fdropTopWhile(isMatch: (A) -> Boolean): IMStack<A> // Drop the top elements that match the predicate
+    fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> // Drop the top elements that match the predicate
     fun ftopMatch(isMatch: (A) -> Boolean): Boolean // True if top matches the oredicate
     fun fempty(): Boolean = ftop() == null
     fun ftop(): A? // the top element
     fun ftopOrThrow(): A // the top element
+}
+
+interface IMQueueFiltering<out A: Any> {
+    fun fdiscardFront(): IMQueue<A> // Return all elements after the first n elements
+    fun fdropFront(n: Int): IMQueue<A> // Return all elements after the first n elements
+    fun fdropFrontWhile(isMatch: (A) -> Boolean): IMQueue<A> // Drop the front elements that match the predicate
+    fun fdropFrontWhen(isMatch: (A) -> Boolean): IMQueue<A> // True if top matches the oredicate
+    fun fdropIfFront(item: @UnsafeVariance A): IMQueue<A>
+    fun ffrontMatch(isMatch: (A) -> Boolean): Boolean // True if top matches the oredicate
+    fun fdiscardBack(): IMQueue<A> // Return all elements after the first n elements
+    fun fdropBack(n: Int): IMQueue<A> // Return all elements after the first n elements
+    fun fdropBackWhen(isMatch: (A) -> Boolean): IMQueue<A> // True if top matches the oredicate
+    fun fdropBackWhile(isMatch: (A) -> Boolean): IMQueue<A> // Drop the front elements that match the predicate
+    fun fdropIfBack(item: @UnsafeVariance A): IMQueue<A>
+    fun fbackMatch(isMatch: (A) -> Boolean): Boolean // True if top matches the oredicate
+    fun fempty(): Boolean
+    fun flast(): A? // the end element
+    fun fpeek(): A? // the front element
+    fun fpeekOrThrow(): A // the top element
 }

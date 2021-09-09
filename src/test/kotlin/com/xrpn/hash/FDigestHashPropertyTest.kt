@@ -35,7 +35,7 @@ class FDigestHashPropertyTest : FunSpec({
     }
   }
 
-  test ("Murmur64, fun murmur64 8, 16, 32") {
+  test ("Murmur64, fun murmur64 8") {
 
     val mrmr64 = MrMr64()
     for (i in (0x00..0xFF)) {
@@ -179,17 +179,17 @@ class FDigestHashPropertyTest : FunSpec({
       mrmr64.reset()
       val ba = byteArrayOf((i shl 8).toByte(), 0x03, (i shl 8).toByte(), 0x5, (i shl 8).toByte(), 0x03, (i shl 8).toByte(), 0x5, (i shl 8).toByte(), 0x0, 0x7, (i shl 8).toByte())
       val oraHash1 = mrmr64(byteToInt64(ba.copyOfRange(0, 8)))
-      val oraHash2 = mrmr64(byteToInt32(ba.copyOfRange(8, 12)).toLong())
+      val aux2 = byteToInt32(ba.copyOfRange(8, 12)).toLong()
       mrmr64.update(ba)
-      mrmr64.value shouldBe oraHash1 + oraHash2
+      mrmr64.value shouldBe mrmr64(aux2 + mrmr64(oraHash1))
     }
     for (i in (0x00..0xFF)) {
       mrmr64.reset()
       val ba = byteArrayOf((i shl 8).toByte(), 0x7, 0x03, (i shl 8).toByte(), 0x0, (i shl 8).toByte(), 0x5, (i shl 8).toByte(), 0x0, (i shl 8).toByte(), 0x5, (i shl 8).toByte())
       val oraHash1 = mrmr64(byteToInt64(ba.copyOfRange(0, 8)))
-      val oraHash2 = mrmr64(byteToInt32(ba.copyOfRange(8, 12)).toLong())
+      val aux2 = byteToInt32(ba.copyOfRange(8, 12)).toLong()
       mrmr64.update(ba)
-      mrmr64.value shouldBe oraHash1 + oraHash2
+      mrmr64.value shouldBe mrmr64(aux2 + mrmr64(oraHash1))
     }
   }
 

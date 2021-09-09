@@ -32,3 +32,9 @@ interface IMStackAltering<out A: Any> {
     fun fpopOrThrow(): Pair<A, IMStack<A>>
     fun fpush(top: @UnsafeVariance A): IMStack<A>
 }
+
+interface IMQueueAltering<out A: Any> {
+    fun fdequeue(): Pair<A?, IMQueue<A>>
+    fun fdequeueOrThrow(): Pair<A, IMQueue<A>>
+    fun fenqueue(back: @UnsafeVariance A): IMQueue<A>
+}

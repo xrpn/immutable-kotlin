@@ -151,21 +151,21 @@ class FStackTest : FunSpec({
     }
 
     test("fdropTopWhile") {
-        strStackOfNone.fdropTopWhile {true} shouldBe strStackOfNone
-        strStackOfNone.fdropTopWhile {false} shouldBe strStackOfNone
+        strStackOfNone.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfNone.fdropWhile {false} shouldBe strStackOfNone
 
-        strStackOfOneA.fdropTopWhile {false} shouldBe strStackOfOneA
-        strStackOfOneA.fdropTopWhile {true} shouldBe strStackOfNone
-        strStackOfOneA.fdropTopWhile { it == "FOO" } shouldBe strStackOfOneA
-        strStackOfOneA.fdropTopWhile { it == itemA } shouldBe strStackOfNone
+        strStackOfOneA.fdropWhile {false} shouldBe strStackOfOneA
+        strStackOfOneA.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfOneA.fdropWhile { it == "FOO" } shouldBe strStackOfOneA
+        strStackOfOneA.fdropWhile { it == itemA } shouldBe strStackOfNone
 
-        strStackOfThree.fdropTopWhile {false} shouldBe strStackOfThree
-        strStackOfThree.fdropTopWhile {true} shouldBe strStackOfNone
-        strStackOfThree.fdropTopWhile { it == "FOO" } shouldBe strStackOfThree
-        strStackOfThree.fdropTopWhile { it == itemA } shouldBe strStackOfTwoBC
-        strStackOfThree.fdropTopWhile { it < itemB } shouldBe strStackOfTwoBC
-        strStackOfThree.fdropTopWhile { it < itemC } shouldBe strStackOfOneC
-        strStackOfThree.fdropTopWhile { itemB < it } shouldBe strStackOfThree
+        strStackOfThree.fdropWhile {false} shouldBe strStackOfThree
+        strStackOfThree.fdropWhile {true} shouldBe strStackOfNone
+        strStackOfThree.fdropWhile { it == "FOO" } shouldBe strStackOfThree
+        strStackOfThree.fdropWhile { it == itemA } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropWhile { it < itemB } shouldBe strStackOfTwoBC
+        strStackOfThree.fdropWhile { it < itemC } shouldBe strStackOfOneC
+        strStackOfThree.fdropWhile { itemB < it } shouldBe strStackOfThree
     }
 
     test("ftopMatch") {

@@ -23,11 +23,9 @@ sealed class FStack<out A: Any>: IMStack<A> {
     } ?: this
 
     override fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> =
-        FStackBody.of(this.toFList().fhead()?.let {
-            if(isMatch(it)) this.toFList().ftail() else this.toFList()
-        })
+        if (ftopMatch(isMatch)) FStackBody.of(this.toFList().ftail()) else this
 
-    override fun fdropTopWhile(isMatch: (A) -> Boolean): IMStack<A> =
+    override fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> =
         FStackBody.of(this.toFList().fdropWhile(isMatch))
 
     override fun ftopMatch(isMatch: (A) -> Boolean): Boolean =

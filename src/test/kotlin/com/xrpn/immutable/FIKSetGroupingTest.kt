@@ -62,7 +62,7 @@ class FIKSetGroupingTest : FunSpec({
 
     // val repeats = 50
     val longTest = false
-    val verbose = true
+    val verbose = false
 
     beforeTest {}
 

@@ -55,3 +55,9 @@ interface IMStackGrouping<out A: Any> {
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun fsize(): Int // number of elements
 }
+
+interface IMQueueGrouping<out A: Any> {
+
+    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
+    fun fsize(): Int // number of elements
+}

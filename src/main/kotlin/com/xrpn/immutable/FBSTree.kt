@@ -2,7 +2,6 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
-import com.xrpn.immutable.FStack.Companion.emptyIMStack
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 
@@ -133,15 +132,15 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun breadthFirst(reverse: Boolean): FList<TKVEntry<A, B>> {
 
         fun accrue(q: FQueue<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, FQueue<FBSTNode<A, B>>> {
-            val (node, dequeued) = q.dequeue()
-            val q1 = if (node.bLeft is FBSTNil) dequeued else FQueue.enqueue(dequeued, node.bLeft as FBSTNode)
-            val q2 = if (node.bRight is FBSTNil) q1 else FQueue.enqueue(q1, node.bRight as FBSTNode)
+            val (node, dequeued) = q.fdequeueOrThrow()
+            val q1 = if (node.bLeft is FBSTNil) dequeued else dequeued.fenqueue(node.bLeft as FBSTNode)
+            val q2 = if (node.bRight is FBSTNil) q1 else q1.fenqueue(node.bRight as FBSTNode)
             return Pair(FLCons(node.entry, acc), q2)
         }
 
         return if (this.fempty()) FLNil else when(reverse) {
-            true -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), FLNil, ::accrue)
-            false -> unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), FLNil, ::accrue).freverse()
+            true -> unwindQueue(FQueue.emptyIMQueue<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>>().fenqueue(this as FBSTNode), FLNil, ::accrue)
+            false -> unwindQueue(FQueue.emptyIMQueue<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>>().fenqueue(this as FBSTNode), FLNil, ::accrue).freverse()
         }
     }
 
@@ -281,21 +280,21 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         fun accrue(q: FQueue<FBSTNode<A, B>>, depth: Int): Pair<Int, FQueue<FBSTNode<A, B>>> {
 
             tailrec fun harvestThisLevel(q: FQueue<FBSTNode<A, B>>, r: FQueue<FBSTNode<A, B>>): FQueue<FBSTNode<A, B>> {
-                val (node, shortQueue) = q.dequeue()
+                val (node, shortQueue) = q.fdequeueOrThrow()
                 // add non-nul children of node to queue
-                val q1 = if (node.bLeft is FBSTNil) r else FQueue.enqueue(r, node.bLeft as FBSTNode)
-                val q2 = if (node.bRight is FBSTNil) q1 else FQueue.enqueue(q1, node.bRight as FBSTNode)
+                val q1 = if (node.bLeft is FBSTNil) r else r.fenqueue(node.bLeft as FBSTNode)
+                val q2 = if (node.bRight is FBSTNil) q1 else q1.fenqueue(node.bRight as FBSTNode)
                 return if (shortQueue.isEmpty()) /* we are done with this level */ q2
                 else /* more nodes on this level, keep harvesting */ harvestThisLevel(shortQueue, q2)
             }
 
             val newDepth = depth + 1
-            val newQueue = harvestThisLevel(q, FQueue.emptyFQueue())
+            val newQueue = harvestThisLevel(q, FQueue.emptyIMQueue())
             return Pair(newDepth, newQueue)
         }
 
         if (this.fempty()) 0
-        else unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), 0, ::accrue)
+        else unwindQueue(FQueue.emptyIMQueue<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>>().fenqueue(this as FBSTNode), 0, ::accrue)
     }
 
     override fun fmaxDepth(): Int = maxBstDepth
@@ -305,23 +304,23 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         fun accrue(q: FQueue<FBSTNode<A, B>>, depth: Int): Pair<Int, FQueue<FBSTNode<A, B>>> {
 
             tailrec fun harvestThisLevel(q: FQueue<FBSTNode<A, B>>, r: FQueue<FBSTNode<A, B>>): FQueue<FBSTNode<A, B>> {
-                val (node, shortQueue) = q.dequeue()
-                return if (node.isLeaf()) /* early termination at this level */ FQueue.emptyFQueue() else {
+                val (node, shortQueue) = q.fdequeueOrThrow()
+                return if (node.isLeaf()) /* early termination at this level */ FQueue.emptyIMQueue() else {
                     // add non-nul children of node to queue
-                    val q1 = if (node.bLeft is FBSTNil) r else FQueue.enqueue(r, node.bLeft as FBSTNode)
-                    val q2 = if (node.bRight is FBSTNil) q1 else FQueue.enqueue(q1, node.bRight as FBSTNode)
+                    val q1 = if (node.bLeft is FBSTNil) r else r.fenqueue(node.bLeft as FBSTNode)
+                    val q2 = if (node.bRight is FBSTNil) q1 else q1.fenqueue(node.bRight as FBSTNode)
                     if (shortQueue.isEmpty()) /* we are done with this level */ q2
                     else /* more nodes on this level, keep harvesting */ harvestThisLevel(shortQueue, q2)
                 }
             }
 
             val newDepth = depth + 1
-            val newQueue = harvestThisLevel(q, FQueue.emptyFQueue())
+            val newQueue = harvestThisLevel(q, FQueue.emptyIMQueue())
             return Pair(newDepth, newQueue)
         }
 
         if (this.fempty()) 0
-        else unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this as FBSTNode), 0, ::accrue)
+        else unwindQueue(FQueue.emptyIMQueue<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>>().fenqueue (this as FBSTNode), 0, ::accrue)
     }
 
     // returns the minimum path length from the root of a tree to the first node that is a leaf.
@@ -937,7 +936,7 @@ internal data class FBSTNode<out A, out B: Any> (
         fun asString(): String {
 
             fun accrue(q: FQueue<FBSTNode<A, B>>, acc: FList<String>): Pair<FList<String>, FQueue<FBSTNode<A, B>>> {
-                val (node, dequeued) = q.dequeue()
+                val (node, dequeued) = q.fdequeueOrThrow()
                 val mind = node.fminDepth()
                 val maxd = node.fmaxDepth()
                 val dmsg = if (1 == maxd && 1 == mind) "(*)" else "(${node.fminDepth()}|${node.fmaxDepth()})"
@@ -949,19 +948,19 @@ internal data class FBSTNode<out A, out B: Any> (
                     dequeued
                 } else {
                     acc1 = FLCons("<", acc3)
-                    FQueue.enqueue(dequeued, node.bLeft as FBSTNode)
+                    dequeued.fenqueue(node.bLeft as FBSTNode)
                 }
                 val q2 = if (node.bRight is FBSTNil) {
                     acc2 = FLCons("", acc1)
                     q1
                 } else {
                     acc2 = FLCons(">", acc1)
-                    FQueue.enqueue(q1, node.bRight as FBSTNode)
+                    q1.fenqueue(node.bRight as FBSTNode)
                 }
                 return Pair(acc2, q2)
             }
 
-            return unwindQueue(FQueue.enqueue(FQueue.emptyFQueue(), this), FLNil, ::accrue).ffoldLeft(""){ acc, item -> item + acc }
+            return unwindQueue(FQueue.emptyIMQueue<FBSTNode<A, B>>().fenqueue(this), FLNil, ::accrue).ffoldLeft(""){ acc, item -> item + acc }
         }
 
         "${FBSTree::class.simpleName}@$sz:${asString()}"

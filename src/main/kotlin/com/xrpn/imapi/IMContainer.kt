@@ -32,3 +32,10 @@ interface IMStack<out A:Any>:
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMStackUtility<A>
+
+interface IMQueue<out A:Any>:
+    IMQueueFiltering<A>,
+    IMQueueGrouping<A>,
+    IMQueueTransforming<A>,
+    IMQueueAltering<A>,
+    IMQueueUtility<A>
