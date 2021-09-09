@@ -3,8 +3,7 @@ import com.xrpn.bridge.FListIteratorBidi
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.hash.DigestHash.lChecksumHashCode
 import com.xrpn.hash.DigestHash.uIntChecksumHashCode
-import com.xrpn.hash.MrMr64
-import com.xrpn.hash.MurMur3to32
+import com.xrpn.hash.MurMur3at32
 import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListCompanion
@@ -739,22 +738,22 @@ data class FLCons<out A: Any>(
         when {
             head is Int -> {
                 val thisInt = @Suppress("UNCHECKED_CAST")(this as FList<Int>)
-                if (useMr) lChecksumHashCode(MurMur3to32(), thisInt) { it.toLong() }
+                if (useMr) lChecksumHashCode(MurMur3at32(), thisInt) { it.toLong() }
                 else uIntChecksumHashCode(CRC32C(), thisInt){ it }
             }
             head is Long -> {
                 val thisLong = @Suppress("UNCHECKED_CAST") (this as FList<Long>)
-                if (useMr) lChecksumHashCode(MurMur3to32(), thisLong) { it }
+                if (useMr) lChecksumHashCode(MurMur3at32(), thisLong) { it }
                 else uIntChecksumHashCode(CRC32C(), thisLong) { it.to8ByteArray() }
             }
             intKey -> {
                 val thisIntKey = @Suppress("UNCHECKED_CAST") (this as FList<TKVEntry<Int, *>>)
-                if (useMr) lChecksumHashCode(MurMur3to32(), thisIntKey) { it.getk().toLong() }
+                if (useMr) lChecksumHashCode(MurMur3at32(), thisIntKey) { it.getk().toLong() }
                 else uIntChecksumHashCode(CRC32C(), thisIntKey){ it.getk() }
             }
             longKey -> {
                 val thisLongKey = @Suppress("UNCHECKED_CAST") (this as FList<TKVEntry<Long, *>>)
-                if (useMr) lChecksumHashCode(MurMur3to32(), thisLongKey) { it.getk() }
+                if (useMr) lChecksumHashCode(MurMur3at32(), thisLongKey) { it.getk() }
                 else uIntChecksumHashCode(CRC32C(), thisLongKey) { it.getk().to8ByteArray() }
             }
             else -> this.ffoldLeft(1549) { acc, h -> 31 * acc + h.hashCode() } /* fails the O(n!) tests */

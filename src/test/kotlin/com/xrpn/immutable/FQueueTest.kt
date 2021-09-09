@@ -1,245 +1,322 @@
 package com.xrpn.immutable
 
+import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.list
+import io.kotest.property.checkAll
+import java.util.concurrent.atomic.AtomicInteger
+
+private val intQueueOfNoneNR = FQueue.of(*arrayOf<Int>())
+private val intQueueOfOne1NR = FQueue.of(*arrayOf<Int>(1))
+private val intQueueOfTwoNR = FQueue.of(*arrayOf<Int>(1, 2))
+private val intQueueOfTworNR = FQueue.of(*arrayOf<Int>(2, 1))
+private val intQueueOfThreeNR = FQueue.of(*arrayOf<Int>(3, 1, 2))
+private val intQueueOfThreesNR = FQueue.of(*arrayOf<Int>(1, 2, 3))
+private val intQueueOfThreesrNR = FQueue.of(*arrayOf<Int>(3, 2, 1))
+private val intQueueOfNoneYR = FQueue.of(*arrayOf<Int>(), readyToDequeue = true)
+private val intQueueOfOne1YR = FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
+private val intQueueOfOne2YR = FQueue.of(*arrayOf<Int>(2), readyToDequeue = true)
+private val intQueueOfTwoYR = FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
+private val intQueueOfTwo23YR = FQueue.of(*arrayOf<Int>(2, 3), readyToDequeue = true)
+private val intQueueOfThreeYR = FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true)
+private val intQueueOfThreesYR = FQueue.of(*arrayOf<Int>(1, 2, 3), readyToDequeue = true)
+private val intQueueOfThree2B = FQueueBody.of(FLCons(3, FLNil), FLCons(2,FLCons(1, FLNil)))
+private val intQueueOfThreer2B = FQueueBody.of(FLCons(2,FLCons(1, FLNil)), FLCons(3, FLNil))
+private val intQueueOfThree2F = FQueueBody.of(FLCons(3, FLCons(1, FLNil)), FLCons(2,FLNil))
+private val intQueueOfThreer2F = FQueueBody.of(FLCons(2,FLNil), FLCons(3, FLCons(1, FLNil)))
+private val intQueueOfTwoAF = FQueueBody.of(FLCons(1, FLNil), FLCons(2,FLNil))
 
 class FQueueTest : FunSpec({
 
-  beforeTest {
+  val repeats = 50
+
+  beforeTest {}
+
+  // ======== grouping
+
+  test("fsize") {
+    intQueueOfNoneNR.fsize() shouldBe 0
+    intQueueOfNoneYR.fsize() shouldBe 0
+    intQueueOfOne1NR.fsize() shouldBe 1
+    intQueueOfOne1YR.fsize() shouldBe 1
+    intQueueOfTwoNR.fsize() shouldBe 2
+    intQueueOfTwoYR.fsize() shouldBe 2
+    intQueueOfTwoAF.fsize() shouldBe 2
+    intQueueOfThreeYR.fsize() shouldBe 3
+    intQueueOfThreeNR.fsize() shouldBe 3
+    intQueueOfThree2F.fsize() shouldBe 3
+    intQueueOfThree2B.fsize() shouldBe 3
   }
 
-  test("nullableDequeue (concise)") {
-    FQueue.emptyIMQueue<Int>().fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
+  test("fcount") {
+    intQueueOfNoneNR.fcount { true } shouldBe 0
+    intQueueOfNoneYR.fcount { false } shouldBe 0
+    intQueueOfOne1NR.fcount { true } shouldBe 1
+    intQueueOfOne1YR.fcount { false } shouldBe 0
+    intQueueOfTwoNR.fcount { true } shouldBe 2
+    intQueueOfTwoYR.fcount { false } shouldBe 0
+    intQueueOfTwoYR.fcount { it == 2 } shouldBe 1
+    intQueueOfThreeYR.fcount { it < 3 } shouldBe 2
+    intQueueOfThreeNR.fcount { it < 3 } shouldBe 2
+    intQueueOfThree2F.fcount { it < 3 } shouldBe 2
+    intQueueOfThree2B.fcount { it < 3 } shouldBe 2
+    intQueueOfThreeYR.fcount { 2 < it } shouldBe 1
+    intQueueOfThreeNR.fcount { 2 < it } shouldBe 1
+    intQueueOfThree2F.fcount { 2 < it } shouldBe 1
+    intQueueOfThree2B.fcount { 2 < it } shouldBe 1
   }
 
-  test("nullableDequeue (ready)") {
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fdequeue() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    // FQueue(front=(1,2), back = ()) => 1, FQueue(front=(2), back=())
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fdequeue() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    // FQueue(front=(3,1,2), back = ()) => 3, FQueue(front=(1,2), back=())
-    FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true).fdequeue() shouldBe Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
+  // ======== transforming
+
+  test("fdequeueMap") {
+    intQueueOfNoneYR.fdequeueMap { it + 10 } shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1YR.fdequeueMap { it + 10 } shouldBe Pair(11, emptyIMQueue<Int>())
+    intQueueOfTwoYR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfOne2YR)
+    intQueueOfThreeYR.fdequeueMap { it + 10 } shouldBe Pair(13, intQueueOfTwoYR)
+    intQueueOfThreesYR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfTwo23YR)
+    intQueueOfNoneNR.fdequeueMap { it + 10 } shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1NR.fdequeueMap { it + 10 } shouldBe Pair(11, emptyIMQueue<Int>())
+    intQueueOfTwoNR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfOne2YR)
+    intQueueOfThreeNR.fdequeueMap { it + 10 } shouldBe Pair(13, intQueueOfTwoYR)
+    intQueueOfThreesNR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfTwo23YR)
   }
 
-  test("nullableDequeue (not ready)") {
-    FQueue.of(*arrayOf<Int>()).fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1)).fdequeue() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    // FQueue(front=(), back=(2,1)) => 2, FQueue(front=(2), back=())
-    FQueue.of(*arrayOf<Int>(1, 2)).fdequeue() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    // FQueue(front=(), back=(2,1,3)) => 3, FQueue(front=(1,2), back=())
-    FQueue.of(*arrayOf<Int>(3, 1, 2)).fdequeue() shouldBe Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
+  test("freverse") {
+    (intQueueOfNoneNR.freverse() === emptyIMQueue<Int>()) shouldBe true
+    intQueueOfOne1NR.freverse().fqStrongEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1YR.freverse().fqStrongEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfTworNR.freverse().fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoYR.freverse().fqStrongEqual(intQueueOfTworNR) shouldBe true
+    intQueueOfThreesYR.freverse().fqStrongEqual(intQueueOfThreesrNR) shouldBe true
+    intQueueOfThreesrNR.freverse().fqStrongEqual(intQueueOfThreesYR) shouldBe true
+    intQueueOfThreer2F.freverse().fqStrongEqual(intQueueOfThree2F) shouldBe true
+    intQueueOfThree2F.freverse().fqStrongEqual(intQueueOfThreer2F) shouldBe true
+    intQueueOfThree2B.freverse().fqStrongEqual(intQueueOfThreer2B) shouldBe true
+    intQueueOfThreer2B.freverse().fqStrongEqual(intQueueOfThree2B) shouldBe true
   }
 
-  test("dequeue (concise)") {
+  test("fpeekMap") {
+    intQueueOfNoneYR.fpeekMap { it + 10 } shouldBe null
+    intQueueOfOne1YR.fpeekMap { it + 10 } shouldBe 11
+    intQueueOfTwoYR.fpeekMap { it + 10 } shouldBe 11
+    intQueueOfThreeYR.fpeekMap { it + 10 } shouldBe 13
+    intQueueOfThreesYR.fpeekMap { it + 10 } shouldBe 11
+    intQueueOfNoneNR.fpeekMap { it + 10 } shouldBe null
+    intQueueOfOne1NR.fpeekMap { it + 10 } shouldBe 11
+    intQueueOfTwoNR.fpeekMap { it + 10 } shouldBe 11
+    intQueueOfThreeNR.fpeekMap { it + 10 } shouldBe 13
+    intQueueOfThreesNR.fpeekMap { it + 10 } shouldBe 11
+  }
+
+  // ======== altering
+
+  test("fdequeue (ready)") {
+    intQueueOfNoneYR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1YR.fdequeue() shouldBe Pair(1, emptyIMQueue<Int>())
+    intQueueOfTwoYR.fdequeue() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfThreeYR.fdequeue() shouldBe Pair(3, intQueueOfTwoYR)
+    intQueueOfThreesYR.fdequeue() shouldBe Pair(1, intQueueOfTwo23YR)
+  }
+
+  test("fdequeue (not ready)") {
+    intQueueOfNoneNR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1NR.fdequeueOrThrow() shouldBe Pair(1, emptyIMQueue<Int>())
+    intQueueOfTwoNR.fdequeueOrThrow() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfThreeNR.fdequeueOrThrow() shouldBe  Pair(3, intQueueOfTwoYR)
+    intQueueOfThreesNR.fdequeue() shouldBe Pair(1, intQueueOfTwo23YR)
+  }
+
+  test("dequeue repeat (ready)") {
+    intQueueOfNoneYR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1YR.fdequeue() shouldBe Pair(1, emptyIMQueue<Int>())
+    intQueueOfTwoYR.fdequeue() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfThreeYR.fdequeue() shouldBe Pair(3, intQueueOfTwoYR)
+    val (itemA, qA) = intQueueOfThreeYR.fdequeue()
+    itemA shouldBe 3
+    val (itemB, qB) = qA.fdequeue()
+    itemB shouldBe 1
+    val (itemC, qC) = qB.fdequeue()
+    itemC shouldBe 2
+    qC shouldBe emptyIMQueue()
+  }
+
+  test("dequeue repeat (not ready)") {
+    intQueueOfNoneNR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
+    intQueueOfOne1NR.fdequeue() shouldBe Pair(1, emptyIMQueue<Int>())
+    intQueueOfTwoNR.fdequeue() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfThreeNR.fdequeue() shouldBe Pair(3, intQueueOfTwoYR)
+    val (itemA, qA) = intQueueOfThreeNR.fdequeue()
+    itemA shouldBe 3
+    val (itemB, qB) = qA.fdequeue()
+    itemB shouldBe 1
+    val (itemC, qC) = qB.fdequeue()
+    itemC shouldBe 2
+    qC shouldBe emptyIMQueue()
+  }
+
+  test("fdequeueOrThrow") {
     shouldThrow<IllegalStateException> {
-      FQueue.emptyIMQueue<Int>().fdequeueOrThrow() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
+      intQueueOfNoneNR.fdequeueOrThrow()
+    }
+    shouldThrow<IllegalStateException> {
+      intQueueOfNoneYR.fdequeueOrThrow()
+    }
+    intQueueOfOne1NR.fdequeueOrThrow() shouldBe Pair(1, emptyIMQueue<Int>())
+    intQueueOfTwoYR.fdequeueOrThrow() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfThreeNR.fdequeueOrThrow() shouldBe Pair(3, intQueueOfTwoYR)
+    intQueueOfThreesYR.fdequeueOrThrow() shouldBe Pair(1, intQueueOfTwo23YR)
+  }
+
+  test("fenqueue (not ready)") {
+    // back fills in reverse order
+    emptyIMQueue<Int>().fenqueue(1) shouldBe intQueueOfOne1NR
+    intQueueOfNoneNR.fenqueue(1) shouldBe intQueueOfOne1NR
+    intQueueOfOne1NR.fenqueue(2) shouldBe intQueueOfTwoNR
+    intQueueOfTwoNR.fenqueue(3) shouldBe intQueueOfThreesNR
+  }
+
+  test("fenqueue (ready)") {
+    // makes no difference for a start from empty
+    intQueueOfNoneYR.fenqueue(1) shouldBe intQueueOfOne1NR
+
+    // here it is different
+    intQueueOfOne1YR.fqForceBack(merge = true).fenqueue(2).fqStrongEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfTwoYR.fqForceBack(merge = true).fenqueue(3).fqStrongEqual(intQueueOfThreesNR) shouldBe true
+
+    intQueueOfOne1YR.fenqueue(2).fqForceFront(merge = true).fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoYR.fenqueue(3).fqForceFront(merge = true).fqStrongEqual(intQueueOfThreesYR) shouldBe true
+  }
+
+  // ======== utility
+
+  test("==") {
+    (intQueueOfOne1NR == emptyIMQueue<Int>()) shouldBe false
+    emptyIMQueue<Int>().equal(intQueueOfOne1NR) shouldBe false
+    (intQueueOfOne1NR == intQueueOfOne1NR) shouldBe true
+    (intQueueOfOne1NR == intQueueOfTwoNR) shouldBe false
+    (intQueueOfTwoNR == intQueueOfOne1NR) shouldBe false
+    (intQueueOfTwoNR == intQueueOfTwoNR) shouldBe true
+  }
+
+  test("equal (not ready)") {
+    intQueueOfOne1NR.equal(emptyIMQueue<Int>()) shouldBe false
+    emptyIMQueue<Int>().equal(intQueueOfOne1NR) shouldBe false
+    intQueueOfOne1NR.fqStrongEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1NR.equal(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1NR.equal(intQueueOfTwoNR) shouldBe false
+    intQueueOfTwoNR.equal(intQueueOfOne1NR) shouldBe false
+    intQueueOfTwoNR.fqStrongEqual(intQueueOfTwoNR) shouldBe true
+  }
+
+  test("equal (ready left)") {
+    (intQueueOfNoneYR === intQueueOfNoneNR) shouldBe true
+    intQueueOfNoneYR.equal(intQueueOfNoneNR) shouldBe true
+    intQueueOfNoneYR.equal(intQueueOfOne1NR) shouldBe false
+    intQueueOfOne1YR.equal(intQueueOfNoneNR) shouldBe false
+    intQueueOfOne1YR.equal(emptyIMQueue<Int>()) shouldBe false
+    intQueueOfOne1YR.fqStrongEqual(intQueueOfOne1NR) shouldBe false
+    intQueueOfOne1YR.fqStructuralEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1YR.equal(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1YR.equal(intQueueOfTwoNR) shouldBe false
+    intQueueOfTwoYR.equal(intQueueOfOne1NR) shouldBe false
+    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoNR) shouldBe false
+    intQueueOfTwoYR.fqStructuralEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfTwoYR.equal(intQueueOfTwoNR) shouldBe true
+  }
+
+  test("equal (ready right)") {
+    (intQueueOfNoneNR === intQueueOfNoneYR) shouldBe true
+    intQueueOfNoneNR.fqStrongEqual(intQueueOfNoneYR) shouldBe true
+    intQueueOfNoneNR.equal(intQueueOfOne1YR) shouldBe false
+    intQueueOfOne1NR.equal(intQueueOfNoneYR) shouldBe false
+    emptyIMQueue<Int>().equal(intQueueOfOne1YR) shouldBe false
+    intQueueOfOne1NR.fqStrongEqual(intQueueOfOne1YR) shouldBe false
+    intQueueOfOne1NR.fqStructuralEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1NR.equal(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1NR.equal(intQueueOfTwoYR) shouldBe false
+    intQueueOfTwoNR.equal(intQueueOfOne1YR) shouldBe false
+    intQueueOfTwoNR.fqStrongEqual(intQueueOfTwoYR) shouldBe false
+    intQueueOfTwoNR.fqStructuralEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoNR.equal(intQueueOfTwoYR) shouldBe true
+  }
+
+  test("equal (all ready)") {
+    intQueueOfNoneYR.fqStrongEqual(intQueueOfNoneYR) shouldBe true
+    intQueueOfNoneYR.equal(intQueueOfOne1YR) shouldBe false
+    intQueueOfOne1YR.fqStrongEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1YR.equal(intQueueOfTwoYR) shouldBe false
+    intQueueOfTwoYR.equal(intQueueOfOne1YR) shouldBe false
+    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoYR) shouldBe true
+  }
+
+  test("fforEach") {
+    val counter = AtomicInteger(0)
+    val summer = AtomicInteger(0)
+    val doCount: (Int) -> Unit = { counter.incrementAndGet() }
+    val doSum: (Int) -> Unit = { v -> summer.addAndGet(v) }
+    intQueueOfNoneNR.fforEach(doCount)
+    counter.get() shouldBe 0
+    intQueueOfNoneYR.fforEach(doSum)
+    summer.get() shouldBe 0
+    counter.set(0)
+    summer.set(0)
+    checkAll(repeats, Arb.list(Arb.int(),20..100)) { l ->
+      val oraSum = l.fold(0){ acc, el -> acc + el }
+      val fsqueue = FQueueBody.of(FList.of(l.subList(0, l.size/2)),FList.of(l.subList(l.size/2, l.size)))
+      fsqueue.size shouldBe l.size
+      fsqueue.fforEach(doCount)
+      counter.get() shouldBe l.size
+      counter.set(0)
+      fsqueue.fforEach(doSum)
+      summer.get() shouldBe oraSum
+      summer.set(0)
     }
   }
 
-  test("dequeue (ready)") {
-    shouldThrow<IllegalStateException> {
-      FQueue.of(*arrayOf<Int>(), readyToDequeue = true).fdequeueOrThrow()
-    }
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fdequeueOrThrow() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fdequeueOrThrow() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true).fdequeueOrThrow() shouldBe Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
+  test("copy") {
+    (intQueueOfNoneNR.copy() === emptyIMQueue<Int>()) shouldBe true
+    (intQueueOfOne1YR.copy() === intQueueOfOne1YR) shouldBe false
+    intQueueOfThree2B.copy().fqStrongEqual(intQueueOfThree2B) shouldBe true
+    intQueueOfThree2F.copy().fqStrongEqual(intQueueOfThree2F) shouldBe true
   }
 
-  test("dequeue (not ready)") {
-    shouldThrow<IllegalStateException> {
-      FQueue.of(*arrayOf<Int>()).fdequeueOrThrow()
-    }
-    FQueue.of(*arrayOf<Int>(1)).fdequeueOrThrow() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1, 2)).fdequeueOrThrow() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    FQueue.of(*arrayOf<Int>(3, 1, 2)).fdequeueOrThrow() shouldBe  Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
+  test("toIMList") {
+    intQueueOfNoneNR.toIMList().fhead() shouldBe null
+    intQueueOfOne1YR.toIMList().fhead() shouldBe 1
+    intQueueOfTwoYR.toIMList().fhead() shouldBe 1
+    intQueueOfTwoYR.toIMList().ftail().fhead() shouldBe 2
+    intQueueOfOne1NR.toIMList().fhead() shouldBe 1
+    intQueueOfTwoNR.toIMList().fhead() shouldBe 1
+    intQueueOfTwoNR.toIMList().ftail().fhead() shouldBe 2
+  }
+  
+  test("copyToMutableList") {
+    intQueueOfNoneNR.copyToMutableList() shouldBe mutableListOf()
+    intQueueOfOne1YR.copyToMutableList() shouldBe intQueueOfOne1YR.toFList().copyToMutableList()
+    intQueueOfTwoYR.copyToMutableList() shouldBe intQueueOfTwoNR.toFList().copyToMutableList()
+    intQueueOfOne1NR.copyToMutableList() shouldBe intQueueOfOne1NR.toFList().copyToMutableList()
+    intQueueOfTwoNR.copyToMutableList() shouldBe intQueueOfTwoYR.toFList().copyToMutableList()
+    intQueueOfThree2B.copyToMutableList() shouldBe intQueueOfThree2F.toFList().copyToMutableList()
   }
 
-  test("forceFront") {
-    FQueue.emptyIMQueue<Int>().fqForceFront() shouldBe FQueue.emptyIMQueue<Int>()
-    FQueue.emptyIMQueue<Int>().fqForceFront(merge = true) shouldBe FQueue.emptyIMQueue<Int>()
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqForceFront() shouldBe FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqForceFront() shouldBe FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqForceFront(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqForceFront(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1)).fqForceFront() shouldBe FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1, 2)).fqForceFront() shouldBe FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1)).fqForceFront(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
-    FQueue.of(*arrayOf<Int>(1, 2)).fqForceFront(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
-  }
+  // implementation
 
-  test("forceBack") {
-    FQueue.emptyIMQueue<Int>().fqForceBack() shouldBe FQueue.emptyIMQueue<Int>()
-    FQueue.emptyIMQueue<Int>().fqForceBack(merge = true) shouldBe FQueue.emptyIMQueue<Int>()
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqForceBack() shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqForceBack() shouldBe FQueue.of(*arrayOf<Int>(1, 2))
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqForceBack(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqForceBack(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1, 2))
-    FQueue.of(*arrayOf<Int>(1)).fqForceBack() shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>(1, 2)).fqForceBack() shouldBe FQueue.of(*arrayOf<Int>(1, 2))
-    FQueue.of(*arrayOf<Int>(1)).fqForceBack(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>(1, 2)).fqForceBack(merge = true) shouldBe FQueue.of(*arrayOf<Int>(1, 2))
+  test("strongEqual") {
+    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoNR) shouldBe false
   }
 
   test("toFList") {
-    FQueue.emptyIMQueue<Int>().toFList().fhead() shouldBe null
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).toFList().fhead() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).toFList().fhead() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).toFList().ftail().fhead() shouldBe 2
-    FQueue.of(*arrayOf<Int>(1)).toFList().fhead() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2)).toFList().fhead() shouldBe 1
-    FQueue.of(*arrayOf<Int>(1, 2)).toFList().ftail().fhead() shouldBe 2
+    emptyIMQueue<Int>().toFList().fhead() shouldBe null
+    intQueueOfOne1YR.toFList().fhead() shouldBe 1
+    intQueueOfTwoYR.toFList().fhead() shouldBe 1
+    intQueueOfTwoYR.toFList().ftail().fhead() shouldBe 2
+    intQueueOfOne1NR.toFList().fhead() shouldBe 1
+    intQueueOfTwoNR.toFList().fhead() shouldBe 1
+    intQueueOfTwoNR.toFList().ftail().fhead() shouldBe 2
   }
 
-  //
-  // ================ companion object
-  //
-
-  test("co.==") {
-    (FQueue.emptyIMQueue<Int>() == FQueue.emptyIMQueue<Int>()) shouldBe true
-  }
-
-  test("co.of varargs") {
-    FQueue.of(*arrayOf<Int>()) shouldBe FQueue.emptyIMQueue<Int>()
-    // ready to dequeue
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLNil), FLNil)
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLCons(2, FLNil)), FLNil)
-    FQueue.of(*arrayOf<Int>(1, 2, 3), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLCons(2, FLCons(3, FLNil))), FLNil)
-    // ready to enqueue
-    FQueue.of(*arrayOf<Int>(1)) shouldBe FQueueBody.of(FLNil, FLCons(1, FLNil))
-    FQueue.of(*arrayOf<Int>(1, 2)) shouldBe FQueueBody.of(FLNil, FLCons(2, FLCons(1, FLNil)))
-    FQueue.of(*arrayOf<Int>(1, 2, 3)) shouldBe FQueueBody.of(FLNil, FLCons(3, FLCons(2, FLCons(1, FLNil))))
-  }
-
-  test("co.of iterator") {
-    FQueue.of(arrayOf<Int>().iterator()) shouldBe FQueue.emptyIMQueue()
-    // ready to dequeue
-    FQueue.of(arrayOf<Int>(1).iterator(), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLNil), FLNil)
-    FQueue.of(arrayOf<Int>(1, 2).iterator(), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLCons(2, FLNil)), FLNil)
-    FQueue.of(arrayOf<Int>(1, 2, 3).iterator(), readyToDequeue = true) shouldBe FQueueBody.of(FLCons(1, FLCons(2, FLCons(3, FLNil))), FLNil)
-    // ready to enqueue
-    FQueue.of(arrayOf<Int>(1).iterator()) shouldBe FQueueBody.of(FLNil, FLCons(1, FLNil))
-    FQueue.of(arrayOf<Int>(1, 2).iterator()) shouldBe FQueueBody.of(FLNil, FLCons(2, FLCons(1, FLNil)))
-    FQueue.of(arrayOf<Int>(1, 2, 3).iterator()) shouldBe FQueueBody.of(FLNil, FLCons(3, FLCons(2, FLCons(1, FLNil))))
-  }
-
-  test("co.emptyFQueue") {
-    (FQueue.emptyIMQueue<Int>() === FQueueBody.empty) shouldBe true
-  }
-
-  test("co.== (concise)") {
-    (FQueue.of(*arrayOf(1)) == FQueue.emptyIMQueue<Int>()) shouldBe false
-    FQueue.emptyIMQueue<Int>().equals(FQueue.of(*arrayOf(1))) shouldBe false
-    (FQueue.of(*arrayOf<Int>(1)) == FQueue.of(*arrayOf<Int>(1))) shouldBe true
-    (FQueue.of(*arrayOf(1)) == FQueue.of(*arrayOf<Int>(1, 2))) shouldBe false
-    (FQueue.of(*arrayOf<Int>(1, 2)) == FQueue.of(*arrayOf(1))) shouldBe false
-    (FQueue.of(*arrayOf<Int>(1, 2)) == FQueue.of(*arrayOf(1, 2))) shouldBe true
-  }
-
-  test("co.equal (not ready)") {
-    FQueue.of(*arrayOf(1)).equal(FQueue.emptyIMQueue<Int>()) shouldBe false
-    FQueue.emptyIMQueue<Int>().equal(FQueue.of(*arrayOf(1))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1)).fqStrongEqual(FQueue.of(*arrayOf<Int>(1))) shouldBe true
-    FQueue.of(*arrayOf<Int>(1)).equal(FQueue.of(*arrayOf<Int>(1))) shouldBe true
-    FQueue.of(*arrayOf(1)).equal(FQueue.of(*arrayOf<Int>(1, 2))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2)).equal(FQueue.of(*arrayOf(1))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2)).fqStrongEqual(FQueue.of(*arrayOf(1, 2))) shouldBe true
-  }
-
-  test("co.equal (ready left)") {
-    (FQueue.of(*arrayOf<Int>(), readyToDequeue = true) === FQueue.of(*arrayOf<Int>())) shouldBe true
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).equal(FQueue.of(*arrayOf<Int>())) shouldBe true
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).equal(FQueue.of(*arrayOf<Int>(1))) shouldBe false
-    FQueue.of(*arrayOf(1), readyToDequeue = true).equal(FQueue.of(*arrayOf<Int>())) shouldBe false
-    FQueue.of(*arrayOf(1), readyToDequeue = true).equal(FQueue.emptyIMQueue<Int>()) shouldBe false
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(1))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqStructuralEqual(FQueue.of(*arrayOf<Int>(1))) shouldBe true
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).equal(FQueue.of(*arrayOf<Int>(1))) shouldBe true
-    FQueue.of(*arrayOf(1), readyToDequeue = true).equal(FQueue.of(*arrayOf<Int>(1, 2))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).equal(FQueue.of(*arrayOf(1))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf(1, 2))) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqStructuralEqual(FQueue.of(*arrayOf(1, 2))) shouldBe true
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).equal(FQueue.of(*arrayOf(1, 2))) shouldBe true
-  }
-
-  test("co.equal (ready right)") {
-    (FQueue.of(*arrayOf<Int>()) === FQueue.of(*arrayOf<Int>(), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>()).fqStrongEqual(FQueue.of(*arrayOf<Int>(), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>()).equal(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1)).equal(FQueue.of(*arrayOf<Int>(), readyToDequeue = true)) shouldBe false
-    FQueue.emptyIMQueue<Int>().equal(FQueue.of(*arrayOf(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1)).fqStrongEqual(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1)).fqStructuralEqual(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>(1)).equal(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf(1)).equal(FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2)).equal(FQueue.of(*arrayOf(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2)).fqStrongEqual(FQueue.of(*arrayOf(1, 2), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2)).fqStructuralEqual(FQueue.of(*arrayOf(1, 2), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>(1, 2)).equal(FQueue.of(*arrayOf(1, 2), readyToDequeue = true)) shouldBe true
-  }
-
-  test("co.equal (all ready)") {
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).equals(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf(1), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf(1), readyToDequeue = true).equals(FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).equals(FQueue.of(*arrayOf(1), readyToDequeue = true)) shouldBe false
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf(1, 2), readyToDequeue = true)) shouldBe true
-  }
-
-  test("co.dequeue") {
-    FQueue.emptyIMQueue<Int>().fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
-  }
-
-  test("co.dequeue (ready)") {
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fdequeue() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fdequeue() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true).fdequeue() shouldBe Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
-    val (itemA, qA) = FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true).fdequeue()
-    itemA shouldBe 3
-    val (itemB, qB) = qA.fdequeue()
-    itemB shouldBe 1
-    val (itemC, qC) = qB.fdequeue()
-    itemC shouldBe 2
-    qC shouldBe FQueue.emptyIMQueue()
-  }
-
-  test("co.dequeue (not ready)") {
-    FQueue.of(*arrayOf<Int>()).fdequeue() shouldBe Pair(null, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1)).fdequeue() shouldBe Pair(1, FQueue.emptyIMQueue<Int>())
-    FQueue.of(*arrayOf<Int>(1, 2)).fdequeue() shouldBe Pair(1, FQueue.of(*arrayOf<Int>(2), readyToDequeue = true))
-    FQueue.of(*arrayOf<Int>(3, 1, 2)).fdequeue() shouldBe Pair(3, FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true))
-    val (itemA, qA) = FQueue.of(*arrayOf<Int>(3, 1, 2)).fdequeue()
-    itemA shouldBe 3
-    val (itemB, qB) = qA.fdequeue()
-    itemB shouldBe 1
-    val (itemC, qC) = qB.fdequeue()
-    itemC shouldBe 2
-    qC shouldBe FQueue.emptyIMQueue()
-  }
-
-  test("co.enqueue (not ready)") {
-    // back fills in reverse order
-    FQueue.emptyIMQueue<Int>().fenqueue(1) shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>()).fenqueue(1) shouldBe FQueue.of(*arrayOf<Int>(1))
-    FQueue.of(*arrayOf<Int>(1)).fenqueue(2) shouldBe FQueue.of(*arrayOf<Int>(1, 2))
-    FQueue.of(*arrayOf<Int>(1, 2)).fenqueue(3) shouldBe FQueue.of(*arrayOf<Int>(1, 2, 3))
-  }
-
-  test("strongEqual") {
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = false)) shouldBe false
-  }
-
-  test("co.enqueue (ready)") {
-    // makes no difference for a start from empty
-    FQueue.of(*arrayOf<Int>(), readyToDequeue = true).fenqueue(1) shouldBe FQueue.of(*arrayOf<Int>(1))
-
-    // here it is different
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fqForceBack(merge = true).fenqueue(2).fqStrongEqual(FQueue.of(*arrayOf<Int>(1, 2))) shouldBe true
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fqForceBack(merge = true).fenqueue(3).fqStrongEqual(FQueue.of(*arrayOf<Int>(1, 2, 3))) shouldBe true
-
-    FQueue.of(*arrayOf<Int>(1), readyToDequeue = true).fenqueue(2).fqForceFront(merge = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)) shouldBe true
-    FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true).fenqueue(3).fqForceFront(merge = true).fqStrongEqual(FQueue.of(*arrayOf<Int>(1, 2, 3), readyToDequeue = true)) shouldBe true
-  }
 })

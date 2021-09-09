@@ -2,13 +2,13 @@ package com.xrpn.hash
 
 import java.nio.ByteBuffer
 
-class MurMur3to32(val seed: UInt = 1u): LChecksum {
+class MurMur3at32(val seed: UInt = 1u): LChecksum {
 
     /*
 
         Freely adapted with thanks from Austin Appleby at https://github.com/aappleby/smhasher and derivative
         https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/Murmur3_32HashFunction.java
-        with all credits given to whom the credits pertain.  Please check my adaptation for errors!
+        with all credits given to whom the credits pertain.
 
      */
 

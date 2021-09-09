@@ -124,7 +124,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         fpeek()?.let { Pair(f(it), fdiscardFront()) } ?: Pair(null, this)
 
     override fun freverse(): FQueue<A> =
-        FQueueBody.of(fqGetBack().freverse(), fqGetFront().freverse())
+        FQueueBody.of(fqGetBack(), fqGetFront())
 
     override fun <B : Any> fpeekMap(f: (A) -> B): B? =
         fpeek()?.let { f(it) }
@@ -217,8 +217,10 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         val res = when {
             this === rhs -> true
             fqGetFront().fempty() && rhs.fqGetFront().fempty() -> fqGetBack().equal(rhs.fqGetBack())
+            fqGetFront().fempty() || rhs.fqGetFront().fempty() -> false
             fqGetBack().fempty() && rhs.fqGetBack().fempty() -> fqGetFront().equal(rhs.fqGetFront())
-            else -> false
+            fqGetBack().fempty() || rhs.fqGetBack().fempty() -> false
+            else -> IMListEqual2(fqGetFront(), rhs.fqGetFront()) && IMListEqual2(fqGetBack(), rhs.fqGetBack())
         }
 
         return res
@@ -233,8 +235,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
                 val thisBackRhsFront = (fqGetFront().isEmpty() && rhs.fqGetBack().isEmpty())
                 when {
                     // items are in their entirety at opposite ends
-                    thisFrontRhsBack -> fqGetFront().equal(rhs.fqGetBack().freverse())
-                    thisBackRhsFront -> fqGetBack().freverse().equal(rhs.fqGetFront())
+                    thisFrontRhsBack -> IMListEqual2(fqGetFront(), rhs.fqGetBack().freverse())
+                    thisBackRhsFront -> IMListEqual2(fqGetBack().freverse(), rhs.fqGetFront())
                     else -> false
                 }
             }
@@ -288,7 +290,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
             return FQueueBody.of(items, FLNil)
         }
 
-        override fun <B, A : Any> ofMap(items: Iterator<B>, f: (B) -> A, readyToDequeue: Boolean): IMQueue<A> {
+        override fun <B, A : Any> ofMap(items: Iterator<B>, readyToDequeue: Boolean, f: (B) -> A): FQueue<A> {
             if (! items.hasNext()) return emptyIMQueue()
             return if (readyToDequeue) {
                 val front = FList.ofMap(items, f)
@@ -302,7 +304,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
             }
         }
 
-        override fun <A : Any, B> ofMap(items: List<B>, f: (B) -> A): IMQueue<A> {
+        override fun <B, A : Any> ofMap(items: List<B>, f: (B) -> A): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()
             val front = FList.ofMap(items, f)
             return FQueueBody.of(front, FLNil)
@@ -370,22 +372,39 @@ internal class FQueueBody<out A: Any> private constructor(
 
     val hash: Int by lazy {
         // must be consistent with equals()
-        val cs = MrMr64()
-        lChecksumHashCode(cs, fqGetFront()){ it.hashCode().toLong() }
-        lChecksumHashCodeReverse(cs, fqGetBack()){ it.hashCode().toLong() }
+        if (fempty()) emptyHashCode else {
+            val cs = MrMr64()
+            when {
+                fqGetBack().fempty() -> lChecksumHashCode(cs, fqGetFront()){ it.hashCode().toLong() }
+                fqGetFront().fempty() -> lChecksumHashCodeReverse(cs, fqGetBack()){ it.hashCode().toLong() }
+                else -> {
+                    lChecksumHashCode(cs, fqGetFront()){ it.hashCode().toLong() }
+                    lChecksumHashCodeReverse(cs, fqGetBack()){ it.hashCode().toLong() }
+                }
+            }
+        }
     }
 
     override fun hashCode(): Int = hash
 
     val show: String by lazy {
         if (this.isEmpty()) FQueue::class.simpleName+"(*)"
-        else this::class.simpleName+"(front:"+front.toString()+", back:"+back.toString()+" )"
+        else {
+            val sFront = if (front.fempty()) " " else front.ffoldLeft(""){ str, item -> "$str $item" }
+            val sBack = if (back.fempty()) " " else {
+                val sBackAcc = StringBuilder().append(' ')
+                back.fforEachReverse { item -> sBackAcc.append(item).append(' ') }
+                sBackAcc.toString()
+            }
+            this::class.simpleName+"{$sFront$sBack}"
+        }
     }
 
     override fun toString(): String = show
 
     companion object {
         val empty = FQueueBody(FLNil, FLNil)
+        private val emptyHashCode: Int by lazy { empty.toString().hashCode() }
 
         fun <A: Any> of(
             front: IMList<A>,

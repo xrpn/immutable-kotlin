@@ -185,8 +185,8 @@ interface IMQueueCompanion {
     fun <A: Any> of(items: Iterator<A>, readyToDequeue: Boolean = false): IMQueue<A>
     fun <A: Any> of(items: List<A>): IMQueue<A> // yes, ready to dequeue
     fun <A: Any> of(items: IMList<A>): IMQueue<A> // yes, ready to dequeue
-    fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A, readyToDequeue: Boolean = false): IMQueue<A>
-    fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMQueue<A>  // yes, ready to dequeue
+    fun <B, A: Any> ofMap(items: Iterator<B>, readyToDequeue: Boolean, f: (B) -> A): IMQueue<A>
+    fun <B, A: Any> ofMap(items: List<B>, f: (B) -> A): IMQueue<A>  // yes, ready to dequeue
 
     fun <A: Any> Collection<A>.toIMQueue():IMQueue<A>
 }
