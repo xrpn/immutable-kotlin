@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
-inline fun <reified A, reified B> isSameType(a: A, b: B): Boolean = (a is B) && (b is A)
+// inline fun <reified A, reified B> isSameGeneric(a: A, b: B): Boolean = (a is B) && (b is A)
+fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer -> outer::class == b?.let{ it::class } } ?: false
 inline fun <reified A> fidentity(a: A): A = a
 
 fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))

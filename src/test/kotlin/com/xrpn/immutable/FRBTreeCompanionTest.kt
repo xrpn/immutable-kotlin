@@ -72,15 +72,15 @@ class FRBTreeCompanionTest : FunSpec({
         intFrbtOfTwo.equals(strFrbtOfOne) shouldBe false
         intFrbtOfTwo.equals(strFrbtOfTwo) shouldBe false
 
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfNone)) shouldBe false
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfOne)) shouldBe false
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfTwo)) shouldBe false // true
-        intFrbtOfTwo.equals(FIKSetBody.of(frbtOfOneY)) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfNone)) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfOne)) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfTwo)) shouldBe false // true
+        intFrbtOfTwo.equals(ofFIKSBody(frbtOfOneY)) shouldBe false
 
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfNone).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfOne).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FIKSetBody.of(intFrbtOfTwo).copyToMutableSet()) shouldBe false
-        intFrbtOfTwo.equals(FIKSetBody.of(frbtOfOneY).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfNone).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfOne).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(intFrbtOfTwo).copyToMutableSet()) shouldBe false
+        intFrbtOfTwo.equals(ofFIKSBody(frbtOfOneY).copyToMutableSet()) shouldBe false
 
         intFrbtOfTwo.equals(intFrbtOfNone.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfOne.ffold(mutableSetOf<TKVEntry<Int, Int>>()) { acc, tkv -> acc.add(tkv); acc }) shouldBe false

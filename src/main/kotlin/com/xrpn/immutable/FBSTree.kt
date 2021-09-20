@@ -4,6 +4,8 @@ import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
+import com.xrpn.immutable.FRBTree.Companion.toIMBTree as frbToIMBTree
+import kotlin.reflect.KClass
 
 // this is NOT as Set as it MAY (legally!) have duplicates.  It's not a List either :)
 sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -63,7 +65,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMSet(): FIKSet<B> = FIKSet.of(this)
+    override fun toIMSet(kType: KClass<@UnsafeVariance A>): FKSet<A, B> = toIMSetImpl(this, kType)
+
+    override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): FKSet<A, B> = toIMSetImpl(this, kType, initial)
 
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
@@ -406,6 +410,10 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             unwindQueue(newQueue, newAcc, accrue)
         }
 
+    internal fun fbsKeyKClassOut(): KClass<out A> = fpick()!!.getk()::class
+
+    internal fun fbsKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (fpick()!!.getk()::class as KClass<A>)
+
     companion object: IMBTreeCompanion {
 
         private class BreakoutException(): RuntimeException()
@@ -517,7 +525,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (this.isEmpty()) nul() else when(this) {
                 is FBSTree<*, *> -> this as FBSTree<A, B>
                 is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") (this as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-                is FIKSet<*> -> @Suppress("UNCHECKED_CAST") this.ffold(nul()) { acc, item -> acc.finsert(item as TKVEntry<A, B>) }
+                is FKSet<*,*> -> @Suppress("UNCHECKED_CAST") this.ffold(nul()) { acc, item -> acc.finsert(item as TKVEntry<A, B>) }
                 is List<*> -> of(this.iterator(), allowDups = true)
                 is Set<*> -> of(this.iterator())
                 else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
@@ -899,6 +907,23 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         private fun <B: Any> appenderStrKey(withDups: Boolean): (FBSTree<String, B>, B) -> FBSTree<String, B> =
             { treeStub: FBSTree<String, B>, item: B -> bstInsert(treeStub, item.toSAEntry(), allowDups = withDups)}
 
+        private fun <A, B: Any> toIMSetImpl(t: FBSTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
+            initial != null -> when {
+                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toISoO() as FKSet<A, B>)
+                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toSSoO() as FKSet<A, B>)
+                else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
+            }
+            t.fempty() -> FKSet.emptyFIKSet()
+            kType == Int::class -> if (t.fpick()!!.getk() is Int) {
+                val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<Int, B>))
+                @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
+            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.fpick()!!.getk()::class})")
+            kType == String::class -> if (t.fpick()!!.getk() is String) {
+                val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<String, B>))
+                @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
+            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.fpick()!!.getk()::class})")
+            else -> throw RuntimeException("${FKSet.unknownKeyType} $kType ${if (t.fempty()) ' ' else t.fbsKeyKClass().toString() }")
+        }
     }
 }
 
@@ -1007,5 +1032,4 @@ internal data class FBSTNode<out A, out B: Any> (
     companion object {
         fun <A, B: Any> hashCode(n: FBSTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hashCode()
     }
-
 }

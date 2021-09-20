@@ -51,15 +51,14 @@ class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>,
 
     companion object {
 
-        internal val MSG_EMPTY_ITERATOR = "empty iterator"
+        internal const val MSG_EMPTY_ITERATOR = "empty iterator"
 
-        internal inline fun <reified A, reified B: Any> toArray(n: Int, fli: FTreeIterator<A, B>) where A: Any, A: Comparable<A> = Array(n){ _ -> fli.next() }
-
+        internal inline fun <reified A, reified B: Any> toArray(n: Int, fli: FTreeIterator<A, B>) where A: Any, A: Comparable<A> = Array(n){ fli.next() }
         fun <A, B: Any, R> Sequence<TKVEntry<A, B>>.flatMap(
             transform: (TKVEntry<A, B>) -> Sequence<R>
-        ): Sequence<R> where A: Any, A: Comparable<A> = when (this) {
-            is FTreeIterator -> this.nullableNext()?.let{ transform(it) } ?: emptySequence()
-            else -> if (this.iterator().hasNext()) transform(this.iterator().next()) else emptySequence()
+        ): Sequence<R> where A: Any, A: Comparable<A> = when (val itr: Iterator<TKVEntry<A, B>> = this.iterator()) {
+            is FTreeIterator -> itr.nullableNext()?.let{ transform(it) } ?: emptySequence()
+            else -> if (itr.hasNext()) transform(itr.next()) else emptySequence()
         }
     }
 }

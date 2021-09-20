@@ -1,15 +1,18 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
+import io.kotest.xrpn.frbStree
 import io.kotest.xrpn.frbtree
 import java.util.concurrent.atomic.AtomicInteger
 
 private val intFRBTreeOfNone = FRBTree.ofvi(*arrayOf<Int>())
+private val intFRBSTreeOfNone = FRBTree.ofvs(*arrayOf<Int>())
 private val intFRBTreeOfOne = FRBTree.ofvi(*arrayOf<Int>(1))
 private val intFRBTreeOfTwo = FRBTree.ofvi(*arrayOf<Int>(1,2))
 private val intFRBTreeOfThree = FRBTree.ofvi(*arrayOf<Int>(1,2,3))
@@ -154,12 +157,27 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("toIMSet") {
-        intFRBTreeOfNone.toIMSet() shouldBe FIKSet.emptyIMSet()
+        intFRBTreeOfNone.toIMSet(Int::class) shouldBe FKSet.emptyIMSet()
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
-            val ims1: FIKSet<Int> = frbt.toIMSet()
+            val ims1: IMSet<Int, Int> = frbt.toIMSet(Int::class)
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
+        checkAll(repeats, Arb.frbStree<Int, Int>(Arb.int(),20..100)) { frbt ->
+            val ims1: IMSet<String, Int> = frbt.toIMSet(String::class)
+            (ims1.toIMBTree() === frbt) shouldBe true
+            ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+        }
+    }
+
+    test("toIMSetSeeder Int") {
+        intFRBTreeOfNone.toIMSetSeeder(Int::class, 1) shouldBe 1.toISoO()
+        intFRBTreeOfNone.toIMSetSeeder(Int::class, 2) shouldBe FKSet.ofi(2)
+    }
+
+    test("toIMSetSeeder Str") {
+        intFRBSTreeOfNone.toIMSetSeeder(String::class, 1) shouldBe 1.toSSoO()
+        intFRBSTreeOfNone.toIMSetSeeder(String::class, 2) shouldBe FKSet.ofs(2)
     }
 
     test("copy") {

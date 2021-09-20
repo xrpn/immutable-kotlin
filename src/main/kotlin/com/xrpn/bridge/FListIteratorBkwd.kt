@@ -58,7 +58,7 @@ class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val
 
         internal val MSG_EMPTY_ITERATOR = "empty iterator"
 
-        internal inline fun <reified A: Any> toArray(n: Int, fli: FListIteratorBkwd<A>) = Array<A>(n){ _ -> fli.previous() }
+        internal inline fun <reified A: Any> toArray(n: Int, fli: FListIteratorBkwd<A>) = Array(n){ _ -> fli.previous() }
 
     }
 

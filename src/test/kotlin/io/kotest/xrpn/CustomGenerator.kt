@@ -32,10 +32,10 @@ fun <A: Any, B> Arb.Companion.fset(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FIKSet<A>> {
+): Arb<FKSet<Int, A>> {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
-    return Arb.set(arbB, range).map { bs -> FIKSet.ofMap(bs.iterator(), f) }
+    return Arb.set(arbB, range).map { bs -> FKSet.ofiMap(bs.iterator(), f) }
 }
 
 fun <A: Any, B> Arb.Companion.fsetAsSet(
@@ -60,6 +60,16 @@ fun <A: Any, B> Arb.Companion.frbtree(
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FRBTree.ofvi(cs.iterator()) }
 }
 
+fun <A: Any, B> Arb.Companion.frbStree(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
+): Arb<FRBTree<String, A>> {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FRBTree.ofvs(cs.iterator()) }
+}
+
 fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
@@ -74,6 +84,16 @@ fun <A: Any, B> Arb.Companion.fbstree(
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvi(cs.iterator()) }
+}
+
+fun <A: Any, B> Arb.Companion.fbsStree(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
+): Arb<FBSTree<String, A>> {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvs(cs.iterator()) }
 }
 
 fun <A: Any, B> Arb.Companion.fbstreeAllowDups(

@@ -22,19 +22,19 @@ interface IMListGrouping<out A: Any> {
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
 }
 
-interface IMSetGrouping<out A: Any> {
+interface IMSetGrouping<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
 
-    fun <B: Any> fcartesian(rhs: IMSet<B>): IMSet<Pair<A, B>> // cartesian product
-    fun fcombinations(size: Int): IMSet<IMSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
+    fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance B>): IMSet<K, Pair<A, B>> // cartesian product
+    fun fcombinations(size: Int): IMSet<K, IMSet<K, A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
-    fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
-    fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
-    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
+    fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<K, A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
+    fun findexed(offset: Int = 0): IMSet<K, Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
+    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<K, A>, /* false */ IMSet<K, A>> // Two collections created by the predicate p
     // Collection is a set (small(er) size) or a list (large(r) size)
     fun fpermutations(size: Int): Collection<IMList<A>> // all unique, non-empty collections of "size" members from this set, caution suggested, O(size!) algorithm.
     // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
     fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
-    fun fpopAndReminder(): Pair<A?, IMSet<A>>
+    fun fpopAndReminder(): Pair<A?, IMSet<K, A>>
     fun fsize(): Int // number of elements
 }
 

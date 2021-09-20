@@ -1,6 +1,7 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.TKVEntry
+import kotlin.reflect.KClass
 
 interface IMListUtility<out A: Any> {
     fun equal(rhs: IMList<@UnsafeVariance A>): Boolean
@@ -10,11 +11,11 @@ interface IMListUtility<out A: Any> {
     fun copyToMutableList(): MutableList<@UnsafeVariance A>
 }
 
-interface IMSetUtility<out A: Any> {
-    fun equal(rhs: IMSet<@UnsafeVariance A>): Boolean
+interface IMSetUtility<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun equal(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
-    fun toIMBTree(): IMBTree<Int, A>
-    fun copy(): IMSet<A>
+    fun toIMBTree(): IMBTree<K, A>
+    fun copy(): IMSet<K, A>
     fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
 }
 
@@ -22,7 +23,8 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.fpick()) { _, tkv -> f(tkv); tkv }; Unit }
-    fun toIMSet(): IMSet<B>
+    fun toIMSet(kType: KClass<@UnsafeVariance A>): IMSet<A, B>
+    fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): IMSet<A, B>
     fun copy(): IMBTree<A, B>
     fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = (
         this as IMBTree<A,B>).ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }

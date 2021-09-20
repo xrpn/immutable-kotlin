@@ -6,10 +6,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
+import io.kotest.xrpn.fbsStree
 import io.kotest.xrpn.fbstree
 import java.util.concurrent.atomic.AtomicInteger
 
 private val intFBSTreeOfNone = FBSTree.ofvi(*arrayOf<Int>())
+private val intFBSSTreeOfNone = FBSTree.ofvs(*arrayOf<Int>())
 private val intFBSTreeOfOne = FBSTree.ofvi(*arrayOf<Int>(1))
 private val intFBSTreeOfTwo = FBSTree.ofvi(*arrayOf<Int>(1,2))
 private val intFBSTreeOfThree = FBSTree.ofvi(*arrayOf<Int>(1,2,3))
@@ -167,12 +169,27 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("toIMSet") {
-    intFBSTreeOfNone.toIMSet() shouldBe FIKSet.emptyIMSet()
+    intFBSTreeOfNone.toIMSet(Int::class) shouldBe FKSet.emptyIMSet()
     checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
-      val ims1: FIKSet<Int> = fbst.toIMSet()
+      val ims1: FKSet<Int, Int> = fbst.toIMSet(Int::class)
       (ims1.toIMBTree() === fbst) shouldBe false
       ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
     }
+    checkAll(repeats, Arb.fbsStree<Int, Int>(Arb.int(),20..100)) { fbst ->
+      val ims1: FKSet<String, Int> = fbst.toIMSet(String::class)
+      (ims1.toIMBTree() === fbst) shouldBe false
+      ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+    }
+  }
+
+  test("toIMSetSeeder Int") {
+    intFBSTreeOfNone.toIMSetSeeder(Int::class, 1) shouldBe 1.toISoO()
+    intFBSTreeOfNone.toIMSetSeeder(Int::class, 2) shouldBe FKSet.ofi(2)
+  }
+
+  test("toIMSetSeeder Str") {
+    intFBSSTreeOfNone.toIMSetSeeder(String::class, 1) shouldBe 1.toSSoO()
+    intFBSSTreeOfNone.toIMSetSeeder(String::class, 2) shouldBe FKSet.ofs(2)
   }
 
   test("copy") {

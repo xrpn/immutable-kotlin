@@ -9,11 +9,11 @@ import io.kotest.property.checkAll
 import io.kotest.xrpn.fset
 import java.util.concurrent.atomic.AtomicInteger
 
-private val intSetOfNone = FIKSet.of(*arrayOf<Int>())
-private val intSetOfOne = FIKSet.of(1)
-private val intSetOfTwo = FIKSet.of(1, 2)
-private val intSetOfTwoOfst1 = FIKSet.of(2, 3)
-private val intSetOfThree = FIKSet.of(1, 2, 3)
+private val intSetOfNone = FKSet.ofi(*arrayOf<Int>())
+private val intSetOfOne = FKSet.ofi(1)
+private val intSetOfTwo = FKSet.ofi(1, 2)
+private val intSetOfTwoOfst1 = FKSet.ofi(2, 3)
+private val intSetOfThree = FKSet.ofi(1, 2, 3)
 
 class FIKSetUtilityTest : FunSpec({
 
@@ -26,13 +26,13 @@ class FIKSetUtilityTest : FunSpec({
         intSetOfNone.equal(intSetOfOne) shouldBe false
         intSetOfOne.equal(intSetOfNone) shouldBe false
         intSetOfOne.equal(intSetOfOne) shouldBe true
-        intSetOfOne.equal(FIKSet.of(1)) shouldBe true
-        FIKSet.of(1).equal(intSetOfOne) shouldBe true
+        intSetOfOne.equal(FKSet.ofi(1)) shouldBe true
+        FKSet.ofi(1).equal(intSetOfOne) shouldBe true
         intSetOfOne.equal(intSetOfTwo) shouldBe false
         intSetOfTwo.equal(intSetOfOne) shouldBe false
         intSetOfTwo.equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.equal(FIKSet.of(1,2)) shouldBe true
-        FIKSet.of(1,2).equal(intSetOfTwo) shouldBe true
+        intSetOfTwo.equal(FKSet.ofi(1,2)) shouldBe true
+        FKSet.ofi(1,2).equal(intSetOfTwo) shouldBe true
         intSetOfTwo.equal(intSetOfTwoOfst1) shouldBe false
         intSetOfTwoOfst1.equal(intSetOfTwo) shouldBe false
         intSetOfTwo.equal(intSetOfThree) shouldBe false
@@ -69,7 +69,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
-            val fs1 = FIKSet.of(fbst)
+            val fs1 = FKSet.ofi(fbst)
             fs.equals(fs1) shouldBe true
         }
     }

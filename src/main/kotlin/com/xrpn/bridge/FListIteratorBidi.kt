@@ -5,7 +5,7 @@ import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
 import java.util.concurrent.atomic.AtomicInteger
 
-class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, val nextIndex: Int = IX_START): ListIterator<A> {
+class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, nextIndex: Int = IX_START): ListIterator<A> {
 
     enum class BIDI { FWD, BACK }
 
@@ -47,7 +47,7 @@ class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, va
     }
 
     companion object {
-        internal val IX_START: Int = 0
+        internal const val IX_START: Int = 0
         internal const val MSG_BEFORE_START = "before start requested"
         internal const val MSG_AFTER_END = "after end requested"
     }

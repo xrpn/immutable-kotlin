@@ -39,9 +39,9 @@ class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val 
             is FLCons -> current as FLCons<A>
         }
         val res = b.head
-        when (val bodyTail = b.tail) {
-            is FLNil -> current = FLNil
-            is FLCons -> current = FLCons(bodyTail.head, bodyTail.tail)
+        current = when (val bodyTail = b.tail) {
+            is FLNil -> FLNil
+            is FLCons -> FLCons(bodyTail.head, bodyTail.tail)
         }
         return res
     }
@@ -56,15 +56,15 @@ class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val 
 
     companion object {
 
-        internal val MSG_EMPTY_ITERATOR = "empty iterator"
+        internal const val MSG_EMPTY_ITERATOR = "empty iterator"
 
-        internal inline fun <reified A: Any> toArray(n: Int, fli: FListIteratorFwd<A>) = Array<A>(n){ _ -> fli.next() }
+        internal inline fun <reified A: Any> toArray(n: Int, fli: FListIteratorFwd<A>) = Array(n){ fli.next() }
 
         fun <A, R> Sequence<A>.flatMap(
             transform: (A) -> Sequence<R>
-        ): Sequence<R> = when (this) {
-            is FListIteratorFwd -> this.nullableNext()?.let{ transform(it) } ?: emptySequence()
-            else -> if (this.iterator().hasNext()) transform(this.iterator().next()) else emptySequence()
+        ): Sequence<R> = when (val itr = this.iterator()) {
+            is FListIteratorFwd -> itr.nullableNext()?.let{ transform(it) } ?: emptySequence()
+            else -> if (itr.hasNext()) transform(itr.next()) else emptySequence()
         }
     }
 }

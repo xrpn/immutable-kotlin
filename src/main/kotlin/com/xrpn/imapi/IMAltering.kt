@@ -1,6 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FIKSetOfOne
 import com.xrpn.immutable.TKVEntry
 
 interface IMListAltering<out A: Any> {
@@ -12,8 +11,12 @@ interface IMListAltering<out A: Any> {
     operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
 }
 
-interface IMSetAltering<out A: Any> {
-    fun fadd(item: FIKSetOfOne<@UnsafeVariance A>): IMSet<A>
+interface IMSetAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun faddSoO(item: IMSetOfOne<@UnsafeVariance K, @UnsafeVariance A>): IMSetNotEmpty<K, A>
+}
+
+interface IMSetNEAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<K, A>
 }
 
 interface IMBTreeAltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {

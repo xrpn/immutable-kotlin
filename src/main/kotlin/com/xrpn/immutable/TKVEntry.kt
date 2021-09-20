@@ -58,6 +58,15 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
         fun <T: Any> T.toSAEntry(): TKVEntry<String, T> = ofStrKey(this)
         fun <B: Any> intKeyOf(item: B): Int = item.hashCode()
         fun <B: Any> strKeyOf(item: B): String = item.toString()
+        fun <K, B: Any> keyOf(item: B, k: KClass<K>): K where K: Any, K: Comparable<K> = when(k) {
+            Int::class -> @Suppress("UNCHECKED_CAST") {
+                intKeyOf(item) as K
+            }
+            String::class -> @Suppress("UNCHECKED_CAST") {
+                strKeyOf(item) as K
+            }
+            else -> throw RuntimeException("unkown key type $k")
+        }
         fun <B: Any> IMList<B>.toIAEntries(): IMList<TKVEntry<Int, B>> = this.fmap { a -> ofIntKey(a) }
         fun <B: Any> IMList<B>.toSAEntries(): IMList<TKVEntry<String, B>> = this.fmap { a -> ofStrKey(a) }
         fun <B: Any> IMBTree<Int, B>.toIAList(): IMList<TKVEntry<Int, B>> = this.preorder()

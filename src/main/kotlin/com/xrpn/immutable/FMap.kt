@@ -17,11 +17,11 @@ sealed class FMap<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance
 
     fun isEmpty(): Boolean = this === FMapBody.empty
     fun size(): Int = (this as FMapBody).body.size
-    fun keys(): FIKSet<A> = when {
-        isEmpty() -> FIKSet.emptyIMSet()
+    fun keys(): FKSet<Int, A> = when {
+        isEmpty() -> FKSet.emptyFIKSet()
         else -> {
             this as FMapBody
-            FIKSet.of(this.body.preorder(reverse = true).fmap { it.getk() })
+            FKSet.ofi(this.body.preorder(reverse = true).fmap { it.getk() })
         }
     }
     fun values(): FList<B> = when {

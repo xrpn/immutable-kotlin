@@ -3,6 +3,7 @@ package com.xrpn.immutable
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
 import kotlin.math.log2
+import kotlin.reflect.KClass
 
 sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -73,7 +74,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMSet(): FIKSet<B> = FIKSet.of(this)
+    override fun toIMSet(kType: KClass<@UnsafeVariance A>): IMSet<A, B> = toIMSetImpl(this, kType)
+
+    override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): IMSet<A, B> = toIMSetImpl(this, kType, initial)
 
     override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
@@ -371,7 +374,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
     }
 
+    internal fun frbKeyKClassOut(): KClass<out A> = fpick()!!.getk()::class
+
+    internal fun frbKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (fpick()!!.getk()::class as KClass<A>)
+
     companion object: IMBTreeCompanion {
+
+        internal const val unknownKeyType = "unknown frbtree key type "
 
         const val NOT_FOUND = -1
 
@@ -919,6 +928,23 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
+        private fun <A, B: Any> toIMSetImpl(t: FRBTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
+            initial != null -> when {
+                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toISoO() as FKSet<A, B>)
+                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toSSoO() as FKSet<A, B>)
+                else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
+            }
+            t.fempty() -> FKSet.emptyFIKSet()
+            kType == Int::class -> if (t.fpick()!!.getk() is Int) {
+                    val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t as IMBTree<Int, B>))
+                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
+                } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.fpick()!!.getk()::class})")
+            kType == String::class -> if (t.fpick()!!.getk() is String) {
+                val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t as IMBTree<String, B>))
+                @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
+            } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.fpick()!!.getk()::class})")
+            else -> throw RuntimeException("${FKSet.unknownKeyType} $kType ${if (t.fempty()) ' ' else t.frbKeyKClass().toString() }")
+        }
     }
 }
 

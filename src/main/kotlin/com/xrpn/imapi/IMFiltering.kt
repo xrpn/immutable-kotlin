@@ -1,6 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FIKSetOfOne
 import com.xrpn.immutable.TKVEntry
 
 interface IMListFiltering<out A: Any> {
@@ -31,23 +30,26 @@ interface IMListFiltering<out A: Any> {
     fun ftakeWhile(isMatch: (A) -> Boolean): IMList<A> // 	The first subset of elements that matches the predicate p
 }
 
-interface IMSetFiltering<out A: Any> {
-    fun fcontains(item: FIKSetOfOne<@UnsafeVariance A>): Boolean
-    fun fcontainsAny(items: IMSet<@UnsafeVariance A>): Boolean
-    fun fdropItem(item: FIKSetOfOne<@UnsafeVariance A>): IMSet<A>
-    fun fdropAll(items: IMSet<@UnsafeVariance A>): IMSet<A>
-    fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
+interface IMSetFiltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun fcontainsSoO(item: IMSetOfOne<@UnsafeVariance K, @UnsafeVariance A>): Boolean
+    fun fcontains(item: @UnsafeVariance A): Boolean
+    fun fcontainsAny(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
+    fun fdropSoO(item: IMSetOfOne<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
+    fun fdropItem(item: @UnsafeVariance A): IMSet<K, A>
+    fun fdropAll(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
+    fun fdropWhen(isMatch: (A) -> Boolean): IMSet<K, A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
     fun fempty(): Boolean = fpick() == null
-    fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that match the predicate p
-    fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // 	Return all elements that do not match the predicate p
+    fun ffilter(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that match the predicate p
+    fun ffilterNot(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that do not match the predicate p
     fun ffindDistinct(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
-    fun fisSubsetOf(rhs: IMSet<@UnsafeVariance A>): Boolean
-    fun isSetOfOne() = this is FIKSetOfOne
+    fun fisSubsetOf(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
+    fun isSetOfOne() = this is IMSetOfOne
     fun fpick(): A? // peek at one random element
-    fun fAND(items: IMSet<@UnsafeVariance A>): IMSet<A>
-    fun fNOT(items: IMSet<@UnsafeVariance A>): IMSet<A> = fdropAll(items)
-    fun fOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
-    fun fXOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
+    fun fpickKey(): K?  // peek at one random key
+    fun fAND(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
+    fun fNOT(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A> = fdropAll(items)
+    fun fOR(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
+    fun fXOR(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
 
 }
 

@@ -1,6 +1,7 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.TKVEntry
+import kotlin.reflect.KClass
 
 // TODO remove in time
 private fun checkf(res: Boolean, lhs: Any, rhs: Any): Boolean {
@@ -43,7 +44,7 @@ interface IMListCompanion {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
+internal fun <K, A: Any> IMSetEqual2(lhs: IMSet<K, A>, rhs: IMSet<K, A>): Boolean  where K: Any, K: Comparable<K> {
 
     val res = when {
         lhs === rhs -> true
@@ -55,21 +56,28 @@ internal fun <A: Any> IMSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
 
 interface IMSetCompanion {
 
-    fun <A: Any> emptyIMSet(): IMSet<A>
-    fun <A: Any> of(vararg items: A): IMSet<A>
-    fun <A: Any> of(items: Iterator<A>): IMSet<A>
-    fun <K, A: Any> of(items: IMBTree<K, A>): IMSet<A> where K: Any, K: Comparable<K>
-    fun <A: Any> of(items: IMList<A>): IMSet<A>
-    fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): IMSet<A>
-    fun <B: Any, A: Any> ofMap(items: IMList<B>, f: (B) -> A): IMSet<A>
-    fun <B, A: Any> ofMap(items: List<B>, f: (B) -> A): IMSet<A>
+    fun <K, A: Any> emptyIMSet(): IMSet<K, A> where K: Any, K: Comparable<K>
+    fun <A: Any> ofi(vararg items: A): IMSet<Int, A>
+    fun <A: Any> ofi(items: Iterator<A>): IMSet<Int, A>
+    fun <A: Any> ofi(items: IMBTree<Int, A>): IMSet<Int, A>
+    fun <A: Any> ofi(items: IMList<A>): IMSet<Int, A>
+    fun <B, A: Any> ofiMap(items: Iterator<B>, f: (B) -> A): IMSet<Int, A>
+    fun <B: Any, A: Any> ofiMap(items: IMList<B>, f: (B) -> A): IMSet<Int, A>
+    fun <B, A: Any> ofiMap(items: List<B>, f: (B) -> A): IMSet<Int, A>
 
-    infix fun <A: Any> IMSet<A>.or(rhs: IMSet<A>): IMSet<A> = this.fOR(rhs)
-    infix fun <A: Any> IMSet<A>.and(rhs: IMSet<A>): IMSet<A> = this.fAND(rhs)
-    infix fun <A: Any> IMSet<A>.xor(rhs: IMSet<A>): IMSet<A> = this.fXOR(rhs)
-    infix fun <A: Any> IMSet<A>.not(rhs: IMSet<A>): IMSet<A> = this.fNOT(rhs)
+    fun <A: Any> ofs(vararg items: A): IMSet<String, A>
+    fun <A: Any> ofs(items: Iterator<A>): IMSet<String, A>
+    fun <A: Any> ofs(items: IMBTree<String, A>): IMSet<String, A>
+    fun <A: Any> ofs(items: IMList<A>): IMSet<String, A>
+    fun <B, A: Any> ofsMap(items: Iterator<B>, f: (B) -> A): IMSet<String, A>
+    fun <B: Any, A: Any> ofsMap(items: IMList<B>, f: (B) -> A): IMSet<String, A>
+    fun <B, A: Any> ofsMap(items: List<B>, f: (B) -> A): IMSet<String, A>
 
-    fun <A: Any> Collection<A>.toIMSet(): IMSet<A>
+    fun <K, B : Any> toTKVEntry(s: IMSet<K, B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
+
+    fun <K, A: Any> Collection<A>.toIMSet(kType: KClass<K>): IMSet<K, A> where K: Any, K: Comparable<K>
+    fun <A: Any> Collection<A>.toIMISet(): IMSet<Int, A>
+    fun <A: Any> Collection<A>.toIMSSet(): IMSet<String, A>
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"

@@ -4,6 +4,8 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMMap
+import com.xrpn.imapi.IMSet
+import kotlin.reflect.KClass
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
@@ -296,10 +298,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun toIMSet(): FIKSet<B>  {
-        TODO("Not yet implemented")
-    }
-
     override fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> {
         TODO("Not yet implemented")
     }
@@ -467,6 +465,14 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun <C, D : Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun toIMSet(kType: KClass<A>): IMSet<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun toIMSetSeeder(kType: KClass<A>, initial: B): IMSet<A, B> {
         TODO("Not yet implemented")
     }
 
