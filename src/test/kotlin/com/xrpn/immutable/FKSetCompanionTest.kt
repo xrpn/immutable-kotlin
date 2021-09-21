@@ -339,7 +339,7 @@ class FKSetCompanionTest : FunSpec({
     test("co.ofi Iterator"){
         ofi(arrayOf<Int>().iterator()) shouldBe emptyIMSet()
         (ofi(arrayOf<Int>().iterator()) === emptyIMSet<Int, Int>()) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (ofi(arrayOf(1, 2, 3).iterator()) as IMSetNotEmpty<Int, Int>)).equal(intISetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (ofi(arrayOf(1, 2, 3).iterator()) as IMSetNotEmpty<Int, Int>)).strongEqual(intISetOfThree) shouldBe true
     }
 
     test("co.ofi IMBTree<K, A>"){
@@ -386,45 +386,45 @@ class FKSetCompanionTest : FunSpec({
         ofs(arrayOf<Int>().iterator()) shouldBe emptyIMSet()
         (ofs(arrayOf<Int>().iterator()) === emptyIMSet<String, Int>()) shouldBe true
         val aut: IMSet<String, Int> = ofs(arrayOf(1, 2, 3).iterator())
-        aut.equal(intSSetOfThree) shouldBe true
+        aut.strongEqual(intSSetOfThree) shouldBe true
         aut.equals(intISetOfThree) shouldBe false
         // the following compares lhs and rhs as Iterable<A>, so the test is correct
         aut shouldBe intISetOfThree
         isSameType(aut, intISetOfThree) shouldBe false // DUH
         // this is a bad cast, but type erasure prevents the following from blowing up (as it should)
-        (@Suppress("UNCHECKED_CAST") (aut as IMSetNotEmpty<Int, Int>)).equal(intISetOfThree) shouldBe false
-        intISetOfThree.equal(@Suppress("UNCHECKED_CAST") (aut as IMSetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (aut as IMSetNotEmpty<Int, Int>)).strongEqual(intISetOfThree) shouldBe false
+        intISetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (aut as IMSetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs IMBTree<K, A>") {
         ofs(FRBTree.nul<String, Int>()) shouldBe emptyIMSet()
         (ofs(FRBTree.nul<String, Int>()) === emptyIMSet<String, Int>()) shouldBe true
         val autfrb: IMSet<String, Int> = ofs(FRBTree.ofvs(1, 2, 3))
-        autfrb.equal(intSSetOfThree) shouldBe true
+        autfrb.strongEqual(intSSetOfThree) shouldBe true
         autfrb.equals(intISetOfThree) shouldBe false
         autfrb shouldBe intISetOfThree
         isSameType(autfrb, intISetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfrb as IMSetNotEmpty<Int, Int>)).equal(intISetOfThree) shouldBe false
-        intISetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfrb as IMSetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfrb as IMSetNotEmpty<Int, Int>)).strongEqual(intISetOfThree) shouldBe false
+        intISetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfrb as IMSetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs FBSTree<K, A>"){
         ofs(FBSTree.nul<String, Int>()) shouldBe emptyIMSet()
         (ofs(FBSTree.nul<String, Int>()) === emptyIMSet<String, Int>()) shouldBe true
         val autfbs: FKSet<String, Int> = ofs(FBSTree.ofvs(1, 2, 3))
-        autfbs.equal(intSSetOfThree) shouldBe true
+        autfbs.strongEqual(intSSetOfThree) shouldBe true
         autfbs.equals(intISetOfThree) shouldBe false
         autfbs shouldBe intISetOfThree
         isSameType(autfbs, intISetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfbs as IMSetNotEmpty<Int, Int>)).equal(intISetOfThree) shouldBe false
-        intISetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfbs as IMSetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfbs as IMSetNotEmpty<Int, Int>)).strongEqual(intISetOfThree) shouldBe false
+        intISetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfbs as IMSetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs IMList"){
         ofs(emptyIMList()) shouldBe emptyIMSet()
         (ofs(emptyIMList()) === emptyIMSet<String, Int>()) shouldBe true
         val aut = ofs(FLCons(2, FLCons(3, FLCons(1, FLNil))))
-        aut.equal(intSSetOfThree) shouldBe true
+        aut.strongEqual(intSSetOfThree) shouldBe true
         aut.equals(intISetOfThree) shouldBe false
         aut shouldBe intISetOfThree
         isSameType(aut, intISetOfThree) shouldBe false // DUH
@@ -437,7 +437,7 @@ class FKSetCompanionTest : FunSpec({
         (ofsMap(arrayOf<Int>().iterator()){ it.toString() } === emptyIMSet<String, Int>()) shouldBe true
         val aut = ofsMap(arrayOf(1, 2, 3).iterator()){ it.toString() }
         (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).equal(strISetOfThree) shouldBe false
+        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).strongEqual(strISetOfThree) shouldBe false
     }
 
     test("co.ofsMap IMList"){
@@ -445,7 +445,7 @@ class FKSetCompanionTest : FunSpec({
         (ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } === emptyIMSet<String, Int>()) shouldBe true
         val aut = ofsMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toString() }
         (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).equal(strISetOfThree) shouldBe false
+        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).strongEqual(strISetOfThree) shouldBe false
     }
 
     test("co.ofsMap List"){
@@ -453,7 +453,7 @@ class FKSetCompanionTest : FunSpec({
         (ofsMap(emptyList<Int>()){ it.toString() } === emptyIMSet<String, Int>()) shouldBe true
         val aut = ofsMap(listOf(1, 2, 3)){ it.toString() }
         (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).equal(strISetOfThree) shouldBe false
+        (@Suppress("UNCHECKED_CAST") ( aut as IMSetNotEmpty<Int, String>)).strongEqual(strISetOfThree) shouldBe false
     }
 
     test("co.toIMSet() IK"){
@@ -464,7 +464,7 @@ class FKSetCompanionTest : FunSpec({
             val fs3 = if (ks.isNotEmpty()) {
                 fs1 as IMSetNotEmpty<Int, Int>
             } else fs1
-            fs3.equal(fs2) shouldBe true
+            fs3.strongEqual(fs2) shouldBe true
             fs1.equals(ks) shouldBe true
             ks.equals(fs2) shouldBe true
         }
@@ -478,7 +478,7 @@ class FKSetCompanionTest : FunSpec({
             val fs3 = if (ks.isNotEmpty()) {
                 fs1 as IMSetNotEmpty<String, Int>
             } else fs1
-            fs3.equal(fs2) shouldBe true
+            fs3.strongEqual(fs2) shouldBe true
             fs1.equals(ks) shouldBe true
             ks.equals(fs2) shouldBe true
         }
@@ -493,8 +493,8 @@ class FKSetCompanionTest : FunSpec({
     test("co.toArray"){
         Arb.fset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
             val ary: Array<Int> = FKSet.toArray(fs)
-            fs.equal(FKSet.ofi(ary.iterator())) shouldBe true
-            fs.equal(FKSet.ofi(*ary)) shouldBe true
+            fs.strongEqual(FKSet.ofi(ary.iterator())) shouldBe true
+            fs.strongEqual(FKSet.ofi(*ary)) shouldBe true
         }
     }
 

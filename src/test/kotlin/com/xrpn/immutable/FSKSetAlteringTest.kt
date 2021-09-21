@@ -15,9 +15,9 @@ class FSKSetAlteringTest : FunSpec({
     beforeTest {}
 
     test("faddSoO") {
-        intSetOfNone.faddSoO(1.toSSoO()).equal(intSetOfOne) shouldBe true
-        intSetOfOne.faddSoO(2.toSSoO()).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.faddSoO(3.toSSoO()).equal(intSetOfThree) shouldBe true
+        intSetOfNone.faddSoO(1.toSSoO()).strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.faddSoO(2.toSSoO()).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.faddSoO(3.toSSoO()).strongEqual(intSetOfThree) shouldBe true
         intSetOfThree.faddSoO(4.toSSoO()).fsize() shouldBe 4
     }
 
@@ -25,10 +25,10 @@ class FSKSetAlteringTest : FunSpec({
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (intSetOfNone as IMSetNotEmpty<String, Int>)
         }
-        intSetOfOne.faddItem(2).equal(intSetOfTwo) shouldBe true
-        1.toSSoO().faddItem(2).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.faddItem(3).equal(intSetOfThree) shouldBe true
-        1.toSSoO().faddItem(2).faddItem(3).equal(intSetOfThree) shouldBe true
+        intSetOfOne.faddItem(2).strongEqual(intSetOfTwo) shouldBe true
+        1.toSSoO().faddItem(2).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.faddItem(3).strongEqual(intSetOfThree) shouldBe true
+        1.toSSoO().faddItem(2).faddItem(3).strongEqual(intSetOfThree) shouldBe true
         intSetOfThree.faddItem(4).fsize() shouldBe 4
     }
 

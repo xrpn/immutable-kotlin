@@ -41,8 +41,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
 
     // from Collection<A>
 
-    override val size: Int by lazy { toMaybeFRBTree(kType).size }
-
     override fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(element)
 
     override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
@@ -54,7 +52,10 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
 
     // utility
 
-    override fun equal(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean =
+    override fun equal(rhs: IMRSet<@UnsafeVariance A>): Boolean =
+        IMRSetEqual2(this, rhs)
+
+    override fun strongEqual(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean =
         this.equals(rhs)
 
     override fun fforEach (f: (A) -> Unit) =
@@ -74,8 +75,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
     override fun fcontainsSoO(item: IMSetOfOne<@UnsafeVariance K, @UnsafeVariance A>): Boolean =
         if (fempty()) false else toMaybeFRBTree(kType).fcontainsKey(toKey(item.fitem()))
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean =
-        if (fempty()) false else toMaybeFRBTree(kType).fcontainsKey(toKey(item))
+    override fun fcontains(item: @UnsafeVariance A): Boolean = toMaybeFRBTree(kType).fcontainsKey(toKey(item))
 
     override fun fcontainsAny(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean = if (items.fempty()) !this.fempty() else try {
         val outer = if (this.toIMBTree().fsize() < items.toIMBTree().fsize()) this.toIMBTree() else items.toIMBTree()
@@ -115,9 +115,9 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
         return this.fsize() == maybeSubset.fcount(superset::fcontains)
     }
 
-    override fun fpick(): A? = this.toIMBTree().fpick()?.getv()
+    override fun fpick(): A? = this.toIMBTree().froot()?.getv()
 
-    override fun fpickKey(): K? = toIMBTree().fpick()?.getk()
+    override fun fpickKey(): K? = toIMBTree().froot()?.getk()
 
     override fun fAND(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): FKSet<K, A> {
         val t: FRBTree<K, A> = treeWiseAND(items)
@@ -333,7 +333,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
     override fun fpermute(): Collection<FList<A>> = permutedFIKSet
 
     override fun fpopAndReminder(): Pair<A?, FKSet<K, A>> {
-        val pop: A? = this.fpick()
+        val pop: A? = this.toIMBTree().fpick()?.getv()
         val reminder: FKSet<K, A> = pop?.let { this.fdropItem(it) } ?: emptyIMSet<K, A>() as FKSet<K, A>
         return Pair(pop, reminder)
     }
@@ -369,7 +369,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
     }
 
     //
-    // =========
+    // ========= implementation
     //
 
     fun copyToFList(): FList<A> = when {
@@ -377,9 +377,9 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
         else -> this.fmapToList { it }
     }
 
-    internal fun fsKeyKClassOut(): KClass<out K> = toIMBTree().fpick()!!.getk()::class
+    internal fun fsKeyKClassOut(): KClass<out K> = toIMBTree().froot()!!.getk()::class
 
-    internal fun fsKeyKClass(): KClass<@UnsafeVariance K> = @Suppress("UNCHECKED_CAST") (toIMBTree().fpick()!!.getk()::class as KClass<K>)
+    internal fun fsKeyKClass(): KClass<@UnsafeVariance K> = @Suppress("UNCHECKED_CAST") (toIMBTree().froot()!!.getk()::class as KClass<K>)
 
     protected abstract fun toFRBTree(k: KClass<@UnsafeVariance K>): FRBTree<K, A>
 
@@ -539,7 +539,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
                 else -> TODO()
             }
             this is IMBTree<*, *> -> when {
-                this.fpick()!!.getk() is Int -> this.toIMSet(Int::class) as FKSet<Int, A>
+                this.froot()!!.getk() is Int -> this.toIMSet(Int::class) as FKSet<Int, A>
                 else -> TODO()
             }
             else -> ofi(this.iterator())
@@ -552,7 +552,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
                 else -> TODO()
             }
             this is IMBTree<*, *> -> when {
-                this.fpick()!!.getk() is String -> this.toIMSet(String::class) as FKSet<String, A>
+                this.froot()!!.getk() is String -> this.toIMSet(String::class) as FKSet<String, A>
                 else -> TODO()
             }
             else -> ofs(this.iterator())
@@ -576,13 +576,12 @@ sealed class FKSet<out K, out A: Any> constructor (protected val kType: KClass<@
     }
 }
 
-// internal abstract class FKSetNotEmpty<out K, out A: Any> constructor (kt: KClass<@UnsafeVariance K>?):
-// FKSet<K, A>(kt), IMSetNotEmpty<@UnsafeVariance K, @UnsafeVariance A> where K: Any, K: Comparable<@UnsafeVariance K>
-
 internal class FKSetEmpty<K, A: Any> private constructor (
     val body: FRBTree<K, A>
 ): FKSet<K, A>(null) where K: Any, K: Comparable<@UnsafeVariance K> {
-    override fun isEmpty(): Boolean = true
+
+    // Any
+
     override fun equals(other: Any?): Boolean = when {
         singletonEmpty === other -> true
         other == null -> false
@@ -594,11 +593,21 @@ internal class FKSetEmpty<K, A: Any> private constructor (
     override fun hashCode(): Int = hash
     val show: String by lazy { FKSet::class.simpleName + "(*)" }
     override fun toString(): String = show
-    override val size: Int = 0
+
+    // FKSet
+
     override fun toFRBTree(k: KClass<K>): FRBTree<K, A> = nul()
     override val toKey: (A) -> K
         get() = TODO(msg)
     override fun <V : Any> toTKVEntry(v: V): TKVEntry<K, V> = TODO(msg)
+
+    // Collections
+
+    override fun isEmpty(): Boolean = true
+    override val size = 0
+    override fun contains(element: @UnsafeVariance A): Boolean = false
+    override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean = false
+
     companion object {
         const val msg = "never to be implemented (impossible path)"
         private val singletonEmpty = FKSetEmpty(FRBTNil)
@@ -649,18 +658,15 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
         this === other -> true
         other == null -> false
         other is IMSet<*,*> -> when {
-            this.isEmpty() && other.fempty() -> true
-            this.isEmpty() || other.fempty() -> false
+            other.fempty() -> false
             this.fpick()!!::class != other.fpick()!!::class -> false
             other.fpickKey()!! !is Int -> false
             else -> @Suppress("UNCHECKED_CAST") IMSetEqual2(this, other as IMSet<Int, A>)
-
         }
         other is Set<*> -> when {
-            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
-            this.isEmpty() || other.isEmpty() -> false
+            other.isEmpty() -> false // type erasure boo-boo
+            fsize() != other.size -> false
             this.fpick()!!::class != other.first()!!::class -> false
-            this.fsize() != other.size -> false
             else -> other.equals(this)
         }
         else -> false
@@ -675,7 +681,7 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
         val spacerOpen = "{"
         val spacerClose = "},"
         val cn: String = this::class.simpleName!!.replace("Body","", ignoreCase = true).replace("NotEmpty","", ignoreCase = true)
-        if (this.isEmpty()) "$cn(*)" else "$cn(${body.inorder().ffoldLeft("") { acc, tkv -> acc + spacerOpen + tkv.getv().toString() + spacerClose }.dropLast(1)})"
+        "$cn(${body.inorder().ffoldLeft("") { acc, tkv -> acc + spacerOpen + tkv.getv().toString() + spacerClose }.dropLast(1)})"
     }
     override fun toString(): String = show
     override val size: Int by lazy { body.size }
@@ -744,18 +750,15 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
         this === other -> true
         other == null -> false
         other is IMSet<*,*> -> when {
-            this.isEmpty() && other.fempty() -> true
-            this.isEmpty() || other.fempty() -> false
+            other.fempty() -> false
             this.fpick()!!::class != other.fpick()!!::class -> false
             other.fpickKey()!! !is String -> false
             else -> @Suppress("UNCHECKED_CAST") IMSetEqual2(this, other as IMSet<String, A>)
-
         }
         other is Set<*> -> when {
-            this.isEmpty() && other.isEmpty() -> true // type erasure boo-boo
-            this.isEmpty() || other.isEmpty() -> false
+            other.isEmpty() -> false // type erasure boo-boo
+            fsize() != other.size -> false
             this.fpick()!!::class != other.first()!!::class -> false
-            this.fsize() != other.size -> false
             else -> other.equals(this)
         }
         else -> false
@@ -770,7 +773,7 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
         val spacerOpen = "{"
         val spacerClose = "},"
         val cn: String = this::class.simpleName!!.replace("NotEmpty","", ignoreCase = true)
-        if (this.isEmpty()) "$cn(*)" else "$cn(${body.inorder().ffoldLeft("") { acc, tkv -> acc + spacerOpen + tkv.getv().toString() + spacerClose }.dropLast(1)})"
+        "$cn(${body.inorder().ffoldLeft("") { acc, tkv -> acc + spacerOpen + tkv.getv().toString() + spacerClose }.dropLast(1)})"
     }
     override fun toString(): String = show
     override val size: Int by lazy { body.size }

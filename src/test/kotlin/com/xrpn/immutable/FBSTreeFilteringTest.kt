@@ -62,6 +62,10 @@ class FBSTreeFilteringTest : FunSpec({
         slideShareTree.fcontainsKey(100) shouldBe false
     }
 
+    test("fcontainsValue") {
+        TODO()
+    }
+
     test("dropAll (nil)") {
         nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FBSTree.emptyIMBTree()
         nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FBSTree.emptyIMBTree()

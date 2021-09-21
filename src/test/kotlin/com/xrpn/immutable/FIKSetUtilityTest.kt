@@ -21,25 +21,27 @@ class FIKSetUtilityTest : FunSpec({
 
     beforeTest {}
 
-    test("equal") {
-        intSetOfNone.equal(intSetOfNone) shouldBe true
-        intSetOfNone.equal(intSetOfOne) shouldBe false
-        intSetOfOne.equal(intSetOfNone) shouldBe false
-        intSetOfOne.equal(intSetOfOne) shouldBe true
-        intSetOfOne.equal(FKSet.ofi(1)) shouldBe true
-        FKSet.ofi(1).equal(intSetOfOne) shouldBe true
-        intSetOfOne.equal(intSetOfTwo) shouldBe false
-        intSetOfTwo.equal(intSetOfOne) shouldBe false
-        intSetOfTwo.equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.equal(FKSet.ofi(1,2)) shouldBe true
-        FKSet.ofi(1,2).equal(intSetOfTwo) shouldBe true
-        intSetOfTwo.equal(intSetOfTwoOfst1) shouldBe false
-        intSetOfTwoOfst1.equal(intSetOfTwo) shouldBe false
-        intSetOfTwo.equal(intSetOfThree) shouldBe false
-        intSetOfTwoOfst1.equal(intSetOfThree) shouldBe false
-        intSetOfThree.equal(intSetOfTwo) shouldBe false
-        intSetOfThree.equal(intSetOfTwoOfst1) shouldBe false
-        intSetOfThree.equal(intSetOfThree) shouldBe true
+    test("equal") { TODO() }
+
+    test("strongEqual") {
+        intSetOfNone.strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.strongEqual(intSetOfOne) shouldBe false
+        intSetOfOne.strongEqual(intSetOfNone) shouldBe false
+        intSetOfOne.strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.strongEqual(FKSet.ofi(1)) shouldBe true
+        FKSet.ofi(1).strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.strongEqual(intSetOfTwo) shouldBe false
+        intSetOfTwo.strongEqual(intSetOfOne) shouldBe false
+        intSetOfTwo.strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.strongEqual(FKSet.ofi(1,2)) shouldBe true
+        FKSet.ofi(1,2).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.strongEqual(intSetOfTwoOfst1) shouldBe false
+        intSetOfTwoOfst1.strongEqual(intSetOfTwo) shouldBe false
+        intSetOfTwo.strongEqual(intSetOfThree) shouldBe false
+        intSetOfTwoOfst1.strongEqual(intSetOfThree) shouldBe false
+        intSetOfThree.strongEqual(intSetOfTwo) shouldBe false
+        intSetOfThree.strongEqual(intSetOfTwoOfst1) shouldBe false
+        intSetOfThree.strongEqual(intSetOfThree) shouldBe true
     }
 
     test("fforEach") {
@@ -79,7 +81,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
             val fs1 = fs.copy()
             (fs1 === fs) shouldBe false
-            fs.equal(fs1) shouldBe true
+            fs.strongEqual(fs1) shouldBe true
         }
     }
 

@@ -8,8 +8,10 @@ interface IMList<out A:Any>:
     IMListUtility<A>,
     IMListExtras<A>
 
-interface IMMap<out A, out B: Any>
-        where A: Any, A: Comparable<@UnsafeVariance A>
+interface IMRSet<out A: Any>:
+    IMRSetFiltering<A>,
+    IMRSetGrouping<A>,
+    IMRSetUtility<A>
 
 interface IMSet<out K, out A:Any>:
     IMSetFiltering<K, A>,
@@ -17,20 +19,20 @@ interface IMSet<out K, out A:Any>:
     IMSetTransforming<K, A>,
     IMSetAltering<K, A>,
     IMSetUtility<K, A>,
-    IMSetExtras<K, A>
+    IMSetExtras<K, A>,
+    IMRSet<A>
         where K: Any, K: Comparable<@UnsafeVariance K>
-
-interface IMSetOfOne<out K, out A:Any>:
-    IMSet<K, A>,
-    IMSetNEAltering<K, A>
-        where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun fitem(): A
-}
 
 interface IMSetNotEmpty<out K, out A:Any>:
     IMSet<K, A>,
     IMSetNEAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K>
+
+interface IMSetOfOne<out K, out A:Any>:
+    IMSetNotEmpty<K, A>
+        where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun fitem(): A
+}
 
 //typealias IMISet<A> = IMSet<Int, A>
 //typealias IMISetOfOne<A> = IMSetOfOne<Int, A>
@@ -39,6 +41,13 @@ interface IMSetNotEmpty<out K, out A:Any>:
 //typealias IMSSet<A> = IMSet<String, A>
 //typealias IMSSetOfOne<A> = IMSetOfOne<String, A>
 //typealias IMSSetNotEmpty<A> = IMSetNotEmpty<String, A>
+
+interface IMMap<out K, out V: Any>:
+    IMMapFiltering<K, V>,
+    IMMapGrouping<K, V>,
+    IMMapAltering<K, V>,
+    IMMapUtility<K, V>
+        where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMBTree<out A, out B: Any>:
     IMBTreeTraversing<A, B>,

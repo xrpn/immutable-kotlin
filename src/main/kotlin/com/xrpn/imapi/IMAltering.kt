@@ -1,6 +1,7 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.TKVEntry
+import com.xrpn.immutable.*
+import com.xrpn.immutable.FKMapNotEmpty
 
 interface IMListAltering<out A: Any> {
     fun fappend(item: @UnsafeVariance A): IMList<A>
@@ -17,6 +18,13 @@ interface IMSetAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVa
 
 interface IMSetNEAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<K, A>
+}
+
+interface IMMapAltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): IMMap<K, V>
+    fun fputPair(p: Pair<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fputList(l: FList<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): IMMap<K, V>
+    fun fputTree(t: IMBTree<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
 }
 
 interface IMBTreeAltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {

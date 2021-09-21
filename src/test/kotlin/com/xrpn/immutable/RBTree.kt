@@ -420,6 +420,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
+    override fun fcontainsValue(value: B): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun fdropItem(item: TKVEntry<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
@@ -473,6 +477,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun toIMSetSeeder(kType: KClass<A>, initial: B): IMSet<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun toIMMap(): IMMap<A, B> {
         TODO("Not yet implemented")
     }
 

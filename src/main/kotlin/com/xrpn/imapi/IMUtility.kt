@@ -11,20 +11,34 @@ interface IMListUtility<out A: Any> {
     fun copyToMutableList(): MutableList<@UnsafeVariance A>
 }
 
-interface IMSetUtility<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun equal(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
+interface IMRSetUtility<out A: Any> {
+    fun equal(rhs: IMRSet<@UnsafeVariance A>): Boolean
+    fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
+}
+
+interface IMSetUtility<out K, out A: Any>: IMRSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun strongEqual(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun toIMBTree(): IMBTree<K, A>
     fun copy(): IMSet<K, A>
-    fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
+    override fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
+}
+
+interface IMMapUtility<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun equal(rhs: IMMap<@UnsafeVariance K, @UnsafeVariance V>): Boolean
+    fun fforEach (f: (V) -> Unit): Unit
+    fun toIMBTree(): IMBTree<K, V>
+    fun copy(): IMMap<K, V>
+    fun copyToMutableMap(): MutableMap<@UnsafeVariance K, @UnsafeVariance V>
 }
 
 interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
-        if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.fpick()) { _, tkv -> f(tkv); tkv }; Unit }
+        if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.froot()) { _, tkv -> f(tkv); tkv }; Unit }
     fun toIMSet(kType: KClass<@UnsafeVariance A>): IMSet<A, B>
     fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): IMSet<A, B>
+    fun toIMMap(): IMMap<A, B>
     fun copy(): IMBTree<A, B>
     fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = (
         this as IMBTree<A,B>).ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }

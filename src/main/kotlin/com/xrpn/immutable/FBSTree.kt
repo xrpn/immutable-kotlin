@@ -69,6 +69,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): FKSet<A, B> = toIMSetImpl(this, kType, initial)
 
+    override fun toIMMap(): IMMap<A, B> = ofFKMapBody(this.frbToIMBTree())
+
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
     // =========== traversable
@@ -155,6 +157,14 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =
         bstFindKey(this, key) != null
+
+    override fun fcontainsValue(value: @UnsafeVariance B): Boolean = if (this.fempty()) false else try {
+        // TODO gross, find something better
+        this.ffold(0) { acc, tkv -> if(value.equals(tkv.getv())) throw BreakoutException() else acc+1 }
+        false
+    } catch (ex: BreakoutException) {
+        true
+    }
 
     override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> {
         // TODO memoization
@@ -410,13 +420,11 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             unwindQueue(newQueue, newAcc, accrue)
         }
 
-    internal fun fbsKeyKClassOut(): KClass<out A> = fpick()!!.getk()::class
+    internal fun fbsKeyKClassOut(): KClass<out A> = froot()!!.getk()::class
 
-    internal fun fbsKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (fpick()!!.getk()::class as KClass<A>)
+    internal fun fbsKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>)
 
     companion object: IMBTreeCompanion {
-
-        private class BreakoutException(): RuntimeException()
 
         const val NOT_FOUND = -1
 
@@ -914,16 +922,19 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
             }
             t.fempty() -> FKSet.emptyFIKSet()
-            kType == Int::class -> if (t.fpick()!!.getk() is Int) {
+            kType == Int::class -> if (t.froot()!!.getk() is Int) {
                 val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<Int, B>))
                 @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.fpick()!!.getk()::class})")
-            kType == String::class -> if (t.fpick()!!.getk() is String) {
+            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.froot()!!.getk()::class})")
+            kType == String::class -> if (t.froot()!!.getk() is String) {
                 val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<String, B>))
                 @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.fpick()!!.getk()::class})")
+            } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.froot()!!.getk()::class})")
             else -> throw RuntimeException("${FKSet.unknownKeyType} $kType ${if (t.fempty()) ' ' else t.fbsKeyKClass().toString() }")
         }
+
+        private class BreakoutException(): RuntimeException()
+
     }
 }
 
@@ -965,9 +976,9 @@ internal data class FBSTNode<out A, out B: Any> (
                 val mind = node.fminDepth()
                 val maxd = node.fmaxDepth()
                 val dmsg = if (1 == maxd && 1 == mind) "(*)" else "(${node.fminDepth()}|${node.fmaxDepth()})"
-                var acc3 = FLCons("{${node.entry}:$dmsg},", acc)
-                var acc1: FList<String>
-                var acc2: FList<String>
+                val acc3 = FLCons("{${node.entry}:$dmsg},", acc)
+                val acc1: FList<String>
+                val acc2: FList<String>
                 val q1 = if (node.bLeft is FBSTNil) {
                     acc1 = FLCons("", acc3)
                     dequeued
