@@ -917,11 +917,11 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         private fun <A, B: Any> toIMSetImpl(t: FBSTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
             initial != null -> when {
-                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toISoO() as FKSet<A, B>)
-                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toSSoO() as FKSet<A, B>)
+                kType == Int::class -> @Suppress("UNCHECKED_CAST") (ofFIKSNotEmpty(FRBTree.ofvi(initial) as FRBTNode) as FKSet<A, B>)
+                kType == String::class -> @Suppress("UNCHECKED_CAST") (ofFSKSNotEmpty(FRBTree.ofvs(initial) as FRBTNode) as FKSet<A, B>)
                 else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
             }
-            t.fempty() -> FKSet.emptyFIKSet()
+            t.fempty() -> FKSetEmpty.empty()
             kType == Int::class -> if (t.froot()!!.getk() is Int) {
                 val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<Int, B>))
                 @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)

@@ -63,7 +63,20 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("fcontainsValue") {
-        TODO()
+        nul<Int, String>().fcontainsValue(zEntry.getv()) shouldBe false
+        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
+            when (acc) {
+                is FLNil -> FLNil
+                is FLCons -> {
+                    val p = t.fcontainsValue(acc.head.getv())
+                    p shouldBe true
+                    go(t, acc.tail)
+                }
+            }
+        go(wikiTree, wikiPreorder)
+        wikiTree.fcontainsValue(zEntry.getv()) shouldBe false
+        go(slideShareTree, slideShareBreadthFirst)
+        slideShareTree.fcontainsValue(100) shouldBe false
     }
 
     test("dropAll (nil)") {

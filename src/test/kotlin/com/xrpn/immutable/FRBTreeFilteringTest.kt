@@ -22,6 +22,7 @@ class FRBTreeFilteringTest : FunSpec({
     beforeTest {}
 
     test("fcontains") {
+        nul<Int, String>().fcontains(zEntry) shouldBe false
         tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
             when (acc) {
                 is FLNil -> FLNil
@@ -37,6 +38,7 @@ class FRBTreeFilteringTest : FunSpec({
     }
 
     test("fcontainsKey") {
+        nul<Int, String>().fcontainsKey(zEntry.getk()) shouldBe false
         tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
             when (acc) {
                 is FLNil -> FLNil
@@ -52,7 +54,19 @@ class FRBTreeFilteringTest : FunSpec({
     }
 
     test("fcontainsValue") {
-        TODO()
+        nul<Int, String>().fcontainsValue(zEntry.getv()) shouldBe false
+        tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
+            when (acc) {
+                is FLNil -> FLNil
+                is FLCons -> {
+                    (t.fcontainsValue(acc.head.getv())) shouldBe true
+                    go(t, acc.tail)
+                }
+            }
+        go(frbWikiTree, frbWikiPreorder)
+        frbWikiTree.fcontainsValue(zEntry.getv()) shouldBe false
+        go(frbSlideShareTree, frbSlideShareBreadthFirst)
+        frbSlideShareTree.fcontainsValue(100) shouldBe false
     }
 
     test("dropAll (nil)") {

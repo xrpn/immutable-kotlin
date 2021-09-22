@@ -81,7 +81,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     override fun copy(): FKMap<K, V> = when (this) {
         is FKMapEmpty -> emptyFKMap()
-        is FKMapNotEmpty -> body.ffold(nul<K, V>()) { acc, tkv -> acc.finsert(tkv) }.toIMMap() as FKMap<K, V>
+        is FKMapNotEmpty -> body.ffold(nul<K, V>()) { acc, tkv -> acc.finsert(tkv) }.toIMMap()
     }
 
     override fun copyToMutableMap(): MutableMap<@UnsafeVariance K, @UnsafeVariance V> = when (this) {
@@ -152,8 +152,8 @@ internal class FKMapEmpty<K, V: Any> private constructor (
 
     override fun isEmpty(): Boolean = true
     override val size: Int = 0
-    override val entries: Set<Map.Entry<K, V>> = FIKSet.emptyFIKSet<Int, TKVEntry<K,V>>()
-    override val keys: Set<K> = FIKSet.emptyFIKSet<Int, K>()
+    override val entries: Set<Map.Entry<K, V>> = FKSetEmpty.empty<Int, TKVEntry<K,V>>()
+    override val keys: Set<K> = FKSetEmpty.empty<Int, K>()
     override val values: Collection<V> = FList.emptyIMList()
     override fun containsKey(key: K): Boolean = false
     override fun containsValue(value: V): Boolean = false
@@ -208,8 +208,10 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         val (item: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndReminder()
         item as TKVEntry<K, V>
         val res: IMRSet<TKVEntry<K, V>> = when(item.getk()) {
-            is String -> remainder.ffold(item.toSSoO() as IMSetNotEmpty<String, TKVEntry<K, V>>) { acc, tkv -> acc.faddItem(tkv) }
-            else -> remainder.ffold(item.toISoO() as IMSetNotEmpty<Int, TKVEntry<K, V>>) { acc, tkv -> acc.faddItem(tkv) }
+            is String -> remainder
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMSetNotEmpty<String, TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
+            else -> remainder
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMSetNotEmpty<Int, TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
         }
         @Suppress("UNCHECKED_CAST") (res as Set<Map.Entry<K, V>>)
     }

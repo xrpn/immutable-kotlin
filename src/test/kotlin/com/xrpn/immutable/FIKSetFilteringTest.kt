@@ -22,22 +22,6 @@ class FIKSetFilteringTest : FunSpec({
     
     beforeTest {}
 
-    test("fcontainsSoO") {
-        intSetOfNone.fcontainsSoO(1.toISoO()) shouldBe false
-        intSetOfOne.fcontainsSoO(0.toISoO()) shouldBe false
-        intSetOfOne.fcontainsSoO(1.toISoO()) shouldBe true
-        intSetOfOne.fcontainsSoO(2.toISoO()) shouldBe false
-        intSetOfTwo.fcontainsSoO(0.toISoO()) shouldBe false
-        intSetOfTwo.fcontainsSoO(1.toISoO()) shouldBe true
-        intSetOfTwo.fcontainsSoO(2.toISoO()) shouldBe true
-        intSetOfTwo.fcontainsSoO(3.toISoO()) shouldBe false
-        intSetOfThree.fcontainsSoO(0.toISoO()) shouldBe false
-        intSetOfThree.fcontainsSoO(1.toISoO()) shouldBe true
-        intSetOfThree.fcontainsSoO(2.toISoO()) shouldBe true
-        intSetOfThree.fcontainsSoO(3.toISoO()) shouldBe true
-        intSetOfThree.fcontainsSoO(4.toISoO()) shouldBe false
-    }
-
     test("fcontains") {
         intSetOfNone.fcontains(1) shouldBe false
         intSetOfOne.fcontains(0) shouldBe false
@@ -52,22 +36,6 @@ class FIKSetFilteringTest : FunSpec({
         intSetOfThree.fcontains(2) shouldBe true
         intSetOfThree.fcontains(3) shouldBe true
         intSetOfThree.fcontains(4) shouldBe false
-    }
-
-    test("fcontainsAny SoO") {
-        intSetOfNone.fcontainsAny(1.toISoO()) shouldBe false
-        intSetOfOne.fcontainsAny(0.toISoO()) shouldBe false
-        intSetOfOne.fcontainsAny(1.toISoO()) shouldBe true
-        intSetOfOne.fcontainsAny(2.toISoO()) shouldBe false
-        intSetOfTwo.fcontainsAny(0.toISoO()) shouldBe false
-        intSetOfTwo.fcontainsAny(1.toISoO()) shouldBe true
-        intSetOfTwo.fcontainsAny(2.toISoO()) shouldBe true
-        intSetOfTwo.fcontainsAny(3.toISoO()) shouldBe false
-        intSetOfThree.fcontainsAny(0.toISoO()) shouldBe false
-        intSetOfThree.fcontainsAny(1.toISoO()) shouldBe true
-        intSetOfThree.fcontainsAny(2.toISoO()) shouldBe true
-        intSetOfThree.fcontainsAny(3.toISoO()) shouldBe true
-        intSetOfThree.fcontainsAny(4.toISoO()) shouldBe false
     }
 
     test("fcontainsAny") {
@@ -88,23 +56,6 @@ class FIKSetFilteringTest : FunSpec({
         intSetOfThree.fcontainsAny(intSetMaverick) shouldBe false
     }
 
-    test("fdropSoO") {
-        intSetOfNone.fdropSoO(0.toISoO()).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropSoO(0.toISoO()).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fdropSoO(1.toISoO()).strongEqual(intSetOfNone) shouldBe true
-        
-        intSetOfTwo.fdropSoO(0.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropSoO(1.toISoO()).strongEqual(FKSet.ofi(2)) shouldBe true
-        intSetOfTwo.fdropSoO(2.toISoO()).strongEqual(intSetOfOne) shouldBe true
-        intSetOfTwo.fdropSoO(3.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-
-        intSetOfThree.fdropSoO(0.toISoO()).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fdropSoO(1.toISoO()).strongEqual(FKSet.ofi(2, 3)) shouldBe true
-        intSetOfThree.fdropSoO(2.toISoO()).strongEqual(FKSet.ofi(1, 3)) shouldBe true
-        intSetOfThree.fdropSoO(3.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfThree.fdropSoO(4.toISoO()).strongEqual(intSetOfThree) shouldBe true
-    }
-
     test("fdropItem") {
         intSetOfNone.fdropItem(0).strongEqual(intSetOfNone) shouldBe true
         intSetOfOne.fdropItem(0).strongEqual(intSetOfOne) shouldBe true
@@ -120,23 +71,6 @@ class FIKSetFilteringTest : FunSpec({
         intSetOfThree.fdropItem(2).strongEqual(FKSet.ofi(1, 3)) shouldBe true
         intSetOfThree.fdropItem(3).strongEqual(intSetOfTwo) shouldBe true
         intSetOfThree.fdropItem(4).strongEqual(intSetOfThree) shouldBe true
-    }
-
-    test("fdropAll SoO") {
-        intSetOfNone.fdropAll(0.toISoO()).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropAll(0.toISoO()).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fdropAll(1.toISoO()).strongEqual(intSetOfNone) shouldBe true
-
-        intSetOfTwo.fdropAll(0.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropAll(1.toISoO()).strongEqual(FKSet.ofi(2)) shouldBe true
-        intSetOfTwo.fdropAll(2.toISoO()).strongEqual(intSetOfOne) shouldBe true
-        intSetOfTwo.fdropAll(3.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-
-        intSetOfThree.fdropAll(0.toISoO()).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fdropAll(1.toISoO()).strongEqual(FKSet.ofi(2, 3)) shouldBe true
-        intSetOfThree.fdropAll(2.toISoO()).strongEqual(FKSet.ofi(1, 3)) shouldBe true
-        intSetOfThree.fdropAll(3.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfThree.fdropAll(4.toISoO()).strongEqual(intSetOfThree) shouldBe true
     }
 
     test("fdropAll") {

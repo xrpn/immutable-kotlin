@@ -14,21 +14,12 @@ class FIKSetAlteringTest : FunSpec({
 
     beforeTest {}
 
-    test("faddSoO") {
-        intSetOfNone.faddSoO(1.toISoO()).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.faddSoO(2.toISoO()).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.faddSoO(3.toISoO()).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.faddSoO(4.toISoO()).fsize() shouldBe 4
-    }
-
     test("faddItem") {
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (intSetOfNone as IMSetNotEmpty<Int, Int>)
         }
         intSetOfOne.faddItem(2).strongEqual(intSetOfTwo) shouldBe true
-        1.toISoO().faddItem(2).strongEqual(intSetOfTwo) shouldBe true
         intSetOfTwo.faddItem(3).strongEqual(intSetOfThree) shouldBe true
-        1.toISoO().faddItem(2).faddItem(3).strongEqual(intSetOfThree) shouldBe true
         intSetOfThree.faddItem(4).fsize() shouldBe 4
     }
 

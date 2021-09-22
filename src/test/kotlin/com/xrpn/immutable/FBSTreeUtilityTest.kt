@@ -183,12 +183,12 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("toIMSetSeeder Int") {
-    intFBSTreeOfNone.toIMSetSeeder(Int::class, 1) shouldBe 1.toISoO()
+    intFBSTreeOfNone.toIMSetSeeder(Int::class, 1) shouldBe FKSet.ofi(1)
     intFBSTreeOfNone.toIMSetSeeder(Int::class, 2) shouldBe FKSet.ofi(2)
   }
 
   test("toIMSetSeeder Str") {
-    intFBSSTreeOfNone.toIMSetSeeder(String::class, 1) shouldBe 1.toSSoO()
+    intFBSSTreeOfNone.toIMSetSeeder(String::class, 1) shouldBe FKSet.ofs(1)
     intFBSSTreeOfNone.toIMSetSeeder(String::class, 2) shouldBe FKSet.ofs(2)
   }
 

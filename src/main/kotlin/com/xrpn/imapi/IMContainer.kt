@@ -17,7 +17,6 @@ interface IMSet<out K, out A:Any>:
     IMSetFiltering<K, A>,
     IMSetGrouping<K, A>,
     IMSetTransforming<K, A>,
-    IMSetAltering<K, A>,
     IMSetUtility<K, A>,
     IMSetExtras<K, A>,
     IMRSet<A>
@@ -27,20 +26,6 @@ interface IMSetNotEmpty<out K, out A:Any>:
     IMSet<K, A>,
     IMSetNEAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K>
-
-interface IMSetOfOne<out K, out A:Any>:
-    IMSetNotEmpty<K, A>
-        where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun fitem(): A
-}
-
-//typealias IMISet<A> = IMSet<Int, A>
-//typealias IMISetOfOne<A> = IMSetOfOne<Int, A>
-//typealias IMISetNotEmpty<A> = IMSetNotEmpty<Int, A>
-//
-//typealias IMSSet<A> = IMSet<String, A>
-//typealias IMSSetOfOne<A> = IMSetOfOne<String, A>
-//typealias IMSSetNotEmpty<A> = IMSetNotEmpty<String, A>
 
 interface IMMap<out K, out V: Any>:
     IMMapFiltering<K, V>,

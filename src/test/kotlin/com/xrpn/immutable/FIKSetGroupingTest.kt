@@ -2,6 +2,8 @@ package com.xrpn.immutable
 
 import com.xrpn.hash.JohnsonTrotter
 import com.xrpn.hash.JohnsonTrotter.smallFact
+import com.xrpn.imapi.IMList
+import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.FKSet.Companion.emptyIMSet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import io.kotest.assertions.fail
@@ -276,7 +278,7 @@ class FIKSetGroupingTest : FunSpec({
         fourp.size shouldBe 24 // 3!
         val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFour.toIMBTree() as FRBTree<Int, Int>)
         val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
-            s.faddSoO(FList.ofMap(aryl) { tkv -> tkv.getv() }.toISoO())
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         } as FKSet<Int, FList<Int>>
         fourp.equals(p4jt) shouldBe true
 
@@ -284,7 +286,7 @@ class FIKSetGroupingTest : FunSpec({
         fivep.size shouldBe 120 // 5!
         val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFive.toIMBTree() as FRBTree<Int, Int>)
         val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
-            s.faddSoO(FList.ofMap(aryl) { tkv -> tkv.getv() }.toISoO())
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         } as FKSet<Int, FList<Int>>
         fivep.equals(p5jt) shouldBe true
 
@@ -294,7 +296,7 @@ class FIKSetGroupingTest : FunSpec({
         sixp.size shouldBe 720 // 6!
         val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSix.toIMBTree() as FRBTree<Int, Int>)
         val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
-            s.faddSoO(FList.ofMap(aryl) { tkv -> tkv.getv() }.toISoO())
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         } as FKSet<Int, FList<Int>>
         sixp.equals(p6jt) shouldBe true
 
@@ -305,7 +307,7 @@ class FIKSetGroupingTest : FunSpec({
         val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSeven.toIMBTree() as FRBTree<Int, Int>)
         val p7jt: FKSet<Int, FList<Int>> =
             JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
-                s.faddSoO(FList.ofMap(aryl) { tkv -> tkv.getv() }.toISoO())
+                s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
             } as FKSet<Int, FList<Int>>
         sevenp.equals(p7jt) shouldBe true
 
@@ -335,9 +337,9 @@ class FIKSetGroupingTest : FunSpec({
 
         // this traverses slideShareTree popping one element at a time, and rebuilding the set with the popped element
         val res = ofFIKSBody(frbSlideShareTree).ffold(Pair(emptyIMSet<Int, Int>(), ofFIKSBody(frbSlideShareTree).fpopAndReminder())) { acc, _ ->
-            val (rebuild, popAndStub) = acc
+            val (rebuild: IMSet<Int, Int>, popAndStub: Pair<Int?, FKSet<Int, Int>>) = acc
             val (pop, stub) = popAndStub
-            Pair(rebuild.faddSoO(pop!!.toISoO()), stub.fpopAndReminder())
+            Pair(rebuild.fOR(ofi(pop!!)), stub.fpopAndReminder())
         }
         res.first.equals(ofFIKSBody(frbSlideShareTree)) shouldBe true
         val (lastPopped, lastReminder) = res.second

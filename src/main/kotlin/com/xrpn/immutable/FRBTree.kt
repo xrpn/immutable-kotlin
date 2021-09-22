@@ -74,11 +74,11 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMSet(kType: KClass<@UnsafeVariance A>): IMSet<A, B> = toIMSetImpl(this, kType)
+    override fun toIMSet(kType: KClass<@UnsafeVariance A>): FKSet<A, B> = toFKSetImpl(this, kType)
 
-    override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): IMSet<A, B> = toIMSetImpl(this, kType, initial)
+    override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): FKSet<A, B> = toFKSetImpl(this, kType, initial)
 
-    override fun toIMMap(): IMMap<A, B> = ofFKMapBody(this)
+    override fun toIMMap(): FKMap<A, B> = ofFKMapBody(this)
 
     override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
@@ -938,13 +938,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
-        private fun <A, B: Any> toIMSetImpl(t: FRBTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
+        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
             initial != null -> when {
-                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toISoO() as FKSet<A, B>)
-                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toSSoO() as FKSet<A, B>)
+                kType == Int::class -> @Suppress("UNCHECKED_CAST") (ofFIKSNotEmpty(ofvi(initial) as FRBTNode) as FKSet<A, B>)
+                kType == String::class -> @Suppress("UNCHECKED_CAST") (ofFSKSNotEmpty(ofvs(initial) as FRBTNode) as FKSet<A, B>)
                 else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
             }
-            t.fempty() -> FKSet.emptyFIKSet()
+            t.fempty() -> FKSetEmpty.empty()
             kType == Int::class -> if (t.froot()!!.getk() is Int) {
                     val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t as IMBTree<Int, B>))
                     @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
@@ -968,7 +968,6 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
         this === other -> true
         other == null -> false
         other is IMBTree<*, *> -> other.fempty()
-        // other is Set<*> -> other.isEmpty()
         else -> false
     }
 }

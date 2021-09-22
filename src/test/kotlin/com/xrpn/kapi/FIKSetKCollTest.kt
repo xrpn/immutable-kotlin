@@ -8,17 +8,16 @@ import com.xrpn.immutable.FKSet.Companion.emptyIMSet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import com.xrpn.immutable.FKSet.Companion.toIMSet
 import com.xrpn.immutable.pmap1
-import com.xrpn.immutable.toISoO
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val intSetOfNone: Collection<Int> = FKSet.ofi(*arrayOf<Int>())
-private val intSetOfOneA: Collection<Int> = @Suppress("UNCHECKED_CAST") (0.toISoO() as Collection<Int>)
-private val intSetOfOne: Collection<Int> = @Suppress("UNCHECKED_CAST") (1.toISoO() as Collection<Int>)
-private val intSetOfOneB: Collection<Int> = @Suppress("UNCHECKED_CAST") (2.toISoO() as Collection<Int>)
-private val intSetOfOneC: Collection<Int> = @Suppress("UNCHECKED_CAST") (3.toISoO() as Collection<Int>)
-private val intSetOfOneD: Collection<Int> = @Suppress("UNCHECKED_CAST") (4.toISoO() as Collection<Int>)
+private val intSetOfOneA: Collection<Int> = FKSet.ofi(0)
+private val intSetOfOne: Collection<Int> = FKSet.ofi(1)
+private val intSetOfOneB: Collection<Int> = FKSet.ofi(2)
+private val intSetOfOneC: Collection<Int> = FKSet.ofi(3)
+private val intSetOfOneD: Collection<Int> = FKSet.ofi(4)
 private val intSetOfTwoA: Collection<Int> = FKSet.ofi(*arrayOf<Int>(1,3))
 private val intSetOfTwo: Collection<Int> = FKSet.ofi(*arrayOf<Int>(1,2))
 private val intSetOfTwoB: Collection<Int> = FKSet.ofi(*arrayOf<Int>(0,2))
