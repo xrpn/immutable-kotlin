@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 import kotlin.reflect.KClass
 
@@ -111,32 +112,14 @@ internal fun <K, V: Any> IMMapEqual2(lhs: IMMap<K, V>, rhs: IMMap<K, V>): Boolea
 }
 
 interface IMMapCompanion {
-
     fun <K, V: Any> emptyIMMap(): IMMap<K, V> where K: Any, K: Comparable<K>
-    fun <V: Any> ofi(vararg items: V): IMMap<Int, V>
-    fun <V: Any> ofi(items: Iterator<V>): IMMap<Int, V>
-    fun <V: Any> ofi(items: IMBTree<Int, V>): IMMap<Int, V>
-    fun <V: Any> ofi(items: IMList<V>): IMMap<Int, V>
-    fun <W, V: Any> ofiMap(items: Iterator<W>, f: (W) -> V): IMMap<Int, V>
-    fun <W: Any, V: Any> ofiMap(items: IMList<W>, f: (W) -> V): IMMap<Int, V>
-    fun <W, V: Any> ofiMap(items: List<W>, f: (W) -> V): IMMap<Int, V>
+    fun <K, V: Any> of(vararg items: Pair<K, V>): IMMap<K, V> where K: Any, K: Comparable<K>
+    fun <K, V: Any> of(items: Iterator<Pair<K, V>>): IMMap<K, V> where K: Any, K: Comparable<K>
+    fun <K, V: Any> of(items: IMList<Pair<K, V>>): IMMap<K, V> where K: Any, K: Comparable<K>
+    fun <K, V: Any> of(items: IMBTree<K, V>): IMMap<K, V> where K: Any, K: Comparable<K>
 
-    fun <V: Any> ofs(vararg items: V): IMMap<String, V>
-    fun <V: Any> ofs(items: Iterator<V>): IMMap<String, V>
-    fun <V: Any> ofs(items: IMBTree<String, V>): IMMap<String, V>
-    fun <V: Any> ofs(items: IMList<V>): IMMap<String, V>
-    fun <W, V: Any> ofsMap(items: Iterator<W>, f: (W) -> V): IMMap<String, V>
-    fun <W: Any, V: Any> ofsMap(items: IMList<W>, f: (W) -> V): IMMap<String, V>
-    fun <W, V: Any> ofsMap(items: List<W>, f: (W) -> V): IMMap<String, V>
-
-    fun <K, W : Any> toTKVEntry(s: IMMap<K, W>, v: W): TKVEntry<K, W>? where K: Any, K: Comparable<K>
-
-    fun <K, V: Any> Collection<V>.toIMMap(kType: KClass<K>): IMMap<K, V> where K: Any, K: Comparable<K>
-    fun <V: Any> Collection<V>.toIMISet(): IMMap<Int, V>
-    fun <V: Any> Collection<V>.toIMSSet(): IMMap<String, V>
+    fun <K, V: Any> Collection<V>.toIMMap(keyMaker: (V) -> K): IMMap<K, V> where K: Any, K: Comparable<K>
 }
-
-
 
 // because of type erasure, this is not entirely type safe, hence "internal"
 // this is a "weak" equality test, concerned with element containment and disregarding tree shape

@@ -20,6 +20,7 @@ interface IMSetUtility<out K, out A: Any>: IMRSetUtility<A> where K: Any, K: Com
     fun strongEqual(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun toIMBTree(): IMBTree<K, A>
+    fun toIMSetNotEmpty(): IMSetNotEmpty<K, A>?
     fun copy(): IMSet<K, A>
     override fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
 }

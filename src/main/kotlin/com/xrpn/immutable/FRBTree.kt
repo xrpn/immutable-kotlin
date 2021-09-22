@@ -166,17 +166,17 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     }
 
     override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> {
-        // TODO memoization
+        // TODO consider memoization
         return rbtDeletes(this, items as FList<TKVEntry<A,B>>)
     }
 
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
-        // TODO memoization
+        // TODO consider memoization
         return rbtDelete(this, item)
     }
 
     override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
-        // TODO memoization
+        // TODO consider memoization
         return rbtDelete(this, item)
     }
 
@@ -396,7 +396,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         fun <A, B: Any> nul(): FRBTree<A, B> where A: Any, A: Comparable<A> = FRBTNil
 
-        override fun <A, B : Any> emptyIMBTree(): IMBTree<A, B> where A: Any, A : Comparable<A> = nul()
+        override fun <A, B : Any> emptyIMBTree(): FRBTree<A, B> where A: Any, A : Comparable<A> = nul()
 
         // =================
 
@@ -406,7 +406,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items.iterator())
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A,B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = FRBTNil
-            for (item in items)  { res = rbtInsert(res, item) }
+            items.forEach  { res = rbtInsert(res, it) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
@@ -426,9 +426,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items.iterator())
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = nul()
-            for(item in items) {
-                res = rbtInsert(res, TKVEntry.of(item.getk(), item.getv(), cc))
-            }
+            items.forEach { res = rbtInsert(res, TKVEntry.of(it.getk(), it.getv(), cc)) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofc(items)"))
@@ -443,7 +441,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items.iterator())
         override fun <B : Any> ofvi(items: Iterator<B>): FRBTree<Int, B> {
             var res: FRBTree<Int, B> = FRBTNil
-            for (item in items) { res = rbtInsert(res, TKVEntry.ofIntKey(item))}
+            items.forEach { res = rbtInsert(res, TKVEntry.ofIntKey(it))}
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
@@ -465,7 +463,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items.iterator())
         override fun <B : Any> ofvs(items: Iterator<B>): FRBTree<String, B> {
             var res: FRBTree<String, B> = FRBTNil
-            for (item in items) { res = rbtInsert(res, TKVEntry.ofStrKey(item))}
+            items.forEach { res = rbtInsert(res, TKVEntry.ofStrKey(it)) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
@@ -483,7 +481,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> {
             var res: FRBTree<C, D> = FRBTNil
-            for (item in items)  { res = rbtInsert(res, f(item)) }
+            items.forEach { res = rbtInsert(res, f(it)) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofMap(items, f)"))
@@ -494,7 +492,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, f: (B) -> C): FRBTree<Int, C> {
             var res: FRBTree<Int, C> = FRBTNil
-            for (item in items) { res = rbtInsert(res, TKVEntry.ofIntKey(f(item))) }
+            items.forEach { res = rbtInsert(res, TKVEntry.ofIntKey(f(it))) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofviMap(items, f)"))
@@ -505,7 +503,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, f: (B) -> C): FRBTree<String, C> {
             var res: FRBTree<String, C> = FRBTNil
-            for (item in items) { res = rbtInsert(res, TKVEntry.ofStrKey(f(item))) }
+            items.forEach { res = rbtInsert(res, TKVEntry.ofStrKey(f(it))) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofvsMap(items, f)"))
@@ -940,8 +938,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
             initial != null -> when {
-                kType == Int::class -> @Suppress("UNCHECKED_CAST") (ofFIKSNotEmpty(ofvi(initial) as FRBTNode) as FKSet<A, B>)
-                kType == String::class -> @Suppress("UNCHECKED_CAST") (ofFSKSNotEmpty(ofvs(initial) as FRBTNode) as FKSet<A, B>)
+                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toFIKSet() as FKSet<A, B>)
+                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toFSKSet() as FKSet<A, B>)
                 else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
             }
             t.fempty() -> FKSetEmpty.empty()

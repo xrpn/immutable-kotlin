@@ -18,7 +18,11 @@ class FKMapIterator<out K, out V: Any> internal constructor (val seed: FKMap<K, 
     override fun hasNext(): Boolean = iter.hasNext()
 
     // not thread safe
-    override fun next(): TKVEntry<K, V> = iter.next()
+    override fun next(): TKVEntry<K, V> = try {
+        iter.next()
+    } catch (ex: Exception) {
+        throw ex
+    }
 
     fun reset(): Boolean = iter.reset()
 

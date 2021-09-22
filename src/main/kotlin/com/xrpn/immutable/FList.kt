@@ -531,18 +531,14 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             var acc : FList<A> = FLNil
             if (items.isEmpty()) return acc
             items.reverse()
-            items.forEach {
-                acc = FLCons(it, acc)
-            }
+            items.forEach { acc = FLCons(it, acc) }
             return acc
         }
 
         override fun <A: Any> of(items: Iterator<A>): FList<A> {
             var acc : FList<A> = FLNil
             if (! items.hasNext()) return acc
-            items.forEach {
-                acc = FLCons(it, acc)
-            }
+            items.forEach { acc = FLCons(it, acc) }
             return acc.freverse()
         }
 
@@ -550,9 +546,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             var acc : FList<A> = FLNil
             if (items.isEmpty()) return acc
             val li = items.listIterator(items.size)
-            while (li.hasPrevious()){
-                acc = FLCons(li.previous(), acc)
-            }
+            while (li.hasPrevious()){ acc = FLCons(li.previous(), acc) }
             return acc
         }
 
@@ -564,9 +558,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         override fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): FList<A> {
             var acc : FList<A> = FLNil
             if (! items.hasNext()) return acc
-            items.forEach {
-                acc = FLCons(f(it), acc)
-            }
+            items.forEach { acc = FLCons(f(it), acc) }
             return acc.freverse()
         }
 
@@ -574,9 +566,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             var acc : FList<A> = FLNil
             if (items.isEmpty()) return acc
             val li = items.listIterator(items.size)
-            while (li.hasPrevious()){
-                acc = FLCons(f(li.previous()), acc)
-            }
+            while (li.hasPrevious()){ acc = FLCons(f(li.previous()), acc) }
             return acc
         }
 

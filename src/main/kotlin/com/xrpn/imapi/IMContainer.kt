@@ -24,7 +24,7 @@ interface IMSet<out K, out A:Any>:
 
 interface IMSetNotEmpty<out K, out A:Any>:
     IMSet<K, A>,
-    IMSetNEAltering<K, A>
+    IMSetAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMap<out K, out V: Any>:

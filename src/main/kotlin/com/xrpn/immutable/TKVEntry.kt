@@ -44,6 +44,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
     fun getkc(): Comparable<@UnsafeVariance A>
     fun getv(): B
     fun copy(): TKVEntry<A,B>
+    fun toPair(): Pair<A,B> = Pair(getk(),getv())
 
     companion object {
         fun <A: Comparable<A>, B: Any> of (key:A, value: B): TKVEntry<A, B> = TKVEntryK(key, value)

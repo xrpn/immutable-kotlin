@@ -2,7 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FKMap.Companion.of
-import com.xrpn.immutable.FKMap.Companion.emptyFKMap
+import com.xrpn.immutable.FKMap.Companion.emptyIMMap
 import com.xrpn.immutable.FKMap.Companion.fequal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -14,8 +14,7 @@ class FMapTest : FunSpec({
 
     val repeatsLow = Pair(2, 40000)
 
-    beforeTest {
-    }
+    beforeTest {}
 
     test("keys, values, entries") {
         val bulkMapWiki = of(frbWikiPreorder)
@@ -39,8 +38,8 @@ class FMapTest : FunSpec({
     //
 
     test("co.==") {
-        (emptyFKMap<Int, Int>() == emptyFKMap<Int, Int>()) shouldBe true
-        emptyFKMap<Int, Int>().fequal(emptyFKMap<Int, Int>()) shouldBe true
+        (emptyIMMap<Int, Int>() == emptyIMMap<Int, Int>()) shouldBe true
+        emptyIMMap<Int, Int>().fequal(emptyIMMap<Int, Int>()) shouldBe true
         of(frbWikiBreadthFirst).fequal(of(frbWikiPostorder)) shouldBe true
         of(frbSlideSharePostorder).fequal(of(frbSlideSharePreorder)) shouldBe true
         (of(frbWikiBreadthFirst) == of(frbSlideSharePreorder)) shouldBe false
@@ -49,16 +48,16 @@ class FMapTest : FunSpec({
 
     test("co general workout (property) random int-int").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
-            val sorted = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            val shuffled = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val sorted = (Array(n) { i: Int -> Pair(i, i) })
+            val shuffled = (Array(n) { i: Int -> Pair(i, i) })
             shuffled.shuffle()
             val bulkMap: FKMap<Int, Int> = of(shuffled.iterator())
-            var mapkv = emptyFKMap<Int, Int>()
-            var mapp = emptyFKMap<Int, Int>()
-            val mapv = emptyFKMap<Int, Int>().fputList(FList.of(shuffled.iterator()))
+            var mapkv = emptyIMMap<Int, Int>()
+            var mapp = emptyIMMap<Int, Int>()
+            val mapv = emptyIMMap<Int, Int>().fputList(FList.of(shuffled.iterator()).fmap{TKVEntry.of(it)})
             for (item in sorted) {
-                mapkv = mapkv.fputkv(item.getk(), item.getv())
-                mapp = mapp.fputPair(Pair(item.getk(), item.getv()))
+                mapkv = mapkv.fputkv(item.first, item.second)
+                mapp = mapp.fputPair(Pair(item.first, item.second))
             }
             bulkMap.size shouldBe n
             mapkv.size shouldBe n
@@ -96,12 +95,12 @@ class FMapTest : FunSpec({
     test("co general workout (property) random str-str").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
             val sorted = (Array(n) { i: Int -> TKVEntry.of(i.toString(), i.toString()) })
-            val shuffled = (Array(n) { i: Int -> TKVEntry.of(i.toString(), i.toString()) })
+            val shuffled: Array<TKVEntry<String, String>> = (Array(n) { i: Int -> TKVEntry.of(i.toString(), i.toString()) })
             shuffled.shuffle()
-            val bulkMap = of(shuffled.iterator())
-            var mapkv = emptyFKMap<String, String>()
-            var mapp = emptyFKMap<String, String>()
-            val mapv = emptyFKMap<String, String>().fputList(FList.of(shuffled.iterator()))
+            val bulkMap = of(shuffled.map { it.toPair() }.iterator())
+            var mapkv = emptyIMMap<String, String>()
+            var mapp = emptyIMMap<String, String>()
+            val mapv = emptyIMMap<String, String>().fputList(FList.of(shuffled.iterator()))
             for (item in sorted) {
                 mapkv = mapkv.fputkv(item.getk(), item.getv())
                 mapp = mapp.fputPair(Pair(item.getk(), item.getv()))

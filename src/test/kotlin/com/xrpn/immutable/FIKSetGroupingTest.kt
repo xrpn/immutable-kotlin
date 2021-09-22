@@ -279,7 +279,7 @@ class FIKSetGroupingTest : FunSpec({
         val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFour.toIMBTree() as FRBTree<Int, Int>)
         val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
-        } as FKSet<Int, FList<Int>>
+        }
         fourp.equals(p4jt) shouldBe true
 
         val fivep = intSetOfFive.fpermute()
@@ -287,7 +287,7 @@ class FIKSetGroupingTest : FunSpec({
         val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfFive.toIMBTree() as FRBTree<Int, Int>)
         val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
-        } as FKSet<Int, FList<Int>>
+        }
         fivep.equals(p5jt) shouldBe true
 
         val sixpNow = System.currentTimeMillis()
@@ -297,7 +297,7 @@ class FIKSetGroupingTest : FunSpec({
         val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(intSetOfSix.toIMBTree() as FRBTree<Int, Int>)
         val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
-        } as FKSet<Int, FList<Int>>
+        }
         sixp.equals(p6jt) shouldBe true
 
         val sevenpNow = System.currentTimeMillis()
@@ -308,7 +308,7 @@ class FIKSetGroupingTest : FunSpec({
         val p7jt: FKSet<Int, FList<Int>> =
             JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMSet<Int, FList<Int>>()) { s, aryl ->
                 s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
-            } as FKSet<Int, FList<Int>>
+            }
         sevenp.equals(p7jt) shouldBe true
 
         if (longTest) {

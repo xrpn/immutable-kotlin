@@ -80,7 +80,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
     }
 
     override fun copy(): FKMap<K, V> = when (this) {
-        is FKMapEmpty -> emptyFKMap()
+        is FKMapEmpty -> emptyIMMap()
         is FKMapNotEmpty -> body.ffold(nul<K, V>()) { acc, tkv -> acc.finsert(tkv) }.toIMMap()
     }
 
@@ -100,11 +100,33 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     // private
 
-    companion object {
+    companion object: IMMapCompanion {
 
-        internal const val unknownKeyType = "unknown map key type "
+        override fun <K, V: Any> emptyIMMap(): FKMap<K, V> where K: Any, K: Comparable<K> = FKMapEmpty.empty()
 
-        fun<K: Comparable<K>, V: Any> emptyFKMap(): FKMap<K, V> = FKMapEmpty.empty()
+        override fun <K, V : Any> of(vararg items: Pair<K, V>): FKMap<K, V> where K: Any, K : Comparable<K> =
+            of(items.iterator())
+
+        override fun <K, V : Any> of(items: Iterator<Pair<K, V>>): FKMap<K, V> where K: Any, K : Comparable<K> {
+            var acc: FRBTree<K, V> = nul()
+            items.forEach { acc = acc.finsert(TKVEntry.of(it)) }
+            return ofFKMapBody(acc)
+        }
+
+        override fun <K, V : Any> of(items: IMList<Pair<K, V>>): FKMap<K, V> where K: Any, K : Comparable<K> =
+            if (items.fempty()) FKMapEmpty.empty() else ofFKMapBody(FRBTree.of(items.fmap { TKVEntry.of(it) }))
+
+        override fun <K, V : Any> of(items: IMBTree<K, V>): FKMap<K, V> where K: Any, K : Comparable<K> = when (items) {
+            is FRBTree -> ofFKMapBody(items)
+            is FBSTree -> items.toIMMap() as FKMap<K, V>
+            else -> throw RuntimeException("unknown tree type ${items::class}")
+        }
+
+        override fun <K, V : Any> Collection<V>.toIMMap(keyMaker: (V) -> K): FKMap<K, V> where K: Any, K : Comparable<K> {
+            var acc: FRBTree<K, V> = nul()
+            this.forEach { acc = acc.finsert(TKVEntry.of(keyMaker(it), it)) }
+            return ofFKMapBody(acc)
+        }
 
         fun<K: Comparable<K>, V: Any> equal2(lhs: FKMap<K,V>, rhs: FKMap<K,V>): Boolean = when(Pair(lhs.isEmpty(), rhs.isEmpty())) {
             Pair(false, false) -> if (lhs === rhs) true else (lhs as FKMapNotEmpty) == rhs
@@ -115,9 +137,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         fun<K: Comparable<K>, V: Any> FKMap<K,V>.fequal(rhs: FKMap<K,V>): Boolean = equal2(this, rhs)
 
         fun <K: Comparable<K>, V: Any> of(_body: FList<TKVEntry<K,V>>): FKMap<K, V> =
-            if (_body is FLNil) emptyFKMap() else ofFKMapNotEmpty(FRBTree.of(_body) as FRBTNode)
-
-        fun <K: Comparable<K>, V: Any> of(_body: Iterator<TKVEntry<K,V>>): FKMap<K, V> = ofFKMapBody(FRBTree.of(_body))
+            if (_body is FLNil) emptyIMMap() else ofFKMapNotEmpty(FRBTree.of(_body) as FRBTNode)
 
     }
 }

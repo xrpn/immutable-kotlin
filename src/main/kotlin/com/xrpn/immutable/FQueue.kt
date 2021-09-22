@@ -261,9 +261,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
                 FQueueBody.of(front, FLNil)
             } else {
                 var back : FList<A> = FLNil
-                items.forEach {
-                    back = FLCons(it, back)
-                }
+                items.forEach { back = FLCons(it, back) }
                 FQueueBody.of(FLNil, back)
             }
         }
@@ -275,9 +273,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
                 FQueueBody.of(front, FLNil)
             } else {
                 var back : FList<A> = FLNil
-                items.forEach {
-                    back = FLCons(it, back)
-                }
+                items.forEach { back = FLCons(it, back) }
                 FQueueBody.of(FLNil, back)
             }
         }
@@ -300,9 +296,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
                 FQueueBody.of(front, FLNil)
             } else {
                 var back : FList<A> = FLNil
-                items.forEach {
-                    back = FLCons(f(it), back)
-                }
+                items.forEach { back = FLCons(f(it), back) }
                 FQueueBody.of(FLNil, back)
             }
         }

@@ -10,7 +10,11 @@ class FKSetIterator<out K, out A: Any> internal constructor(val seed: FKSet<K, A
     override fun hasNext(): Boolean = iter.hasNext()
 
     // not thread safe
-    override fun next(): A = iter.next().getv()
+    override fun next(): A = try {
+        iter.next().getv()
+    } catch (ex: Exception) {
+        throw ex
+    }
 
     fun reset(): Boolean = iter.reset()
 

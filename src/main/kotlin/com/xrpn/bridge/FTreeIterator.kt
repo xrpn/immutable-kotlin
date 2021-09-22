@@ -14,10 +14,12 @@ class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>,
     }
 
     // not thread safe
-    override fun next(): TKVEntry<A, B> = synchronized(current){
+    override fun next(): TKVEntry<A, B> = synchronized(current) { return try {
         // must ALSO check (under the same lock) hasNext before calling (see nullableNext)
-        return getNext()
-    }
+        getNext()
+    } catch (ex: Exception) {
+        throw ex
+    }}
 
     fun reset(): Boolean = synchronized(current) {
         doReset()

@@ -1,7 +1,6 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FKMapNotEmpty
 
 interface IMListAltering<out A: Any> {
     fun fappend(item: @UnsafeVariance A): IMList<A>
@@ -12,11 +11,7 @@ interface IMListAltering<out A: Any> {
     operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
 }
 
-//interface IMSetAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
-//    fun faddSoO(item: IMSetOfOne<@UnsafeVariance K, @UnsafeVariance A>): IMSetNotEmpty<K, A>
-//}
-
-interface IMSetNEAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+interface IMSetAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<K, A>
 }
 

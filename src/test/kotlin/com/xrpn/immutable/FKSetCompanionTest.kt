@@ -322,10 +322,10 @@ class FKSetCompanionTest : FunSpec({
         (emptyIMSet<Int, Int>() === FKSetEmpty.empty<Int, Int>()) shouldBe true
         (emptyIMSet<String, Int>() === FKSetEmpty.empty<String, Int>()) shouldBe true
         shouldThrow<ClassCastException> {
-            emptyIMSet<Int, Int>() as IMSetNotEmpty<Int, Int>
+            @Suppress("UNCHECKED_CAST") (emptyIMSet<Int, Int>() as IMSetNotEmpty<Int, Int>)
         }
         shouldThrow<ClassCastException> {
-            emptyIMSet<String, Int>() as IMSetNotEmpty<String, Int>
+            @Suppress("UNCHECKED_CAST") (emptyIMSet<String, Int>() as IMSetNotEmpty<String, Int>)
         }
     }
 
