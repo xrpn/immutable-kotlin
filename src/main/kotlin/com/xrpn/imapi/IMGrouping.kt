@@ -3,16 +3,22 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 
-interface IMListGrouping<out A: Any> {
-
+interface IMCountable<out A: Any> {
+    fun fall(predicate: (A) -> Boolean): Boolean = fcount(predicate) == fsize()
+    fun fany(predicate: (A) -> Boolean): Boolean = 0 < fcount(predicate)
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
+    fun fnone(predicate: (A) -> Boolean): Boolean = !fany(predicate)
+    fun fsize(): Int // number of elements
+}
+
+interface IMListGrouping<out A: Any>: IMCountable<A> {
+
     fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ IMList<A>, A?, /* after */ IMList<A>> // Split the list at first match
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMList<A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMList<Pair<A, Int>> // Each and all element contained in a tuple along with its offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMList<A>, /* false */ IMList<A>> // Two collections created by the predicate p
     fun fslidingWindow(size: Int, step: Int): IMList<IMList<A>> // Group elements into fixed size blocks by passing a sliding window of size, with step
     fun fslidingFullWindow(size: Int, step: Int): IMList<IMList<A>> // Group elements into fixed size blocks by passing a sliding window of size, with step
-    fun fsize(): Int // number of elements
     fun fsplitAt(index: Int): Triple< /* before */ IMList<A>, A?, /* after */ IMList<A>> // Split the list at index
     fun <B: Any, C: Any> funzip(f: (A) -> Pair<B,C>): Pair<IMList<B>, IMList<C>> // The opposite of zip, breaks a collection into two collections by dividing each element into two pieces; such as breaking up a list of Tuple2 elements
     fun <B: Any, C: Any> fzipWith(xs: IMList<B>, f: (A, B) -> C): IMList<C>
@@ -23,10 +29,8 @@ interface IMListGrouping<out A: Any> {
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
 }
 
-interface IMRSetGrouping<out A: Any> {
-
+interface IMRSetGrouping<out A: Any>: IMCountable<A> {
     fun fcombinations(maxSize: Int): IMRSet<IMRSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
-    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMRSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMRSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMRSet<A>, /* false */ IMRSet<A>> // Two collections created by the predicate p
@@ -35,14 +39,11 @@ interface IMRSetGrouping<out A: Any> {
     // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
     fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
     fun fpopAndReminder(): Pair<A?, IMRSet<A>>
-    fun fsize(): Int // number of elements
 }
 
 interface IMSetGrouping<out K, out A: Any>: IMRSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-
     fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance B>): IMSet<K, Pair<A, B>> // cartesian product
     override fun fcombinations(maxSize: Int): IMSet<K, IMSet<K, A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
-    override fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     override fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<K, A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     override fun findexed(offset: Int): IMSet<K, Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     override fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<K, A>, /* false */ IMSet<K, A>> // Two collections created by the predicate p
@@ -51,37 +52,30 @@ interface IMSetGrouping<out K, out A: Any>: IMRSetGrouping<A> where K: Any, K: C
     // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
     override fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
     override fun fpopAndReminder(): Pair<A?, IMSet<K, A>>
-    override fun fsize(): Int // number of elements
 }
 
-interface IMMapGrouping<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+interface IMMapGrouping<out K, out V: Any>: IMCountable<V> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fentries(): IMRSet<TKVEntry<K,V>>
     fun fkeys(): IMRSet<K>
-    fun fsize(): Int
+    fun <R: Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>?
+    fun <R: Comparable<R>> maxOf(f: (V) -> R): R? = maxBy(f)?.let { f(it.getv())}
+    fun <R: Comparable<R>> minBy(f: (V) -> R): TKVEntry<K, V>?
+    fun <R: Comparable<R>> minOf(f: (V) -> R): R? = minBy(f)?.let { f(it.getv())}
+    fun fpartition(isMatch: (TKVEntry<K, V>) -> Boolean): Pair</* true */ IMMap<K, V>, /* false */ IMMap<K, V>> // Two collections created by the predicate p
+    fun fpopAndReminder(): Pair<TKVEntry<K, V>?, IMMap<K, V>>
     fun fvalues(): FList<V>
-
 }
 
-interface IMBTreeGrouping<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A>{
-
-    fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = // count the element that match the predicate
+interface IMBTreeGrouping<out A, out B: Any>: IMCountable<TKVEntry<A,B>> where A: Any, A: Comparable<@UnsafeVariance A> {
+    override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = // count the element that match the predicate
         (this as IMBTree<A,B>).ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, IMBTree<A, B>> where C: Any, C: Comparable<C>//	A map of collections created by the function f
     fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ IMBTree<A, B>, /* false */ IMBTree<A, B>> // Two collections created by the predicate p
     fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
     fun fmaxDepth(): Int
     fun fminDepth(): Int
-    fun fsize(): Int // number of elements
 }
 
-interface IMStackGrouping<out A: Any> {
+interface IMStackGrouping<out A: Any>: IMCountable<A>
 
-    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
-    fun fsize(): Int // number of elements
-}
-
-interface IMQueueGrouping<out A: Any> {
-
-    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
-    fun fsize(): Int // number of elements
-}
+interface IMQueueGrouping<out A: Any>: IMCountable<A>

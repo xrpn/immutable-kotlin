@@ -133,7 +133,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         return ffilter(notMatch)
     }
 
-    override fun ffindDistinct(isMatch: (A) -> Boolean): A? =when (this) {
+    override fun ffind(isMatch: (A) -> Boolean): A? =when (this) {
         is FKSetEmpty -> null
         else -> body.ffindDistinct { tkv -> isMatch(tkv.getv()) }?.getv()
     }

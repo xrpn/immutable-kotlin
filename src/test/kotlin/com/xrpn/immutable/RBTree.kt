@@ -384,7 +384,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun <C, D : Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMList<TKVEntry<C, D>> where C: Any, C : Comparable<C> {
+    override fun <D : Any> fmapToList(f: (TKVEntry<A, B>) -> D): IMList<D> {
         TODO("Not yet implemented")
     }
 

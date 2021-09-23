@@ -34,25 +34,21 @@ interface IMRSetFiltering<out A: Any> {
     fun fcontains(item: @UnsafeVariance A): Boolean
     fun fdropItem(item: @UnsafeVariance A): IMRSet<A>
     fun fdropWhen(isMatch: (A) -> Boolean): IMRSet<A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
-    fun fempty(): Boolean
+    fun fempty(): Boolean = fpick() == null
     fun ffilter(isMatch: (A) -> Boolean): IMRSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMRSet<A> // 	Return all elements that do not match the predicate p
-    fun ffindDistinct(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
+    fun ffind(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
     fun fpick(): A? // peek at one random element
 }
 
 interface IMSetFiltering<out K, out A: Any>: IMRSetFiltering<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    override fun fcontains(item: @UnsafeVariance A): Boolean
     fun fcontainsAny(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
     override fun fdropItem(item: @UnsafeVariance A): IMSet<K, A>
     fun fdropAll(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMSet<K, A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
-    override fun fempty(): Boolean = fpick() == null
     override fun ffilter(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that do not match the predicate p
-    override fun ffindDistinct(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
     fun fisSubsetOf(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
-    override fun fpick(): A? // peek at one random element
     fun fpickKey(): K?  // peek at one random key
     fun fAND(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
     fun fNOT(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A> = fdropAll(items)
@@ -62,11 +58,23 @@ interface IMSetFiltering<out K, out A: Any>: IMRSetFiltering<A> where K: Any, K:
 
 interface IMMapFiltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fcontains(key: @UnsafeVariance K): Boolean
+    fun fdrop(key: @UnsafeVariance K): IMMap<K, V>
+    fun fdropAll(keys: IMRSet<@UnsafeVariance K>): IMMap<K, V>
+    fun fdropkv(key: @UnsafeVariance K, value: @UnsafeVariance V): IMMap<K, V>
     fun fget(key: @UnsafeVariance K): V?
-    fun fgetOrElse(key: @UnsafeVariance K, default: @UnsafeVariance V): V = fget(key) ?: default
+    fun fgetOrElse(key: @UnsafeVariance K, default: () -> @UnsafeVariance V): V = fget(key) ?: default()
+    fun fgetOrThrow(key: @UnsafeVariance K): V = fget(key) ?: throw NoSuchElementException("no value for key $key")
     fun fempty(): Boolean = fpick() == null
     fun fpick(): TKVEntry<K, V>?
 
+    fun ffilterEntry(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V>
+    fun ffilterNotEntry(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V>
+    fun ffilter(isMatch: (K) -> Boolean): IMMap<K, V>
+    fun ffilterNot(isMatch: (K) -> Boolean): IMMap<K, V>
+    fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fNOT(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = fdropAll(items.fkeys())
+    fun fOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fXOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
 }
 
 interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {

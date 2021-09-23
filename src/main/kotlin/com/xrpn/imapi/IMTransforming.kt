@@ -17,19 +17,37 @@ interface IMListTransforming<out A: Any> {
     fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
-interface IMSetTransforming<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
-
-    fun <B: Any> fflatMap(f: (A) -> IMSet<@UnsafeVariance K, @UnsafeVariance B>): IMSet<K, B>  // 	When working with sequences, it works like map followed by flatten
-    // since order is not a property of Set, f MUST be commutative
+interface IMRSetTransforming<out A: Any> {
     fun <B: Any> ffold(z: B, f: (acc: B, A) -> B): B // 	“Fold” the elements of the list using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
-    fun <B: Any> fmap(f: (A) -> B): IMSet<K, B> // 	Return a new sequence by applying the function f to each element in the List
     fun <B: Any> fmapToList(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
     // since order is not a property of Set, f MUST be commutative
     fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
 }
 
-interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+interface IMSetTransforming<out K, out A: Any>: IMRSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun <B: Any> fflatMap(f: (A) -> IMSet<@UnsafeVariance K, @UnsafeVariance B>): IMSet<K, B>  // 	When working with sequences, it works like map followed by flatten
+    // since order is not a property of Set, f MUST be commutative
+    override fun <B: Any> ffold(z: B, f: (acc: B, A) -> B): B // 	“Fold” the elements of the list using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
+    fun <B: Any> fmap(f: (A) -> B): IMSet<K, B> // 	Return a new sequence by applying the function f to each element in the List
+    override fun <B: Any> fmapToList(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
+    // since order is not a property of Set, f MUST be commutative
+    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
+}
 
+interface IMMapTransforming<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun <C, D: Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C: Comparable<@UnsafeVariance C>
+    fun <J> fmapKeys(f: (TKVEntry<K, V>) -> J): IMMap<J, V> where J: Any, J: Comparable<@UnsafeVariance J>
+    fun <W: Any> fmapValues(f: (TKVEntry<K, V>) -> W): IMMap<K, W>
+    fun <C> ffold(z: C, f: (acc: C, TKVEntry<K, V>) -> C): C
+    fun <C, D: Any> fmap(f: (TKVEntry<K, V>) -> TKVEntry<C, D>): IMMap<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
+    fun <T: Any> fmapToList(f: (TKVEntry<K, V>) -> T): IMList<T> = // 	Return a new sequence by applying the function f to each element in the List
+        this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
+    fun <W: Any> fmapvToList(f: (V) -> W): IMList<W> = // 	Return a new sequence by applying the function f to each element in the List
+        this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
+    fun freducev(f: (acc: V, V) -> @UnsafeVariance V): V?
+}
+
+interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
     fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C>  // 	When working with sequences, it works like map followed by flatten
     fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C>  // 	When working with sequences, it works like map followed by flatten    // since order is an ambiguous property of Set, f SHOULD be commutative
     // since order is an ambiguous property of Tree, f SHOULD be commutative
@@ -39,7 +57,7 @@ interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@Un
         this.ffold(z) { acc, tkv -> f(acc, tkv.getv()) }
     fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
     fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> // 	Return a new sequence by applying the function f to each element in the List
-    fun <C, D: Any> fmapToList(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMList<TKVEntry<C, D>> where C: Any, C: Comparable<@UnsafeVariance C> =// 	Return a new sequence by applying the function f to each element in the List
+    fun <T: Any> fmapToList(f: (TKVEntry<A, B>) -> T): IMList<T> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
     fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }

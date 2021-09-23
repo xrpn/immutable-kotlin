@@ -11,6 +11,7 @@ interface IMList<out A:Any>:
 interface IMRSet<out A: Any>:
     IMRSetFiltering<A>,
     IMRSetGrouping<A>,
+    IMRSetTransforming<A>,
     IMRSetUtility<A>
 
 interface IMSet<out K, out A:Any>:
@@ -30,8 +31,10 @@ interface IMSetNotEmpty<out K, out A:Any>:
 interface IMMap<out K, out V: Any>:
     IMMapFiltering<K, V>,
     IMMapGrouping<K, V>,
+    IMMapTransforming<K, V>,
+    IMMapUtility<K, V>,
     IMMapAltering<K, V>,
-    IMMapUtility<K, V>
+    IMMapExtras<K, V>
         where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMBTree<out A, out B: Any>:

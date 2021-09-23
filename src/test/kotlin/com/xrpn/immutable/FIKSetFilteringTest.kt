@@ -130,14 +130,14 @@ class FIKSetFilteringTest : FunSpec({
     }
 
     test("ffind") {
-        intSetOfNone.ffindDistinct { false } shouldBe null
-        intSetOfNone.ffindDistinct { true } shouldBe null
+        intSetOfNone.ffind { false } shouldBe null
+        intSetOfNone.ffind { true } shouldBe null
 
-        intSetOfOne.ffindDistinct { it == 1 } shouldBe 1
-        intSetOfOne.ffindDistinct { it != 1 } shouldBe null
+        intSetOfOne.ffind { it == 1 } shouldBe 1
+        intSetOfOne.ffind { it != 1 } shouldBe null
 
-        intSetOfThree.ffindDistinct { it < 2 } shouldBe 1
-        intSetOfThree.ffindDistinct { it >= 2 } shouldBe null
+        intSetOfThree.ffind { it < 2 } shouldBe 1
+        intSetOfThree.ffind { it >= 2 } shouldBe null
     }
 
     test("fisSubsetOf") {

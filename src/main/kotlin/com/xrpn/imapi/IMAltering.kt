@@ -7,8 +7,6 @@ interface IMListAltering<out A: Any> {
     fun fappendAll(elements: IMList<@UnsafeVariance A>): IMList<A>
     fun fprepend(item: @UnsafeVariance A): IMList<A>
     fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
-    operator fun plus(rhs: IMList<@UnsafeVariance A>): IMList<A>
-    operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
 }
 
 interface IMSetAltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -20,6 +18,7 @@ interface IMMapAltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVa
     fun fputPair(p: Pair<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
     fun fputList(l: FList<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): IMMap<K, V>
     fun fputTree(t: IMBTree<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fputMap(m: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
 }
 
 interface IMBTreeAltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {

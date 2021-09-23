@@ -3,7 +3,6 @@ package com.xrpn.immutable
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.immutable.FKMap.Companion.of
 import com.xrpn.immutable.FKMap.Companion.emptyIMMap
-import com.xrpn.immutable.FKMap.Companion.fequal
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -39,11 +38,10 @@ class FMapTest : FunSpec({
 
     test("co.==") {
         (emptyIMMap<Int, Int>() == emptyIMMap<Int, Int>()) shouldBe true
-        emptyIMMap<Int, Int>().fequal(emptyIMMap<Int, Int>()) shouldBe true
-        of(frbWikiBreadthFirst).fequal(of(frbWikiPostorder)) shouldBe true
-        of(frbSlideSharePostorder).fequal(of(frbSlideSharePreorder)) shouldBe true
+        emptyIMMap<Int, Int>().equal(emptyIMMap<Int, Int>()) shouldBe true
+        of(frbWikiBreadthFirst).equal(of(frbWikiPostorder)) shouldBe true
+        of(frbSlideSharePostorder).equal(of(frbSlideSharePreorder)) shouldBe true
         (of(frbWikiBreadthFirst) == of(frbSlideSharePreorder)) shouldBe false
-        of(frbWikiBreadthFirst).fequal(of(frbSlideSharePreorder)) shouldBe false
     }
 
     test("co general workout (property) random int-int").config(enabled = true) {
@@ -80,10 +78,10 @@ class FMapTest : FunSpec({
                 (mapp.fcontains(k)) shouldBe true
                 mapv.get(k) shouldBe k
                 (mapv.fcontains(k)) shouldBe true
-                bulkMap.get(k) shouldBe bulkMap.fgetOrElse(k, -1)
-                mapkv.get(k) shouldBe mapkv.fgetOrElse(k, -1)
-                mapp.get(k) shouldBe mapp.fgetOrElse(k, -1)
-                mapv.get(k) shouldBe mapv.fgetOrElse(k, -1)
+                bulkMap.get(k) shouldBe bulkMap.fgetOrElse(k, {-1})
+                mapkv.get(k) shouldBe mapkv.fgetOrElse(k, {-1})
+                mapp.get(k) shouldBe mapp.fgetOrElse(k, {-1})
+                mapv.get(k) shouldBe mapv.fgetOrElse(k, {-1})
             }
             bulkMap.get(n) shouldBe null
             mapkv.get(n) shouldBe null
@@ -127,10 +125,10 @@ class FMapTest : FunSpec({
                 (mapp.fcontains(ks)) shouldBe true
                 mapv.get(ks) shouldBe ks
                 (mapv.fcontains(ks)) shouldBe true
-                bulkMap.get(ks) shouldBe bulkMap.fgetOrElse(ks, (-1).toString())
-                mapkv.get(ks) shouldBe mapkv.fgetOrElse(ks, (-1).toString())
-                mapp.get(ks) shouldBe mapp.fgetOrElse(ks, (-1).toString())
-                mapv.get(ks) shouldBe mapv.fgetOrElse(ks, (-1).toString())
+                bulkMap.get(ks) shouldBe bulkMap.fgetOrElse(ks) { (-1).toString() }
+                mapkv.get(ks) shouldBe mapkv.fgetOrElse(ks) { (-1).toString() }
+                mapp.get(ks) shouldBe mapp.fgetOrElse(ks) { (-1).toString() }
+                mapv.get(ks) shouldBe mapv.fgetOrElse(ks) { (-1).toString() }
             }
             val ns = n.toString()
             bulkMap.get(ns) shouldBe null

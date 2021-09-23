@@ -529,39 +529,42 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // =============== top level type-specific implementation
 
-        // delete entry from treeStub.  Rebalance the tree maintaining immutability as part of deletion.
         internal fun <A, B: Any> rbtDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B>
+        where A: Any, A: Comparable<A> = rbtDeleteKey(treeStub, item.getk())
+
+        // delete entry from treeStub.  Rebalance the tree maintaining immutability as part of deletion.
+        private fun <A, B: Any> rbtDeleteKey(treeStub: FRBTree<A, B>, key: A): FRBTree<A, B>
         where A: Any, A: Comparable<A> {
 
-            fun frbDelete(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTree<A, B> = when (treeStub) {
+            fun frbDelete(treeStub: FRBTree<A, B>, key: A): FRBTree<A, B> = when (treeStub) {
                 is FRBTNil -> FRBTNil
                 is FRBTNode -> {
-                    val unbalanced: FRBTree<A, B> = when (fit(item, treeStub)) {
+                    val unbalanced: FRBTree<A, B> = when (fitKey(key, treeStub)) {
                         FBTFIT.LEFT -> /* delete left */ when (treeStub.bLeft) {
                             is FRBTNil -> treeStub
                             is FRBTNode -> {
                                 val omove: FRBTNode<A, B> =
                                     if (!treeStub.bLeft.isRed() && !treeStub.bLeft.bLeft.isRed()) moveRedLeft(treeStub)
                                     else treeStub
-                                FRBTNode(omove.entry, omove.color, frbDelete(omove.bLeft, item), omove.bRight)
+                                FRBTNode(omove.entry, omove.color, frbDelete(omove.bLeft, key), omove.bRight)
                             }
                         }
                         FBTFIT.RIGHT, FBTFIT.EQ -> /* delete right or in place */ {
                             val o1 = if (treeStub.bLeft.isRed()) rightRotation(treeStub)
                             else treeStub
-                            if (fit(item, o1) == FBTFIT.EQ && o1.bRight is FRBTNil) FRBTNil
+                            if (fitKey(key, o1) == FBTFIT.EQ && o1.bRight is FRBTNil) FRBTNil
                             else {
                                 val o2 = if ((o1.bRight is FRBTNode) &&
                                     (!o1.bRight.isRed()) &&
                                     (!o1.bRight.bLeft.isRed())
                                 ) moveRedRight(o1)
                                 else o1
-                                if (fit(item, o2) == FBTFIT.EQ) {
+                                if (fitKey(key, o2) == FBTFIT.EQ) {
                                     o2.bRight as FRBTNode
                                     val o2rep = FRBTNode(o2.bRight.fleftMost()!!, o2.color, o2.bLeft, o2.bRight)
                                     o2rep.bRight as FRBTNode
                                     FRBTNode(o2rep.entry, o2rep.color, o2rep.bLeft, deleteMin(o2rep.bRight))
-                                } else FRBTNode(o2.entry, o2.color, o2.bLeft, frbDelete(o2.bRight, item))
+                                } else FRBTNode(o2.entry, o2.color, o2.bLeft, frbDelete(o2.bRight, key))
                             }
                         }
                     }
@@ -569,8 +572,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
-            return if (!treeStub.fcontains(item)) treeStub else {
-                val clipped = frbDelete(treeStub, item)
+            return if (!treeStub.fcontainsKey(key)) treeStub else {
+                val clipped = frbDelete(treeStub, key)
                 if (clipped is FRBTNode) {
                     val blackRoot = FRBTNode(clipped.entry, BLACK, clipped.bLeft, clipped.bRight)
                     // next line is very expensive

@@ -41,7 +41,7 @@ internal val frbSlideShareBreadthFirst = FList.of(n48Entry,n32Entry,n62Entry,n17
 internal val frbSlideShareTree = FRBTree.Companion.rbtInserts(FRBTNil, frbSlideShareInorder)
 internal var rbSlideShareTree = RBTree.of(frbSlideShareInorder)
 internal val frbSlideSharePreorder = frbSlideShareTree.preorder()
-internal val frbSlideSharePostorder = frbSlideShareTree.postorder()
+internal val frbSlideSharePostorder: FList<TKVEntry<Int, Int>> = frbSlideShareTree.postorder()
 
 val reverseIntCompare: Comparator<Int> = Comparator { p0, p1 ->
     when {
