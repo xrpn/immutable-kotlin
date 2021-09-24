@@ -74,9 +74,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMSet(kType: KClass<@UnsafeVariance A>): FKSet<A, B> = toFKSetImpl(this, kType)
-
-    override fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): FKSet<A, B> = toFKSetImpl(this, kType, initial)
+    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>): FKSet<A, B> = toFKSetImpl(this, kType)
 
     override fun toIMMap(): FKMap<A, B> = ofFKMapBody(this)
 
@@ -383,10 +381,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             p2
         }
     }
-
-    internal fun frbKeyKClassOut(): KClass<out A> = froot()!!.getk()::class
-
-    internal fun frbKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>)
 
     companion object: IMBTreeCompanion {
 
@@ -939,22 +933,22 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
-        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: KClass<out A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
-            initial != null -> when {
-                kType == Int::class -> @Suppress("UNCHECKED_CAST") (initial.toFIKSet() as FKSet<A, B>)
-                kType == String::class -> @Suppress("UNCHECKED_CAST") (initial.toFSKSet() as FKSet<A, B>)
-                else -> throw RuntimeException("${FKSet.unknownKeyType} for initial $initial")
+        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
+            initial != null -> when (kType) {
+                is IntKeyType -> @Suppress("UNCHECKED_CAST") (initial.toFIKSet() as FKSet<A, B>)
+                is StrKeyType -> @Suppress("UNCHECKED_CAST") (initial.toFSKSet() as FKSet<A, B>)
             }
             t.fempty() -> FKSetEmpty.empty()
-            kType == Int::class -> if (t.froot()!!.getk() is Int) {
+            else -> when (kType) {
+                is IntKeyType -> if (t.froot()!!.getk() is Int) {
                     val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t as IMBTree<Int, B>))
                     @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
                 } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.froot()!!.getk()::class})")
-            kType == String::class -> if (t.froot()!!.getk() is String) {
-                val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t as IMBTree<String, B>))
-                @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-            } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.froot()!!.getk()::class})")
-            else -> throw RuntimeException("${FKSet.unknownKeyType} $kType ${if (t.fempty()) ' ' else t.frbKeyKClass().toString() }")
+                is StrKeyType -> if (t.froot()!!.getk() is String) {
+                    val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t as IMBTree<String, B>))
+                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
+                } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.froot()!!.getk()::class})")
+            }
         }
 
         private class BreakoutException(): RuntimeException()
@@ -1030,7 +1024,12 @@ internal data class FRBTNode<A, B: Any> (
 
     override fun hashCode(): Int = hash
 
+    internal fun frbKeyKClassOut(): KClass<out A> = froot()!!.getk()::class
+
+    val frbKeyKClass: KClass<@UnsafeVariance A> by lazy { @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>) }
+
     companion object {
         fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash
     }
 }
+

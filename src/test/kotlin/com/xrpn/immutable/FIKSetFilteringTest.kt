@@ -57,49 +57,49 @@ class FIKSetFilteringTest : FunSpec({
     }
 
     test("fdropItem") {
-        intSetOfNone.fdropItem(0).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropItem(0).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fdropItem(1).strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.fdropItem(0).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fdropItem(0).equals(intSetOfOne) shouldBe true
+        intSetOfOne.fdropItem(1).equals(intSetOfNone) shouldBe true
 
-        intSetOfTwo.fdropItem(0).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropItem(1).strongEqual(FKSet.ofi(2)) shouldBe true
-        intSetOfTwo.fdropItem(2).strongEqual(intSetOfOne) shouldBe true
-        intSetOfTwo.fdropItem(3).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.fdropItem(0).equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fdropItem(1).equals(FKSet.ofi(2)) shouldBe true
+        intSetOfTwo.fdropItem(2).equals(intSetOfOne) shouldBe true
+        intSetOfTwo.fdropItem(3).equals(intSetOfTwo) shouldBe true
 
-        intSetOfThree.fdropItem(0).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fdropItem(1).strongEqual(FKSet.ofi(2, 3)) shouldBe true
-        intSetOfThree.fdropItem(2).strongEqual(FKSet.ofi(1, 3)) shouldBe true
-        intSetOfThree.fdropItem(3).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfThree.fdropItem(4).strongEqual(intSetOfThree) shouldBe true
+        intSetOfThree.fdropItem(0).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fdropItem(1).equals(FKSet.ofi(2, 3)) shouldBe true
+        intSetOfThree.fdropItem(2).equals(FKSet.ofi(1, 3)) shouldBe true
+        intSetOfThree.fdropItem(3).equals(intSetOfTwo) shouldBe true
+        intSetOfThree.fdropItem(4).equals(intSetOfThree) shouldBe true
     }
 
     test("fdropAll") {
-        intSetOfNone.fdropAll(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.fdropAll(intSetOfNone).equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.fdropAll(intSetOfNone).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fdropAll(intSetOfOne).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropAll(intSetOfTwo).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropAll(intSetMaverick).strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.fdropAll(intSetOfNone).equals(intSetOfOne) shouldBe true
+        intSetOfOne.fdropAll(intSetOfOne).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fdropAll(intSetOfTwo).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fdropAll(intSetMaverick).equals(intSetOfOne) shouldBe true
 
-        intSetOfTwo.fdropAll(intSetOfNone).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fdropAll(intSetOfOne).strongEqual(FKSet.ofi(2)) shouldBe true
-        intSetOfTwo.fdropAll(intSetOfFour).strongEqual(intSetOfNone) shouldBe true
-        intSetOfTwo.fdropAll(intSetMaverick).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.fdropAll(intSetOfNone).equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fdropAll(intSetOfOne).equals(FKSet.ofi(2)) shouldBe true
+        intSetOfTwo.fdropAll(intSetOfFour).equals(intSetOfNone) shouldBe true
+        intSetOfTwo.fdropAll(intSetMaverick).equals(intSetOfTwo) shouldBe true
 
-        intSetOfThree.fdropAll(intSetOfNone).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fdropAll(intSetOfFour).strongEqual(intSetOfNone) shouldBe true
-        intSetOfThree.fdropAll(intSetMaverick).strongEqual(intSetOfThree) shouldBe true
+        intSetOfThree.fdropAll(intSetOfNone).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fdropAll(intSetOfFour).equals(intSetOfNone) shouldBe true
+        intSetOfThree.fdropAll(intSetMaverick).equals(intSetOfThree) shouldBe true
     }
 
     test("fdropWhen") {
-        intSetOfNone.fdropWhen { false }.strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.fdropWhen { true }.strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.fdropWhen { false }.equals(intSetOfNone) shouldBe true
+        intSetOfNone.fdropWhen { true }.equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.fdropWhen { it == 1 }.strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fdropWhen { it != 1 }.strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.fdropWhen { it == 1 }.equals(intSetOfNone) shouldBe true
+        intSetOfOne.fdropWhen { it != 1 }.equals(intSetOfOne) shouldBe true
 
-        intSetOfThree.fdropWhen { it < 2 }.strongEqual(intSetOfTwo.fmap { it+1 }) shouldBe true
-        intSetOfThree.fdropWhen { it >= 2 }.strongEqual(intSetOfOne) shouldBe true
+        intSetOfThree.fdropWhen { it < 2 }.equals(intSetOfTwo.fmap { it+1 }) shouldBe true
+        intSetOfThree.fdropWhen { it >= 2 }.equals(intSetOfOne) shouldBe true
     }
 
     test("fempty") {
@@ -108,25 +108,25 @@ class FIKSetFilteringTest : FunSpec({
     }
 
     test("ffilter") {
-        intSetOfNone.ffilter { false }.strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.ffilter { true }.strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.ffilter { false }.equals(intSetOfNone) shouldBe true
+        intSetOfNone.ffilter { true }.equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.ffilter { it == 1 }.strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.ffilter { it != 1 }.strongEqual(intSetOfNone) shouldBe true
+        intSetOfOne.ffilter { it == 1 }.equals(intSetOfOne) shouldBe true
+        intSetOfOne.ffilter { it != 1 }.equals(intSetOfNone) shouldBe true
 
-        intSetOfThree.ffilter { it < 2 }.strongEqual(intSetOfOne) shouldBe true
-        intSetOfThree.ffilter { it >= 2 }.strongEqual(intSetOfTwo.fmap { it+1 }) shouldBe true
+        intSetOfThree.ffilter { it < 2 }.equals(intSetOfOne) shouldBe true
+        intSetOfThree.ffilter { it >= 2 }.equals(intSetOfTwo.fmap { it+1 }) shouldBe true
     }
     
     test("ffilterNot") {
-        intSetOfNone.ffilterNot { false }.strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.ffilterNot { true }.strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.ffilterNot { false }.equals(intSetOfNone) shouldBe true
+        intSetOfNone.ffilterNot { true }.equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.ffilterNot { it == 1 }.strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.ffilterNot { it != 1 }.strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.ffilterNot { it == 1 }.equals(intSetOfNone) shouldBe true
+        intSetOfOne.ffilterNot { it != 1 }.equals(intSetOfOne) shouldBe true
 
-        intSetOfThree.ffilterNot { it < 2 }.strongEqual(intSetOfTwo.fmap { it+1 }) shouldBe true
-        intSetOfThree.ffilterNot { it >= 2 }.strongEqual(intSetOfOne) shouldBe true
+        intSetOfThree.ffilterNot { it < 2 }.equals(intSetOfTwo.fmap { it+1 }) shouldBe true
+        intSetOfThree.ffilterNot { it >= 2 }.equals(intSetOfOne) shouldBe true
     }
 
     test("ffind") {
@@ -168,43 +168,43 @@ class FIKSetFilteringTest : FunSpec({
     }
 
     test("fAND") { 
-        intSetOfNone.fAND(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.fAND(intSetOfOne).strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.fAND(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfNone.fAND(intSetOfOne).equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.fAND(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fAND(intSetOfOne).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fAND(intSetOfThree).strongEqual(intSetOfOne) shouldBe true
-        intSetOfThree.fAND(intSetOfOne).strongEqual(intSetOfOne) shouldBe true
+        intSetOfOne.fAND(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fAND(intSetOfOne).equals(intSetOfOne) shouldBe true
+        intSetOfOne.fAND(intSetOfThree).equals(intSetOfOne) shouldBe true
+        intSetOfThree.fAND(intSetOfOne).equals(intSetOfOne) shouldBe true
 
-        intSetOfTwo.fAND(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfTwo.fAND(intSetOfTwo).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fAND(intSetOfThree).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfThree.fAND(intSetOfTwo).strongEqual(intSetOfTwo) shouldBe true
+        intSetOfTwo.fAND(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfTwo.fAND(intSetOfTwo).equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fAND(intSetOfThree).equals(intSetOfTwo) shouldBe true
+        intSetOfThree.fAND(intSetOfTwo).equals(intSetOfTwo) shouldBe true
 
-        intSetOfThree.fAND(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfThree.fAND(intSetOfThree).strongEqual(intSetOfThree) shouldBe true
-        FKSet.ofi(2).fAND(intSetOfThree).strongEqual(FKSet.ofi(2)) shouldBe true
-        intSetOfThree.fAND(FKSet.ofi(2)).strongEqual(FKSet.ofi(2)) shouldBe true
+        intSetOfThree.fAND(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfThree.fAND(intSetOfThree).equals(intSetOfThree) shouldBe true
+        FKSet.ofi(2).fAND(intSetOfThree).equals(FKSet.ofi(2)) shouldBe true
+        intSetOfThree.fAND(FKSet.ofi(2)).equals(FKSet.ofi(2)) shouldBe true
     }
 
     test("fNOT") {
-        intSetOfNone.fNOT(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.fNOT(intSetOfOne).strongEqual(intSetOfNone) shouldBe true
+        intSetOfNone.fNOT(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfNone.fNOT(intSetOfOne).equals(intSetOfNone) shouldBe true
 
-        intSetOfOne.fNOT(intSetOfNone).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fNOT(intSetOfOne).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fNOT(intSetOfThree).strongEqual(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(intSetOfOne).strongEqual(FKSet.ofi(2,3)) shouldBe true
+        intSetOfOne.fNOT(intSetOfNone).equals(intSetOfOne) shouldBe true
+        intSetOfOne.fNOT(intSetOfOne).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fNOT(intSetOfThree).equals(intSetOfNone) shouldBe true
+        intSetOfThree.fNOT(intSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
 
-        intSetOfTwo.fNOT(intSetOfNone).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fNOT(intSetOfTwo).strongEqual(intSetOfNone) shouldBe true
-        intSetOfTwo.fNOT(intSetOfThree).strongEqual(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(intSetOfTwo).strongEqual(FKSet.ofi(3)) shouldBe true
+        intSetOfTwo.fNOT(intSetOfNone).equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fNOT(intSetOfTwo).equals(intSetOfNone) shouldBe true
+        intSetOfTwo.fNOT(intSetOfThree).equals(intSetOfNone) shouldBe true
+        intSetOfThree.fNOT(intSetOfTwo).equals(FKSet.ofi(3)) shouldBe true
 
-        intSetOfThree.fNOT(intSetOfNone).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fNOT(intSetOfThree).strongEqual(intSetOfNone) shouldBe true
-        FKSet.ofi(2).fNOT(intSetOfThree).strongEqual(intSetOfNone) shouldBe true
-        intSetOfThree.fNOT(FKSet.ofi(2)).strongEqual(FKSet.ofi(1,3)) shouldBe true
+        intSetOfThree.fNOT(intSetOfNone).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fNOT(intSetOfThree).equals(intSetOfNone) shouldBe true
+        FKSet.ofi(2).fNOT(intSetOfThree).equals(intSetOfNone) shouldBe true
+        intSetOfThree.fNOT(FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
     }
 
     test("fOR") {
@@ -220,29 +220,29 @@ class FIKSetFilteringTest : FunSpec({
         intSetOfTwo.fOR(intSetOfTwoOfst2).equals(intSetOfFour) shouldBe true
         intSetOfTwoOfst2.fOR(intSetOfTwo).equals(intSetOfFour) shouldBe true
 
-        intSetOfThree.fOR(intSetOfNone).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fOR(intSetOfThree).strongEqual(intSetOfThree) shouldBe true
-        FKSet.ofi(2).fOR(intSetOfThree).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fOR(FKSet.ofi(2)).strongEqual(intSetOfThree) shouldBe true
+        intSetOfThree.fOR(intSetOfNone).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fOR(intSetOfThree).equals(intSetOfThree) shouldBe true
+        FKSet.ofi(2).fOR(intSetOfThree).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fOR(FKSet.ofi(2)).equals(intSetOfThree) shouldBe true
     }
 
     test("fXOR") {
-        intSetOfNone.fXOR(intSetOfNone).strongEqual(intSetOfNone) shouldBe true
-        intSetOfNone.fXOR(intSetOfOne).strongEqual(intSetOfOne) shouldBe true
+        intSetOfNone.fXOR(intSetOfNone).equals(intSetOfNone) shouldBe true
+        intSetOfNone.fXOR(intSetOfOne).equals(intSetOfOne) shouldBe true
 
-        intSetOfOne.fXOR(intSetOfNone).strongEqual(intSetOfOne) shouldBe true
-        intSetOfOne.fXOR(intSetOfOne).strongEqual(intSetOfNone) shouldBe true
-        intSetOfOne.fXOR(intSetOfThree).strongEqual(FKSet.ofi(2,3)) shouldBe true
-        intSetOfThree.fXOR(intSetOfOne).strongEqual(FKSet.ofi(2,3)) shouldBe true
+        intSetOfOne.fXOR(intSetOfNone).equals(intSetOfOne) shouldBe true
+        intSetOfOne.fXOR(intSetOfOne).equals(intSetOfNone) shouldBe true
+        intSetOfOne.fXOR(intSetOfThree).equals(FKSet.ofi(2,3)) shouldBe true
+        intSetOfThree.fXOR(intSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
 
-        intSetOfTwo.fXOR(intSetOfNone).strongEqual(intSetOfTwo) shouldBe true
-        intSetOfTwo.fXOR(intSetOfTwo).strongEqual(intSetOfNone) shouldBe true
-        intSetOfTwo.fXOR(intSetOfThree).strongEqual(FKSet.ofi(3)) shouldBe true
-        intSetOfThree.fXOR(intSetOfTwo).strongEqual(FKSet.ofi(3)) shouldBe true
+        intSetOfTwo.fXOR(intSetOfNone).equals(intSetOfTwo) shouldBe true
+        intSetOfTwo.fXOR(intSetOfTwo).equals(intSetOfNone) shouldBe true
+        intSetOfTwo.fXOR(intSetOfThree).equals(FKSet.ofi(3)) shouldBe true
+        intSetOfThree.fXOR(intSetOfTwo).equals(FKSet.ofi(3)) shouldBe true
 
-        intSetOfThree.fXOR(intSetOfNone).strongEqual(intSetOfThree) shouldBe true
-        intSetOfThree.fXOR(intSetOfThree).strongEqual(intSetOfNone) shouldBe true
-        FKSet.ofi(2).fXOR(intSetOfThree).strongEqual(FKSet.ofi(1,3)) shouldBe true
-        intSetOfThree.fXOR(FKSet.ofi(2)).strongEqual(FKSet.ofi(1,3)) shouldBe true
+        intSetOfThree.fXOR(intSetOfNone).equals(intSetOfThree) shouldBe true
+        intSetOfThree.fXOR(intSetOfThree).equals(intSetOfNone) shouldBe true
+        FKSet.ofi(2).fXOR(intSetOfThree).equals(FKSet.ofi(1,3)) shouldBe true
+        intSetOfThree.fXOR(FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
     }
 })

@@ -1,8 +1,6 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMSet
-import com.xrpn.imapi.IMSetNotEmpty
+import com.xrpn.imapi.*
 import com.xrpn.immutable.FKSet.Companion.NOT_FOUND
 import com.xrpn.immutable.FKSet.Companion.emptyIMSet
 import com.xrpn.immutable.FKSet.Companion.ofi
@@ -459,12 +457,8 @@ class FKSetCompanionTest : FunSpec({
     test("co.toIMSet() IK"){
         Arb.list(Arb.int()).checkAll(repeats) { kl ->
             val ks = kl.toSet()
-            val fs1 = kl.toIMSet(Int::class)
-            val fs2 = ks.toIMSet(Int::class)
-            val fs3 = if (ks.isNotEmpty()) {
-                fs1 as IMSetNotEmpty<Int, Int>
-            } else fs1
-            fs3.strongEqual(fs2) shouldBe true
+            val fs1 = kl.toIMSet(IntKeyType)
+            val fs2 = ks.toIMSet(IntKeyType)
             fs1.equals(ks) shouldBe true
             ks.equals(fs2) shouldBe true
         }
@@ -473,12 +467,8 @@ class FKSetCompanionTest : FunSpec({
     test("co.toIMSet() SK"){
         Arb.list(Arb.int()).checkAll(repeats) { kl ->
             val ks = kl.toSet()
-            val fs1 = kl.toIMSet(String::class)
-            val fs2 = ks.toIMSet(String::class)
-            val fs3 = if (ks.isNotEmpty()) {
-                fs1 as IMSetNotEmpty<String, Int>
-            } else fs1
-            fs3.strongEqual(fs2) shouldBe true
+            val fs1 = kl.toIMSet(StrKeyType)
+            val fs2 = ks.toIMSet(StrKeyType)
             fs1.equals(ks) shouldBe true
             ks.equals(fs2) shouldBe true
         }

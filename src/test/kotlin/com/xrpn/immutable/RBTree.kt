@@ -1,10 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
-import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMMap
-import com.xrpn.imapi.IMSet
+import com.xrpn.imapi.*
 import kotlin.reflect.KClass
 
 /*
@@ -472,15 +469,11 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun toIMSet(kType: KClass<A>): IMSet<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun toIMSetSeeder(kType: KClass<A>, initial: B): IMSet<A, B> {
-        TODO("Not yet implemented")
-    }
-
     override fun toIMMap(): IMMap<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun toIMRSet(kType: RestrictedKeyType<A>): IMRSet<B> {
         TODO("Not yet implemented")
     }
 

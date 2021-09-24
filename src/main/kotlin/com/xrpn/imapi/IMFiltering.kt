@@ -32,28 +32,25 @@ interface IMListFiltering<out A: Any> {
 
 interface IMRSetFiltering<out A: Any> {
     fun fcontains(item: @UnsafeVariance A): Boolean
+    fun fcontainsAny(items: IMRSet<@UnsafeVariance A>): Boolean
     fun fdropItem(item: @UnsafeVariance A): IMRSet<A>
+    fun fdropAll(items: IMRSet<@UnsafeVariance A>): IMRSet<A>
     fun fdropWhen(isMatch: (A) -> Boolean): IMRSet<A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
     fun fempty(): Boolean = fpick() == null
     fun ffilter(isMatch: (A) -> Boolean): IMRSet<A> // 	Return all elements that match the predicate p
     fun ffilterNot(isMatch: (A) -> Boolean): IMRSet<A> // 	Return all elements that do not match the predicate p
     fun ffind(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
+    fun fisSubsetOf(rhs: IMRSet<@UnsafeVariance A>): Boolean
     fun fpick(): A? // peek at one random element
+    fun fAND(items: IMRSet<@UnsafeVariance A>): IMRSet<A>
+    fun fNOT(items: IMRSet<@UnsafeVariance A>): IMRSet<A> = fdropAll(items)
+    fun fOR(items: IMRSet<@UnsafeVariance A>): IMRSet<A>
+    fun fXOR(items: IMRSet<@UnsafeVariance A>): IMRSet<A>
 }
 
-interface IMSetFiltering<out K, out A: Any>: IMRSetFiltering<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun fcontainsAny(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
-    override fun fdropItem(item: @UnsafeVariance A): IMSet<K, A>
-    fun fdropAll(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
-    override fun fdropWhen(isMatch: (A) -> Boolean): IMSet<K, A> = this.ffilterNot(isMatch) // 	Drop all elements that match the predicate p
-    override fun ffilter(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that match the predicate p
-    override fun ffilterNot(isMatch: (A) -> Boolean): IMSet<K, A> // 	Return all elements that do not match the predicate p
-    fun fisSubsetOf(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
-    fun fpickKey(): K?  // peek at one random key
-    fun fAND(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
-    fun fNOT(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A> = fdropAll(items)
-    fun fOR(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
-    fun fXOR(items: IMSet<@UnsafeVariance K, @UnsafeVariance A>): IMSet<K, A>
+internal interface IMSetFiltering<out K, out A: Any>: IMRSetFiltering<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun fpickKey(): K  // peek at one random key
+    fun fkeyType(): RestrictedKeyType<K>  // peek at one random key
 }
 
 interface IMMapFiltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {

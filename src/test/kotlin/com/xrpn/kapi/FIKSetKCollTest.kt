@@ -1,9 +1,13 @@
 package com.xrpn.kapi
 
 import com.xrpn.bridge.FKSetIterator
+import com.xrpn.imapi.IMRSet
 import com.xrpn.imapi.IMSet
+import com.xrpn.imapi.IntKeyType
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FKSet.Companion.NOT_FOUND
+import com.xrpn.immutable.FKSet.Companion.asFKSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
 import com.xrpn.immutable.FKSet.Companion.emptyIMSet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import com.xrpn.immutable.FKSet.Companion.toIMSet
@@ -56,16 +60,16 @@ class FIKSetKCollTest : FunSpec({
     (intSetOfNone == FKSet.ofi(*arrayOf<Int>())) shouldBe true
     (intSetOfNone.equals(emptySet<Int>())) shouldBe true
     (intSetOfNone == emptySet<Int>()) shouldBe true
-    (intSetOfNone == emptySet<Int>().toIMSet(Int::class)) shouldBe true
+    (intSetOfNone == emptySet<Int>().toIMSet(IntKeyType)) shouldBe true
     (intSetOfNone == FKSet.ofi(*arrayOf(1))) shouldBe false
     (intSetOfNone == setOf(1)) shouldBe false
-    (intSetOfNone == setOf(1).toIMSet(Int::class)) shouldBe false
+    (intSetOfNone == setOf(1).toIMSet(IntKeyType)) shouldBe false
 
     (intSetOfOne == FKSet.ofi(*arrayOf<Int>())) shouldBe false
     (intSetOfOne == emptySet<Int>()) shouldBe false
     (intSetOfOne == FKSet.ofi(*arrayOf(1))) shouldBe true
     (intSetOfOne == setOf(1)) shouldBe true
-    (intSetOfOne == setOf(1).toIMSet(Int::class)) shouldBe true
+    (intSetOfOne == setOf(1).toIMSet(IntKeyType)) shouldBe true
     (intSetOfOne == FKSet.ofi(*arrayOf(1, 2))) shouldBe false
   }
 
@@ -384,27 +388,27 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("drop 0") {
-    intSetOfNone.drop(0).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.drop(0).toIMSet(Int::class) shouldBe intSetOfOne
-    intSetOfTwo.drop(0).toIMSet(Int::class) shouldBe intSetOfTwo
+    intSetOfNone.drop(0).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.drop(0).toIMSet(IntKeyType) shouldBe intSetOfOne
+    intSetOfTwo.drop(0).toIMSet(IntKeyType) shouldBe intSetOfTwo
   }
 
   test("drop 1") {
     val aux0: Set<Int> = intSetOfThree.drop(1).toSet()
-    val aux1: IMSet<Int, Int> = aux0.toIMSet(Int::class)
+    val aux1: IMRSet<Int> = aux0.toIMSet(IntKeyType)
     (aux1.fsize() == intSetOfThree.size - 1) shouldBe true
-    intSetOfThree.containsAll(aux1 as FKSet<Int, Int>) shouldBe true
-    intSetOfNone.drop(1).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.drop(1).toIMSet(Int::class) shouldBe emptyIMSet()
+    intSetOfThree.containsAll(asFKSet<Int,Int>(aux1)) shouldBe true
+    intSetOfNone.drop(1).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.drop(1).toIMSet(IntKeyType) shouldBe emptyIMRSet()
     val aux2 = intSetOfTwo.drop(1).toSet()
     (aux2.size == intSetOfTwo.size - 1) shouldBe true
     intSetOfTwo.containsAll(aux2) shouldBe true
   }
 
   test("drop 2") {
-    intSetOfNone.drop(2).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.drop(2).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfTwo.drop(2).toIMSet(Int::class) shouldBe emptyIMSet()
+    intSetOfNone.drop(2).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.drop(2).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfTwo.drop(2).toIMSet(IntKeyType) shouldBe emptyIMRSet()
 
     val aux1 = intSetOfThree.drop(2).toSet()
     (aux1.size == intSetOfThree.size - 2) shouldBe true
@@ -417,10 +421,10 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("drop 3") {
-    intSetOfNone.drop(3).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.drop(3).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfTwo.drop(3).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfThree.drop(3).toIMSet(Int::class) shouldBe emptyIMSet()
+    intSetOfNone.drop(3).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.drop(3).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfTwo.drop(3).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfThree.drop(3).toIMSet(IntKeyType) shouldBe emptyIMRSet()
     val a2 = FKSet.ofi(*arrayOf<Int>(1,2,3,4))
     val aux2 = a2.drop(3).toSet()
     (aux2.size == a2.size - 3) shouldBe true
@@ -435,11 +439,11 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("filter") {
-    intSetOfNone.filter {0 == it % 2}.toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.filter {0 == it % 2}.toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfTwo.filter {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(2)
-    intSetOfThree.filter {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(2)
-    FKSet.ofi(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(2, 4)
+    intSetOfNone.filter {0 == it % 2}.toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.filter {0 == it % 2}.toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfTwo.filter {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(2)
+    intSetOfThree.filter {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(2)
+    FKSet.ofi(*arrayOf<Int>(1,2,3,4)).filter {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(2, 4)
   }
 
   //  ignore
@@ -447,25 +451,25 @@ class FIKSetKCollTest : FunSpec({
   //  test("filterIsInstance") {}
 
   test("filterNot") {
-    intSetOfNone.filterNot {0 == it % 2}.toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.filterNot {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(1)
-    intSetOfTwo.filterNot {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(1)
-    intSetOfThree.filterNot {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(1,3)
-    FKSet.ofi(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toIMSet(Int::class) shouldBe FKSet.ofi(1, 3)
+    intSetOfNone.filterNot {0 == it % 2}.toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.filterNot {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1)
+    intSetOfTwo.filterNot {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1)
+    intSetOfThree.filterNot {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1,3)
+    FKSet.ofi(*arrayOf<Int>(1,2,3,4)).filterNot {0 == it % 2}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1, 3)
   }
 
   //  ignore
   //  test("filterNotNull") {}
 
   test("take 0") {
-    intSetOfNone.take(0).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.take(0).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfTwo.take(0).toIMSet(Int::class) shouldBe emptyIMSet()
+    intSetOfNone.take(0).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.take(0).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfTwo.take(0).toIMSet(IntKeyType) shouldBe emptyIMRSet()
   }
 
   test("take 1") {
-    intSetOfNone.take(1).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.take(1).toIMSet(Int::class) shouldBe intSetOfOne
+    intSetOfNone.take(1).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.take(1).toIMSet(IntKeyType) shouldBe intSetOfOne
 
     val aux1 = intSetOfTwo.take(1).toSet()
     aux1.size shouldBe 1
@@ -477,8 +481,8 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("take 2") {
-    intSetOfNone.take(2).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.take(2).toIMSet(Int::class) shouldBe intSetOfOne
+    intSetOfNone.take(2).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.take(2).toIMSet(IntKeyType) shouldBe intSetOfOne
 
     val aux1 = intSetOfTwo.take(2).toSet()
     aux1.size shouldBe 2
@@ -495,10 +499,10 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("take 3") {
-    intSetOfNone.take(3).toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.take(3).toIMSet(Int::class) shouldBe intSetOfOne
-    intSetOfTwo.take(3).toIMSet(Int::class) shouldBe intSetOfTwo
-    intSetOfThree.take(3).toIMSet(Int::class) shouldBe intSetOfThree
+    intSetOfNone.take(3).toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.take(3).toIMSet(IntKeyType) shouldBe intSetOfOne
+    intSetOfTwo.take(3).toIMSet(IntKeyType) shouldBe intSetOfTwo
+    intSetOfThree.take(3).toIMSet(IntKeyType) shouldBe intSetOfThree
     val a3 = FKSet.ofi(*arrayOf<Int>(1,2,3,4))
     val aux3 = a3.take(3)
     aux3.size shouldBe 3
@@ -513,10 +517,10 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("reversed") {
-    intSetOfNone.reversed().toIMSet(Int::class) shouldBe emptyIMSet()
-    intSetOfOne.reversed().toIMSet(Int::class) shouldBe intSetOfOne
-    intSetOfTwo.reversed().toIMSet(Int::class) shouldBe intSetOfTwo.toIMSet(Int::class)
-    intSetOfThree.reversed().toIMSet(Int::class) shouldBe intSetOfThree.toIMSet(Int::class)
+    intSetOfNone.reversed().toIMSet(IntKeyType) shouldBe emptyIMRSet()
+    intSetOfOne.reversed().toIMSet(IntKeyType) shouldBe intSetOfOne
+    intSetOfTwo.reversed().toIMSet(IntKeyType) shouldBe intSetOfTwo.toIMSet(IntKeyType)
+    intSetOfThree.reversed().toIMSet(IntKeyType) shouldBe intSetOfThree.toIMSet(IntKeyType)
   }
 
   test("sorted") {
@@ -550,11 +554,11 @@ class FIKSetKCollTest : FunSpec({
 
     fun reverseNumerical(t: Int): Int? = -t
 
-    intSetOfNone.sortedByDescending(::reverseNumerical).toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
-    intSetOfOne.sortedByDescending(::reverseNumerical).toIMSet(Int::class) shouldBe intSetOfOne
-    intSetOfTwo.sortedByDescending(::reverseNumerical).toIMSet(Int::class) shouldBe intSetOfTwo
-    intSetOfThree.sortedByDescending(::reverseNumerical).toIMSet(Int::class) shouldBe intSetOfThree
-    intSetOfSix.sortedByDescending(::reverseNumerical).toIMSet(Int::class) shouldBe intSetOfThree
+    intSetOfNone.sortedByDescending(::reverseNumerical).toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
+    intSetOfOne.sortedByDescending(::reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfOne
+    intSetOfTwo.sortedByDescending(::reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfTwo
+    intSetOfThree.sortedByDescending(::reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfThree
+    intSetOfSix.sortedByDescending(::reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfThree
   }
 
   test("sortedWith") {
@@ -567,11 +571,11 @@ class FIKSetKCollTest : FunSpec({
       }
     }
 
-    intSetOfNone.sortedWith(reverseNumerical).toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
-    intSetOfOne.sortedWith(reverseNumerical).toIMSet(Int::class) shouldBe intSetOfOne
-    intSetOfTwo.sortedWith(reverseNumerical).toIMSet(Int::class) shouldBe intSetOfTwo
-    intSetOfThree.sortedWith(reverseNumerical).toIMSet(Int::class) shouldBe intSetOfThree
-    intSetOfSix.sortedWith(reverseNumerical).toIMSet(Int::class) shouldBe intSetOfThree
+    intSetOfNone.sortedWith(reverseNumerical).toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
+    intSetOfOne.sortedWith(reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfOne
+    intSetOfTwo.sortedWith(reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfTwo
+    intSetOfThree.sortedWith(reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfThree
+    intSetOfSix.sortedWith(reverseNumerical).toIMSet(IntKeyType) shouldBe intSetOfThree
   }
 
   test("associate") {
@@ -616,14 +620,14 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("flatMap") {
-    intSetOfNone.flatMap{ FKSet.ofi(it) }.toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
-    intSetOfOne.flatMap{ FKSet.ofi(it) }.toIMSet(Int::class) shouldBe FKSet.ofi(1)
+    intSetOfNone.flatMap{ FKSet.ofi(it) }.toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
+    intSetOfOne.flatMap{ FKSet.ofi(it) }.toIMSet(IntKeyType) shouldBe FKSet.ofi(1)
     fun arrayBuilderConst(arg: Int) = Array<Int>(arg) { _ -> arg }
-    intSetOfTwo.flatMap {FKSet.ofi(*arrayBuilderConst(it))}.toIMSet(Int::class) shouldBe FKSet.ofi(1, 2)
+    intSetOfTwo.flatMap {FKSet.ofi(*arrayBuilderConst(it))}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1, 2)
     fun arrayBuilderIncrement(arg: Int) = Array<Int>(arg) { i -> arg + i }
-    intSetOfTwo.flatMap {FKSet.ofi(*arrayBuilderIncrement(it))}.toIMSet(Int::class) shouldBe FKSet.ofi(1, 2, 3)
-    intSetOfThree.flatMap {FKSet.ofi(*arrayBuilderIncrement(it))}.toIMSet(Int::class) shouldBe FKSet.ofi(1, 2, 3, 4, 5)
-    intSetOfThree.flatMap { i -> FKSet.ofi(i, i) }.toIMSet(Int::class) shouldBe intSetOfThree
+    intSetOfTwo.flatMap {FKSet.ofi(*arrayBuilderIncrement(it))}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1, 2, 3)
+    intSetOfThree.flatMap {FKSet.ofi(*arrayBuilderIncrement(it))}.toIMSet(IntKeyType) shouldBe FKSet.ofi(1, 2, 3, 4, 5)
+    intSetOfThree.flatMap { i -> FKSet.ofi(i, i) }.toIMSet(IntKeyType) shouldBe intSetOfThree
   }
 
   // ignore
@@ -652,9 +656,9 @@ class FIKSetKCollTest : FunSpec({
   // }
 
   test("map") {
-    intSetOfNone.map { it + 1}.toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
-    intSetOfOne.map { it + 1}.toIMSet(Int::class) shouldBe FKSet.ofi(2)
-    intSetOfTwo.map { it + 1}.toIMSet(Int::class) shouldBe FKSet.ofi(2, 3)
+    intSetOfNone.map { it + 1}.toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
+    intSetOfOne.map { it + 1}.toIMSet(IntKeyType) shouldBe FKSet.ofi(2)
+    intSetOfTwo.map { it + 1}.toIMSet(IntKeyType) shouldBe FKSet.ofi(2, 3)
   }
 
   // ignore
@@ -686,7 +690,7 @@ class FIKSetKCollTest : FunSpec({
   }
 
   test("distinct") {
-    intSetOfNone.distinct().toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
+    intSetOfNone.distinct().toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
     intSetOfOne.distinct() shouldBe intSetOfOne.toSet()
     intSetOfTwo.distinct() shouldBe intSetOfTwo.toSet()
     intSetOfFiveA.distinct() shouldBe intSetOfThree.toSet()
@@ -697,7 +701,7 @@ class FIKSetKCollTest : FunSpec({
 
     fun identity(oracle: Int) = oracle
 
-    intSetOfNone.distinctBy(::identity).toIMSet(Int::class) shouldBe emptyIMSet<Int, Int>()
+    intSetOfNone.distinctBy(::identity).toIMSet(IntKeyType) shouldBe emptyIMSet<Int, Int>()
     intSetOfOne.distinctBy(::identity) shouldBe intSetOfOne.toSet()
     intSetOfTwo.distinctBy(::identity) shouldBe intSetOfTwo.toSet()
     intSetOfFiveA.distinctBy(::identity) shouldBe intSetOfThree.toSet()

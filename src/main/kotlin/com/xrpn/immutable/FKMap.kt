@@ -327,18 +327,18 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         item as TKVEntry<K, V>
         val res: IMRSet<TKVEntry<K, V>> = when(item.getk()) {
             is String -> remainder
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMSetNotEmpty<String, TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
-            else -> remainder
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMSetNotEmpty<Int, TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMRSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
+            else -> remainder // will use hashCode() as key, beware of collisions
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMRSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
         }
         @Suppress("UNCHECKED_CAST") (res as Set<Map.Entry<K, V>>)
     }
     override val keys: Set<K> by lazy {
         val item = body.froot() as TKVEntry<K, V>
         val res: IMRSet<K> = when(item.getk()) {
-            is String -> body.ffold(nul<String, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST") (tkv as TKVEntry<String, K>)) }.toIMSet(String::class)
-            is Int -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST")(tkv as TKVEntry<Int, K>)) }.toIMSet(Int::class)
-            else -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(TKVEntry.ofIntKey(tkv.getk())) }.toIMSet(Int::class)
+            is String -> body.ffold(nul<String, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST") (tkv as TKVEntry<String, K>)) }.toIMRSet(StrKeyType)
+            is Int -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST")(tkv as TKVEntry<Int, K>)) }.toIMRSet(IntKeyType)
+            else -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(TKVEntry.ofIntKey(tkv.getk())) }.toIMRSet(IntKeyType)
         }
         @Suppress("UNCHECKED_CAST") (res as Set<K>)
     }

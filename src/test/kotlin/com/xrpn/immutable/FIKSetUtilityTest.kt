@@ -123,13 +123,13 @@ class FIKSetUtilityTest : FunSpec({
     }
 
     test("toIMSetNonEmptu") {
-        intISetOfNone.toIMSetNotEmpty() shouldBe null
+        intISetOfNone.toIMRSetNotEmpty() shouldBe null
         checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1 = FKSet.ofi(fbst)
-            (fs1.toIMSetNotEmpty() === fs1) shouldBe true
-            fs1.toIMSetNotEmpty()?.equals(fs) shouldBe true
+            (fs1.toIMRSetNotEmpty() === fs1) shouldBe true
+            fs1.toIMRSetNotEmpty()?.equals(fs) shouldBe true
         }
     }
 

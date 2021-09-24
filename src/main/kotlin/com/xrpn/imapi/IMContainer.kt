@@ -12,19 +12,24 @@ interface IMRSet<out A: Any>:
     IMRSetFiltering<A>,
     IMRSetGrouping<A>,
     IMRSetTransforming<A>,
-    IMRSetUtility<A>
+    IMRSetUtility<A>,
+    IMRSetExtras<A>
 
-interface IMSet<out K, out A:Any>:
-    IMSetFiltering<K, A>,
+interface IMRSetNotEmpty<out A:Any>:
+    IMRSet<A>,
+    IMRSetAltering<A>
+
+internal interface IMSet<out K, out A:Any>:
+    IMRSet<A>,
     IMSetGrouping<K, A>,
     IMSetTransforming<K, A>,
-    IMSetUtility<K, A>,
-    IMSetExtras<K, A>,
-    IMRSet<A>
+    IMSetUtility<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K>
 
-interface IMSetNotEmpty<out K, out A:Any>:
+internal interface IMSetNotEmpty<out K, out A:Any>:
     IMSet<K, A>,
+    IMSetFiltering<K, A>,
+    IMRSetNotEmpty<A>,
     IMSetAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K>
 

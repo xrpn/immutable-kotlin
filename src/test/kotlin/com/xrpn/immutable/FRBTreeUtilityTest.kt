@@ -1,6 +1,8 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.IMSet
+import com.xrpn.imapi.IntKeyType
+import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -157,27 +159,17 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("toIMSet") {
-        intFRBTreeOfNone.toIMSet(Int::class) shouldBe FKSet.emptyIMSet()
+        intFRBTreeOfNone.toIMRSet(IntKeyType) shouldBe FKSet.emptyIMSet()
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
-            val ims1: IMSet<Int, Int> = frbt.toIMSet(Int::class)
+            val ims1: IMSet<Int, Int> = frbt.toIMRSet(IntKeyType)
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
         checkAll(repeats, Arb.frbStree<Int, Int>(Arb.int(),20..100)) { frbt ->
-            val ims1: IMSet<String, Int> = frbt.toIMSet(String::class)
+            val ims1: IMSet<String, Int> = frbt.toIMRSet(StrKeyType)
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
-    }
-
-    test("toIMSetSeeder Int") {
-        intFRBTreeOfNone.toIMSetSeeder(Int::class, 1) shouldBe FKSet.ofi(1)
-        intFRBTreeOfNone.toIMSetSeeder(Int::class, 2) shouldBe FKSet.ofi(2)
-    }
-
-    test("toIMSetSeeder Str") {
-        intFRBSTreeOfNone.toIMSetSeeder(String::class, 1) shouldBe FKSet.ofs(1)
-        intFRBSTreeOfNone.toIMSetSeeder(String::class, 2) shouldBe FKSet.ofs(2)
     }
 
     test("copy") {

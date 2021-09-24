@@ -30,6 +30,7 @@ interface IMListGrouping<out A: Any>: IMCountable<A> {
 }
 
 interface IMRSetGrouping<out A: Any>: IMCountable<A> {
+    fun <B: Any> fcartesian(rhs: IMRSet<@UnsafeVariance B>): IMRSet<Pair<A, B>> // cartesian product
     fun fcombinations(maxSize: Int): IMRSet<IMRSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMRSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMRSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
@@ -41,18 +42,7 @@ interface IMRSetGrouping<out A: Any>: IMCountable<A> {
     fun fpopAndReminder(): Pair<A?, IMRSet<A>>
 }
 
-interface IMSetGrouping<out K, out A: Any>: IMRSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance B>): IMSet<K, Pair<A, B>> // cartesian product
-    override fun fcombinations(maxSize: Int): IMSet<K, IMSet<K, A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
-    override fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<K, A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
-    override fun findexed(offset: Int): IMSet<K, Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
-    override fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<K, A>, /* false */ IMSet<K, A>> // Two collections created by the predicate p
-    // Collection is a set (small(er) size) or a list (large(r) size)
-    override fun fpermutations(maxSize: Int): Collection<IMList<A>> // all unique, non-empty collections of "size" members from this set, caution suggested, O(size!) algorithm.
-    // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
-    override fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
-    override fun fpopAndReminder(): Pair<A?, IMSet<K, A>>
-}
+internal interface IMSetGrouping<out K, out A: Any>: IMRSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapGrouping<out K, out V: Any>: IMCountable<V> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fentries(): IMRSet<TKVEntry<K,V>>

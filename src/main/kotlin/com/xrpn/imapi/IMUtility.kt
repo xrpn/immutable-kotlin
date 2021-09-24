@@ -12,17 +12,17 @@ interface IMListUtility<out A: Any> {
 }
 
 interface IMRSetUtility<out A: Any> {
-    fun equal(rhs: IMRSet<@UnsafeVariance A>): Boolean
+    fun safeEqual(rhs: IMRSetNotEmpty<@UnsafeVariance A>): Boolean
+    fun equal(rhs: Set<@UnsafeVariance A>): Boolean
+    fun fforEach (f: (A) -> Unit): Unit
+    fun copy(): IMRSet<A>
+    fun toIMRSetNotEmpty(): IMRSetNotEmpty<A>?
     fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
 }
 
-interface IMSetUtility<out K, out A: Any>: IMRSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun strongEqual(rhs: IMSet<@UnsafeVariance K, @UnsafeVariance A>): Boolean
-    fun fforEach (f: (A) -> Unit): Unit
+internal interface IMSetUtility<out K, out A: Any>: IMRSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun strongEqual(rhs: IMRSet<@UnsafeVariance A>): Boolean
     fun toIMBTree(): IMBTree<K, A>
-    fun toIMSetNotEmpty(): IMSetNotEmpty<K, A>?
-    fun copy(): IMSet<K, A>
-    override fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
 }
 
 interface IMMapUtility<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -37,8 +37,7 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.froot()) { _, tkv -> f(tkv); tkv }; Unit }
-    fun toIMSet(kType: KClass<@UnsafeVariance A>): IMSet<A, B>
-    fun toIMSetSeeder(kType: KClass<@UnsafeVariance A>, initial: @UnsafeVariance B): IMSet<A, B>
+    fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>): IMRSet<B>
     fun toIMMap(): IMMap<A, B>
     fun copy(): IMBTree<A, B>
     fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = (

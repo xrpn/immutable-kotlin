@@ -75,28 +75,28 @@ internal fun <K, A: Any> IMSetEqual2(lhs: IMSet<K, A>, rhs: IMSet<K, A>): Boolea
 
 interface IMSetCompanion {
 
-    fun <K, A: Any> emptyIMSet(): IMSet<K, A> where K: Any, K: Comparable<K>
-    fun <A: Any> ofi(vararg items: A): IMSet<Int, A>
-    fun <A: Any> ofi(items: Iterator<A>): IMSet<Int, A>
-    fun <A: Any> ofi(items: IMBTree<Int, A>): IMSet<Int, A>
-    fun <A: Any> ofi(items: IMList<A>): IMSet<Int, A>
-    fun <B, A: Any> ofiMap(items: Iterator<B>, f: (B) -> A): IMSet<Int, A>
-    fun <B: Any, A: Any> ofiMap(items: IMList<B>, f: (B) -> A): IMSet<Int, A>
-    fun <B, A: Any> ofiMap(items: List<B>, f: (B) -> A): IMSet<Int, A>
+    fun <A: Any> emptyIMRSet(): IMRSet<A>
+    fun <A: Any> ofi(vararg items: A): IMRSet<A>
+    fun <A: Any> ofi(items: Iterator<A>): IMRSet<A>
+    fun <A: Any> ofi(items: IMBTree<Int, A>): IMRSet<A>
+    fun <A: Any> ofi(items: IMList<A>): IMRSet<A>
+    fun <B, A: Any> ofiMap(items: Iterator<B>, f: (B) -> A): IMRSet<A>
+    fun <B: Any, A: Any> ofiMap(items: IMList<B>, f: (B) -> A): IMRSet<A>
+    fun <B, A: Any> ofiMap(items: List<B>, f: (B) -> A): IMRSet<A>
 
-    fun <A: Any> ofs(vararg items: A): IMSet<String, A>
-    fun <A: Any> ofs(items: Iterator<A>): IMSet<String, A>
-    fun <A: Any> ofs(items: IMBTree<String, A>): IMSet<String, A>
-    fun <A: Any> ofs(items: IMList<A>): IMSet<String, A>
-    fun <B, A: Any> ofsMap(items: Iterator<B>, f: (B) -> A): IMSet<String, A>
-    fun <B: Any, A: Any> ofsMap(items: IMList<B>, f: (B) -> A): IMSet<String, A>
-    fun <B, A: Any> ofsMap(items: List<B>, f: (B) -> A): IMSet<String, A>
+    fun <A: Any> ofs(vararg items: A): IMRSet<A>
+    fun <A: Any> ofs(items: Iterator<A>): IMRSet<A>
+    fun <A: Any> ofs(items: IMBTree<String, A>): IMRSet<A>
+    fun <A: Any> ofs(items: IMList<A>): IMRSet<A>
+    fun <B, A: Any> ofsMap(items: Iterator<B>, f: (B) -> A): IMRSet<A>
+    fun <B: Any, A: Any> ofsMap(items: IMList<B>, f: (B) -> A): IMRSet<A>
+    fun <B, A: Any> ofsMap(items: List<B>, f: (B) -> A): IMRSet<A>
 
-    fun <K, B : Any> toTKVEntry(s: IMSet<K, B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
+    fun <K, B : Any> toTKVEntry(s: IMRSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
 
-    fun <K, A: Any> Collection<A>.toIMSet(kType: KClass<K>): IMSet<K, A> where K: Any, K: Comparable<K>
-    fun <A: Any> Collection<A>.toIMISet(): IMSet<Int, A>
-    fun <A: Any> Collection<A>.toIMSSet(): IMSet<String, A>
+    fun <K, A: Any> Collection<A>.toIMSet(kType: RestrictedKeyType<K>): IMRSet<A> where K: Any, K: Comparable<K>
+    fun <A: Any> Collection<A>.toIMISet(): IMRSet<A>
+    fun <A: Any> Collection<A>.toIMSSet(): IMRSet<A>
 }
 
 
