@@ -16,11 +16,11 @@ import com.xrpn.immutable.FStream.Companion.zipWith_a
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-fun intStreamOfNone(): FStream<Int> = FStream.of(*arrayOf<Int>())
+fun intStreamOfNone(): FStream<Int> = FStream.of(*emptyArrayOfInt)
 fun intStreamOfOne(): FStream<Int> = FStream.of(*arrayOf<Int>(1))
 fun intStreamOfTwo(): FStream<Int> = FStream.of(*arrayOf<Int>(1,2))
 fun intStreamOfThree(): FStream<Int> = FStream.of(*arrayOf<Int>(1,2,3))
-fun strStreamOfNone(): FStream<String> = FStream.of(*arrayOf<String>())
+fun strStreamOfNone(): FStream<String> = FStream.of(*emptyArrayOfStr)
 fun strStreamOfOne(): FStream<String> = FStream.of(*arrayOf<String>("a"))
 fun strStreamOfTwo(): FStream<String> = FStream.of(*arrayOf<String>("a","b"))
 fun strStreamOfThree(): FStream<String> = FStream.of(*arrayOf<String>("a","b","c"))
@@ -30,7 +30,7 @@ val hdThree: () -> Int = { 3 }
 val tailStr: () -> FStream<String> = { emptyFStream() }
 val hdB: () -> String = { "b" }
 
-private val intListOfNone = FList.of(*arrayOf<Int>())
+private val intListOfNone = FList.of(*emptyArrayOfInt)
 private val intListOfOneA = FList.of(*arrayOf<Int>(0))
 private val intListOfOne = FList.of(*arrayOf<Int>(1))
 private val intListOfOneB = FList.of(*arrayOf<Int>(2))
@@ -43,7 +43,7 @@ private val intListOfTwoC = FList.of(*arrayOf<Int>(1,4))
 private val intListOfThree = FList.of(*arrayOf<Int>(1,2,3))
 private val intListOfFive = FList.of(*arrayOf<Int>(1,2,3,2,1))
 private val intListOfSix = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
-private val strListOfNone = FList.of(*arrayOf<String>())
+private val strListOfNone = FList.of(*emptyArrayOfStr)
 private val strListOfOne = FList.of(*arrayOf<String>("a"))
 private val strListOfTwo = FList.of(*arrayOf<String>("a","b"))
 private val strListOfThree = FList.of(*arrayOf<String>("a","b","c"))
@@ -281,8 +281,8 @@ class FStreamTest : FunSpec({
   }
 
   test("zipWith") {
-    intStreamOfNone().zipWith_a(FStream.of(*arrayOf<String>())){ a, b -> Pair(a,b)} shouldBe FSNil
-    intStreamOfOne().zipWith_a(FStream.of(*arrayOf<String>())){ a, b -> Pair(a,b)} shouldBe FSNil
+    intStreamOfNone().zipWith_a(FStream.of(*emptyArrayOfStr)){ a, b -> Pair(a,b)} shouldBe FSNil
+    intStreamOfOne().zipWith_a(FStream.of(*emptyArrayOfStr)){ a, b -> Pair(a,b)} shouldBe FSNil
     intStreamOfNone().zipWith_a(FStream.of(*arrayOf<String>("a"))){ a, b -> Pair(a,b)} shouldBe FSNil
     intStreamOfOne().zipWith_a(FStream.of(*arrayOf<String>("a"))){ a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
     intStreamOfTwo().zipWith_a(FStream.of(*arrayOf<String>("a"))){ a, b -> Pair(a,b)}.toFList() shouldBe FLCons(Pair(1,"a"),FLNil)
@@ -293,8 +293,8 @@ class FStreamTest : FunSpec({
   }
 
 //  test("zipWith iterable") {
-//    intStreamOfNone.zipWith(arrayOf<String>().iterator()) shouldBe FSNil
-//    intStreamOfOne.zipWith(arrayOf<String>().iterator()) shouldBe FSNil
+//    intStreamOfNone.zipWith(emptyArrayOfStr.iterator()) shouldBe FSNil
+//    intStreamOfOne.zipWith(emptyArrayOfStr.iterator()) shouldBe FSNil
 //    intStreamOfNone.zipWith(arrayOf("a").iterator()) shouldBe FSNil
 //    intStreamOfOne.zipWith(arrayOf("a").iterator()) shouldBe cons(Pair(1,"a"),FSNil)
 //    intStreamOfTwo.zipWith(arrayOf("a").iterator()) shouldBe cons(Pair(1,"a"),FSNil)
@@ -305,14 +305,14 @@ class FStreamTest : FunSpec({
 //  }
 //
 //  test("enumerate") {
-//    FList.of(*arrayOf<String>()).enumerate() shouldBe FSNil
+//    FList.of(*emptyArrayOfStr).enumerate() shouldBe FSNil
 //    strStreamOfOne.enumerate() shouldBe cons(Pair("a",0),FSNil)
 //    strStreamOfTwo.enumerate() shouldBe cons(Pair("a",0),cons(Pair("b",1),FSNil))
 //    strStreamOfThree.enumerate() shouldBe cons(Pair("a",0),cons(Pair("b",1),cons(Pair("c",2),FSNil)))
 //  }
 //
 //  test("enumerate offset") {
-//    FList.of(*arrayOf<String>()).enumerate(10) shouldBe FSNil
+//    FList.of(*emptyArrayOfStr).enumerate(10) shouldBe FSNil
 //    strStreamOfOne.enumerate(10) shouldBe cons(Pair("a",10),FSNil)
 //    strStreamOfTwo.enumerate(10) shouldBe cons(Pair("a",10),cons(Pair("b",11),FSNil))
 //    strStreamOfThree.enumerate(10) shouldBe cons(Pair("a",10),cons(Pair("b",11),cons(Pair("c",12),FSNil)))
@@ -367,14 +367,14 @@ class FStreamTest : FunSpec({
   }
 
   test("co.of FListIterator").config(enabled = false) {
-    FStream.of(FList.of(arrayOf<Int>().iterator()).iterator()) shouldBe FSNil
+    FStream.of(FList.of(emptyArrayOfInt.iterator()).iterator()) shouldBe FSNil
     FStream.of(FList.of(arrayOf<Int>(1).iterator()).iterator()).toFList() shouldBe FLCons(1,FLNil)
     FStream.of(FList.of(arrayOf<Int>(1,2).iterator()).iterator()).toFList() shouldBe FLCons(1,FLCons(2,FLNil))
     FStream.of(FList.of(arrayOf<Int>(1,2,3).iterator()).iterator()).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
   }
 
   test("co.prepend") {
-    FStream.of(*arrayOf<Int>()).prepend(1).toFList() shouldBe FLCons(1, FLNil)
+    FStream.of(*emptyArrayOfInt).prepend(1).toFList() shouldBe FLCons(1, FLNil)
     FStream.of(*arrayOf<Int>(2)).prepend(1).toFList() shouldBe FLCons(1, FLCons(2,FLNil))
     FStream.of(*arrayOf<Int>(2, 3)).prepend(1).toFList() shouldBe FLCons(1, FLCons(2, FLCons(3,FLNil)))
   }
@@ -387,6 +387,6 @@ class FStreamTest : FunSpec({
   }
 
 //  test("co.hasSubsequence") {
-//    FList.hasSubsequence(intStreamOfNone, FList.of(*arrayOf<Int>())) shouldBe true
+//    FList.hasSubsequence(intStreamOfNone, FList.of(*emptyArrayOfInt)) shouldBe true
 //  }
 })

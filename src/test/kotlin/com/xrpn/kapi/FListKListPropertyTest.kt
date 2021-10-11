@@ -330,8 +330,8 @@ class FListKListPropertyTest : FunSpec({
 
 
 //  test("zipWith") {
-//    intListOfNone.zipWith(FList.of(*arrayOf<String>())){a, b -> Pair(a,b)} shouldBe FLNil
-//    intListOfOne.zipWith(FList.of(*arrayOf<String>())){a, b -> Pair(a,b)} shouldBe FLNil
+//    intListOfNone.zipWith(FList.of(*emptyArrayOfStr)){a, b -> Pair(a,b)} shouldBe FLNil
+//    intListOfOne.zipWith(FList.of(*emptyArrayOfStr)){a, b -> Pair(a,b)} shouldBe FLNil
 //    intListOfNone.zipWith(FList.of(*arrayOf<String>("a"))){a, b -> Pair(a,b)} shouldBe FLNil
 //    intListOfOne.zipWith(FList.of(*arrayOf<String>("a"))){a, b -> Pair(a,b)} shouldBe FLCons(Pair(1,"a"),FLNil)
 //    intListOfTwo.zipWith(FList.of(*arrayOf<String>("a"))){a, b -> Pair(a,b)} shouldBe FLCons(Pair(1,"a"),FLNil)
@@ -342,8 +342,8 @@ class FListKListPropertyTest : FunSpec({
 //  }
 //
 //  test("zipWith iterable") {
-//    intListOfNone.zipWith(arrayOf<String>().iterator()) shouldBe FLNil
-//    intListOfOne.zipWith(arrayOf<String>().iterator()) shouldBe FLNil
+//    intListOfNone.zipWith(emptyArrayOfStr.iterator()) shouldBe FLNil
+//    intListOfOne.zipWith(emptyArrayOfStr.iterator()) shouldBe FLNil
 //    intListOfNone.zipWith(arrayOf("a").iterator()) shouldBe FLNil
 //    intListOfOne.zipWith(arrayOf("a").iterator()) shouldBe FLCons(Pair(1,"a"),FLNil)
 //    intListOfTwo.zipWith(arrayOf("a").iterator()) shouldBe FLCons(Pair(1,"a"),FLNil)
@@ -354,14 +354,14 @@ class FListKListPropertyTest : FunSpec({
 //  }
 //
 //  test("enumerate") {
-//    FList.of(*arrayOf<String>()).enumerate() shouldBe FLNil
+//    FList.of(*emptyArrayOfStr).enumerate() shouldBe FLNil
 //    strListOfOne.enumerate() shouldBe FLCons(Pair("a",0),FLNil)
 //    strListOfTwo.enumerate() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLNil))
 //    strListOfThree.enumerate() shouldBe FLCons(Pair("a",0),FLCons(Pair("b",1),FLCons(Pair("c",2),FLNil)))
 //  }
 //
 //  test("enumerate offset") {
-//    FList.of(*arrayOf<String>()).enumerate(10) shouldBe FLNil
+//    FList.of(*emptyArrayOfStr).enumerate(10) shouldBe FLNil
 //    strListOfOne.enumerate(10) shouldBe FLCons(Pair("a",10),FLNil)
 //    strListOfTwo.enumerate(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLNil))
 //    strListOfThree.enumerate(10) shouldBe FLCons(Pair("a",10),FLCons(Pair("b",11),FLCons(Pair("c",12),FLNil)))
@@ -379,7 +379,7 @@ class FListKListPropertyTest : FunSpec({
 //  }
 
 //  test("co.of iterator") {
-//    FList.of(arrayOf<Int>().iterator()) shouldBe FLNil
+//    FList.of(emptyArrayOfInt.iterator()) shouldBe FLNil
 //    FList.of(arrayOf<Int>(1).iterator()) shouldBe FLCons(1,FLNil)
 //    FList.of(arrayOf<Int>(1,2).iterator()) shouldBe FLCons(1,FLCons(2,FLNil))
 //    FList.of(arrayOf<Int>(1,2,3).iterator()) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
@@ -394,7 +394,7 @@ class FListKListPropertyTest : FunSpec({
 //  }
 
 //  test("co.setHead") {
-//    FList.setHead(1, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
+//    FList.setHead(1, FList.of(*emptyArrayOfInt)) shouldBe FLCons(1,FLNil)
 //    FList.setHead(1, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
 //    FList.setHead(1, FList.of(*arrayOf<Int>(2, 3))) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
 //  }
@@ -408,20 +408,20 @@ class FListKListPropertyTest : FunSpec({
 //  }
 //
 //  test("co.append") {
-//    FList.append(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe FLNil
+//    FList.append(intListOfNone, FList.of(*emptyArrayOfInt)) shouldBe FLNil
 //    FList.append(intListOfNone, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(2,FLNil)
-//    FList.append(intListOfOne, FList.of(*arrayOf<Int>())) shouldBe FLCons(1,FLNil)
+//    FList.append(intListOfOne, FList.of(*emptyArrayOfInt)) shouldBe FLCons(1,FLNil)
 //    FList.append(intListOfOne, FList.of(*arrayOf<Int>(2))) shouldBe FLCons(1,FLCons(2,FLNil))
 //    FList.append(intListOfTwo, FList.of(*arrayOf<Int>(3,4))) shouldBe
 //            FLCons(1,FLCons(2,FLCons(3,FLCons(4,FLNil))))
 //  }
 //
 //  test("co.flatten") {
-//    FList.appendNested(FList.of(*arrayOf(FList.of(*arrayOf<Int>())))) shouldBe FLNil
+//    FList.appendNested(FList.of(*arrayOf(FList.of(*emptyArrayOfInt)))) shouldBe FLNil
 //    FList.appendNested(FList.of(*arrayOf(FList.of(*arrayOf<Int>(1))))) shouldBe FLCons(1,FLNil)
-//    FList.appendNested(FList.of(*arrayOf(intListOfNone, FList.of(*arrayOf<Int>())))) shouldBe FLNil
+//    FList.appendNested(FList.of(*arrayOf(intListOfNone, FList.of(*emptyArrayOfInt)))) shouldBe FLNil
 //    FList.appendNested(FList.of(*arrayOf(intListOfNone, FList.of(*arrayOf<Int>(1))))) shouldBe FLCons(1,FLNil)
-//    FList.appendNested(FList.of(*arrayOf(intListOfOne, FList.of(*arrayOf<Int>())))) shouldBe FLCons(1,FLNil)
+//    FList.appendNested(FList.of(*arrayOf(intListOfOne, FList.of(*emptyArrayOfInt)))) shouldBe FLCons(1,FLNil)
 //    FList.appendNested(FList.of(*arrayOf(intListOfOne, FList.of(*arrayOf<Int>(2))))) shouldBe FLCons(1,FLCons(2,FLNil))
 //    FList.appendNested(FList.of(*arrayOf(intListOfTwo, FList.of(*arrayOf<Int>(3))))) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
 //    FList.appendNested(FList.of(*arrayOf(intListOfOne, FList.of(*arrayOf<Int>(2,3))))) shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
@@ -429,6 +429,6 @@ class FListKListPropertyTest : FunSpec({
 //  }
 //
 //  test("co.hasSubsequence") {
-//    FList.hasSubsequence(intListOfNone, FList.of(*arrayOf<Int>())) shouldBe true
+//    FList.hasSubsequence(intListOfNone, FList.of(*emptyArrayOfInt)) shouldBe true
 //  }
 })

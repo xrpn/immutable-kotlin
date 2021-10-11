@@ -42,7 +42,7 @@ class FBHeapTest : FunSpec({
         FBHMaxNil.height() shouldBe 0
         FBHMaxNil.height() shouldBe 0
         FBHBranch(
-            TKVEntry.of(mEntry.hashCode(), mEntry),
+            TKVEntry.ofkv(mEntry.hashCode(), mEntry),
             FBHMaxNil,
             FBHMaxNil
         ).height() shouldBe 1
@@ -129,7 +129,7 @@ class FBHeapTest : FunSpec({
         FBHMinNil.size() shouldBe 0
         FBHMinNil.size() shouldBe 0
         FBHBranch(
-            TKVEntry.of(mEntry.hashCode(), mEntry),
+            TKVEntry.ofkv(mEntry.hashCode(), mEntry),
             FBHMaxNil,
             FBHMaxNil
         ).size() shouldBe 1
@@ -321,29 +321,29 @@ class FBHeapTest : FunSpec({
         (maxHeapNul<Int, Int>() == FBHMinNil) shouldBe false
         (minHeapNul<Int, Int>() == FBHMaxNil) shouldBe false
         (FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMaxNil,
             FBHMaxNil
         ) == FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMaxNil,
             FBHMaxNil
         )) shouldBe true
         (FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMinNil,
             FBHMinNil
         ) == FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMinNil,
             FBHMinNil
         )) shouldBe true
         (FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMinNil,
             FBHMinNil
         ) == FBHBranch(
-            TKVEntry.of(aEntry.hashCode(), aEntry),
+            TKVEntry.ofkv(aEntry.hashCode(), aEntry),
             FBHMaxNil,
             FBHMaxNil
         )) shouldBe false
@@ -483,7 +483,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) sorted asc, small, min") {
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val oracle = (Array(n) { it })
             val heapo = minHeapOf(values.iterator())
             displayHeapOnVerbose(heapo, n)
@@ -510,7 +510,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) sorted desc, small, min") {
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             values.reverse()
             val oracle = (Array(n) { it })
             val heapo = minHeapOf(values.iterator())
@@ -538,7 +538,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) sorted asc, small, max") {
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val oracle = (Array(n) { it })
             val heapo = maxHeapOf(values.iterator())
             displayHeapOnVerbose(heapo, n)
@@ -565,7 +565,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) sorted desc, small, max") {
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             values.reverse()
             val oracle = (Array(n) { it })
             val heapo = maxHeapOf(values.iterator())
@@ -592,7 +592,7 @@ class FBHeapTest : FunSpec({
 
     test("co.(insert/add/pop) item (property) sorted asc, large, min").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val oracle = (Array(n) { it })
             val heapo = minHeapOf(values.iterator())
             displayHeapOnVerbose(heapo, n)
@@ -618,7 +618,7 @@ class FBHeapTest : FunSpec({
 
     test("co.(insert/add/pop) item (property) sorted desc, large, max").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             values.reverse()
             val oracle = (Array(n) { it })
             val heapo = maxHeapOf(values.iterator())
@@ -646,7 +646,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) random, small, min") {
         // checkAll(PropTestConfig(iterations = 50, seed = 5792981224933522729), Arb.int(20..100)) { n ->
         checkAll(repeatsMed.first, Arb.int(10..repeatsMed.second)) { n ->
-            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             val oracle = (Array(n) { it })
@@ -676,7 +676,7 @@ class FBHeapTest : FunSpec({
     test("co.(insert/add/pop) item (property) random, small, max") {
         // checkAll(PropTestConfig(iterations = 50, seed = 5792981224933522729), Arb.int(20..100)) { n ->
         checkAll(repeatsMed.first, Arb.int(10..repeatsMed.second)) { n ->
-            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             val oracle = (Array(n) { it })
@@ -705,7 +705,7 @@ class FBHeapTest : FunSpec({
 
     test("co.(insert/add/pop) item (property) random, large, min max").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
-            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i)}
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i)}
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             val oracle = (Array(n) { it })

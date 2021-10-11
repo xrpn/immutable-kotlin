@@ -2,6 +2,8 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FRBTree.Companion.nul
+import com.xrpn.immutable.TKVEntry.Companion.ofIntKey
+import com.xrpn.immutable.TKVEntry.Companion.ofk
 
 //
 // W       W  I  P P P
@@ -53,7 +55,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
-    override fun fpopAndReminder(): Pair<TKVEntry<K, V>?, IMMap<K, V>> {
+    override fun fpopAndRemainder(): Pair<TKVEntry<K, V>?, IMMap<K, V>> {
         TODO("Not yet implemented")
     }
 
@@ -99,7 +101,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.ffindKey(key)?.let { ofFKMapBody(body.fdropItem(it.froot()!!)) } ?: this
     }
 
-    override fun fdropAll(keys: IMRSet<@UnsafeVariance K>): FKMap<K, V> = when (this) {
+    override fun fdropAll(keys: IMSet<@UnsafeVariance K>): FKMap<K, V> = when (this) {
         is FKMapEmpty -> this
         is FKMapNotEmpty -> ofFKMapBody(keys.ffold(this.toFRBTree()){t, k ->
             t.ffindKey(k)?.let {tt ->
@@ -110,7 +112,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     override fun fdropkv(key: @UnsafeVariance K, value: @UnsafeVariance V): FKMap<K,V> = when (this) {
         is FKMapEmpty -> this
-        is FKMapNotEmpty -> ofFKMapBody(body.fdropItem(TKVEntry.of(key, value)))
+        is FKMapNotEmpty -> ofFKMapBody(body.fdropItem(TKVEntry.ofkv(key, value)))
     }
 
     override fun fget(key: @UnsafeVariance K): V? = when (this) {
@@ -130,9 +132,9 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.ffold(0) {acc, tkv -> if(isMatch(tkv.getv())) acc + 1 else acc }
     }
 
-    override fun fentries(): IMRSet<TKVEntry<K,V>> = (@Suppress("UNCHECKED_CAST") (entries as IMRSet<TKVEntry<K, V>>))
+    override fun fentries(): IMSet<TKVEntry<K,V>> = (@Suppress("UNCHECKED_CAST") (entries as IMSet<TKVEntry<K, V>>))
 
-    override fun fkeys(): IMRSet<K> = (@Suppress("UNCHECKED_CAST") (keys as IMRSet<K>))
+    override fun fkeys(): IMSet<K> = (@Suppress("UNCHECKED_CAST") (keys as IMSet<K>))
 
     override fun fsize(): Int = size
 
@@ -141,18 +143,18 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
     // altering
 
     override fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): FKMap<K,V> = when (this) {
-        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.of(key, value)) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.of(key, value)) as FRBTNode)
+        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofkv(key, value)) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.ofkv(key, value)) as FRBTNode)
     }
 
     override fun fputPair(p: Pair<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
-        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.of(p)) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.of(p)) as FRBTNode)
+        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofp(p)) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.ofp(p)) as FRBTNode)
     }
 
     override fun fputList(l: FList<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): FKMap<K,V> = if (l.fempty()) this else when (this) {
         is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(l as IMList<TKVEntry<K,V>>) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finserts(l.fmap { TKVEntry.of(it) }) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finserts(l) as FRBTNode<K, V>)
     }
 
     override fun fputTree(t: IMBTree<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
@@ -213,12 +215,12 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
         override fun <K, V : Any> of(items: Iterator<Pair<K, V>>): FKMap<K, V> where K: Any, K : Comparable<K> {
             var acc: FRBTree<K, V> = nul()
-            items.forEach { acc = acc.finsert(TKVEntry.of(it)) }
+            items.forEach { acc = acc.finsert(TKVEntry.ofp(it)) }
             return ofFKMapBody(acc)
         }
 
         override fun <K, V : Any> of(items: IMList<Pair<K, V>>): FKMap<K, V> where K: Any, K : Comparable<K> =
-            if (items.fempty()) FKMapEmpty.empty() else ofFKMapBody(FRBTree.of(items.fmap { TKVEntry.of(it) }))
+            if (items.fempty()) FKMapEmpty.empty() else ofFKMapBody(FRBTree.of(items.fmap { TKVEntry.ofp(it) }))
 
         override fun <K, V : Any> of(items: IMBTree<K, V>): FKMap<K, V> where K: Any, K : Comparable<K> = when (items) {
             is FRBTree -> ofFKMapBody(items)
@@ -228,7 +230,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
         override fun <K, V : Any> Collection<V>.toIMMap(keyMaker: (V) -> K): FKMap<K, V> where K: Any, K : Comparable<K> {
             var acc: FRBTree<K, V> = nul()
-            this.forEach { acc = acc.finsert(TKVEntry.of(keyMaker(it), it)) }
+            this.forEach { acc = acc.finsert(TKVEntry.ofkv(keyMaker(it), it)) }
             return ofFKMapBody(acc)
         }
 
@@ -323,9 +325,9 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
     override fun isEmpty(): Boolean = false
     override val size: Int by lazy { body.size }
     override val entries: Set<Map.Entry<K, V>> by lazy {
-        val (item: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndReminder()
+        val (item: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
         item as TKVEntry<K, V>
-        val res: IMRSet<TKVEntry<K, V>> = when(item.getk()) {
+        val res: IMSet<TKVEntry<K, V>> = when(item.getk()) {
             is String -> remainder
                 .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMRSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
             else -> remainder // will use hashCode() as key, beware of collisions
@@ -333,14 +335,34 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         }
         @Suppress("UNCHECKED_CAST") (res as Set<Map.Entry<K, V>>)
     }
+
     override val keys: Set<K> by lazy {
-        val item = body.froot() as TKVEntry<K, V>
-        val res: IMRSet<K> = when(item.getk()) {
-            is String -> body.ffold(nul<String, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST") (tkv as TKVEntry<String, K>)) }.toIMRSet(StrKeyType)
-            is Int -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(@Suppress("UNCHECKED_CAST")(tkv as TKVEntry<Int, K>)) }.toIMRSet(IntKeyType)
-            else -> body.ffold(nul<Int, K>()) { acc, tkv -> acc.finsert(TKVEntry.ofIntKey(tkv.getk())) }.toIMRSet(IntKeyType)
+
+        val item: TKVEntry<K, V>? = body.froot()
+
+        fun assemblekk(): FKSet<@UnsafeVariance K, @UnsafeVariance K> {
+            val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
+            val seed: FRBTree<K, K> = FRBTree.of(ofk(ei!!.getk()))
+            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMRSet(seed.fkeyType())!!
         }
-        @Suppress("UNCHECKED_CAST") (res as Set<K>)
+
+        if (null == item) TODO() else {
+            val res: IMSet<K> = when (item) {
+                is RTKVEntry -> when (item.getrk()) {
+                    is DeratedCustomKeyType -> throw RuntimeException("internal error")
+                    else -> assemblekk()
+                }
+                else -> when (item.getk()) {
+                    is String, is Int -> assemblekk()
+                    else -> {
+                        val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
+                        val seed: FRBTree<Int, K> = FRBTree.of(ofIntKey(ei!!.getk()))
+                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMRSet(seed.fkeyType())!!
+                    }
+                }
+            }
+            @Suppress("UNCHECKED_CAST") (res as Set<K>)
+        }
     }
     override val values: Collection<V> by lazy { body.fmapvToList { it } as FList<V> }
     override fun containsKey(key: @UnsafeVariance K): Boolean = body.fcontainsKey(key)
@@ -354,10 +376,10 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
 }
 
 fun <K, V : Any> Pair<K,V>.toMap(): FKMap<K, V> where K: Any, K: Comparable<K> =
-    ofFKMapNotEmpty(FRBTree.of(TKVEntry.of(this)) as FRBTNode)
+    ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofp(this)) as FRBTNode)
 
 fun <K, V : Any> V.toMap(keyMaker: (V) -> K): FKMap<K, V> where K: Any, K: Comparable<K> =
-    ofFKMapNotEmpty(FRBTree.of(TKVEntry.of(keyMaker(this), this)) as FRBTNode)
+    ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofkv(keyMaker(this), this)) as FRBTNode)
 
 internal fun <K, V: Any> ofFKMapBody(b: FRBTree<K, V>): FKMap<K, V> where K: Any, K: Comparable<K> = when(b) {
     is FRBTNode -> FKMapNotEmpty.of(b)

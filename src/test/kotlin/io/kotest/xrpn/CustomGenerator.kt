@@ -9,8 +9,8 @@ import io.kotest.property.arbitrary.set
 fun <A: Any, B> Arb.Companion.flist(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FList<A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FList<A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.list(arbB, range).map { bs -> FList.ofMap(bs, f) }
@@ -19,42 +19,58 @@ fun <A: Any, B> Arb.Companion.flist(
 fun <A: Any, B> Arb.Companion.flistAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<Collection<A>> = flist(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<A>> where B:A = flist(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.flistAsKList(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<List<A>> = flist(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<List<A>> where B:A = flist(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.fset(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FKSet<Int, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FKSet<Int, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
-    return Arb.set(arbB, range).map { bs -> FKSet.ofiMap(bs.iterator(), f) }
+    return Arb.set(arbB, range).map { bs: Set<B> ->
+        val aux: FKSet<Int, A> = FKSet.ofiMap(bs.iterator(), f)
+        aux
+    }
 }
 
-fun <A: Any, B> Arb.Companion.fsetAsSet(
+fun <A: Any, B> Arb.Companion.fsset(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<Set<A>> = fset(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FKSet<String, A>> where B:A {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.set(arbB, range).map { bs: Set<B> ->
+        val aux: FKSet<String, A> = FKSet.ofsMap(bs.iterator(), f)
+        aux
+    }
+}
 
 fun <A: Any, B> Arb.Companion.fsetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<Collection<A>> = fset(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<A>> where B:A = fset(arbB, range, f)
+
+fun <A: Any, B> Arb.Companion.fssetAsCollection(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<A>> where B:A = fsset(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.frbtree(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FRBTree<Int, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FRBTree<Int, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FRBTree.ofvi(cs.iterator()) }
@@ -63,8 +79,8 @@ fun <A: Any, B> Arb.Companion.frbtree(
 fun <A: Any, B> Arb.Companion.frbStree(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FRBTree<String, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FRBTree<String, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FRBTree.ofvs(cs.iterator()) }
@@ -73,14 +89,14 @@ fun <A: Any, B> Arb.Companion.frbStree(
 fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<Collection<TKVEntry<Int, A>>> = frbtree(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.fbstree(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FBSTree<Int, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FBSTree<Int, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvi(cs.iterator()) }
@@ -89,8 +105,8 @@ fun <A: Any, B> Arb.Companion.fbstree(
 fun <A: Any, B> Arb.Companion.fbsStree(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FBSTree<String, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FBSTree<String, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvs(cs.iterator()) }
@@ -99,8 +115,8 @@ fun <A: Any, B> Arb.Companion.fbsStree(
 fun <A: Any, B> Arb.Companion.fbstreeAllowDups(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<FBSTree<Int, A>> {
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FBSTree<Int, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
     return Arb.list(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvi(cs.iterator(), allowDups = true) }
@@ -109,5 +125,5 @@ fun <A: Any, B> Arb.Companion.fbstreeAllowDups(
 fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a as A }
-): Arb<Collection<TKVEntry<Int, A>>> = fbstree(arbB, range, f)
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbstree(arbB, range, f)

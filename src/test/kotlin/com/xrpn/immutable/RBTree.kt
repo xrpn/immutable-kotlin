@@ -2,14 +2,12 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.imapi.*
-import kotlin.reflect.KClass
 
 /*
     Mutable version of RBTree, verbatim from Java, to use as test oracle
  */
 
 open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
-
     private var root: RBNode<A, B>? = null
     private var size: Int? = null
 
@@ -337,7 +335,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>> {
+    override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>> {
         TODO("Not yet implemented")
     }
 
@@ -417,10 +415,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fcontainsValue(value: B): Boolean {
-        TODO("Not yet implemented")
-    }
-
     override fun fdropItem(item: TKVEntry<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
@@ -473,10 +467,21 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun toIMRSet(kType: RestrictedKeyType<A>): IMRSet<B> {
+    override fun toIMRSet(kType: RestrictedKeyType<A>?): IMSet<B>? {
         TODO("Not yet implemented")
     }
 
+    override fun fkeyType(): RestrictedKeyType<A>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun <K> toIMBTree(kType: RestrictedKeyType<K>): IMBTree<K, B>? where K: Any, K : Comparable<K> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindAny(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

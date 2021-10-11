@@ -1,11 +1,12 @@
 package com.xrpn.bridge
 
+import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.FKSet
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intSetOfNone = FKSet.ofi(*arrayOf<Int>())
+private val intSetOfNone = FKSet.ofi(*emptyArrayOfInt)
 private val intSetOfOne = FKSet.ofi(*arrayOf<Int>(1))
 private val intSetOfTwo = FKSet.ofi(*arrayOf<Int>(1,2))
 private val intSetOfThree = FKSet.ofi(*arrayOf<Int>(1,2,3))

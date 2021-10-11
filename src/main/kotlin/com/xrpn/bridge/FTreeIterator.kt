@@ -31,7 +31,7 @@ class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>,
 
     fun nullableNext(): TKVEntry<A, B>? = synchronized(current) {
         if (current.fempty()) null else {
-            val aux: Pair<TKVEntry<A, B>?, IMBTree<A, B>> = current.fpopAndReminder()
+            val aux: Pair<TKVEntry<A, B>?, IMBTree<A, B>> = current.fpopAndRemainder()
             current = aux.second
             aux.first
         }
@@ -39,7 +39,7 @@ class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>,
 
     private fun getNext(): TKVEntry<A, B> {
         if (current.fempty()) throw NoSuchElementException(MSG_EMPTY_ITERATOR)
-        val aux: Pair<TKVEntry<A, B>?, IMBTree<A, B>> = current.fpopAndReminder()
+        val aux: Pair<TKVEntry<A, B>?, IMBTree<A, B>> = current.fpopAndRemainder()
         current = aux.second
         return aux.first!!
     }

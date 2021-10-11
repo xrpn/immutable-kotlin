@@ -1,12 +1,13 @@
 package com.xrpn.bridge
 
+import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intListOfNone = FList.of(*arrayOf<Int>())
+private val intListOfNone = FList.of(*emptyArrayOfInt)
 private val intListOfOne = FList.of(*arrayOf<Int>(1))
 private val intListOfTwo = FList.of(*arrayOf<Int>(1,2))
 private val intListOfThree = FList.of(*arrayOf<Int>(1,2,3))

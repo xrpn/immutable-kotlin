@@ -1,12 +1,13 @@
 package com.xrpn.bridge
 
+import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.FStack
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intStackOfNone = FStack.of(*arrayOf<Int>())
+private val intStackOfNone = FStack.of(*emptyArrayOfInt)
 private val intStackOfOne = FStack.of(*arrayOf<Int>(1))
 private val intStackOfTwo = FStack.of(*arrayOf<Int>(1,2))
 private val intStackOfThree = FStack.of(*arrayOf<Int>(1,2,3))

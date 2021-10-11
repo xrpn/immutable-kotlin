@@ -28,13 +28,13 @@ class FKMapIteratorTest : FunSpec({
         }
         val iter = FKMapIterator(intIMapOfOne)
         iter.hasNext() shouldBe true
-        iter.next() shouldBe TKVEntry.of(1,1)
+        iter.next() shouldBe TKVEntry.ofkk(1,1)
         shouldThrow<NoSuchElementException> {
             iter.next()
         }
         val aux = FKMapIterator(strSMapOfTwo)
-        aux.next() shouldBe TKVEntry.of("1","1")
-        aux.next() shouldBe TKVEntry.of("2","2")
+        aux.next() shouldBe TKVEntry.ofkk("1","1")
+        aux.next() shouldBe TKVEntry.ofkk("2","2")
         shouldThrow<NoSuchElementException> {
             aux.next()
         }
@@ -42,21 +42,21 @@ class FKMapIteratorTest : FunSpec({
 
     test("nullableNext") {
         FKMapIterator(intIMapOfNone).nullableNext() shouldBe null
-        FKMapIterator(intIMapOfOne).nullableNext() shouldBe TKVEntry.of(1,1)
+        FKMapIterator(intIMapOfOne).nullableNext() shouldBe TKVEntry.ofkk(1,1)
         val aux = FKMapIterator(strSMapOfTwo)
-        aux.nullableNext() shouldBe TKVEntry.of("1","1")
-        aux.nullableNext() shouldBe TKVEntry.of("2","2")
+        aux.nullableNext() shouldBe TKVEntry.ofkk("1","1")
+        aux.nullableNext() shouldBe TKVEntry.ofkk("2","2")
         aux.nullableNext() shouldBe null
     }
 
     test("next (drain)") {
         val iter = FKMapIterator(intIMapOfThree)
         iter.hasNext() shouldBe true
-        iter.next() shouldBe TKVEntry.of(1,1)
+        iter.next() shouldBe TKVEntry.ofkk(1,1)
         iter.hasNext() shouldBe true
-        iter.next() shouldBe TKVEntry.of(2,2)
+        iter.next() shouldBe TKVEntry.ofkk(2,2)
         iter.hasNext() shouldBe true
-        iter.next() shouldBe TKVEntry.of(3,3)
+        iter.next() shouldBe TKVEntry.ofkk(3,3)
         iter.hasNext() shouldBe false
         shouldThrow<NoSuchElementException> {
             iter.next()
@@ -67,26 +67,26 @@ class FKMapIteratorTest : FunSpec({
         val iter = FKMapIterator(intIMapOfThree)
         iter.hasNext() shouldBe true
 
-        iter.next() shouldBe TKVEntry.of(1,1)
+        iter.next() shouldBe TKVEntry.ofkk(1,1)
         iter.hasNext() shouldBe true
 
-        iter.next() shouldBe TKVEntry.of(2,2)
+        iter.next() shouldBe TKVEntry.ofkk(2,2)
 
         iter.resettable shouldBe true
         iter.resetIfEmpty() shouldBe false
         iter.reset() shouldBe true
         iter.hasNext() shouldBe true
 
-        iter.next() shouldBe TKVEntry.of(1,1)
+        iter.next() shouldBe TKVEntry.ofkk(1,1)
         iter.hasNext() shouldBe true
 
-        iter.next() shouldBe TKVEntry.of(2,2)
+        iter.next() shouldBe TKVEntry.ofkk(2,2)
 
         while (iter.hasNext()) iter.next()
         iter.hasNext() shouldBe false
 
         iter.resetIfEmpty() shouldBe true
         iter.hasNext() shouldBe true
-        iter.next() shouldBe TKVEntry.of(1,1)
+        iter.next() shouldBe TKVEntry.ofkk(1,1)
     }
 })

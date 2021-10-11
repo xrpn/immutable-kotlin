@@ -2,9 +2,9 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
-import com.xrpn.immutable.FRBTree.Companion.toIMBTree as frbToIMBTree
 import kotlin.reflect.KClass
 
 // this is NOT as Set as it MAY (legally!) have duplicates.  It's not a List either :)
@@ -65,9 +65,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>): FKSet<A, B> = toIMSetImpl(this, kType)
+    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
 
-    override fun toIMMap(): IMMap<A, B> = ofFKMapBody(this.frbToIMBTree())
+    override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> =
+        toFBSTreeImpl(this, kType)
+
+    override fun toIMMap(): IMMap<A, B> = ofFKMapBody(this.toFRBTree())
 
     override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
 
@@ -156,14 +159,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =
         bstFindKey(this, key) != null
 
-    override fun fcontainsValue(value: @UnsafeVariance B): Boolean = if (this.fempty()) false else try {
-        // TODO gross, find something better
-        this.ffold(0) { acc, tkv -> if(value.equals(tkv.getv())) throw BreakoutException() else acc+1 }
-        false
-    } catch (ex: BreakoutException) {
-        true
-    }
-
     override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> {
         // TODO consider memoization
         return bstDeletes(this, items as FList<TKVEntry<A,B>>)
@@ -200,6 +195,25 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(FLNil, f4ffind)
     }
 
+    override fun ffindAny(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? {
+
+        val f: (previous: Pair<Boolean, TKVEntry<A, B>>, entry: TKVEntry<A, B>) -> Pair<Boolean, TKVEntry<A, B>> = { previous, entry -> if (previous.first) previous else Pair(isMatch(entry), entry) }
+        fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: Pair<Boolean, TKVEntry<A, B>>): Pair<Pair<Boolean, TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> =
+            if (acc.first) Pair(acc, FStack.emptyIMStack()) else {
+                val (node, shortStack) = stack.fpopOrThrow()
+                val newAcc: Pair<Boolean, TKVEntry<A, B>> = visitForFold(node, acc, f)
+                val auxStack = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
+                val newStack = if (node.bLeft is FBSTNode) auxStack.fpush(node.bLeft) else auxStack
+                Pair(newAcc, newStack)
+            }
+
+        return if (this.fempty()) null else {
+            val start: Pair<Boolean, TKVEntry<A, B>> = Pair(false, this.froot()!!)
+            val stop = unwindStack(FStack.of(this as FBSTNode), start, ::accrueForFold)
+            if (stop.first) stop.second else null
+        }
+    }
+
     override fun ffindItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>? =
         bstFind(this, item)
 
@@ -215,12 +229,13 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun ffindValueOfKey(key: @UnsafeVariance A): B? =
         bstFindValueOFKey(this, key)
 
-    override fun fhasDups(): Boolean = try { // there has to be a better way...
-        this.ffold(false) { hasDup, tkv -> if(hasDup) throw BreakoutException() else hasDup || fisDup(tkv) }
-        false
-    } catch (ex: BreakoutException) {
-        true
+    override fun fkeyType(): RestrictedKeyType<A>? = when (this) {
+        is FBSTNode -> fbsRKeyType
+        else -> null
     }
+
+    override fun fhasDups(): Boolean =
+        ffindAny { fisDup(it) } != null
 
     override fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
         ffindItem(item)?.let { first -> first.size != ffindLastItem(item)?.size } ?: false
@@ -278,12 +293,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(Pair(nul(), nul()), ::f4fpartition)
     }
 
-    override fun fpopAndReminder(): Pair<TKVEntry<A,B>?, FBSTree<A, B>> {
+    override fun fpopAndRemainder(): Pair<TKVEntry<A,B>?, FBSTree<A, B>> {
         val pop: TKVEntry<A,B>? = this.fpick()
-        // computing the reminder can be very expensive; if traversing
+        // computing the remainder can be very expensive; if traversing
         // the full tree, .inorder() or .forEach() may be cheaper
-        val reminder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: FBSTNil
-        return Pair(pop, reminder)
+        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: FBSTNil
+        return Pair(pop, remainder)
     }
 
     // returns the maximum path length from the root of a tree to any node.
@@ -370,7 +385,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FBSTNil -> null
         is FBSTNode -> {
-            val (seedTkv, stub) = this.fpopAndReminder()
+            val (seedTkv, stub) = this.fpopAndRemainder()
             stub.ffold(seedTkv!!){ acc, tkv -> f(acc, tkv) }
         }
     }
@@ -418,9 +433,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             unwindQueue(newQueue, newAcc, accrue)
         }
 
-    internal fun fbsKeyKClassOut(): KClass<out A> = froot()!!.getk()::class
-
-    internal fun fbsKeyKClass(): KClass<@UnsafeVariance A> = @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>)
+    internal fun toFRBTree(): FRBTree<A, B> = this.ffold(FRBTree.nul(), ::rbtInsert)
 
     companion object: IMBTreeCompanion {
 
@@ -452,7 +465,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items, false)
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
             var res: FBSTree<A, B> = nul()
-            items.forEach { res = bstInsert(res, TKVEntry.of(it.getk(), it.getv(), cc), allowDups) }
+            items.forEach { res = bstInsert(res, TKVEntry.ofkvc(it.getk(), it.getv(), cc), allowDups) }
             return res
         }
 
@@ -513,19 +526,19 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // =================
 
-        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> =
-            if (this.isEmpty()) nul() else when(this) {
-                is FBSTree<*, *> -> this as FBSTree<A, B>
-                is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") (this as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-                is FKSet<*,*> -> @Suppress("UNCHECKED_CAST") this.ffold(nul()) { acc, item -> acc.finsert(item as TKVEntry<A, B>) }
-                is List<*> -> of(this.iterator(), allowDups = true)
-                is Set<*> -> of(this.iterator())
-                else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
-            }
+//        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> =
+//            if (this.isEmpty()) nul() else when(this) {
+//                is FBSTree<*, *> -> this as FBSTree<A, B>
+//                is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") (this as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+//                is IMKSet<*,*> -> this.toIMBTree().ffold(nul()) { acc: FBSTree<A, B>, item -> acc.finsert(item) }
+//                is List<*> -> of(this.iterator(), allowDups = true)
+//                is Set<*> -> of(this.iterator())
+//                else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+//            }
 
         override fun <A, B: Any> Map<A, B>.toIMBTree(): FBSTree<A, B> where A: Any, A: Comparable<A> {
             var res: FBSTree<A, B> = nul()
-            for (entry in this) { res = res.finsertDup(TKVEntry.of(entry), allowDups = true) }
+            for (entry in this) { res = res.finsertDup(TKVEntry.ofme(entry), allowDups = true) }
             return res
         }
 
@@ -617,7 +630,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A,B>>): FBSTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> bstDeletes(bstDelete(treeStub, items.head), items.tail)
+                is FLCons -> if(treeStub.fcontains(items.head)) bstDeletes(bstDelete(treeStub, items.head), items.tail)
+                             else bstDeletes(treeStub, items.tail)
             }
 
         // find the first tree stub matching item; the returned stub may have other nodes that match item
@@ -881,11 +895,11 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             t1 is FBSTNil -> t2
             t2 is FBSTNil -> t1
             t1.size < t2.size -> {
-                val (entry, stub) = t1.fpopAndReminder()
+                val (entry, stub) = t1.fpopAndRemainder()
                 mergeAppender(t2.finsertDup(entry!!, allowDups), stub, allowDups)
             }
             else -> {
-                val (entry, stub) = t2.fpopAndReminder()
+                val (entry, stub) = t2.fpopAndRemainder()
                 mergeAppender(t1.finsertDup(entry!!, allowDups), stub, allowDups)
             }
         }
@@ -899,26 +913,39 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         private fun <B: Any> appenderStrKey(withDups: Boolean): (FBSTree<String, B>, B) -> FBSTree<String, B> =
             { treeStub: FBSTree<String, B>, item: B -> bstInsert(treeStub, item.toSAEntry(), allowDups = withDups)}
 
-        private fun <A, B: Any> toIMSetImpl(t: FBSTree<A, B>, kType: RestrictedKeyType<@UnsafeVariance A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
-            initial != null -> when (kType) {
-                is IntKeyType -> @Suppress("UNCHECKED_CAST") (ofFIKSNotEmpty(FRBTree.ofvi(initial) as FRBTNode) as FKSet<A, B>)
-                is StrKeyType -> @Suppress("UNCHECKED_CAST") (ofFSKSNotEmpty(FRBTree.ofvs(initial) as FRBTNode) as FKSet<A, B>)
-            }
+        private fun <A, B: Any> toFKSetImpl(t: FBSTree<A, B>, kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
             t.fempty() -> FKSetEmpty.empty()
-            else -> when (kType) {
-                IntKeyType -> if (t.froot()!!.getk() is Int) {
-                    val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<Int, B>))
-                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-                } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.froot()!!.getk()::class})")
-                StrKeyType -> if (t.froot()!!.getk() is String) {
-                    val s: FKSet<String, B> =
-                        FKSet.ofs(@Suppress("UNCHECKED_CAST") (t.frbToIMBTree() as FRBTree<String, B>))
-                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-                } else throw RuntimeException("${FRBTree.unknownKeyType} $kType (key is: ${t.froot()!!.getk()::class})")
-            }
+            null == kType -> t.fkeyType()?.let { toFKSetImpl(t, it) }
+            t.fkeyType() == kType -> ofBody(t.toFRBTree())
+            (kType is IntKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFIKSBody(t.toFRBTree() as FRBTree<Int,A>) as FKSet<A, B>)
+            (kType is StrKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFSKSBody(t.toFRBTree() as FRBTree<String,A>) as FKSet<A, B>)
+            else -> null
         }
 
-        private class BreakoutException(): RuntimeException()
+        private fun <K, A, B:Any> toFBSTreeImpl(t: FBSTree<A, B>, kType: RestrictedKeyType<K>): FBSTree<K, B>? where A: Any, A: Comparable<A>, K: Any, K: Comparable<K> = when {
+            t.fempty() -> nul()
+            t.fkeyType() == kType -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
+            (kType is IntKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
+            (kType is StrKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
+            else ->  when (kType) {
+                is IntKeyType ->   {
+                    val res: FBSTree<Int, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toIAEntry()) }
+                    @Suppress("UNCHECKED_CAST") (res as FBSTree<K, B>)
+                }
+                is StrKeyType -> {
+                    val res: FBSTree<String, B> = t.ffold(FBSTree.nul()) { acc, tkv -> acc.finsert(tkv.getv().toSAEntry()) }
+                    @Suppress("UNCHECKED_CAST") (res as FBSTree<K, B>)
+                }
+                is SymKeyType -> if (kType.kc != t.froot()!!.getv()::class) null else {
+                    t.ffold(nul<K, B>()) { acc, tkv ->
+                        val k = @Suppress("UNCHECKED_CAST") (tkv.getv() as K)
+                        val entry = TKVEntry.ofkv(k, tkv.getv())
+                        acc.finsert(entry)
+                    }
+                }
+                is DeratedCustomKeyType -> kType.specialize<K>()?.let { toFBSTreeImpl(t, it) }
+            }
+        }
 
     }
 }
@@ -1024,6 +1051,14 @@ internal data class FBSTNode<out A, out B: Any> (
     }
 
     override fun hashCode(): Int = hash
+
+    private val fbsKeyKClass: KClass<@UnsafeVariance A> by lazy { @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>) }
+
+    internal val fbsRKeyType: RestrictedKeyType<A>? by lazy { when(froot()!!.getk()) {
+        is Int -> (@Suppress("UNCHECKED_CAST") (IntKeyType as RestrictedKeyType<A>))
+        is String -> (@Suppress("UNCHECKED_CAST") (StrKeyType as RestrictedKeyType<A>))
+        else -> if (froot()!!.getk()::class == froot()!!.getv()::class) SymKeyType(fbsKeyKClass) else null
+    }}
 
     companion object {
         fun <A, B: Any> hashCode(n: FBSTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hashCode()

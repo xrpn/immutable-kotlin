@@ -83,7 +83,7 @@ class RBTreeTest : FunSpec({
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(50, Arb.int(20..100)) { n ->
             // val n = 9
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val rbTree = RBTree.of(values.iterator())
             if (verbose || !rbTree.rbSane()) {
                 print("size " + n)
@@ -103,7 +103,7 @@ class RBTreeTest : FunSpec({
     test("co.insert item (property) sorted desc, small") {
         // checkAll(PropTestConfig(iterations = 1, seed = 1882817875667961235), Arb.int(20..100)) { n ->
         checkAll(50, Arb.int(20..100)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             values.reverse()
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
@@ -117,7 +117,7 @@ class RBTreeTest : FunSpec({
 
     test("co.insert item (property) sorted asc, large") {
         checkAll(2, Arb.int(10000..100000)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
             rbTree.rbSane() shouldBe true
@@ -130,7 +130,7 @@ class RBTreeTest : FunSpec({
 
     test("co.insert item (property) sorted desc, large") {
         checkAll(2, Arb.int(10000..100000)) { n ->
-            val values = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             values.reverse()
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
@@ -145,8 +145,8 @@ class RBTreeTest : FunSpec({
     test("co.insert item (property) random, small") {
         // checkAll(PropTestConfig(iterations = 50, seed = 5792981224933522729), Arb.int(20..100)) { n ->
         checkAll(500, Arb.int(10..400)) { n ->
-            val sorted = Array(n) { i: Int -> TKVEntry.of(i, i) }
-            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            val sorted = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             val rbTree = RBTree.of(shuffled.iterator())
@@ -162,8 +162,8 @@ class RBTreeTest : FunSpec({
     test("co.insert item (property) random reversed, small") {
         // checkAll(PropTestConfig(iterations = 50, seed = 5792981224933522729), Arb.int(20..100)) { n ->
         checkAll(500, Arb.int(10..400)) { n ->
-            val sorted = Array(n) { i: Int -> TKVEntry.of(i, i) }
-            val shuffled = Array(n) { i: Int -> TKVEntry.of(i, i) }
+            val sorted = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             shuffled.reverse()
@@ -179,8 +179,8 @@ class RBTreeTest : FunSpec({
 
     test("co.insert item (property) random, large").config(enabled = true) {
         checkAll(5, Arb.int(10000..100000)) { n ->
-            val sorted = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            val shuffled = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val sorted = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
+            val shuffled = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             shuffled.shuffle()
             val rbTree = RBTree.of(shuffled.iterator())
             displayRbtOnVerbose(rbTree, n)
@@ -194,8 +194,8 @@ class RBTreeTest : FunSpec({
 
     test("co.insert item (property) random reversed, large").config(enabled = true) {
         checkAll(5, Arb.int(10000..100000)) { n ->
-            val sorted = (Array(n) { i: Int -> TKVEntry.of(i, i) })
-            val shuffled = (Array(n) { i: Int -> TKVEntry.of(i, i) })
+            val sorted = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
+            val shuffled = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             shuffled.shuffle()
             shuffled.reverse()
             val rbTree = RBTree.of(shuffled.iterator())

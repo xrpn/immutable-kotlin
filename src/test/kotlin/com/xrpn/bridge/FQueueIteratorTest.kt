@@ -1,12 +1,13 @@
 package com.xrpn.bridge
 
+import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.FQueue
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intQueueOfNone = FQueue.of(*arrayOf<Int>())
+private val intQueueOfNone = FQueue.of(*emptyArrayOfInt)
 private val intQueueOfOne = FQueue.of(*arrayOf<Int>(1))
 private val intQueueOfTwo = FQueue.of(*arrayOf<Int>(1,2))
 private val intQueueOfThree = FQueue.of(*arrayOf<Int>(1,2,3))

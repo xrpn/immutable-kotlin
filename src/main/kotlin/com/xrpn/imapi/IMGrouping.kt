@@ -29,30 +29,30 @@ interface IMListGrouping<out A: Any>: IMCountable<A> {
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
 }
 
-interface IMRSetGrouping<out A: Any>: IMCountable<A> {
-    fun <B: Any> fcartesian(rhs: IMRSet<@UnsafeVariance B>): IMRSet<Pair<A, B>> // cartesian product
-    fun fcombinations(maxSize: Int): IMRSet<IMRSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
-    fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMRSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
-    fun findexed(offset: Int = 0): IMRSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
-    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMRSet<A>, /* false */ IMRSet<A>> // Two collections created by the predicate p
+interface IMSetGrouping<out A: Any>: IMCountable<A> {
+    fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance B>): IMSet<Pair<A, B>> // cartesian product
+    fun fcombinations(maxSize: Int): IMSet<IMSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
+    fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
+    fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
+    fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
     // Collection is a set (small(er) size) or a list (large(r) size)
     fun fpermutations(maxSize: Int): Collection<IMList<A>> // all unique, non-empty collections of "size" members from this set, caution suggested, O(size!) algorithm.
     // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
     fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
-    fun fpopAndReminder(): Pair<A?, IMRSet<A>>
+    fun fpopAndRemainder(): Pair<A?, IMSet<A>>
 }
 
-internal interface IMSetGrouping<out K, out A: Any>: IMRSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K>
+internal interface IMKSetGrouping<out K, out A: Any>: IMSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapGrouping<out K, out V: Any>: IMCountable<V> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun fentries(): IMRSet<TKVEntry<K,V>>
-    fun fkeys(): IMRSet<K>
+    fun fentries(): IMSet<TKVEntry<K,V>>
+    fun fkeys(): IMSet<K>
     fun <R: Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>?
     fun <R: Comparable<R>> maxOf(f: (V) -> R): R? = maxBy(f)?.let { f(it.getv())}
     fun <R: Comparable<R>> minBy(f: (V) -> R): TKVEntry<K, V>?
     fun <R: Comparable<R>> minOf(f: (V) -> R): R? = minBy(f)?.let { f(it.getv())}
     fun fpartition(isMatch: (TKVEntry<K, V>) -> Boolean): Pair</* true */ IMMap<K, V>, /* false */ IMMap<K, V>> // Two collections created by the predicate p
-    fun fpopAndReminder(): Pair<TKVEntry<K, V>?, IMMap<K, V>>
+    fun fpopAndRemainder(): Pair<TKVEntry<K, V>?, IMMap<K, V>>
     fun fvalues(): FList<V>
 }
 
@@ -61,7 +61,7 @@ interface IMBTreeGrouping<out A, out B: Any>: IMCountable<TKVEntry<A,B>> where A
         (this as IMBTree<A,B>).ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, IMBTree<A, B>> where C: Any, C: Comparable<C>//	A map of collections created by the function f
     fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ IMBTree<A, B>, /* false */ IMBTree<A, B>> // Two collections created by the predicate p
-    fun fpopAndReminder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
+    fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
     fun fmaxDepth(): Int
     fun fminDepth(): Int
 }

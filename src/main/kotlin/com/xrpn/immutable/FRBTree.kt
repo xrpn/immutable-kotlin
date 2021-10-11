@@ -2,6 +2,8 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
+import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import kotlin.math.log2
 import kotlin.reflect.KClass
 
@@ -74,7 +76,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>): FKSet<A, B> = toFKSetImpl(this, kType)
+    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
+
+    override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> =
+        toFRBTreeImpl(this, kType)
 
     override fun toIMMap(): FKMap<A, B> = ofFKMapBody(this)
 
@@ -155,14 +160,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =
         rbtFindKey(this, key) != null
 
-    override fun fcontainsValue(value: @UnsafeVariance B): Boolean = if (this.fempty()) false else try {
-        // TODO gross, find something better
-        this.ffold(0) { acc, tkv -> if(value.equals(tkv.getv())) throw BreakoutException() else acc+1 }
-        false
-    } catch (ex: BreakoutException) {
-        true
-    }
-
     override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> {
         // TODO consider memoization
         return rbtDeletes(this, items as FList<TKVEntry<A,B>>)
@@ -199,6 +196,20 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(FLNil, f4ffind)
     }
 
+    override fun ffindAny(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? {
+
+        fun traverse(t: FRBTree<A, B>, acc: Pair<Boolean, TKVEntry<A, B>>): Pair<Boolean, TKVEntry<A, B>> = if (acc.first) acc else when (t) {
+            is FRBTNil -> acc
+            is FRBTNode -> traverse(t.bRight, traverse(t.bLeft, Pair(isMatch(t.entry), t.entry)))
+        }
+
+        return if (this.fempty()) null else {
+            val start: Pair<Boolean, TKVEntry<A, B>> = Pair(false, this.froot()!!)
+            val stop = traverse(this, start)
+            if (stop.first) stop.second else null
+        }
+    }
+
     override fun ffindItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B>? =
         rbtFind(this, item)
 
@@ -214,6 +225,11 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun ffindValueOfKey(key: @UnsafeVariance A): B? =
         rbtFindValueOFKey(this, key)
 
+    override fun fkeyType(): RestrictedKeyType<A>? = when (this) {
+        is FRBTNode -> frbRKeyType
+        else -> null
+    }
+
     override fun fhasDups(): Boolean = false
 
     override fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = false
@@ -227,6 +243,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     is FRBTNil -> bbt.entry
                     is FRBTNode -> leftDescent(bbt.bLeft)
                 }
+
             }
 
         return leftDescent(this)
@@ -272,12 +289,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(Pair(nul(), nul()), ::f4fpartition)
     }
 
-    override fun fpopAndReminder(): Pair<TKVEntry<A,B>?, FRBTree<A, B>> {
+    override fun fpopAndRemainder(): Pair<TKVEntry<A,B>?, FRBTree<A, B>> {
         val pop: TKVEntry<A,B>? = this.fleftMost() ?: this.froot()
-        // computing the reminder can be very expensive; if traversing
+        // computing the remainder can be very expensive; if traversing
         // the full tree, .inorder() or .forEach() may be cheaper
-        val reminder: FRBTree<A, B> = pop?.let { this.fdropItem(it) } ?: FRBTNil
-        return Pair(pop, reminder)
+        val remainder: FRBTree<A, B> = pop?.let { this.fdropItem(it) } ?: FRBTNil
+        return Pair(pop, remainder)
     }
 
     val maxFrbDepth: Int by lazy { when(this) {
@@ -336,7 +353,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FRBTNil -> null
         is FRBTNode -> {
-            val (seedTkv, stub) = this.fpopAndReminder()
+            val (seedTkv, stub) = this.fpopAndRemainder()
             stub.ffold(seedTkv!!){ acc, tkv -> f(acc, tkv) }
         }
     }
@@ -382,6 +399,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
     }
 
+    internal fun toFBSTree(): FBSTree<A, B> = FBSTree.of(this.breadthFirst()) // will preserve the balance
+
     companion object: IMBTreeCompanion {
 
         internal const val unknownKeyType = "unknown frbtree key type "
@@ -420,7 +439,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items.iterator())
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = nul()
-            items.forEach { res = rbtInsert(res, TKVEntry.of(it.getk(), it.getv(), cc)) }
+            items.forEach { res = rbtInsert(res, TKVEntry.ofkvc(it.getk(), it.getv(), cc)) }
             return res
         }
         @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofc(items)"))
@@ -506,18 +525,18 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // =================
 
-        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FRBTree<A, B> where A: Any, A : Comparable<A> = when(this) {
-            is FBSTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
-            is FRBTree<*, *> -> this as FRBTree<A, B>
-            is Array<*> -> of(this.iterator())
-            is List<*> -> of(this.iterator())
-            is Set<*> -> of(this.iterator())
-            else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
-        }
+//        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FRBTree<A, B> where A: Any, A : Comparable<A> = when(this) {
+//            is FBSTree<*, *> -> @Suppress("UNCHECKED_CAST") of(this.postorder() as IMList<TKVEntry<A, B>>)
+//            is FRBTree<*, *> -> this as FRBTree<A, B>
+//            is Array<*> -> of(this.iterator())
+//            is List<*> -> of(this.iterator())
+//            is Set<*> -> of(this.iterator())
+//            else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
+//        }
 
         override fun <A, B: Any> Map<A, B>.toIMBTree(): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = nul()
-            for (entry in this) { res = res.finsert(TKVEntry.of(entry.key, entry.value)) }
+            for (entry in this) { res = res.finsert(TKVEntry.ofkv(entry.key, entry.value)) }
             return res
         }
 
@@ -540,7 +559,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                                 val omove: FRBTNode<A, B> =
                                     if (!treeStub.bLeft.isRed() && !treeStub.bLeft.bLeft.isRed()) moveRedLeft(treeStub)
                                     else treeStub
-                                FRBTNode(omove.entry, omove.color, frbDelete(omove.bLeft, key), omove.bRight)
+                                FRBTNode.of(omove.entry, omove.color, frbDelete(omove.bLeft, key), omove.bRight)
                             }
                         }
                         FBTFIT.RIGHT, FBTFIT.EQ -> /* delete right or in place */ {
@@ -555,10 +574,10 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                                 else o1
                                 if (fitKey(key, o2) == FBTFIT.EQ) {
                                     o2.bRight as FRBTNode
-                                    val o2rep = FRBTNode(o2.bRight.fleftMost()!!, o2.color, o2.bLeft, o2.bRight)
+                                    val o2rep = FRBTNode.of(o2.bRight.fleftMost()!!, o2.color, o2.bLeft, o2.bRight)
                                     o2rep.bRight as FRBTNode
-                                    FRBTNode(o2rep.entry, o2rep.color, o2rep.bLeft, deleteMin(o2rep.bRight))
-                                } else FRBTNode(o2.entry, o2.color, o2.bLeft, frbDelete(o2.bRight, key))
+                                    FRBTNode.of(o2rep.entry, o2rep.color, o2rep.bLeft, deleteMin(o2rep.bRight))
+                                } else FRBTNode.of(o2.entry, o2.color, o2.bLeft, frbDelete(o2.bRight, key))
                             }
                         }
                     }
@@ -569,7 +588,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return if (!treeStub.fcontainsKey(key)) treeStub else {
                 val clipped = frbDelete(treeStub, key)
                 if (clipped is FRBTNode) {
-                    val blackRoot = FRBTNode(clipped.entry, BLACK, clipped.bLeft, clipped.bRight)
+                    val blackRoot = FRBTNode.of(clipped.entry, BLACK, clipped.bLeft, clipped.bRight)
                     // next line is very expensive
                     // assert(rbRootSane(blackRoot)) { "$item / $blackRoot" }
                     blackRoot
@@ -581,7 +600,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
                 is FLCons -> if (treeStub.fcontains(items.head)) rbtDeletes(rbtDelete(treeStub, items.head), items.tail)
-                    else treeStub
+                             else rbtDeletes(treeStub, items.tail)
             }
 
         // find the node with matching item
@@ -606,32 +625,37 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
             fun <A : Comparable<A>, B: Any> copyInsert(treeStub: FRBTree<A, B>, item: TKVEntry<A, B>): FRBTNode<A, B> =
                 when (treeStub) {
-                    is FRBTNil -> FRBTNode(item, RED)
+                    is FRBTNil -> FRBTNode.of(item, RED)
                     is FRBTNode -> {
                         val ofit = when (fit(item, treeStub)) {
                             FBTFIT.EQ -> /* duplicate key */ {
                                 // replace?  but why...
-                                // FRBTNode(item, treeStub.color, treeStub.bLeft, treeStub.bRight)
+                                // FRBTNode.of(item, treeStub.color, treeStub.bLeft, treeStub.bRight)
                                 // TODO remove in time
                                 check(item.getv().equals(treeStub.entry.getv()))
                                 treeStub
                             }
                             FBTFIT.LEFT -> /* insert left */
-                                FRBTNode(treeStub.entry, treeStub.color, copyInsert(treeStub.bLeft, item), treeStub.bRight)
+                                FRBTNode.of(treeStub.entry, treeStub.color, copyInsert(treeStub.bLeft, item), treeStub.bRight)
                             FBTFIT.RIGHT -> /* insert right */
-                                FRBTNode(treeStub.entry, treeStub.color, treeStub.bLeft, copyInsert(treeStub.bRight, item))
+                                FRBTNode.of(treeStub.entry, treeStub.color, treeStub.bLeft, copyInsert(treeStub.bRight, item))
                         }
                         lrf23(ofit)
                     }
                 }
 
-            val grown: FRBTNode<A, B> = copyInsert(treeStub, item)
-            return rbtFind(treeStub, item)?.let{
+            fun run(): FRBTNode<A, B> {
+                val grown: FRBTNode<A, B> = copyInsert(treeStub, item)
+                return FRBTNode.of(grown.entry, BLACK, grown.bLeft, grown.bRight)
+            }
+
+            val aux = rbtFind(treeStub, item)?.let{
                 val res = treeStub as FRBTNode<A, B>
                 // TODO remove in time
                 check(item.getv().equals(it.entry.getv()))
                 res
-            } ?: FRBTNode(grown.entry, BLACK, grown.bLeft, grown.bRight)
+            } ?: run()
+            return aux
         }
 
         internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
@@ -844,12 +868,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
 
         private fun <A, B: Any> flipColor(node: FRBTNode<A, B>): FRBTNode<A, B> where A: Any, A: Comparable<A> =
-            FRBTNode(node.entry, !node.color,
+            FRBTNode.of(node.entry, !node.color,
                 // left
-                if (node.bLeft is FRBTNode) FRBTNode(node.bLeft.entry, !node.bLeft.color, node.bLeft.bLeft, node.bLeft.bRight)
+                if (node.bLeft is FRBTNode) FRBTNode.of(node.bLeft.entry, !node.bLeft.color, node.bLeft.bLeft, node.bLeft.bRight)
                 else node.bLeft,
                 // right
-                if (node.bRight is FRBTNode) FRBTNode(node.bRight.entry, !node.bRight.color, node.bRight.bLeft, node.bRight.bRight)
+                if (node.bRight is FRBTNode) FRBTNode.of(node.bRight.entry, !node.bRight.color, node.bRight.bLeft, node.bRight.bRight)
                 else node.bRight
             )
 
@@ -865,8 +889,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             assert(node.bRight is FRBTNode) { "ERROR: bRight should be node, left rotation of:\n==>> $node" }
             node.bRight as FRBTNode
             assert(node.bRight.color == RED) { "ERROR: bRight should be red, left rotation of:\n==>> $node" }
-            val newLeft = FRBTNode(node.entry, RED, node.bLeft, node.bRight.bLeft)
-            return FRBTNode(node.bRight.entry, node.color, newLeft, node.bRight.bRight)
+            val newLeft = FRBTNode.of(node.entry, RED, node.bLeft, node.bRight.bLeft)
+            return FRBTNode.of(node.bRight.entry, node.color, newLeft, node.bRight.bRight)
         }
 
         /*
@@ -881,8 +905,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             assert(node.bLeft is FRBTNode) { "ERROR: bLeft should be node, right rotation of:\n==>> $node" }
             node.bLeft as FRBTNode
             assert(node.bLeft.color == RED) { "ERROR: bLeft should be red, right rotation of:\n==>> $node" }
-            val newRight = FRBTNode(node.entry, RED, node.bLeft.bRight, node.bRight)
-            return FRBTNode(node.bLeft.entry, node.color, node.bLeft.bLeft, newRight)
+            val newRight = FRBTNode.of(node.entry, RED, node.bLeft.bRight, node.bRight)
+            return FRBTNode.of(node.bLeft.entry, node.color, node.bLeft.bLeft, newRight)
         }
 
         private fun <A, B: Any> lrf23(node: FRBTNode<A, B>): FRBTNode<A, B> where A: Any, A: Comparable<A> {
@@ -895,7 +919,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             val flipped = flipColor(node)
             return if (flipped.bRight is FRBTNode && flipped.bRight.bLeft.isRed()) {
                 val newRight = rightRotation(flipped.bRight)
-                val newFlipped = FRBTNode(node.entry, flipped.color, flipped.bLeft, newRight)
+                val newFlipped = FRBTNode.of(node.entry, flipped.color, flipped.bLeft, newRight)
                 val aux = leftRotation(newFlipped)
                 flipColor(aux)
             } else flipped
@@ -914,7 +938,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is FRBTNil -> FRBTNil
                 is FRBTNode -> {
                     val omove = if (!node.bLeft.isRed() && !node.bLeft.bLeft.isRed()) moveRedLeft(node) else node
-                    val onew = if (omove.bLeft is FRBTNode) FRBTNode(omove.entry, omove.color, deleteMin(omove.bLeft), omove.bRight) else omove
+                    val onew = if (omove.bLeft is FRBTNode) FRBTNode.of(omove.entry, omove.color, deleteMin(omove.bLeft), omove.bRight) else omove
                     onew
                 }
             }
@@ -925,29 +949,45 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             t1 is FRBTNil -> t2
             t2 is FRBTNil -> t1
             else -> if (t1.size < t2.size) {
-                    val (entry, stub) = t1.fpopAndReminder()
+                    val (entry, stub) = t1.fpopAndRemainder()
                     mergeAppender(t2.finsert(entry!!), stub)
                 } else {
-                    val (entry, stub) = t2.fpopAndReminder()
+                    val (entry, stub) = t2.fpopAndRemainder()
                     mergeAppender(t1.finsert(entry!!), stub)
                 }
             }
 
-        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>, initial: B? = null): FKSet<A, B> where A: Any, A: Comparable<A> = when {
-            initial != null -> when (kType) {
-                is IntKeyType -> @Suppress("UNCHECKED_CAST") (initial.toFIKSet() as FKSet<A, B>)
-                is StrKeyType -> @Suppress("UNCHECKED_CAST") (initial.toFSKSet() as FKSet<A, B>)
-            }
+        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
             t.fempty() -> FKSetEmpty.empty()
-            else -> when (kType) {
-                is IntKeyType -> if (t.froot()!!.getk() is Int) {
-                    val s: FKSet<Int, B> = FKSet.ofi(@Suppress("UNCHECKED_CAST") (t as IMBTree<Int, B>))
-                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-                } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.froot()!!.getk()::class})")
-                is StrKeyType -> if (t.froot()!!.getk() is String) {
-                    val s: FKSet<String, B> = FKSet.ofs(@Suppress("UNCHECKED_CAST") (t as IMBTree<String, B>))
-                    @Suppress("UNCHECKED_CAST") (s as FKSet<A, B>)
-                } else throw RuntimeException("$unknownKeyType $kType (key is: ${t.froot()!!.getk()::class})")
+            null == kType -> t.fkeyType()?.let { toFKSetImpl(t, it) }
+            t.fkeyType() == kType -> ofBody(t)
+            (kType is IntKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFIKSBody(t as FRBTree<Int,A>) as FKSet<A, B>)
+            (kType is StrKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFSKSBody(t as FRBTree<String,A>) as FKSet<A, B>)
+            else -> null
+        }
+
+        private fun <K, A, B:Any> toFRBTreeImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<K>): FRBTree<K, B>? where A: Any, A: Comparable<A>, K: Any, K: Comparable<K> = when {
+            t.fempty() -> nul()
+            t.fkeyType() == kType -> @Suppress("UNCHECKED_CAST") (t as FRBTree<K, B>)
+            (kType is IntKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FRBTree<K, B>)
+            (kType is StrKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FRBTree<K, B>)
+            else ->  when (kType) {
+                is IntKeyType ->   {
+                    val res: FRBTree<Int, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toIAEntry()) }
+                    @Suppress("UNCHECKED_CAST") (res as FRBTree<K, B>)
+                }
+                is StrKeyType -> {
+                    val res: FRBTree<String, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toSAEntry()) }
+                    @Suppress("UNCHECKED_CAST") (res as FRBTree<K, B>)
+                }
+                is SymKeyType -> if (kType.kc != t.froot()!!.getv()::class) null else {
+                    t.ffold(nul<K,B>()) { acc, tkv ->
+                        val k = @Suppress("UNCHECKED_CAST") (tkv.getv() as K)
+                        val entry = TKVEntry.ofkv(k, tkv.getv())
+                        acc.finsert(entry)
+                    }
+                }
+                is DeratedCustomKeyType -> kType.specialize<K>()?.let { toFRBTreeImpl(t, it) }
             }
         }
 
@@ -967,7 +1007,9 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
     }
 }
 
-internal data class FRBTNode<A, B: Any> (
+internal interface FRBTRNode
+
+internal open class FRBTNode<A, B: Any> protected constructor (
     val entry: TKVEntry<A, B>,
     val color: Boolean = RED,
     val bLeft: FRBTree<A, B> = FRBTNil,
@@ -1000,8 +1042,8 @@ internal data class FRBTNode<A, B: Any> (
         }
         other is IMBTree<*, *> -> when {
             other.fempty() -> false
-            this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
-            this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
+            this.froot()!!.getk()::class != other.froot()!!.getk()::class -> false
+            this.froot()!!.getv()::class != other.froot()!!.getv()::class -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
         }
         else -> false
@@ -1009,7 +1051,6 @@ internal data class FRBTNode<A, B: Any> (
 
     val hash:Int by lazy {
         val seed: Int = when (val rk = this.froot()?.getk()) {
-            null -> 9161
             is Int -> 1
             is Long -> 1
             else -> rk.hashCode()
@@ -1024,12 +1065,177 @@ internal data class FRBTNode<A, B: Any> (
 
     override fun hashCode(): Int = hash
 
-    internal fun frbKeyKClassOut(): KClass<out A> = froot()!!.getk()::class
+    private val frbKeyKClass: KClass<@UnsafeVariance A> by lazy { @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>) }
 
-    val frbKeyKClass: KClass<@UnsafeVariance A> by lazy { @Suppress("UNCHECKED_CAST") (froot()!!.getk()::class as KClass<A>) }
+    internal val frbRKeyType: RestrictedKeyType<A>? by lazy { when(this) {
+        is FRBTINode -> (@Suppress("UNCHECKED_CAST") (IntKeyType as RestrictedKeyType<A>))
+        is FRBTSNode -> (@Suppress("UNCHECKED_CAST") (StrKeyType as RestrictedKeyType<A>))
+        is FRBTKNode<*> -> SymKeyType(frbKeyKClass)
+        else -> null
+    }}
 
     companion object {
+        fun <A, B: Any> of(entry: TKVEntry<A, B>,
+                           color: Boolean = RED,
+        ): FRBTNode<A, B> where A: Any, A: Comparable<@UnsafeVariance A> = when (entry) {
+            is RTKVEntryI -> @Suppress("UNCHECKED_CAST") (FRBTINode(entry, color) as FRBTNode<A, B>)
+            is RTKVEntryS -> @Suppress("UNCHECKED_CAST") (FRBTSNode(entry, color) as FRBTNode<A, B>)
+            is RTKVEntryK<*, *> -> {
+                val aux = @Suppress("UNCHECKED_CAST") (entry as RTKVEntryK<A, A>)
+                @Suppress("UNCHECKED_CAST") (FRBTKNode(aux, color) as FRBTNode<A, B>)
+            }
+            is TKVEntryK -> FRBTNode(entry, color)
+            else -> throw RuntimeException("impossible branch")
+        }
+
+        fun <A> of(entry: TKVEntry<A, A>,
+                           color: Boolean = RED,
+                           bLeft: FRBTree<A, A> = FRBTNil,
+                           bRight: FRBTree<A, A> = FRBTNil,
+        ): FRBTKNode<A> where A: Any, A: Comparable<@UnsafeVariance A> = when (entry) {
+            is RTKVEntryK<A, *> -> {
+                val aux = @Suppress("UNCHECKED_CAST") (entry as RTKVEntryK<A, A>)
+                FRBTKNode(aux, color, bLeft, bRight)
+            }
+            else -> throw RuntimeException("inconsistent tree node: entry:${entry::class} bLeft:${bLeft::class} bRight:${bLeft::class}")
+        }
+
+        fun <A, B: Any> of(entry: TKVEntry<A, B>,
+                           color: Boolean = RED,
+                           bLeft: FRBTree<A, B> = FRBTNil,
+                           bRight: FRBTree<A, B> = FRBTNil,
+        ): FRBTNode<A, B> where A: Any, A: Comparable<@UnsafeVariance A> = when (entry) {
+            is RTKVEntryI -> {
+                check(bLeft.fempty() || bLeft is FRBTINode)
+                @Suppress("UNCHECKED_CAST") (bLeft as FRBTree<Int, B>)
+                check(bRight.fempty() || bRight is FRBTINode)
+                @Suppress("UNCHECKED_CAST") (bRight as FRBTree<Int, B>)
+                @Suppress("UNCHECKED_CAST") (FRBTINode(entry, color, bLeft, bRight) as FRBTNode<A, B>)
+            }
+            is RTKVEntryS -> {
+                check(bLeft.fempty() || bLeft is FRBTSNode)
+                check(bRight.fempty() || bRight is FRBTSNode)
+                @Suppress("UNCHECKED_CAST") (bLeft as FRBTree<String, B>)
+                @Suppress("UNCHECKED_CAST") (bRight as FRBTree<String, B>)
+                @Suppress("UNCHECKED_CAST") (FRBTSNode(entry, color, bLeft, bRight) as FRBTNode<A, B>)
+            }
+            is RTKVEntryK<*, *> -> {
+                check(bLeft.fempty() || bLeft is FRBTKNode<*>)
+                check(bRight.fempty() || bRight is FRBTKNode<*>)
+                @Suppress("UNCHECKED_CAST") (bLeft as FRBTree<A, A>)
+                @Suppress("UNCHECKED_CAST") (bRight as FRBTree<A, A>)
+                val aux = @Suppress("UNCHECKED_CAST") (entry as RTKVEntryK<A, A>)
+                @Suppress("UNCHECKED_CAST") (FRBTKNode(aux, color, bLeft, bRight) as FRBTNode<A, B>)
+            }
+            is TKVEntryK -> FRBTNode(entry, color, bLeft, bRight)
+            else -> throw RuntimeException("inconsistent tree node: entry:${entry::class} bLeft:${bLeft::class} bRight:${bLeft::class}")
+        }
+
         fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash
     }
 }
 
+internal class FRBTINode<out A: Any> internal constructor (
+    e: RTKVEntryI<@UnsafeVariance A>,
+    c: Boolean = RED,
+    bL: FRBTree<Int, A> = FRBTNil,
+    bR: FRBTree<Int, A> = FRBTNil,
+): FRBTNode<Int, @UnsafeVariance A>(e, c, bL, bR), FRBTRNode {
+
+    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FRBTINode<*> -> when {
+            other.isEmpty() -> false
+            this.color != (other as FRBTNode<*, *>).color -> false
+            this.entry.getv()::class != (other as FRBTNode<*, *>).entry.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FRBTree<Int, A>)
+        }
+        other is IMBTree<*, *> -> when {
+            other.fempty() -> false
+            Int::class != other.froot()!!.getk()::class -> false
+            this.froot()!!.getv()::class != other.froot()!!.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<Int, A>)
+        }
+        else -> false
+    }
+
+    companion object {
+        internal fun <A, B: Any> asIFRBTree(n: FRBTINode<B>): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>)
+        internal fun <B: Any> asIFRBTree(n: FRBTINode<*>, b: B): FRBTree<Int, B> =
+            if ((n.froot()!! as RTKVEntryI<*>).getvkc().isInstance(b)) @Suppress("UNCHECKED_CAST") (n as FRBTree<Int, B>) else emptyIMBTree()
+        fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash
+    }
+}
+
+internal class FRBTSNode<out A: Any> internal constructor (
+    e: RTKVEntryS<@UnsafeVariance A>,
+    c: Boolean = RED,
+    bL: FRBTree<String, A> = FRBTNil,
+    bR: FRBTree<String, A> = FRBTNil,
+): FRBTNode<String, @UnsafeVariance A>(e, c, bL, bR), FRBTRNode {
+
+    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FRBTSNode<*> -> when {
+            other.isEmpty() -> false
+            this.color != (other as FRBTNode<*, *>).color -> false
+            this.entry.getv()::class != (other as FRBTNode<*, *>).entry.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FRBTree<String, A>)
+        }
+        other is IMBTree<*, *> -> when {
+            other.fempty() -> false
+            String::class != other.froot()!!.getk()::class -> false
+            this.froot()!!.getv()::class != other.froot()!!.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<String, A>)
+        }
+        else -> false
+    }
+
+    companion object {
+        internal fun <A, B: Any> asSFRBTree(n: FRBTSNode<B>): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>)
+        internal fun <B: Any> asSFRBTree(n: FRBTSNode<*>, b: B): FRBTree<String, B> =
+            if ((n.froot()!! as RTKVEntryS<*>).getvkc().isInstance(b)) @Suppress("UNCHECKED_CAST") (n as FRBTree<String, B>) else emptyIMBTree()
+        fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash
+    }
+}
+
+internal class FRBTKNode<out A> internal constructor (
+    e: RTKVEntryK<@UnsafeVariance A, @UnsafeVariance A>,
+    c: Boolean = RED,
+    bL: FRBTree<A, A> = FRBTNil,
+    bR: FRBTree<A, A> = FRBTNil,
+): FRBTNode<@UnsafeVariance A, @UnsafeVariance A>(e, c, bL, bR), FRBTRNode where A: Any, A: Comparable<@UnsafeVariance A>{
+
+    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other == null -> false
+        other is FRBTKNode<*> -> when {
+            other.isEmpty() -> false
+            this.color != (other as FRBTNode<*, *>).color -> false
+            this.entry.getv()::class != (other as FRBTNode<*, *>).entry.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FRBTree<A, A>)
+        }
+        other is IMBTree<*, *> -> when {
+            other.fempty() -> false
+            this.froot()!!.getk()::class != other.froot()!!.getk()::class -> false
+            this.froot()!!.getv()::class != other.froot()!!.getv()::class -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, A>)
+        }
+        else -> false
+    }
+
+    companion object {
+        internal fun <A, B: Any> asKFRBTree(n: FRBTKNode<A>): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>)
+        internal fun <A, B: Any> asKFRBTree(n: FRBTKNode<*>, a: A): FRBTree<A, B> where A: Any, A: Comparable<A> =
+            if ((n.froot()!! as RTKVEntryK<*, *>).getrk().kc.isInstance(a)) @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>) else emptyIMBTree()
+        fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash
+    }
+}

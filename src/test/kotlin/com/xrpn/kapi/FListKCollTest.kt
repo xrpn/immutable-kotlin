@@ -1,14 +1,13 @@
 package com.xrpn.kapi
 
-import com.xrpn.immutable.FLCons
-import com.xrpn.immutable.FLNil
-import com.xrpn.immutable.FList
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FList.Companion.toIMList
+import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intListOfNone: Collection<Int> = FList.of(*arrayOf<Int>())
+private val intListOfNone: Collection<Int> = FList.of(*emptyArrayOfInt)
 private val intListOfOneA: Collection<Int> = FList.of(*arrayOf<Int>(0))
 private val intListOfOne: Collection<Int> = FList.of(*arrayOf<Int>(1))
 private val intListOfOneB: Collection<Int> = FList.of(*arrayOf<Int>(2))
@@ -33,7 +32,7 @@ class FListKCollTest : FunSpec({
   // Any equals
 
   test("FList equals") {
-    (intListOfNone == FList.of(*arrayOf<Int>())) shouldBe true
+    (intListOfNone == FList.of(*emptyArrayOfInt)) shouldBe true
     (intListOfNone.equals(emptyList<Int>())) shouldBe true
     (intListOfNone == emptyList<Int>()) shouldBe true
     (intListOfNone == emptyList<Int>().toIMList()) shouldBe true
@@ -41,7 +40,7 @@ class FListKCollTest : FunSpec({
     (intListOfNone == listOf(1)) shouldBe false
     (intListOfNone == listOf(1).toIMList()) shouldBe false
 
-    (intListOfOne == FList.of(*arrayOf<Int>())) shouldBe false
+    (intListOfOne == FList.of(*emptyArrayOfInt)) shouldBe false
     (intListOfOne == emptyList<Int>()) shouldBe false
     (intListOfOne == FList.of(*arrayOf(1))) shouldBe true
     (intListOfOne == listOf(1)) shouldBe true
@@ -749,8 +748,8 @@ class FListKCollTest : FunSpec({
   }
 
   test("zip array") {
-    intListOfNone.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
-    intListOfOne.zip(arrayOf<String>()){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
+    intListOfNone.zip(emptyArrayOfStr){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
+    intListOfOne.zip(emptyArrayOfStr){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
     intListOfNone.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLNil
     intListOfOne.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)
     intListOfTwo.zip(arrayOf<String>("a")){a, b -> Pair(a,b)}.toIMList() shouldBe FLCons(Pair(1,"a"),FLNil)

@@ -17,16 +17,23 @@ interface IMListTransforming<out A: Any> {
     fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
-interface IMRSetTransforming<out A: Any> {
-    fun <B: Any> fflatMap(f: (A) -> IMRSet<@UnsafeVariance B>): IMRSet<B>  // 	When working with sequences, it works like map followed by flatten
+interface IMSetTransforming<out A: Any> {
     fun <B: Any> ffold(z: B, f: (acc: B, A) -> B): B // 	“Fold” the elements of the list using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
-    fun <B: Any> fmap(f: (A) -> B): IMRSet<B> // 	Return a new sequence by applying the function f to each element in the List
     fun <B: Any> fmapToList(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
     // since order is not a property of Set, f MUST be commutative
     fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from left to right
+    fun <B: Any> fflatMap(f: (A) -> IMSet<@UnsafeVariance B>): IMSet<B>  // 	When working with sequences, it works like map followed by flatten
+    fun <B: Any> fmap(f: (A) -> B): IMSet<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
-internal interface IMSetTransforming<out K, out A: Any>: IMRSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K>
+interface IMRRSetTransforming<out A: Any> {
+    fun <B> fflatMapKK(f: (A) -> IMSet<@UnsafeVariance B>): IMSet<B> where B: Any, B: Comparable<B>  // 	When working with sequences, it works like map followed by flatten
+    fun <B> fmapKK(f: (A) -> B): IMSet<B> where B: Any, B: Comparable<B> // 	Return a new sequence by applying the function f to each element in the List
+}
+
+internal interface IMKSetTransforming<out K, out A: Any>: IMSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K>
+
+internal interface IMKKSetTransforming<out K>: IMSetTransforming<K>, IMRRSetTransforming<K> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapTransforming<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun <C, D: Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C: Comparable<@UnsafeVariance C>

@@ -5,7 +5,6 @@ import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.char
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
@@ -231,7 +230,7 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("associateBy") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()
@@ -241,8 +240,8 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("associateBy (k, v)") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()
@@ -252,7 +251,7 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("associateWith") {
 
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()
@@ -272,7 +271,7 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("groupBy") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()
@@ -282,8 +281,8 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("groupBy (k, v)") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()
@@ -298,7 +297,7 @@ class FRBTreeKCollPropertyTest : FunSpec({
 
   test("map") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), t.getv()+1)
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), t.getv()+1)
 
     Arb.frbtreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { frbt ->
       val l = frbt.toList()

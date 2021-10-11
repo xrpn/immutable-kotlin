@@ -5,7 +5,6 @@ import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.char
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string

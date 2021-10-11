@@ -264,7 +264,7 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("associateBy") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()
@@ -274,8 +274,8 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("associateBy (k, v)") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()
@@ -285,7 +285,7 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("associateWith") {
 
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()
@@ -305,7 +305,7 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("groupBy") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()
@@ -315,8 +315,8 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("groupBy (k, v)") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), -t.getv())
-    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), 2*t.getv())
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), -t.getv())
+    fun g(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), 2*t.getv())
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()
@@ -331,7 +331,7 @@ class FBSTreeKCollPropertyTest : FunSpec({
 
   test("map") {
 
-    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.of(t.getk(), t.getv()+1)
+    fun f(t: TKVEntry<Int, Int>): TKVEntry<Int, Int> = TKVEntry.ofkk(t.getk(), t.getv()+1)
 
     Arb.fbstreeAsCollection<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
       val l = fbst.toList()

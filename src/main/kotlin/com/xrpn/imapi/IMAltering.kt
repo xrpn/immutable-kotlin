@@ -9,11 +9,21 @@ interface IMListAltering<out A: Any> {
     fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
 }
 
-interface IMRSetAltering<out A: Any> {
-    fun faddItem(item: @UnsafeVariance A): IMRSetNotEmpty<A>
+interface IMSetAltering<out A: Any> {
+    fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = true): IMSetNotEmpty<A>
 }
 
-internal interface IMSetAltering<out K, out A: Any>: IMRSetAltering<A> where K: Any, K: Comparable<@UnsafeVariance K>
+interface IMRSetAltering<out A: Any> {
+    fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = false): IMRSetNotEmpty<A>
+}
+
+interface IMRRSetAltering<out A: Any> {
+    fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = false): IMRRSetNotEmpty<A>
+}
+
+internal interface IMKASetAltering<out K, out A: Any>: IMRSetAltering<A> where K: Any, K: Comparable<@UnsafeVariance K>
+
+internal interface IMKKSetAltering<out K>: IMRRSetAltering<K> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapAltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): IMMap<K, V>

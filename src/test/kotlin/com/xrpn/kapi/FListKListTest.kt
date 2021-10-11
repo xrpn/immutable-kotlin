@@ -3,12 +3,13 @@ package com.xrpn.kapi
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
+import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
-private val intListOfNone: List<Int> = FList.of(*arrayOf<Int>())
+private val intListOfNone: List<Int> = FList.of(*emptyArrayOfInt)
 private val intListOfOneA: List<Int> = FList.of(*arrayOf<Int>(0))
 private val intListOfOne: List<Int> = FList.of(*arrayOf<Int>(1))
 private val intListOfOneB: List<Int> = FList.of(*arrayOf<Int>(2))

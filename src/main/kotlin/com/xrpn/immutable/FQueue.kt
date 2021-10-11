@@ -254,7 +254,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
         override fun <A: Any> emptyIMQueue(): FQueue<A> = empty
 
-        override fun <A: Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
+        override fun <A : Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()
             return if (readyToDequeue) {
                 val front = FList.of(items.iterator())

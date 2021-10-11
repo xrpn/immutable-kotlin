@@ -1,7 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FKMap
-
 /*
 
 
@@ -12,14 +10,14 @@ interface IMListExtras<out A: Any> {
     operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
 }
 
-interface IMRSetExtras<out A: Any> {
-    infix fun or(rhs: IMRSet<@UnsafeVariance A>): IMRSet<A> = (this as IMRSet<A>).fOR(rhs)
-    infix fun and(rhs: IMRSet<@UnsafeVariance A>): IMRSet<A> = (this as IMRSet<A>).fAND(rhs)
-    infix fun xor(rhs: IMRSet<@UnsafeVariance A>): IMRSet<A> = (this as IMRSet<A>).fXOR(rhs)
-    infix fun not(rhs: IMRSet<@UnsafeVariance A>): IMRSet<A> = (this as IMRSet<A>).fNOT(rhs)
+interface IMSetExtras<out A: Any> {
+    infix fun or(rhs: IMSet<@UnsafeVariance A>): IMSet<A> = (this as IMSet<A>).fOR(rhs)
+    infix fun and(rhs: IMSet<@UnsafeVariance A>): IMSet<A> = (this as IMSet<A>).fAND(rhs)
+    infix fun xor(rhs: IMSet<@UnsafeVariance A>): IMSet<A> = (this as IMSet<A>).fXOR(rhs)
+    infix fun not(rhs: IMSet<@UnsafeVariance A>): IMSet<A> = (this as IMSet<A>).fNOT(rhs)
 }
 
-interface IMSetExtras<out K, out A: Any>: IMRSetExtras<A> where K:Any, K:Comparable<@UnsafeVariance K>
+interface IMKSetExtras<out K, out A: Any>: IMSetExtras<A> where K:Any, K:Comparable<@UnsafeVariance K>
 
 interface IMMapExtras<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
 

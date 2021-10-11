@@ -1,7 +1,7 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMList
+import com.xrpn.imapi.*
+import com.xrpn.imapi.DeratedCustomKeyType.Companion.specialize
 import kotlin.reflect.KClass
 
 
@@ -35,71 +35,126 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
                 localOutcome < 0 && 0 < remoteOutcome -> localOutcome
                 0 < localOutcome && remoteOutcome < 0 -> localOutcome
                 else -> // comparators disagree: broken symmetric, reflexive, transitive relation
-                    throw IllegalStateException(TKVEntryK.CANNOT_COMPARE)
+                    throw IllegalStateException(TKVEntryType.CANNOT_COMPARE)
             }
         }
     }
 
     fun getk(): A
-    fun getkc(): Comparable<@UnsafeVariance A>
     fun getv(): B
     fun copy(): TKVEntry<A,B>
     fun toPair(): Pair<A,B> = Pair(getk(),getv())
 
     companion object {
-        fun <A: Comparable<A>, B: Any> of (key:A, value: B): TKVEntry<A, B> = TKVEntryK(key, value)
-        fun <A: Comparable<A>, B: Any> of (key:A, value: B, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(key, value, cc)
-        fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>): TKVEntry<A, B> = TKVEntryK(p.first, p.second)
-        fun <A: Comparable<A>, B: Any> of (p: Pair<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(p.first, p.second, cc)
-        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>): TKVEntry<A, B> = if(me is TKVEntry<A,B>) me else TKVEntryK(me.key, me.value)
-        fun <A: Comparable<A>, B: Any> of (me: Map.Entry<A, B>, cc: Comparator<A>): TKVEntry<A, B> = TKVEntryK(me.key, me.value, cc)
-        fun <B: Any> ofIntKey (item: B): TKVEntry<Int, B> = TKVEntryK(item.hashCode(), item)
-        fun <B: Any> ofStrKey (item: B): TKVEntry<String, B> = TKVEntryK(item.toString(), item)
-        fun <T: Any> T.toIAEntry(): TKVEntry<Int, T> = ofIntKey(this)
-        fun <T: Any> T.toSAEntry(): TKVEntry<String, T> = ofStrKey(this)
+        fun <A: Comparable<A>, B: Any> ofkv (key:A, value: B): TKVEntry<A, B> = when (key) {
+            is Int -> if (value is Int) (@Suppress("UNCHECKED_CAST") (RTKVEntryK(key, value) as TKVEntry<A, B>))
+                else (@Suppress("UNCHECKED_CAST") (RTKVEntryI(key, value) as TKVEntry<A, B>))
+            is String -> if (value is String) (@Suppress("UNCHECKED_CAST") (RTKVEntryK(key, value) as TKVEntry<A, B>))
+                else (@Suppress("UNCHECKED_CAST") (RTKVEntryS(key, value) as TKVEntry<A, B>))
+            else -> if (key::class == value::class) {
+                @Suppress("UNCHECKED_CAST") (value as A)
+                val res = @Suppress("UNCHECKED_CAST") (ofkk(key, value) as TKVEntry<A, B>)
+                res
+            } else TKVEntryK(key, value)
+        }
+        fun <A: Comparable<A>, B: Any> ofkvc (key:A, value: B, cc: Comparator<A>): TKVEntry<A, B> = when (key) {
+            is Int -> if (value is Int) (@Suppress("UNCHECKED_CAST") (RTKVEntryK(key, value, cc as Comparator<Int>) as TKVEntry<A, B>))
+                else (@Suppress("UNCHECKED_CAST") (RTKVEntryI(key, value, cc as Comparator<Int>) as TKVEntry<A, B>))
+            is String ->if (value is String) (@Suppress("UNCHECKED_CAST") (RTKVEntryK(key, value, cc as Comparator<String>) as TKVEntry<A, B>))
+                else (@Suppress("UNCHECKED_CAST") (RTKVEntryS(key, value, cc as Comparator<String>) as TKVEntry<A, B>))
+            else -> if (key::class == value::class) {
+                @Suppress("UNCHECKED_CAST") (value as A)
+                val res = @Suppress("UNCHECKED_CAST") (ofkkc(key, value, cc) as TKVEntry<A, B>)
+                res
+            } else TKVEntryK(key, value, cc)
+        }
+
+        fun <A> ofkk (key:A, value: A): TKVEntry<A, A> where A: Any, A: Comparable<A> = RTKVEntryK(key, value)
+        fun <A> ofkkc (key:A, value: A, cc: Comparator<A>): TKVEntry<A, A> where A: Any, A: Comparable<A> = RTKVEntryK(key, value, cc)
+
+        fun <A: Comparable<A>, B: Any> ofp (p: Pair<A, B>): TKVEntry<A, B> = p.toTKVEntry()
+        fun <A: Comparable<A>, B: Any> ofpc (p: Pair<A, B>, cc: Comparator<A>): TKVEntry<A, B> = p.toTKVEntry(cc)
+
+        fun <A: Comparable<A>, B: Any> ofme (me: Map.Entry<A, B>): TKVEntry<A, B> = if(me is TKVEntry<A,B>) me else ofkv(me.key, me.value)
+        fun <A: Comparable<A>, B: Any> ofmec (me: Map.Entry<A, B>, cc: Comparator<A>): TKVEntry<A, B> = ofkvc(me.key, me.value, cc)
+
+        fun <B: Any> ofIntKey (item: B): RTKVEntry<Int, B> = when (item) {
+            is Int -> @Suppress("UNCHECKED_CAST") (RTKVEntryK( /* weird, but it placates the compiler */ item as Int, item) as RTKVEntry<Int, B>)
+            else -> RTKVEntryI(item.hashCode(), item)
+        }
+        fun <B: Any> ofStrKey (item: B): RTKVEntry<String, B> = when (item) {
+            is String -> RTKVEntryK(item, item)
+            else -> RTKVEntryS(item.toString(), item)
+        }
+
+        fun <B> ofk (item: B): RTKVEntry<B, B> where B: Any, B: Comparable<B> = RTKVEntryK(item, item)
+        fun <T: Any> T.toIAEntry(): RTKVEntry<Int, T> = ofIntKey(this)
+        fun <T: Any> T.toSAEntry(): RTKVEntry<String, T> = ofStrKey(this)
+        fun <T> T.toKKEntry(): RTKVEntry<T, T> where T: Any, T: Comparable<T> = ofk(this)
+        fun <T: Any> T.toEntry(rkt: RestrictedKeyType<T>): TKVEntry<*, T>? = when (rkt) {
+            is IntKeyType -> this.toIAEntry()
+            is StrKeyType -> this.toSAEntry()
+            is SymKeyType -> {
+                @Suppress("UNCHECKED_CAST") (this as Comparable<T>)
+                this.toKKEntry()
+            }
+            is DeratedCustomKeyType -> null
+        }
         fun <B: Any> intKeyOf(item: B): Int = item.hashCode()
         fun <B: Any> strKeyOf(item: B): String = item.toString()
-        fun <K, B: Any> keyOf(item: B, k: KClass<K>): K where K: Any, K: Comparable<K> = when(k) {
-            Int::class -> @Suppress("UNCHECKED_CAST") {
-                intKeyOf(item) as K
-            }
-            String::class -> @Suppress("UNCHECKED_CAST") {
-                strKeyOf(item) as K
-            }
-            else -> throw RuntimeException("unkown key type $k")
-        }
-        fun <B: Any> IMList<B>.toIAEntries(): IMList<TKVEntry<Int, B>> = this.fmap { a -> ofIntKey(a) }
-        fun <B: Any> IMList<B>.toSAEntries(): IMList<TKVEntry<String, B>> = this.fmap { a -> ofStrKey(a) }
-        fun <B: Any> IMBTree<Int, B>.toIAList(): IMList<TKVEntry<Int, B>> = this.preorder()
-        fun <B: Any> IMBTree<String, B>.toSAList(): IMList<TKVEntry<String, B>> = this.preorder()
-        fun <B: Any> Collection<B>.toIAEntries(): FList<TKVEntry<Int, B>> = FList.ofMap(this.iterator()){ a -> ofIntKey(a) }
-        fun <B: Any> Collection<B>.toSAEntries(): FList<TKVEntry<String, B>> = FList.ofMap(this.iterator()) { a -> ofStrKey(a) }
+        fun <B: Any> IMList<B>.toIAEntries(): IMList<RTKVEntry<Int, B>> = this.fmap { a -> ofIntKey(a) }
+        fun <B: Any> IMList<B>.toSAEntries(): IMList<RTKVEntry<String, B>> = this.fmap { a -> ofStrKey(a) }
+        fun <B> IMList<B>.toKKEntries(): IMList<RTKVEntry<B, B>> where B: Any, B: Comparable<B> = this.fmap { a -> ofk(a) }
     }
 }
 
-internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, val v: B, override val vc: Comparator<@UnsafeVariance A>? = null): TKVEntry<A,B> {
+interface RTKVEntry<out A, out B: Any>: TKVEntry<A, B> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun getrk(): RestrictedKeyType<A>
+}
+
+internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k: A, val v: B, override val vc: Comparator<@UnsafeVariance A>? = null): TKVEntry<A,B> {
 
     override fun toString(): String = "[ $k:$v ]"
 
     override fun hashCode(): Int = k.hashCode()
 
-    private val kClass: KClass<out A> by lazy { k::class }
-    private val vClass: KClass<out B> by lazy { v::class }
+    protected val kClass: KClass<out A> by lazy { k::class }
+    protected val vClass: KClass<out B> by lazy { v::class }
 
-    private inline fun <reified Self: TKVEntryK<@UnsafeVariance A, @UnsafeVariance B>> equalsImpl(other: Any?): Boolean =
+    inline fun <reified Self: TKVEntryType<@UnsafeVariance A, @UnsafeVariance B>> strongEqualsImpl(other: Any?): Boolean =
         when {
             this === other -> true
             other == null -> false
-            other is Self && this.kClass == other.kClass && this.vClass == other.vClass -> 0 == other.compareTo(this)
-            else -> false
+            other !is Self -> false
+            this.kClass != other.kClass -> false
+            this.vClass != other.vClass -> false
+            else -> 0 == other.compareTo(this)
         }
 
-    override fun equals(other: Any?): Boolean = equalsImpl<TKVEntryK<A,B>>(other)
+    private fun equalsImpl(other: Any?): Boolean =
+        when {
+            this === other -> true
+            other == null -> false
+            other !is TKVEntryType<*,*> -> false
+            this.kClass != other.kClass -> false
+            this.vClass != other.vClass -> false
+            else -> 0 == @Suppress("UNCHECKED_CAST")(other as TKVEntryType<A, B>).compareTo(this)
+        }
+
+    override fun equals(other: Any?): Boolean = equalsImpl(other)
 
     override fun getk(): A = k
-    override fun getkc(): Comparable<A> = k
     override fun getv(): B = v
-    override fun copy(): TKVEntry<A, B> = this.copy(k=k, v=v, vc=vc)
+    fun getvkc(): KClass<out B> = vClass
+    override fun copy(): TKVEntry<A, B> = when(this) {
+        is RTKVEntryI -> @Suppress("UNCHECKED_CAST") (RTKVEntryI(k, v, vc) as TKVEntry<A, B>)
+        is RTKVEntryS -> @Suppress("UNCHECKED_CAST") (RTKVEntryS(k, v, vc) as TKVEntry<A, B>)
+        is RTKVEntryK<*, *> -> {
+            check(k == v)
+            @Suppress("UNCHECKED_CAST") (RTKVEntryK(k, k, vc) as TKVEntry<A, B>)
+        }
+        else -> TKVEntryK(k, v, vc)
+    }
     override val key: A
         get() = k
     override val value: B
@@ -108,4 +163,45 @@ internal data class TKVEntryK<A: Comparable<A>, B:Any> constructor (val k: A, va
     companion object {
         const val CANNOT_COMPARE = "incompatible comparators"
     }
+}
+
+
+internal open class TKVEntryK<A: Comparable<A>, B:Any> constructor (
+    k: A, v: B, vc: Comparator<@UnsafeVariance A>? = null
+): TKVEntryType<A,B>(k, v, vc) {
+    init {
+//        if (k::class == v::class) {
+//            print("k:${k::class} v:${v::class}")
+//        }
+        check(k::class != v::class)
+    }
+}
+
+internal class RTKVEntryI<A: Any> constructor (
+    rk: Int, v: A, vc: Comparator<@UnsafeVariance Int>? = null
+): TKVEntryType<Int,A>(rk,v, vc), RTKVEntry<Int, A>{
+    init {
+        if (v is Int) {
+            print("k:${k::class} v:${v::class}")
+        }
+        check(v !is Int)
+    }
+    override fun getrk() = IntKeyType
+}
+
+internal class RTKVEntryS<A: Any> constructor (
+    rk: String, v: A, vc: Comparator<@UnsafeVariance String>? = null
+): TKVEntryType<String,A>(rk,v, vc), RTKVEntry<String, A>{
+    init {
+        check(v !is String)
+    }
+    override fun getrk() = StrKeyType
+}
+
+// DUMMY is workaround for https://discuss.kotlinlang.org/t/problem-with-generic-capturedtype/17069
+internal class RTKVEntryK<A, DUMMY> constructor (
+    rk: A, v: A, vc: Comparator<@UnsafeVariance A>? = null
+): TKVEntryType<A,A>(rk, v, vc), RTKVEntry<A,A> where A: Any, A: Comparable<A>, DUMMY: Any, DUMMY: Comparable<A> {
+    val rkt = SymKeyType(kClass)
+    override fun getrk() = rkt
 }

@@ -1,11 +1,7 @@
 package com.xrpn.kapi
 
 import com.xrpn.bridge.FTreeIterator
-import com.xrpn.immutable.TKVEntry
-import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FKSet
-import com.xrpn.immutable.FList
-import com.xrpn.immutable.FLNil
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.FRBTree.Companion.NOT_FOUND
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntries
@@ -14,7 +10,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intFrbtOfNone: Collection<TKVEntry<Int, Int>> = FRBTree.ofvi(*arrayOf<Int>())
+private val intFrbtOfNone: Collection<TKVEntry<Int, Int>> = FRBTree.ofvi(*emptyArrayOfInt)
 private val intFrbtOfOneA: Collection<TKVEntry<Int, Int>> = FRBTree.ofvi(*arrayOf<Int>(0))
 private val intFrbtOfOne: Collection<TKVEntry<Int, Int>> = FRBTree.ofvi(*arrayOf<Int>(1))
 private val intFrbtOfOneB: Collection<TKVEntry<Int, Int>> = FRBTree.ofvi(*arrayOf<Int>(2))
@@ -56,16 +52,16 @@ class FRBTreeKCollTest : FunSpec({
   // Any equals
 
   test("FTree equals") {
-    (intFrbtOfNone == FRBTree.ofvi(*arrayOf<Int>())) shouldBe true
+    (intFrbtOfNone == FRBTree.ofvi(*emptyArrayOfInt)) shouldBe true
     (intFrbtOfNone == emptySet<Int>()) shouldBe false
-    (intFrbtOfNone == FKSet.emptyIMSet<Int, Int>()) shouldBe false
+    (intFrbtOfNone == FKSet.emptyIMKSet<Int, Int>()) shouldBe false
     (intFrbtOfNone == FRBTree.ofvi(*arrayOf(1))) shouldBe false
     (intFrbtOfNone == setOf(1)) shouldBe false
     (intFrbtOfNone == FKSet.ofi(1)) shouldBe false
 
-    (intFrbtOfOne == FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
+    (intFrbtOfOne == FRBTree.ofvi(*emptyArrayOfInt)) shouldBe false
     (intFrbtOfOne == emptySet<Int>()) shouldBe false
-    (intFrbtOfOne == FKSet.emptyIMSet<Int, Int>()) shouldBe false
+    (intFrbtOfOne == FKSet.emptyIMKSet<Int, Int>()) shouldBe false
     (intFrbtOfOne == FRBTree.ofvi(*arrayOf(1))) shouldBe true
     (intFrbtOfOne == setOf(1.toIAEntry())) shouldBe false
     (intFrbtOfOne == FKSet.ofi(1)) shouldBe false
@@ -968,7 +964,7 @@ class FRBTreeKCollTest : FunSpec({
 
   test("runningReduce") {
     shouldThrow<RuntimeException> {
-      val ss = { _: TKVEntry<Int,Int>, _: TKVEntry<Int,Int> -> TKVEntry.of(0,0) }
+      val ss = { _: TKVEntry<Int,Int>, _: TKVEntry<Int,Int> -> TKVEntry.ofkk(0,0) }
       @Suppress("DEPRECATION")
       FRBTree.ofvi(*arrayOf<Int>(2,1)).runningReduce(ss)
     }
@@ -997,7 +993,7 @@ class FRBTreeKCollTest : FunSpec({
   test("zip array") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FRBTree.ofvi(*arrayOf<Int>(2,1)).zip(arrayOf<String>()){a, b -> Pair(a,b)}
+      FRBTree.ofvi(*arrayOf<Int>(2,1)).zip(emptyArrayOfStr){a, b -> Pair(a,b)}
     }
   }
 

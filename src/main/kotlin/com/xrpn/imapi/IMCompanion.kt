@@ -1,8 +1,6 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
-import kotlin.reflect.KClass
 
 // TODO remove in time
 private fun checkf(res: Boolean, lhs: Any, rhs: Any): Boolean {
@@ -45,7 +43,7 @@ interface IMListCompanion {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <A: Any> IMRSetEqual2(lhs: IMRSet<A>, rhs: IMRSet<A>): Boolean {
+internal fun <A: Any> IMRSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
 
     val res = when {
         lhs === rhs -> true
@@ -63,7 +61,7 @@ internal fun <A: Any> IMRSetEqual2(lhs: IMRSet<A>, rhs: IMRSet<A>): Boolean {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <K, A: Any> IMSetEqual2(lhs: IMSet<K, A>, rhs: IMSet<K, A>): Boolean  where K: Any, K: Comparable<K> {
+internal fun <K, A: Any> IMKSetEqual2(lhs: IMKSet<K, A>, rhs: IMKSet<K, A>): Boolean  where K: Any, K: Comparable<K> {
 
     val res = when {
         lhs === rhs -> true
@@ -73,30 +71,35 @@ internal fun <K, A: Any> IMSetEqual2(lhs: IMSet<K, A>, rhs: IMSet<K, A>): Boolea
     return res
 }
 
-interface IMSetCompanion {
+interface IMKSetCompanion {
 
-    fun <A: Any> emptyIMRSet(): IMRSet<A>
-    fun <A: Any> ofi(vararg items: A): IMRSet<A>
-    fun <A: Any> ofi(items: Iterator<A>): IMRSet<A>
-    fun <A: Any> ofi(items: IMBTree<Int, A>): IMRSet<A>
-    fun <A: Any> ofi(items: IMList<A>): IMRSet<A>
-    fun <B, A: Any> ofiMap(items: Iterator<B>, f: (B) -> A): IMRSet<A>
-    fun <B: Any, A: Any> ofiMap(items: IMList<B>, f: (B) -> A): IMRSet<A>
-    fun <B, A: Any> ofiMap(items: List<B>, f: (B) -> A): IMRSet<A>
+    fun <A: Any> emptyIMRSet(): IMSet<A>
+    fun <A: Any> ofi(vararg items: A): IMSet<A>
+    fun <A: Any> ofi(items: Iterator<A>): IMSet<A>
+    fun <A: Any> ofi(items: IMBTree<Int, A>): IMSet<A>
+    fun <A: Any> ofi(items: IMList<A>): IMSet<A>
+    fun <B, A: Any> ofiMap(items: Iterator<B>, f: (B) -> A): IMSet<A>
+    fun <B: Any, A: Any> ofiMap(items: IMList<B>, f: (B) -> A): IMSet<A>
 
-    fun <A: Any> ofs(vararg items: A): IMRSet<A>
-    fun <A: Any> ofs(items: Iterator<A>): IMRSet<A>
-    fun <A: Any> ofs(items: IMBTree<String, A>): IMRSet<A>
-    fun <A: Any> ofs(items: IMList<A>): IMRSet<A>
-    fun <B, A: Any> ofsMap(items: Iterator<B>, f: (B) -> A): IMRSet<A>
-    fun <B: Any, A: Any> ofsMap(items: IMList<B>, f: (B) -> A): IMRSet<A>
-    fun <B, A: Any> ofsMap(items: List<B>, f: (B) -> A): IMRSet<A>
+    fun <A: Any> ofs(vararg items: A): IMSet<A>
+    fun <A: Any> ofs(items: Iterator<A>): IMSet<A>
+    fun <A: Any> ofs(items: IMBTree<String, A>): IMSet<A>
+    fun <A: Any> ofs(items: IMList<A>): IMSet<A>
+    fun <B, A: Any> ofsMap(items: Iterator<B>, f: (B) -> A): IMSet<A>
+    fun <B: Any, A: Any> ofsMap(items: IMList<B>, f: (B) -> A): IMSet<A>
 
-    fun <K, B : Any> toTKVEntry(s: IMRSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
+    fun <K> ofk(vararg items: K): IMSet<K> where K: Any, K: Comparable<K>
+    fun <K> ofk(items: Iterator<K>): IMSet<K> where K: Any, K: Comparable<K>
+    fun <K> ofk(items: IMBTree<K, K>): IMSet<K> where K: Any, K: Comparable<K>
+    fun <K> ofk(items: IMList<K>): IMSet<K> where K: Any, K: Comparable<K>
+    fun <B, K> ofkMap(items: Iterator<B>, f: (B) -> K): IMSet<K> where K: Any, K: Comparable<K>
+    fun <B: Any, K> ofkMap(items: IMList<B>, f: (B) -> K): IMSet<K> where K: Any, K: Comparable<K>
 
-    fun <K, A: Any> Collection<A>.toIMSet(kType: RestrictedKeyType<K>): IMRSet<A> where K: Any, K: Comparable<K>
-    fun <A: Any> Collection<A>.toIMISet(): IMRSet<A>
-    fun <A: Any> Collection<A>.toIMSSet(): IMRSet<A>
+    fun <K, B : Any> toTKVEntry(s: IMSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
+
+    fun <K, A: Any> Collection<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K>
+    fun <A: Any> Collection<A>.toIMISet(): IMSet<A>
+    fun <A: Any> Collection<A>.toIMSSet(): IMSet<A>
 }
 
 
@@ -186,7 +189,7 @@ interface IMBTreeCompanion {
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, f: (B) -> C): IMBTree<String, C>
     fun <B: Any, C: Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): IMBTree<String, C>
 
-    fun <A, B: Any> Collection<TKVEntry<A, B>>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
+//    fun <A, B: Any> Collection<TKVEntry<A, B>>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> Map<A, B>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
 
     fun <B: Any> fcontainsIK(t: IMBTree<Int,B>, item: B): Boolean = t.ffindItem(TKVEntry.ofIntKey(item)) != null

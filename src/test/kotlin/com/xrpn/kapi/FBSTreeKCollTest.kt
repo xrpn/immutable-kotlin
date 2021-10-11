@@ -1,12 +1,7 @@
 package com.xrpn.kapi
 
 import com.xrpn.bridge.FTreeIterator
-import com.xrpn.immutable.TKVEntry
-import com.xrpn.immutable.FBSTree
-import com.xrpn.immutable.FRBTree
-import com.xrpn.immutable.FKSet
-import com.xrpn.immutable.FList
-import com.xrpn.immutable.FLNil
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.FBSTree.Companion.NOT_FOUND
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntries
@@ -15,7 +10,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intFbstOfNone: Collection<TKVEntry<Int, Int>> = FBSTree.ofvi(*arrayOf<Int>())
+private val intFbstOfNone: Collection<TKVEntry<Int, Int>> = FBSTree.ofvi(*emptyArrayOfInt)
 private val intFbstOfOneA: Collection<TKVEntry<Int, Int>> = FBSTree.ofvi(*arrayOf<Int>(0))
 private val intFbstOfOne: Collection<TKVEntry<Int, Int>> = FBSTree.ofvi(*arrayOf<Int>(1))
 private val intFbstOfOneB: Collection<TKVEntry<Int, Int>> = FBSTree.ofvi(*arrayOf<Int>(2))
@@ -57,7 +52,7 @@ class FBSTreeKCollTest : FunSpec({
   // Any equals
 
   test("FTree equals") {
-    (intFbstOfNone == FBSTree.ofvi(*arrayOf<Int>())) shouldBe true
+    (intFbstOfNone == FBSTree.ofvi(*emptyArrayOfInt)) shouldBe true
     (intFbstOfNone == FRBTree.ofvi(*arrayOf())) shouldBe true
     (intFbstOfNone == emptySet<Int>()) shouldBe false
     (intFbstOfNone == FBSTree.ofvi(*arrayOf(1))) shouldBe false
@@ -66,8 +61,8 @@ class FBSTreeKCollTest : FunSpec({
     (intFbstOfNone == FRBTree.ofvi(*arrayOf(1))) shouldBe false
     (intFbstOfNone == setOf(1)) shouldBe false
 
-    (intFbstOfOne == FBSTree.ofvi(*arrayOf<Int>())) shouldBe false
-    (intFbstOfOne == FRBTree.ofvi(*arrayOf<Int>())) shouldBe false
+    (intFbstOfOne == FBSTree.ofvi(*emptyArrayOfInt)) shouldBe false
+    (intFbstOfOne == FRBTree.ofvi(*emptyArrayOfInt)) shouldBe false
     (intFbstOfOne == emptySet<Int>()) shouldBe false
     (intFbstOfOne == FBSTree.ofvi(*arrayOf(1))) shouldBe true
     (intFbstOfOne == FRBTree.ofvi(*arrayOf(1))) shouldBe true
@@ -956,7 +951,7 @@ class FBSTreeKCollTest : FunSpec({
 
   test("runningReduce") {
     shouldThrow<RuntimeException> {
-      val ss = { _: TKVEntry<Int,Int>, _: TKVEntry<Int,Int> -> TKVEntry.of(0,0) }
+      val ss = { _: TKVEntry<Int,Int>, _: TKVEntry<Int,Int> -> TKVEntry.ofkk(0,0) }
       @Suppress("DEPRECATION")
       FBSTree.ofvi(*arrayOf<Int>(2,1)).runningReduce(ss)
     }
@@ -985,7 +980,7 @@ class FBSTreeKCollTest : FunSpec({
   test("zip array") {
     shouldThrow<RuntimeException> {
       @Suppress("DEPRECATION")
-      FBSTree.ofvi(*arrayOf<Int>(2,1)).zip(arrayOf<String>()){a, b -> Pair(a,b)}
+      FBSTree.ofvi(*arrayOf<Int>(2,1)).zip(emptyArrayOfStr){a, b -> Pair(a,b)}
     }
   }
 

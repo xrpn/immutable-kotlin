@@ -1,7 +1,7 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.NDJ2
 import com.xrpn.immutable.TKVEntry
-import kotlin.reflect.KClass
 
 interface IMListUtility<out A: Any> {
     fun equal(rhs: IMList<@UnsafeVariance A>): Boolean
@@ -11,18 +11,30 @@ interface IMListUtility<out A: Any> {
     fun copyToMutableList(): MutableList<@UnsafeVariance A>
 }
 
-interface IMRSetUtility<out A: Any> {
-    fun safeEqual(rhs: IMRSetNotEmpty<@UnsafeVariance A>): Boolean
+interface IMSetUtility<out A: Any> {
+    fun equal(rhs: IMSetNotEmpty<@UnsafeVariance A>): Boolean
     fun equal(rhs: Set<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
-    fun copy(): IMRSet<A>
-    fun toIMRSetNotEmpty(): IMRSetNotEmpty<A>?
+    fun copy(): IMSet<A>
+    fun ne(): IMSetNotEmpty<A>?
+    fun rne(): IMRSetNotEmpty<A>?
+    fun rrne(): IMRRSetNotEmpty<A>?
     fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
 }
 
-internal interface IMSetUtility<out K, out A: Any>: IMRSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun strongEqual(rhs: IMRSet<@UnsafeVariance A>): Boolean
+internal interface IMKSetUtility<out K, out A: Any>: IMSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun strongEqual(rhs: IMSet<@UnsafeVariance A>): Boolean
     fun toIMBTree(): IMBTree<K, A>
+    fun <KK> toIMKSetNotEmpty(kt: RestrictedKeyType<KK>): IMKSetNotEmpty<KK, A>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
+    fun <KK> toIMBTree(kt: RestrictedKeyType<KK>): IMBTree<KK, A>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = when (kt) {
+        is DeratedCustomKeyType -> throw RuntimeException("internal Error")
+        else -> toIMKSetNotEmpty(kt)?.toIMBTree()
+    }
+    fun <KK> toIMList(kt: RestrictedKeyType<KK>): IMList<TKVEntry<KK, A>>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = when (kt) {
+        is DeratedCustomKeyType -> throw RuntimeException("internal Error")
+        else -> toIMBTree(kt)?.breadthFirst()
+    }
+
 }
 
 interface IMMapUtility<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -37,7 +49,8 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.froot()) { _, tkv -> f(tkv); tkv }; Unit }
-    fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>): IMRSet<B>
+    fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): IMSet<B>?
+    fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K>
     fun toIMMap(): IMMap<A, B>
     fun copy(): IMBTree<A, B>
     fun copyToMutableMap(): MutableMap<@UnsafeVariance A, @UnsafeVariance B> = (
