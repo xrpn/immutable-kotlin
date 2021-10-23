@@ -2,7 +2,6 @@ package com.xrpn.immutable.frbtreetest
 
 import com.xrpn.imapi.IntKeyType
 import com.xrpn.imapi.StrKeyType
-import com.xrpn.imapi.SymKeyType
 import com.xrpn.immutable.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

@@ -482,6 +482,49 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     override fun ffindAny(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? {
         TODO("Not yet implemented")
     }
+
+    override val seal: IMSC
+        get() = TODO("Not yet implemented")
+
+    override fun fisStrict(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpickEntry(): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpeek(): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterKey(isMatch: (A) -> Boolean): IMKeyed<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMKeyed<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterValue(isMatch: (B) -> Boolean): IMKeyed<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterValueNot(isMatch: (B) -> Boolean): IMKeyed<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fget(key: A): B? {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindAnyValue(isMatch: (B) -> Boolean): TKVEntry<A, B>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun asIMMap(): IMMap<A, B>? {
+        TODO("Not yet implemented")
+    }
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

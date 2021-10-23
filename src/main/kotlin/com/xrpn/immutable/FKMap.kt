@@ -15,21 +15,7 @@ import com.xrpn.immutable.TKVEntry.Companion.ofk
 
 sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
 
-    override fun ffilterEntry(isMatch: (TKVEntry<K, V>) -> Boolean): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
 
-    override fun ffilterNotEntry(isMatch: (TKVEntry<K, V>) -> Boolean): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
-
-    override fun ffilter(isMatch: (K) -> Boolean): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
-
-    override fun ffilterNot(isMatch: (K) -> Boolean): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
 
     override fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
         TODO("Not yet implemented")
@@ -83,15 +69,81 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
+    // imcollection
+
+    override val seal: IMSC = IMSC.IMMAP
+
+    override fun fcontains(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): Boolean  = when (this) {
+        is FKMapEmpty -> false
+        is FKMapNotEmpty -> body.fcontains(item)
+    }
+
+    override fun ffilter(isMatch: (TKVEntry<K, V>) -> Boolean): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterNot(isMatch: (TKVEntry<K, V>) -> Boolean): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindAny(isMatch: (TKVEntry<K, V>) -> Boolean): TKVEntry<K, V>? = when (this) {
+        is FKMapEmpty -> null
+        is FKMapNotEmpty -> body.ffindAny(isMatch)
+    }
+
+    override fun fisStrict(): Boolean = when (this) {
+        is FKMapEmpty -> true
+        is FKMapNotEmpty -> body.fisStrict()
+    }
+
+    override fun fcount(isMatch: (TKVEntry<K, V>) -> Boolean): Int = when (this) {
+        is FKMapEmpty -> 0
+        is FKMapNotEmpty -> body.fcount(isMatch)
+    }
+
+    // imkeyed
+
+    override fun fcontainsValue(value: @UnsafeVariance V): Boolean = when (this) {
+        is FKMapEmpty -> false
+        is FKMapNotEmpty -> body.fcontainsValue(value)
+    }
+
+    override fun fcountValue(isMatch: (V) -> Boolean): Int = when (this) {
+        is FKMapEmpty -> 0
+        is FKMapNotEmpty -> body.ffold(0) {acc, tkv -> if(isMatch(tkv.getv())) acc + 1 else acc }
+    }
+
+    override fun ffilterKey(isMatch: (K) -> Boolean): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterKeyNot(isMatch: (K) -> Boolean): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterValue(isMatch: (V) -> Boolean): IMMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffilterValueNot(isMatch: (V) -> Boolean): IMMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun ffindAnyValue(isMatch: (V) -> Boolean): TKVEntry<K, V>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpickEntry(): TKVEntry<K, V>? = fpick()
+
 
     // extras
 
-    override operator fun contains(k: @UnsafeVariance K): Boolean = fcontains(k)
+    override operator fun contains(k: @UnsafeVariance K): Boolean = fcontainsKey(k)
     override operator fun set(k: @UnsafeVariance K, v: @UnsafeVariance V): FKMap<K, V> = fputkv(k, v)
 
     // filtering
 
-    override fun fcontains(key: @UnsafeVariance K): Boolean = when (this) {
+    override fun fcontainsKey(key: @UnsafeVariance K): Boolean = when (this) {
         is FKMapEmpty -> false
         is FKMapNotEmpty -> body.ffindValueOfKey(key) != null
     }
@@ -125,12 +177,12 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.froot()
     }
 
-    // grouping
-
-    override fun fcount(isMatch: (V) -> Boolean): Int = when (this) {
-        is FKMapEmpty -> 0
-        is FKMapNotEmpty -> body.ffold(0) {acc, tkv -> if(isMatch(tkv.getv())) acc + 1 else acc }
+    override fun asIMBTree(): IMBTree<K,V> =  when (this) {
+        is FKMapEmpty -> FRBTree.emptyIMBTree()
+        is FKMapNotEmpty -> body
     }
+
+    // grouping
 
     override fun fentries(): IMSet<TKVEntry<K,V>> = (@Suppress("UNCHECKED_CAST") (entries as IMSet<TKVEntry<K, V>>))
 
@@ -291,15 +343,15 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         other == null -> false
         other is IMMap<*, *> -> when {
             other.fempty() -> false
-            this.fpick()!!.getk()::class != other.fpick()!!.getk()::class -> false
-            this.fpick()!!.getv()::class != other.fpick()!!.getv()::class -> false
+            this.fpick()!!.getkKc() != other.fpick()!!.getkKc() -> false
+            this.fpick()!!.getvKc() != other.fpick()!!.getvKc() -> false
             else ->  @Suppress("UNCHECKED_CAST") IMMapEqual2(this, other as IMMap<K, V>)
         }
         other is Map<*, *> -> if (other.isEmpty()) false else {
             val nnSample = (@Suppress("UNCHECKED_CAST") (other.entries.first() as Map.Entry<Any, Any>))
             when {
-                this.fpick()!!.getk()::class != nnSample.key::class -> false
-                this.fpick()!!.getv()::class != nnSample.value::class -> false
+                this.fpick()!!.getkKc() != nnSample.key::class -> false
+                this.fpick()!!.getvKc() != nnSample.value::class -> false
                 else ->  other.equals(this)
             }
         }

@@ -105,18 +105,6 @@ class FListFilteringTest : FunSpec({
     intListOfThree.fdropRight(-3) shouldBe FLNil
   }
 
-  test("fdropWhen") {
-    intListOfNone.fdropWhen { it > 1 } shouldBe FLNil
-    intListOfOne.fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1,FLNil)
-    FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhen { it > 1 } shouldBe FLCons(1,FLCons(0,FLNil))
-    intListOfFour.fdropWhen { it > 1 } shouldBe FLCons(1, FLCons(1, FLNil))
-    intListOfFourA.fdropWhen { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
-    intListOfFourA.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
-    intListOfFourB.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
-  }
-
   test("fdropWhile") {
     intListOfNone.fdropWhile { it > 1 } shouldBe FLNil
     intListOfOne.fdropWhile { it > 1 }  shouldBe FLCons(1,FLNil)
@@ -127,22 +115,6 @@ class FListFilteringTest : FunSpec({
     intListOfFourA.fdropWhile { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
     intListOfFourA.fdropWhile { it < 3 } shouldBe FLCons(3, FLNil)
     intListOfFourB.fdropWhile { it < 3 } shouldBe FLCons(3, FLCons(2, FLNil))
-  }
-
-  test("ffilter") {
-    intListOfNone.ffilter {0 == it % 2} shouldBe FLNil
-    intListOfOne.ffilter {0 == it % 2} shouldBe FLNil
-    intListOfTwo.ffilter {0 == it % 2} shouldBe FLCons(2,FLNil)
-    intListOfThree.ffilter {0 == it % 2} shouldBe FLCons(2,FLNil)
-    FList.of(*arrayOf<Int>(1,2,3,4)).ffilter {0 == it % 2} shouldBe FLCons(2,FLCons(4,FLNil))
-  }
-
-  test("ffilterNot") {
-    intListOfNone.ffilterNot {0 == it % 2} shouldBe FLNil
-    intListOfOne.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLNil)
-    intListOfTwo.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLNil)
-    intListOfThree.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
-    FList.of(*arrayOf<Int>(1,2,3,4)).ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
   }
 
   test("ffind") {

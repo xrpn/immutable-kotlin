@@ -22,20 +22,6 @@ class FListGroupingTest : FunSpec({
 
   beforeTest {}
 
-  test("fcount") {
-    intListOfNone.fcount { _ -> true } shouldBe 0
-    intListOfNone.fcount { _ -> false } shouldBe 0
-    intListOfOne.fcount { _ -> true } shouldBe 1
-    intListOfOne.fcount { 0 < it } shouldBe 1
-    intListOfOne.fcount { it < 0 } shouldBe 0
-    intListOfOne.fcount { _ -> false } shouldBe 0
-    intListOfTwo.fcount { _ -> true } shouldBe 2
-    intListOfTwo.fcount { 0 < it } shouldBe 2
-    intListOfTwo.fcount { 1 < it } shouldBe 1
-    intListOfTwo.fcount { it < 0 } shouldBe 0
-    intListOfTwo.fcount { _ -> false } shouldBe 0
-  }
-
   test("ffindFirst") {
     intListOfNone.ffindFirst { it > 1 } shouldBe Triple(FLNil, null, FLNil)
     intListOfOne.ffindFirst { it > 1 }  shouldBe Triple(FLCons(1,FLNil), null, FLNil)

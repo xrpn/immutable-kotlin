@@ -4,10 +4,8 @@ import com.xrpn.bridge.FQueueIterator
 import com.xrpn.hash.DigestHash.lChecksumHashCode
 import com.xrpn.hash.DigestHash.lChecksumHashCodeReverse
 import com.xrpn.hash.MrMr64
-import com.xrpn.imapi.IMList
+import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
-import com.xrpn.imapi.IMQueue
-import com.xrpn.imapi.IMQueueCompanion
 import com.xrpn.immutable.FQueueBody.Companion.empty
 
 sealed class FQueue<out A: Any> : IMQueue<A> {
@@ -17,6 +15,28 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     val size: Int by lazy { this.fsize() }
 
     fun iterator(): FQueueIterator<A> = FQueueIterator(this)
+
+    // imcollection
+
+    override val seal: IMSC = IMSC.IMQUEUE
+
+    override fun fcontains(item: @UnsafeVariance A): Boolean =
+        this.fqGetBack().fcontains(item) || this.fqGetFront().fcontains(item)
+
+    override fun ffilter(isMatch: (A) -> Boolean): FQueue<A> =
+        FQueueBody.of(fqGetFront().ffilter(isMatch),fqGetBack().ffilter(isMatch)).fqForceFront(merge = true)
+
+    override fun ffilterNot(isMatch: (A) -> Boolean): FQueue<A> =
+        ffilter{ !isMatch(it) }
+
+    override fun ffindAny(isMatch: (A) -> Boolean): A? =
+        this.fqGetBack().ffindAny(isMatch) ?: this.fqGetFront().ffindAny(isMatch)
+
+    override fun fisStrict(): Boolean =
+        this.fqGetBack().fisStrict() && this.fqGetFront().fisStrict()
+
+    override fun fpick(): A? =
+        this.fqGetBack().fhead() ?: this.fqGetFront().fhead()
 
     // ============ filtering
 
@@ -32,24 +52,21 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     }
 
     override fun fdropFrontWhen(isMatch: (A) -> Boolean): FQueue<A> =
-        if (ffrontMatch(isMatch)) fdiscardFront() else this
+        if (fqFrontMatch(isMatch)) fdiscardFront() else this
 
     override fun fdropIfFront(item: @UnsafeVariance A): FQueue<A> =
-        fpeek()?.let { if (it == item) fdiscardFront() else this } ?: this
+        ffirst()?.let { if (it == item) fdiscardFront() else this } ?: this
 
     override fun fdropFrontWhile(isMatch: (A) -> Boolean): FQueue<A> {
 
         tailrec fun deplete(q: FQueue<A>, changed: Boolean): FQueue<A> {
             if (!changed) return q
-            val (newQue, depleted) = q.fpeek()?.let { if (isMatch(it)) Pair(q.fdiscardFront(), true) else Pair(q, false) } ?: Pair(q, false)
+            val (newQue, depleted) = q.ffirst()?.let { if (isMatch(it)) Pair(q.fdiscardFront(), true) else Pair(q, false) } ?: Pair(q, false)
             return deplete(newQue, depleted)
         }
 
         return deplete(this, true)
     }
-
-    override fun ffrontMatch(isMatch: (A) -> Boolean): Boolean =
-        fpeek()?.let { isMatch(it) } ?: false
 
     override fun fdiscardBack(): FQueue<A> =
         fdropBack(1)
@@ -63,7 +80,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     }
 
     override fun fdropBackWhen(isMatch: (A) -> Boolean): FQueue<A> =
-        if (fbackMatch(isMatch)) fdiscardBack() else this
+        if (fqBackMatch(isMatch)) fdiscardBack() else this
 
     override fun fdropIfBack(item: @UnsafeVariance A): FQueue<A> =
         flast()?.let { if (it == item) fdiscardBack() else this } ?: this
@@ -78,9 +95,6 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
         return deplete(this, true)
     }
-
-    override fun fbackMatch(isMatch: (A) -> Boolean): Boolean =
-        flast()?.let { isMatch(it) } ?: false
 
     override fun fempty(): Boolean = isEmpty() || run {
         // TODO remove in time
@@ -99,7 +113,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         }
     }
 
-    override fun fpeek(): A? = if (fempty()) null else {
+    override fun ffirst(): A? = if (fempty()) null else {
         this as FQueueBody<A>
         when (this.front) {
             is FLCons -> this.front.head
@@ -110,8 +124,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         }
     }
 
-    override fun fpeekOrThrow(): A =
-        fpeek() ?: throw IllegalStateException("peek on empty queue")
+    override fun ffirstOrThrow(): A =
+        ffirst() ?: throw IllegalStateException("peek on empty queue")
 
     // ============ grouping
 
@@ -124,13 +138,13 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     // ============ transforming
 
     override fun <B : Any> fdequeueMap(f: (A) -> B): Pair<B?, IMQueue<A>> =
-        fpeek()?.let { Pair(f(it), fdiscardFront()) } ?: Pair(null, this)
+        ffirst()?.let { Pair(f(it), fdiscardFront()) } ?: Pair(null, this)
 
     override fun freverse(): FQueue<A> =
         FQueueBody.of(fqGetBack(), fqGetFront())
 
     override fun <B : Any> fpeekMap(f: (A) -> B): B? =
-        fpeek()?.let { f(it) }
+        ffirst()?.let { f(it) }
 
     // ============ altering
 
@@ -177,6 +191,12 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         toFList().copyToMutableList()
 
     // ============ implementation
+
+    internal fun fqBackMatch(isMatch: (A) -> Boolean): Boolean =
+        flast()?.let { isMatch(it) } ?: false
+
+    internal fun fqFrontMatch(isMatch: (A) -> Boolean): Boolean =
+        ffirst()?.let { isMatch(it) } ?: false
 
     internal fun fqForceFront(merge: Boolean = false): FQueue<A> =
         if (this.isEmpty()) emptyIMQueue() else {
@@ -358,7 +378,7 @@ internal class FQueueBody<out A: Any> private constructor(
         other == null -> false
         other is FQueueBody<*> -> {
             @Suppress("UNCHECKED_CAST") if (fqSameSize(other as IMQueue<A>)) when {
-                this.fpeek()!!::class == other.fpeek()!!::class -> {
+                this.ffirst()!!::class == other.ffirst()!!::class -> {
                     @Suppress("UNCHECKED_CAST") this.equal(other as FQueue<A>)
                 }
                 else -> false
@@ -422,7 +442,6 @@ internal class FQueueBody<out A: Any> private constructor(
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }
-
 
 }
 

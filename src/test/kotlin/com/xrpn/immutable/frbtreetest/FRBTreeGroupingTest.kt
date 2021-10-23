@@ -22,28 +22,6 @@ class FRBTreeGroupingTest  : FunSpec({
 
     beforeTest {}
 
-    test("fcount") {
-        Arb.frbtree<Int, Int>(Arb.int(0..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
-            val mm = frbt.copyToMutableMap()
-            val ss = mm.size // size without duplicates
-            val ds = frbt.size // size with duplicates
-            var tot = 0
-            var totDups = 0
-            var nonDistinct = 0
-            for (entry in mm) {
-                val aux = TKVEntry.ofme(entry)
-                val counter = frbt.fcount { it == aux }
-                tot += counter
-                if (frbt.fisDup(aux)) {
-                    nonDistinct += 1
-                    totDups += counter
-                }
-            }
-            tot shouldBe ds
-            (ss + totDups - nonDistinct) shouldBe ds
-        }
-    }
-
     test("fgroupBy").config(enabled = false) {
         fail("need FMap done to make this happen")
     }

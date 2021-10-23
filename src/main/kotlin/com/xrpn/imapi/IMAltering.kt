@@ -13,12 +13,12 @@ interface IMSetAltering<out A: Any> {
     fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = true): IMSetNotEmpty<A>
 }
 
-interface IMRSetAltering<out A: Any> {
-    fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = false): IMRSetNotEmpty<A>
+interface IMRSetAltering<out A: Any>: IMSetAltering<A> {
+    override fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean): IMRSetNotEmpty<A>
 }
 
-interface IMRRSetAltering<out A: Any> {
-    fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean = false): IMRRSetNotEmpty<A>
+interface IMRRSetAltering<out A: Any>: IMSetAltering<A> {
+    override fun faddItem(item: @UnsafeVariance A, forceIntKey: Boolean): IMRRSetNotEmpty<A>
 }
 
 internal interface IMKASetAltering<out K, out A: Any>: IMRSetAltering<A> where K: Any, K: Comparable<@UnsafeVariance K>

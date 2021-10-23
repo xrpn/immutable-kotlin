@@ -5,11 +5,10 @@ import com.xrpn.hash.DigestHash.lChecksumHashCode
 import com.xrpn.hash.DigestHash.uIntChecksumHashCode
 import com.xrpn.hash.MurMur3at32
 import com.xrpn.hash.to8ByteArray
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMListCompanion
+import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
-import com.xrpn.imapi.IMMap
 import java.util.zip.CRC32C
+import kotlin.reflect.KClass
 
 sealed class FList<out A: Any>: List<A>, IMList<A> {
 
@@ -56,6 +55,39 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         Stack-safe implementation.  May run out of heap memory, will not run
         out (on most reasonable general purpose computers) of stack frames.
      */
+
+    // imcollection
+
+    override val seal: IMSC = IMSC.IMLIST
+
+    override fun fcontains(item: @UnsafeVariance A): Boolean =
+        null != ffind { it == item }
+
+    override fun ffindAny(isMatch: (A) -> Boolean): A? =
+        ffind(isMatch)
+
+    private val strictness: Boolean by lazy { when {
+        fempty() -> true
+        fisNested() -> {
+            val kc = fpickNotEmpty()?.let { it::class }
+            kc?.let { itemKClass ->
+                val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
+                null == ffindAny { innerItem: A -> innerItem::class != itemKClass } &&
+                null == ffindAny { maybeContainer: A -> !FT.itemStrictness(maybeContainer, maybeContainer::class, ucKc) }
+            } ?: /* all nested containers, all are empty */ run {
+                val auxv = fhead()!!::class
+                fall { it::class == auxv }
+            }
+        }
+        else -> {
+            val auxv = fhead()!!::class
+            fall { it::class == auxv }
+        }
+    }}
+
+    override fun fisStrict(): Boolean = strictness
+
+    override fun fpick(): A? = fhead()
 
     // utility
 

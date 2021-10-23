@@ -1,9 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FStackIterator
-import com.xrpn.imapi.IMList
-import com.xrpn.imapi.IMStack
-import com.xrpn.imapi.IMStackCompanion
+import com.xrpn.imapi.*
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
 
@@ -14,6 +12,29 @@ sealed class FStack<out A: Any>: IMStack<A> {
     fun isEmpty(): Boolean = this.toFList().isEmpty()
 
     fun iterator(): FStackIterator<A> = FStackIterator(this)
+
+    // imcollection
+
+    override val seal: IMSC = IMSC.IMSTACK
+
+    override fun fcontains(item: @UnsafeVariance A): Boolean=
+        this.toFList().fcontains(item)
+
+    override fun ffilter(isMatch: (A) -> Boolean): FStack<A> =
+        FStackBody.of(this.toFList().ffilter(isMatch))
+
+    override fun ffilterNot(isMatch: (A) -> Boolean): FStack<A> =
+        ffilter { !isMatch(it) }
+
+    override fun ffindAny(isMatch: (A) -> Boolean): A? =
+        this.toFList().ffindAny(isMatch)
+
+    override fun fisStrict(): Boolean =
+        this.toFList().fisStrict()
+
+    override fun fpick(): A? =
+        this.toFList().fhead()
+
 
     // ============ filtering
 

@@ -680,15 +680,15 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("fpick") {
-        FBSTNil.fpick() shouldBe null
-        slideShareTree.fpick() shouldNotBe null
+        FBSTNil.fpeek() shouldBe null
+        slideShareTree.fpeek() shouldNotBe null
     }
 
     test("fpick int") {
         for (size in IntRange(0, 20)) {
             val ary = IntArray(size) {nextInt()}
             val min = ary.minOrNull()
-            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).fpick() shouldBe min?.let {
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).fpeek() shouldBe min?.let {
                 TKVEntry.ofIntKey(
                     min
                 )

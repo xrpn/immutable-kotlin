@@ -75,6 +75,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.2"
+    implementation "io.github.microutils:kotlin-logging-jvm:2.0.11"
     testImplementation "io.kotest:kotest-runner-junit5:$kotestVersion" // for kotest framework
     testImplementation "io.kotest:kotest-assertions-core:$kotestVersion" // for kotest core jvm assertions
     testImplementation "io.kotest:kotest-property:$kotestVersion" // for kotest property test

@@ -1,6 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.NDJ2
 import com.xrpn.immutable.TKVEntry
 
 interface IMListUtility<out A: Any> {

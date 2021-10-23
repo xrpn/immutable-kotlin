@@ -196,31 +196,33 @@ class FQueueFilteringTest : FunSpec({
   }
 
   test("ffrontMatch (not ready"){
-    intQueueOfNoneNR.ffrontMatch { false } shouldBe false
-    intQueueOfNoneNR.ffrontMatch { true } shouldBe false
-    intQueueOfOne1NR.ffrontMatch { false } shouldBe false
-    intQueueOfOne1NR.ffrontMatch { true } shouldBe true
-    intQueueOfOne1NR.ffrontMatch { it == 1 } shouldBe true
-    intQueueOfOne1NR.ffrontMatch { it < 1 } shouldBe false
-    intQueueOfTwoNR.ffrontMatch { it < 2 } shouldBe true
-    intQueueOfTwoNR.ffrontMatch { 1 < it } shouldBe false
-    intQueueOfTworNR.ffrontMatch { 1 < it } shouldBe true
-    intQueueOfThreeNR.ffrontMatch { false } shouldBe false
-    intQueueOfThreeNR.ffrontMatch { it != 2 } shouldBe true
+    intQueueOfTwoNR.fqFrontMatch { it < 2 } shouldBe true
+
+    intQueueOfNoneNR.fqFrontMatch { false } shouldBe false
+    intQueueOfNoneNR.fqFrontMatch { true } shouldBe false
+    intQueueOfOne1NR.fqFrontMatch { false } shouldBe false
+    intQueueOfOne1NR.fqFrontMatch { true } shouldBe true
+    intQueueOfOne1NR.fqFrontMatch { it == 1 } shouldBe true
+    intQueueOfOne1NR.fqFrontMatch { it < 1 } shouldBe false
+    intQueueOfTwoNR.fqFrontMatch { it < 2 } shouldBe true
+    intQueueOfTwoNR.fqFrontMatch { 1 < it } shouldBe false
+    intQueueOfTworNR.fqFrontMatch { 1 < it } shouldBe true
+    intQueueOfThreeNR.fqFrontMatch { false } shouldBe false
+    intQueueOfThreeNR.fqFrontMatch { it != 2 } shouldBe true
   }
 
   test("ffrontMatch (ready)"){
-    intQueueOfNoneYR.ffrontMatch { false } shouldBe false
-    intQueueOfNoneYR.ffrontMatch { true } shouldBe false
-    intQueueOfOne1YR.ffrontMatch { false } shouldBe false
-    intQueueOfOne1YR.ffrontMatch { true } shouldBe true
-    intQueueOfOne1YR.ffrontMatch { it == 1 } shouldBe true
-    intQueueOfOne1YR.ffrontMatch { it < 1 } shouldBe false
-    intQueueOfTwoYR.ffrontMatch { it < 2 } shouldBe true
-    intQueueOfTwoYR.ffrontMatch { 1 < it } shouldBe false
-    intQueueOfTworYR.ffrontMatch { 1 < it } shouldBe true
-    intQueueOfThreeYR.ffrontMatch { false } shouldBe false
-    intQueueOfThreeYR.ffrontMatch { it != 2 } shouldBe true
+    intQueueOfNoneYR.fqFrontMatch { false } shouldBe false
+    intQueueOfNoneYR.fqFrontMatch { true } shouldBe false
+    intQueueOfOne1YR.fqFrontMatch { false } shouldBe false
+    intQueueOfOne1YR.fqFrontMatch { true } shouldBe true
+    intQueueOfOne1YR.fqFrontMatch { it == 1 } shouldBe true
+    intQueueOfOne1YR.fqFrontMatch { it < 1 } shouldBe false
+    intQueueOfTwoYR.fqFrontMatch { it < 2 } shouldBe true
+    intQueueOfTwoYR.fqFrontMatch { 1 < it } shouldBe false
+    intQueueOfTworYR.fqFrontMatch { 1 < it } shouldBe true
+    intQueueOfThreeYR.fqFrontMatch { false } shouldBe false
+    intQueueOfThreeYR.fqFrontMatch { it != 2 } shouldBe true
   }
 
   test("fdiscardBack (not ready)"){
@@ -385,31 +387,31 @@ class FQueueFilteringTest : FunSpec({
   }
 
   test("fbackMatch (not ready)"){
-    intQueueOfNoneNR.fbackMatch { false } shouldBe false
-    intQueueOfNoneNR.fbackMatch { true } shouldBe false
-    intQueueOfOne1NR.fbackMatch { false } shouldBe false
-    intQueueOfOne1NR.fbackMatch { true } shouldBe true
-    intQueueOfOne1NR.fbackMatch { it == 1 } shouldBe true
-    intQueueOfOne1NR.fbackMatch { it < 1 } shouldBe false
-    intQueueOfTwoNR.fbackMatch { it < 2 } shouldBe false
-    intQueueOfTwoNR.fbackMatch { 1 < it } shouldBe true
-    intQueueOfTworNR.fbackMatch { 1 < it } shouldBe false
-    intQueueOfThreeNR.fbackMatch { false } shouldBe false
-    intQueueOfThreeNR.fbackMatch { it != 1 } shouldBe true
+    intQueueOfNoneNR.fqBackMatch { false } shouldBe false
+    intQueueOfNoneNR.fqBackMatch { true } shouldBe false
+    intQueueOfOne1NR.fqBackMatch { false } shouldBe false
+    intQueueOfOne1NR.fqBackMatch { true } shouldBe true
+    intQueueOfOne1NR.fqBackMatch { it == 1 } shouldBe true
+    intQueueOfOne1NR.fqBackMatch { it < 1 } shouldBe false
+    intQueueOfTwoNR.fqBackMatch { it < 2 } shouldBe false
+    intQueueOfTwoNR.fqBackMatch { 1 < it } shouldBe true
+    intQueueOfTworNR.fqBackMatch { 1 < it } shouldBe false
+    intQueueOfThreeNR.fqBackMatch { false } shouldBe false
+    intQueueOfThreeNR.fqBackMatch { it != 1 } shouldBe true
   }
 
   test("fbackMatch (ready)"){
-    intQueueOfNoneYR.fbackMatch { false } shouldBe false
-    intQueueOfNoneYR.fbackMatch { true } shouldBe false
-    intQueueOfOne1YR.fbackMatch { false } shouldBe false
-    intQueueOfOne1YR.fbackMatch { true } shouldBe true
-    intQueueOfOne1YR.fbackMatch { it == 1 } shouldBe true
-    intQueueOfOne1YR.fbackMatch { it < 1 } shouldBe false
-    intQueueOfTwoYR.fbackMatch { it < 2 } shouldBe false
-    intQueueOfTwoYR.fbackMatch { 1 < it } shouldBe true
-    intQueueOfTworYR.fbackMatch { 1 < it } shouldBe false
-    intQueueOfThreeYR.fbackMatch { false } shouldBe false
-    intQueueOfThreeYR.fbackMatch { it != 1 } shouldBe true
+    intQueueOfNoneYR.fqBackMatch { false } shouldBe false
+    intQueueOfNoneYR.fqBackMatch { true } shouldBe false
+    intQueueOfOne1YR.fqBackMatch { false } shouldBe false
+    intQueueOfOne1YR.fqBackMatch { true } shouldBe true
+    intQueueOfOne1YR.fqBackMatch { it == 1 } shouldBe true
+    intQueueOfOne1YR.fqBackMatch { it < 1 } shouldBe false
+    intQueueOfTwoYR.fqBackMatch { it < 2 } shouldBe false
+    intQueueOfTwoYR.fqBackMatch { 1 < it } shouldBe true
+    intQueueOfTworYR.fqBackMatch { 1 < it } shouldBe false
+    intQueueOfThreeYR.fqBackMatch { false } shouldBe false
+    intQueueOfThreeYR.fqBackMatch { it != 1 } shouldBe true
   }
 
   test("fempty") {
@@ -459,11 +461,11 @@ class FQueueFilteringTest : FunSpec({
 
   test("fpeekOrThrow (not ready)"){
     shouldThrow<IllegalStateException> {
-      intQueueOfNoneNR.fpeekOrThrow()
+      intQueueOfNoneNR.ffirstOrThrow()
     }
-    intQueueOfOne1NR.fpeekOrThrow() shouldBe 1
-    intQueueOfTwoNR.fpeekOrThrow() shouldBe 1
-    intQueueOfThreeNR.fpeekOrThrow() shouldBe 3
+    intQueueOfOne1NR.ffirstOrThrow() shouldBe 1
+    intQueueOfTwoNR.ffirstOrThrow() shouldBe 1
+    intQueueOfThreeNR.ffirstOrThrow() shouldBe 3
   }
 
 })

@@ -66,38 +66,6 @@ class FRBTreeFilteringTest : FunSpec({
         frbSlideShareTree.fcontains(TKVEntry.ofIntKey(100)) shouldBe false
     }
 
-    test("fcontainsKey") {
-        nul<Int, String>().fcontainsKey(zEntry.getk()) shouldBe false
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    (t.fcontainsKey(acc.head.getk())) shouldBe true
-                    go(t, acc.tail)
-                }
-            }
-        go(frbWikiTree, frbWikiPreorder)
-        frbWikiTree.fcontainsKey(zEntry.getk()) shouldBe false
-        go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        frbSlideShareTree.fcontainsKey(100) shouldBe false
-    }
-
-    test("fcontainsValue") {
-        nul<Int, String>().fcontainsValue(zEntry.getv()) shouldBe false
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    (t.fcontainsValue(acc.head.getv())) shouldBe true
-                    go(t, acc.tail)
-                }
-            }
-        go(frbWikiTree, frbWikiPreorder)
-        frbWikiTree.fcontainsValue(zEntry.getv()) shouldBe false
-        go(frbSlideShareTree, frbSlideShareBreadthFirst)
-        frbSlideShareTree.fcontainsValue(100) shouldBe false
-    }
-
     test("dropAll (nil)") {
         FBSTree.nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
         FBSTree.nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FRBTree.emptyIMBTree()
@@ -337,14 +305,7 @@ class FRBTreeFilteringTest : FunSpec({
         go(aux6, frbSlideShareBreadthFirst, aux6.inorder())
     }
 
-    // TODO dropWhen
-
-    test("fempty") {
-        FRBTNil.fempty() shouldBe true
-        ofvi(1).fempty() shouldBe false
-    }
-
-    test ("ffilter, ffilterNot, ffind (A)") {
+    test ("ffind (A)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -355,38 +316,22 @@ class FRBTreeFilteringTest : FunSpec({
             val tree: FRBTree<Int, Int> = of(svalues.iterator())
             tree.size shouldBe ora1
 
-            val sAll1: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
-            val snAll1: FRBTree<Int, Int> = tree.ffilterNot(pickIfLess(ora1))
             val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            snAll1.size shouldBe 0
-            sAll1.size shouldBe ora1
             saAll1.size shouldBe ora1
-            val sEmpty1: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
-            val snEmpty1: FRBTree<Int, Int> = tree.ffilterNot(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
-            snEmpty1.size shouldBe ora1
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
-            val snAll2: FRBTree<Int, Int> = tree.ffilterNot(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
-            snAll2.size shouldBe theRestSansOra2 + 1
             saAll2.size shouldBe ora2
-            val sEmpty2: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
-            val snEmpty2: FRBTree<Int, Int> = tree.ffilterNot(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
-            sEmpty2.size shouldBe theRestSansOra2
-            snEmpty2.size shouldBe ora1 - theRestSansOra2
             saEmpty2.size shouldBe theRestSansOra2
         }
     }
 
-    test ("ffilter, ffind (B)") {
+    test ("ffind (B)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -398,30 +343,20 @@ class FRBTreeFilteringTest : FunSpec({
             val tree: FRBTree<Int, Int> = of(svalues.iterator())
             tree.size shouldBe ora1
 
-            val sAll1: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
-            val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            sAll1.size shouldBe ora1
-            saAll1.size shouldBe ora1
-            val sEmpty1: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
             saAll2.size shouldBe ora2
-            val sEmpty2: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
-            sEmpty2.size shouldBe theRestSansOra2
             saEmpty2.size shouldBe theRestSansOra2
         }
     }
 
-    test ("ffilter, ffind (C)") {
+    test ("ffind (C)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(50, Arb.int(20..100)) { n ->
@@ -433,25 +368,17 @@ class FRBTreeFilteringTest : FunSpec({
             val tree: FRBTree<Int, Int> = of(svalues.iterator())
             tree.size shouldBe ora1
 
-            val sAll1: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
             val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            sAll1.size shouldBe ora1
             saAll1.size shouldBe ora1
-            val sEmpty1: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FRBTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
             saAll2.size shouldBe ora2
-            val sEmpty2: FRBTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
-            sEmpty2.size shouldBe theRestSansOra2
             saEmpty2.size shouldBe theRestSansOra2
         }
     }
@@ -703,15 +630,15 @@ class FRBTreeFilteringTest : FunSpec({
         (frbSlideShareTree.fparentOf( n50Entry) as FRBTNode).entry shouldBe n62Entry
     }
 
-    test("fpick") {
-        FRBTNil.fpick() shouldBe null
+    test("fpeek") {
+        FRBTNil.fpeek() shouldBe null
     }
 
-    test("fpick int") {
+    test("fpeek int") {
         for (size in IntRange(0, 20)) {
             val ary = IntArray(size) {nextInt()}
             val min = ary.minOrNull()
-            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).fpick() shouldBe min?.let {
+            of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).fpeek() shouldBe min?.let {
                 TKVEntry.ofIntKey(
                     min
                 )
