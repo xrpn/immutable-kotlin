@@ -347,10 +347,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int {
-        TODO("Not yet implemented")
-    }
-
     override fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, RBTree<A, B>> where C: Any, C: Comparable<C> {
         TODO("Not yet implemented")
     }
@@ -419,7 +415,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fdropAll(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> {
+    override fun fdropAll(items: IMCollection<TKVEntry<A, B>>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
@@ -498,19 +494,19 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffilterKey(isMatch: (A) -> Boolean): IMKeyed<A, B> {
+    override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMKeyed<A, B> {
+    override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffilterValue(isMatch: (B) -> Boolean): IMKeyed<A, B> {
+    override fun ffilterValue(isMatch: (B) -> Boolean): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffilterValueNot(isMatch: (B) -> Boolean): IMKeyed<A, B> {
+    override fun ffilterValueNot(isMatch: (B) -> Boolean): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
@@ -522,7 +518,27 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun asIMMap(): IMMap<A, B>? {
+    override fun asIMMap(): IMMap<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun set(k: A, v: B): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fAND(items: IMBTree<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fOR(items: IMBTree<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fXOR(items: IMBTree<A, B>): IMBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun get(key: A): B? {
         TODO("Not yet implemented")
     }
 }

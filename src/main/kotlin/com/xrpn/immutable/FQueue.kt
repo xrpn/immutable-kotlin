@@ -23,6 +23,14 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fcontains(item: @UnsafeVariance A): Boolean =
         this.fqGetBack().fcontains(item) || this.fqGetFront().fcontains(item)
 
+    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FQueue<A> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropItem(item: @UnsafeVariance A): FQueue<A> {
+        TODO("Not yet implemented")
+    }
+
     override fun ffilter(isMatch: (A) -> Boolean): FQueue<A> =
         FQueueBody.of(fqGetFront().ffilter(isMatch),fqGetBack().ffilter(isMatch)).fqForceFront(merge = true)
 
@@ -37,6 +45,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     override fun fpick(): A? =
         this.fqGetBack().fhead() ?: this.fqGetFront().fhead()
+
+    override fun fpopAndRemainder(): Pair<A?, FQueue<A>> = Pair(ffirst(), fdiscardFront())
 
     // ============ filtering
 
@@ -166,6 +176,12 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fdequeueOrThrow(): Pair<A, FQueue<A>> {
         val maybe = fdequeue()
         return maybe.first?.let { Pair(it, maybe.second) } ?: throw IllegalStateException("dequeue on empty queue")
+    }
+
+    // ============ transforming
+
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R {
+        TODO("Not yet implemented")
     }
 
     // ============ utility

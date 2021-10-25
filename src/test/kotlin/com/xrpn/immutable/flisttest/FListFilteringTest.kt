@@ -225,15 +225,15 @@ class FListFilteringTest : FunSpec({
   }
 
   test("fslice (IMList)") {
-    intListOfThree.fslice(FLNil) shouldBe FLNil
-    intListOfThree.fslice(FList.of(-1)) shouldBe FLNil
-    intListOfThree.fslice(FList.of(0)) shouldBe intListOfOne
-    intListOfThree.fslice(FList.of(1)) shouldBe FLCons(2, FLNil)
-    intListOfThree.fslice(FList.of(2)) shouldBe FLCons(3, FLNil)
-    intListOfThree.fslice(FList.of(3)) shouldBe FLNil
-    intListOfThree.fslice(FList.of(1, 2)) shouldBe FLCons(2, FLCons(3, FLNil))
-    intListOfThree.fslice(FList.of(-1, 1, 2, 5)) shouldBe FLCons(2, FLCons(3, FLNil))
-    intListOfThree.fslice(FList.of(2, -1, 1, 5)) shouldBe FLCons(3, FLCons(2, FLNil))
+    intListOfThree.fselect(FLNil) shouldBe FLNil
+    intListOfThree.fselect(FList.of(-1)) shouldBe FLNil
+    intListOfThree.fselect(FList.of(0)) shouldBe intListOfOne
+    intListOfThree.fselect(FList.of(1)) shouldBe FLCons(2, FLNil)
+    intListOfThree.fselect(FList.of(2)) shouldBe FLCons(3, FLNil)
+    intListOfThree.fselect(FList.of(3)) shouldBe FLNil
+    intListOfThree.fselect(FList.of(1, 2)) shouldBe FLCons(2, FLCons(3, FLNil))
+    intListOfThree.fselect(FList.of(-1, 1, 2, 5)) shouldBe FLCons(2, FLCons(3, FLNil))
+    intListOfThree.fselect(FList.of(2, -1, 1, 5)) shouldBe FLCons(3, FLCons(2, FLNil))
   }
 
   test("ftail") {

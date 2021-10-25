@@ -18,7 +18,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun isEmpty(): Boolean = this is FLNil
 
-    override fun contains(element: @UnsafeVariance A): Boolean = !ffilter { it == element }.isEmpty()
+    override operator fun contains(element: @UnsafeVariance A): Boolean = !ffilter { it == element }.isEmpty()
 
     override fun iterator(): Iterator<A> = FListIteratorFwd(this)
 
@@ -63,12 +63,21 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun fcontains(item: @UnsafeVariance A): Boolean =
         null != ffind { it == item }
 
+    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FList <A> = if (items.fempty()) this else when(items) {
+        is IMSet<A> -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.contains(element)) acc else FLCons(element, acc) }
+        is IMKeyed<*,*> -> this.ffoldLeft(emptyIMList()) { acc, element ->
+            element as TKVEntry<*,*>
+            if (items.fcontainsKey(element.getk())) acc else FLCons(element, acc)
+        }
+        else -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.fcontains(element)) acc else FLCons(element, acc) }
+    }
+
     override fun ffindAny(isMatch: (A) -> Boolean): A? =
         ffind(isMatch)
 
     private val strictness: Boolean by lazy { when {
         fempty() -> true
-        fisNested() -> {
+        fisNested()!! -> {
             val kc = fpickNotEmpty()?.let { it::class }
             kc?.let { itemKClass ->
                 val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
@@ -88,6 +97,8 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun fisStrict(): Boolean = strictness
 
     override fun fpick(): A? = fhead()
+
+    override fun fpopAndRemainder(): Pair<A?, FList<A>> = Pair(fhead(), ftail())
 
     // utility
 
@@ -120,7 +131,11 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun copy(): FList<A> = this.ffoldRight(emptyIMList()) { a, b -> FLCons(a, b) }
 
-    override fun copyToMutableList(): MutableList<@UnsafeVariance A> = this.ffoldLeft(mutableListOf()) { a, b -> a.add(b); a }
+    override fun copyToMutableList(): MutableList<@UnsafeVariance A> {
+        val aux = arrayListOf<@UnsafeVariance A>()
+        aux.ensureCapacity(fsize())
+        return this.ffoldLeft(aux) { a, b -> a.add(b); a }
+    }
 
     // filtering
 
@@ -134,13 +149,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return when {
             n < 0 || size <= n -> FLNil
             else -> dropNext(1, this)
-        }
-    }
-
-    override fun fdropAll(items: IMList<@UnsafeVariance A>): FList<A> {
-        val aux: FRBTree<Int, A> = FRBTree.ofvi(items)
-        return this.ffoldLeft(this) { acc, item ->
-            if (aux.fcontainsKey(TKVEntry.intKeyOf(item))) acc.fdropItem(item) else acc
         }
     }
 
@@ -230,7 +238,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             else -> postfix.ftake(toIndex - fromIndex)
         }
 
-    override fun fslice(atIxs: IMList<Int>): FList<A> {
+    override fun fselect(atIxs: IMList<Int>): FList<A> {
 
         tailrec fun go(ixs: IMList<Int>, acc: FList<A>): FList<A> = when (val currentIx = ixs.fhead()) {
             null -> acc

@@ -15,60 +15,6 @@ import com.xrpn.immutable.TKVEntry.Companion.ofk
 
 sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
 
-
-
-    override fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fXOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <R : Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>? {
-        TODO("Not yet implemented")
-    }
-
-    override fun <R : Comparable<R>> minBy(f: (V) -> R): TKVEntry<K, V>? {
-        TODO("Not yet implemented")
-    }
-
-    override fun fpartition(isMatch: (TKVEntry<K, V>) -> Boolean): Pair<IMMap<K, V>, IMMap<K, V>> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fpopAndRemainder(): Pair<TKVEntry<K, V>?, IMMap<K, V>> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <C, D : Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C : Comparable<C> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <J> fmapKeys(f: (TKVEntry<K, V>) -> J): FKMap<J, V> where J: Any, J : Comparable<J> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <W : Any> fmapValues(f: (TKVEntry<K, V>) -> W): FKMap<K, W> {
-        TODO("Not yet implemented")
-    }
-
-    override fun <C> ffold(z: C, f: (acc: C, TKVEntry<K, V>) -> C): C {
-        TODO("Not yet implemented")
-    }
-
-    override fun <C, D : Any> fmap(f: (TKVEntry<K, V>) -> TKVEntry<C, D>): FKMap<C, D> where C: Any, C : Comparable<C> {
-        TODO("Not yet implemented")
-    }
-
-    override fun freducev(f: (acc: V, V) -> @UnsafeVariance V): V? {
-        TODO("Not yet implemented")
-    }
-
     // imcollection
 
     override val seal: IMSC = IMSC.IMMAP
@@ -77,6 +23,13 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapEmpty -> false
         is FKMapNotEmpty -> body.fcontains(item)
     }
+
+    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropItem(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> =
+        fdropkv(item.getk(), item.getv())
 
     override fun ffilter(isMatch: (TKVEntry<K, V>) -> Boolean): FKMap<K, V> {
         TODO("Not yet implemented")
@@ -101,7 +54,14 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.fcount(isMatch)
     }
 
+    override fun fsize(): Int = size
+
     // imkeyed
+
+    override fun asIMBTree(): IMBTree<K,V> =  when (this) {
+        is FKMapEmpty -> FRBTree.emptyIMBTree()
+        is FKMapNotEmpty -> body
+    }
 
     override fun fcontainsValue(value: @UnsafeVariance V): Boolean = when (this) {
         is FKMapEmpty -> false
@@ -153,7 +113,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.ffindKey(key)?.let { ofFKMapBody(body.fdropItem(it.froot()!!)) } ?: this
     }
 
-    override fun fdropAll(keys: IMSet<@UnsafeVariance K>): FKMap<K, V> = when (this) {
+    override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): FKMap<K, V> = when (this) {
         is FKMapEmpty -> this
         is FKMapNotEmpty -> ofFKMapBody(keys.ffold(this.toFRBTree()){t, k ->
             t.ffindKey(k)?.let {tt ->
@@ -177,9 +137,16 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.froot()
     }
 
-    override fun asIMBTree(): IMBTree<K,V> =  when (this) {
-        is FKMapEmpty -> FRBTree.emptyIMBTree()
-        is FKMapNotEmpty -> body
+    override fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fXOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+        TODO("Not yet implemented")
     }
 
     // grouping
@@ -188,9 +155,49 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     override fun fkeys(): IMSet<K> = (@Suppress("UNCHECKED_CAST") (keys as IMSet<K>))
 
-    override fun fsize(): Int = size
+    override fun <R : Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun <R : Comparable<R>> minBy(f: (V) -> R): TKVEntry<K, V>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpartition(isMatch: (TKVEntry<K, V>) -> Boolean): Pair<IMMap<K, V>, IMMap<K, V>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpopAndRemainder(): Pair<TKVEntry<K, V>?, IMMap<K, V>> {
+        TODO("Not yet implemented")
+    }
 
     override fun fvalues(): FList<V> = values as FList<V>
+
+    // transforming
+
+    override fun <C, D : Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <J> fmapKeys(f: (TKVEntry<K, V>) -> J): FKMap<J, V> where J: Any, J : Comparable<J> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <W : Any> fmapValues(f: (TKVEntry<K, V>) -> W): FKMap<K, W> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C> ffold(z: C, f: (acc: C, TKVEntry<K, V>) -> C): C {
+        TODO("Not yet implemented")
+    }
+
+    override fun <C, D : Any> fmap(f: (TKVEntry<K, V>) -> TKVEntry<C, D>): FKMap<C, D> where C: Any, C : Comparable<C> {
+        TODO("Not yet implemented")
+    }
+
+    override fun freducev(f: (acc: V, V) -> @UnsafeVariance V): V? {
+        TODO("Not yet implemented")
+    }
 
     // altering
 
@@ -424,7 +431,6 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
     companion object {
         internal fun <K, V: Any> of(b: FRBTNode<K, V>): FKMap<K, V> where K: Any, K: Comparable<K> = FKMapNotEmpty(b)
     }
-
 }
 
 fun <K, V : Any> Pair<K,V>.toMap(): FKMap<K, V> where K: Any, K: Comparable<K> =

@@ -48,7 +48,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // from Collection<A> when set is not empty
 
-    override fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(element)
+    override operator fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(element)
 
     override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
         elements.forEach { if (!this.fcontains(it)) return false }
@@ -62,6 +62,21 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     // imcollection
 
     override val seal: IMSC = IMSC.IMSET
+
+    override fun fcontains(item: @UnsafeVariance A): Boolean = when (this) {
+        is FKSetEmpty -> false
+        else -> body.fcontainsKey(toKey(item))
+    }
+
+    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FKSet<K,A> = if (items.fempty() || this.fempty()) this else {
+        @Suppress("UNCHECKED_CAST") (items as IMFoldable<A>)
+        items.ffold(this) { acc, a -> if (acc.fcontains(a)) acc.fdropItem(a) else acc }
+    }
+
+    override fun fdropItem(item: @UnsafeVariance A): FKSet<K, A> = when (this) {
+        is FKSetEmpty -> this
+        else -> toTKVEntry(item)?.let { body.fdropItem(it).toIMRSet(fkeyTypeOrNull()!!) } ?: throw RuntimeException("cannot drop `$item` from `$this`")
+    }
 
     override fun ffindAny(isMatch: (A) -> Boolean): A? = when (this) {
         is IMKSetNotEmpty<*, *> -> body.ffindAnyValue(isMatch)?.getv()
@@ -131,14 +146,14 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         TODO("Not yet implemented")
     }
 
-    override fun asIMBTree(): IMBTree<K, A>? = when (this) {
+    override fun asIMBTree(): IMBTree<K, A> = when (this) {
         is FKSetEmpty -> FRBTree.emptyIMBTree()
         is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
         is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
         is FKKSetNotEmpty<*> -> body
     }
 
-    override fun asIMMap(): IMMap<K, A>? = when (this) {
+    override fun asIMMap(): IMMap<K, A> = when (this) {
         is FKSetEmpty -> FKMap.emptyIMMap()
         else -> body.toIMMap()
     }
@@ -210,11 +225,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // filtering
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean = when (this) {
-        is FKSetEmpty -> false
-        else -> body.fcontainsKey(toKey(item))
-    }
-
     override fun fcontainsAny(items: IMSet<@UnsafeVariance A>): Boolean = when (this) {
         is FKSetEmpty -> false
         else -> if (items.fempty()) true else {
@@ -226,20 +236,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
                 if (outer.fkeyType() == mark.fkeyType() ){ {tkv -> (@Suppress("UNCHECKED_CAST") (mark.fcontains(tkv as TKVEntry<Nothing, A>)))} }
                 else {{ tkv -> mark.fcontains((@Suppress("UNCHECKED_CAST") (tkv.getv().toEntry(markNes.fkeyType())!! as TKVEntry<Nothing, A>))) }}
             outer.ffindAny { isMatch(it) } != null
-        }
-    }
-
-    override fun fdropItem(item: @UnsafeVariance A): FKSet<K, A> = when (this) {
-        is FKSetEmpty -> this
-        else -> toTKVEntry(item)?.let { body.fdropItem(it).toIMRSet(fkeyTypeOrNull()!!) } ?: throw RuntimeException("cannot drop `$item` from `$this`")
-    }
-
-    override fun fdropAll(items: IMSet<@UnsafeVariance A>): FKSet<K, A> = when (this) {
-        is FKSetEmpty -> this
-        else -> if (items.fempty()) this else {
-            items as IMKSetNotEmpty<*,A>
-            val aux: IMList<TKVEntry<K, A>> = items.toIMList(fkeyTypeOrNull()!!) ?: throw RuntimeException("cannot drop IMSet<A>:'${items::class}' from IMKSet<K, A>:'${this::class}'")
-            body.fdropAll(aux).toIMRSet(fkeyTypeOrNull()!!)!!
         }
     }
 
@@ -535,7 +531,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // transforming
 
-    override fun <C: Any> ffold(z: C, f: (acc: C, A) -> C): C = when (this) {
+    override fun <C> ffold(z: C, f: (acc: C, A) -> C): C = when (this) {
         is FKSetEmpty -> z
         else -> body.ffoldv(z) { stub, tkv -> f(stub, tkv) }
     }
@@ -824,6 +820,14 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
         // ==========
 
+        override fun <K, A : Any> asKeyed(self: IMSet<@UnsafeVariance A>): FKSet<K,A> where K: Any, K: Comparable<K> = when(self) {
+            is FKSetEmpty<*, *> -> @Suppress("UNCHECKED_CAST") (self as FKSet<K, A>)
+            is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (self as FKSet<K, A>)
+            is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (self as FKSet<K, A>)
+            is FKKSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (self as FKSet<K, A>)
+            else -> throw RuntimeException("internal error: cannot retype ${self::class} to ${this::class}")
+        }
+
         override fun <K, B : Any> toTKVEntry(s: IMSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K> = when(s) {
             is FKSetEmpty<*, *> -> null
             is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") ((@Suppress("UNCHECKED_CAST") (s as FKSet<Int, *>)).toTKVEntry(v) as TKVEntry<K, B>)
@@ -972,7 +976,7 @@ internal class FKSetEmpty<K, A: Any> private constructor (
 
     override fun isEmpty(): Boolean = true
     override val size = 0
-    override fun contains(element: @UnsafeVariance A): Boolean = false
+    override operator fun contains(element: @UnsafeVariance A): Boolean = false
     override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean = elements.isEmpty()
 
     companion object {
@@ -1036,9 +1040,15 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
 
     // IMKeyed
     
-    override fun fkeyType() = IntKeyType
     override fun fpickEntry(): TKVEntry<Int, A> = body.froot()!!
     override fun toSetKey(a: @UnsafeVariance A): Int = toKey(a)
+
+    // IMKSetFiltering
+
+    override fun fkeyType() = IntKeyType
+    override fun fdropAllEntries(items: IMCollection<TKVEntry<Int, @UnsafeVariance A>>): FKSet<Int, A> {
+        TODO("Not yet implemented")
+    }
 
     // IMKASetAltering
     
@@ -1090,6 +1100,7 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
     companion object {
         internal fun <A: Any> of(b: FRBTINode<A>): FKSet<Int, A> = FIKSetNotEmpty(b)
     }
+
 }
 
 internal fun <A: Any> ofFIKSBody(b: FRBTree<Int, A>): FKSet<Int, A> = when(b) {
@@ -1149,11 +1160,17 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
         return t.toIMRSet(t.frbRKeyType)!!
     }
 
-    // IMKSetNotEmpty
+    // IMKeyed
 
-    override fun fkeyType() = StrKeyType
     override fun fpickEntry(): TKVEntry<String, A> = body.froot()!!
     override fun toSetKey(a: @UnsafeVariance A): String = toKey(a)
+
+    // IMKSetFiltering
+
+    override fun fkeyType() = StrKeyType
+    override fun fdropAllEntries(items: IMCollection<TKVEntry<String, @UnsafeVariance A>>): FKSet<String, A> {
+        TODO("Not yet implemented")
+    }
 
     // IMKASetAltering
 
@@ -1271,11 +1288,16 @@ private class FKKSetNotEmpty<out A> private constructor (
         return tob.frbRKeyType?.let { tob.toIMRSet(it) } ?: throw RuntimeException("cannot fmap ${this::class}")
     }
 
-    // IMKSetNotEmpty
+    // IMKeyed
     
-    override fun fkeyType() = ckt
     override fun fpickEntry(): TKVEntry<A, A> = body.froot()!!
     override fun toSetKey(a: @UnsafeVariance A): A = toKey(a)
+
+    // IMKSetFiltering
+
+    override fun fkeyType() = ckt
+    override fun fdropAllEntries(items: IMCollection<TKVEntry<@UnsafeVariance A, @UnsafeVariance A>>): FKSet<A, A> =
+        ofk(this.body.fdropAll(items))
 
     // IMKKSetAltering
     

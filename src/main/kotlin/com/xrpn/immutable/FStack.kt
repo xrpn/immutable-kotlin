@@ -20,6 +20,14 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fcontains(item: @UnsafeVariance A): Boolean=
         this.toFList().fcontains(item)
 
+    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FStack<A> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fdropItem(item: @UnsafeVariance A): IMStack<A> {
+        TODO("Not yet implemented")
+    }
+
     override fun ffilter(isMatch: (A) -> Boolean): FStack<A> =
         FStackBody.of(this.toFList().ffilter(isMatch))
 
@@ -35,6 +43,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fpick(): A? =
         this.toFList().fhead()
 
+    override fun fpopAndRemainder(): Pair<A?, FStack<A>> = fpop()
 
     // ============ filtering
 
@@ -68,6 +77,12 @@ sealed class FStack<out A: Any>: IMStack<A> {
         this.toFList().size
 
     // ============ transforming
+
+    // ============ transforming
+
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R {
+        TODO("Not yet implemented")
+    }
 
     override fun <B : Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> =
         fpop().let { pit ->

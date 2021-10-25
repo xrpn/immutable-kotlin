@@ -171,7 +171,7 @@ class FListIMCollectionTest : FunSpec({
   }
 
   test("fisNested") {
-    intListOfNone.fisNested() shouldBe false
+    intListOfNone.fisNested() shouldBe null
     intListOfOne.fisNested() shouldBe false
     intListOfTwo.fisNested() shouldBe false
     FList.of(intListOfNone).fisNested() shouldBe true

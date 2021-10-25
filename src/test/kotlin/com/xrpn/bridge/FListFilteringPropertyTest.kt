@@ -136,10 +136,10 @@ class FListFilteringPropertyTest : FunSpec({
       val aux1 = kotlin.random.Random.Default.nextInt(fl.size)
       val aux2 = kotlin.random.Random.Default.nextInt(fl.size)
       val ixs = FList.of(aux1, aux2)
-      fl.fslice(ixs) shouldBe fl.slice(ixs)
-      fl.fslice(FList.of()) shouldBe fl.slice(FList.of())
-      fl.fslice(FList.of(aux1, fl.size-1)) shouldBe fl.slice(FList.of(aux1, fl.size-1))
-      fl.fslice(FList.of(fl.size-1, aux2)) shouldBe fl.slice(FList.of(fl.size-1, aux2))
+      fl.fselect(ixs) shouldBe fl.slice(ixs)
+      fl.fselect(FList.of()) shouldBe fl.slice(FList.of())
+      fl.fselect(FList.of(aux1, fl.size-1)) shouldBe fl.slice(FList.of(aux1, fl.size-1))
+      fl.fselect(FList.of(fl.size-1, aux2)) shouldBe fl.slice(FList.of(fl.size-1, aux2))
     }
   }
 

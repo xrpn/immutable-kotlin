@@ -117,10 +117,10 @@ object FT {
     ): Boolean where A: Any, A: Comparable<A> {
         val strictTkv = tkv::class == tkvClass
         val strictv = tkv.getvKc() == vKc
-        val stricture = if (tkv.fisNested()) {
+        val stricture = if (tkv.fisNested()!!) {
             tkv.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
             throw RuntimeException("internal error: unknown nested $tkv:[${tkv.getv()::class}]")
-        } else tkv.isStrict()
+        } else tkv.fisStrict()
         return strictTkv && strictv && stricture
     }
 

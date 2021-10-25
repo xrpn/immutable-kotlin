@@ -43,7 +43,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         is FRBTNode -> 1 + this.bLeft.size + this.bRight.size
     }}
 
-    override fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
+    override operator fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
         is FRBTNil -> false
         is FRBTNode<A, B> -> this.fcontains(element)
     }
@@ -92,7 +92,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     private val strictness: Boolean by lazy { when {
         fempty() -> true
-        fisNested() -> {
+        fisNested()!! -> {
             val maybeNotEmpty = fpickNotEmpty()
             val tkvClass: KClass<*>? = maybeNotEmpty?.let { it::class }
             val kc: KClass<out B>? = maybeNotEmpty?.let { it.getvKc() }
@@ -103,16 +103,13 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 val aux = fpick()!!::class
                 fall {
                     check(it.toUCon()?.let { uc -> uc.isEmpty() } ?: false )
-                    it::class == aux && it.isStrict()
+                    it::class == aux && it.fisStrict()
                 }
             }
         }
         else -> {
             val aux = fpick()!!::class
-            fall {
-                check(!it.fisNested())
-                it::class == aux && it.isStrict()
-            }
+            fall { tkv: TKVEntry<A, B> -> tkv::class == aux && tkv.fisStrict() }
         }
     }}
 
@@ -173,13 +170,23 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fpickEntry(): TKVEntry<A, B>? = froot()
 
-    override fun asIMMap(): IMMap<A, B>? = toIMMap()
+    override fun asIMMap(): IMMap<A, B> = toIMMap()
+
+    // =========== extras
+
+    override operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): FRBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override operator fun get(key: @UnsafeVariance A): B? {
+        TODO("Not yet implemented")
+    }
 
     // =========== utility
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
+    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = asFKSetImpl(this, kType)
 
     override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> =
         toFRBTreeImpl(this, kType)
@@ -257,9 +264,11 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== filtering
 
-    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> {
+    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = if (items.fempty()) this else when (items) {
         // TODO consider memoization
-        return rbtDeletes(this, items as FList<TKVEntry<A,B>>)
+        is IMBTree -> this.fdropAlt(items) as FRBTree<A, B>
+        is IMMap ->this.fdropAlt(items.asIMBTree()) as FRBTree<A, B>
+        else -> rbtDeletes(this, items)
     }
 
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
@@ -355,6 +364,18 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun froot(): TKVEntry<A, B>? = when(this) {
         is FRBTNil -> null
         is FRBTNode -> this.entry
+    }
+
+    override fun fAND(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fXOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
+        TODO("Not yet implemented")
     }
 
     // =========== grouping
@@ -669,12 +690,11 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
-        where A: Any, A: Comparable<A> = when (items) {
-                is FLNil -> treeStub
-                is FLCons -> if (treeStub.fcontains(items.head)) rbtDeletes(rbtDelete(treeStub, items.head), items.tail)
-                             else rbtDeletes(treeStub, items.tail)
-            }
+        internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FRBTree<A, B>
+        where A: Any, A: Comparable<A>  {
+            val (nextItem: TKVEntry<A, B>?, collection: IMCollection<TKVEntry<A, B>>) = items.fpopAndRemainder()
+            return if (null == nextItem) treeStub else rbtDeletes(rbtDelete(treeStub, nextItem), collection)
+        }
 
         // find the node with matching item
         internal fun <A, B: Any> rbtFind(treeStub: FRBTree<A, B>, item: TKVEntry<A,B>): FRBTNode<A, B>?
@@ -1030,9 +1050,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
             }
 
-        private fun <A, B: Any> toFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
+        private fun <A, B: Any> asFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
             t.fempty() -> FKSetEmpty.empty()
-            null == kType -> t.fkeyType()?.let { toFKSetImpl(t, it) }
+            null == kType -> t.fkeyType()?.let { asFKSetImpl(t, it) }
             t.fkeyType() == kType -> ofBody(t)
             (kType is IntKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFIKSBody(t as FRBTree<Int,A>) as FKSet<A, B>)
             (kType is StrKeyType) && (t.fkeyType()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFSKSBody(t as FRBTree<String,A>) as FKSet<A, B>)

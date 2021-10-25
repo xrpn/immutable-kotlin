@@ -33,3 +33,14 @@ interface IMMapExtras<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVari
     infix fun xor(rhs: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = (this as IMMap<K, V>).fXOR(rhs)
     infix fun not(rhs: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = (this as IMMap<K, V>).fNOT(rhs)
 }
+
+interface IMBTreeExtras<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+
+    operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): IMBTree<A, B>
+    operator fun get(key: @UnsafeVariance A): B?
+
+    infix fun or(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = (this as IMBTree<A, B>).fOR(rhs)
+    infix fun and(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = (this as IMBTree<A, B>).fAND(rhs)
+    infix fun xor(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = (this as IMBTree<A, B>).fXOR(rhs)
+    infix fun not(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = (this as IMBTree<A, B>).fNOT(rhs)
+}

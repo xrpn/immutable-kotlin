@@ -41,7 +41,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override val size: Int by lazy { if (this.fempty()) 0 else this.ffold(0) { acc, _ -> acc+1 } }
 
-    override fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
+    override operator fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
         is FBSTNil -> false
         is FBSTNode<A, B> -> this.fcontains(element)
     }
@@ -67,6 +67,18 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
         bstFind(this, item) != null
+
+    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = when (items) {
+        // TODO consider memoization
+        is IMBTree -> this.fdropAlt(items) as FBSTree<A, B>
+        is IMMap -> this.fdropAlt(items.asIMBTree()) as FBSTree<A, B>
+        else -> bstDeletes(this, items)
+    }
+
+    override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
+        // TODO consider memoization
+        return bstDelete(this, item, atMostOne = true)
+    }
 
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): FBSTree<A, B> {
 
@@ -148,7 +160,17 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fpickEntry(): TKVEntry<A, B>? = froot()
 
-    override fun asIMMap(): IMMap<A, B>? = toIMMap()
+    override fun asIMMap(): IMMap<A, B> = toIMMap()
+
+    // =========== extras
+
+    override operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): FBSTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override operator fun get(key: @UnsafeVariance A): B? {
+        TODO("Not yet implemented")
+    }
 
     // =========== utility
 
@@ -242,16 +264,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== filtering
 
-    override fun fdropAll(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> {
-        // TODO consider memoization
-        return bstDeletes(this, items as FList<TKVEntry<A,B>>)
-    }
-
-    override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
-        // TODO consider memoization
-        return bstDelete(this, item, atMostOne = true)
-    }
-
     override fun fdropItemAll(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
         // TODO consider memoization
         return bstDelete(this, item, atMostOne = false)
@@ -327,6 +339,18 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun froot(): TKVEntry<A,B>? = when(this) {
         is FBSTNil -> null
         is FBSTNode -> this.entry
+    }
+
+    override fun fAND(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fXOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
+        TODO("Not yet implemented")
     }
 
     // =========== grouping
@@ -677,12 +701,11 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 else splice(item, treeStub, FLNil)
         }
 
-        internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A,B>>): FBSTree<A, B>
-        where A: Any, A: Comparable<A> = when (items) {
-                is FLNil -> treeStub
-                is FLCons -> if(treeStub.fcontains(items.head)) bstDeletes(bstDelete(treeStub, items.head), items.tail)
-                             else bstDeletes(treeStub, items.tail)
-            }
+        internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FBSTree<A, B>
+        where A: Any, A: Comparable<A> {
+            val (nextItem, collection) = items.fpopAndRemainder()
+            return if (null == nextItem) treeStub else bstDeletes(bstDelete(treeStub, nextItem), collection)
+        }
 
         // find the first tree stub matching item; the returned stub may have other nodes that match item
         internal fun <A, B: Any> bstFind(treeStub: FBSTree<A, B>, item: TKVEntry<A,B>): FBSTNode<A, B>?

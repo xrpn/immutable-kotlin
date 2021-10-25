@@ -323,7 +323,7 @@ class FRBTreeIMCollectionTest : FunSpec({
   }
 
   test("fisNested") {
-    iiTreeOfNone.fisNested() shouldBe false
+    iiTreeOfNone.fisNested() shouldBe null
     iiTreeOfTwo.fisNested() shouldBe false
     FRBTree.of(FList.emptyIMList<Int>().toIAEntry()).fisNested() shouldBe true
     FRBTree.of(FList.emptyIMList<Int>().toSAEntry()).fisNested() shouldBe true

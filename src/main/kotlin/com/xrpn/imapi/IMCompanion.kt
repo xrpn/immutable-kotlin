@@ -95,7 +95,8 @@ interface IMKSetCompanion {
     fun <B, K> ofkMap(items: Iterator<B>, f: (B) -> K): IMSet<K> where K: Any, K: Comparable<K>
     fun <B: Any, K> ofkMap(items: IMList<B>, f: (B) -> K): IMSet<K> where K: Any, K: Comparable<K>
 
-    fun <K, B : Any> toTKVEntry(s: IMSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
+    fun <K, B: Any> asKeyed(self: IMSet<B>): IMKeyed<K, B> where K: Any, K: Comparable<K>
+    fun <K, B: Any> toTKVEntry(s: IMSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
 
     fun <K, A: Any> Collection<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K>
     fun <A: Any> Collection<A>.toIMISet(): IMSet<A>
