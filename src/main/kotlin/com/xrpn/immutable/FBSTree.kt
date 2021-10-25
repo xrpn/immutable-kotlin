@@ -113,7 +113,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     private val strictness: Boolean by lazy { if (fempty()) true else {
         val aux = fpick()!!::class
         val auxv = fpick()?.getv()!!::class
-        fall { it::class == aux && FT.strictly( it.getv(), auxv ) }
+        fall { it.isStrictly(aux) && FT.strictly( it.getv(), auxv ) }
     }}
 
     override fun fisStrict(): Boolean = strictness

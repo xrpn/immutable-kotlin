@@ -109,7 +109,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
         else -> {
             val aux = fpick()!!::class
-            fall { tkv: TKVEntry<A, B> -> tkv::class == aux && tkv.fisStrict() }
+            fall { tkv: TKVEntry<A, B> -> tkv.isStrictly(aux) && tkv.fisStrict() }
         }
     }}
 

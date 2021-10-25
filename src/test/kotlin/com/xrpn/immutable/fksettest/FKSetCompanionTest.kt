@@ -510,7 +510,7 @@ class FKSetCompanionTest : FunSpec({
         aut.equals(intKKSetOfThree) shouldBe false
         // the following compares lhs and rhs as Iterable<A>, so the test is correct
         aut shouldBe intKKSetOfThree
-        isSameType(aut, intKKSetOfThree) shouldBe false // DUH
+        aut.isStrictly(intKKSetOfThree) shouldBe false // DUH
         // this is a bad cast, but type erasure prevents the following from blowing up (as it should)
         (@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
         intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe false
@@ -523,7 +523,7 @@ class FKSetCompanionTest : FunSpec({
         autfrb.strongEqual(intSSetOfThree) shouldBe true
         autfrb.equals(intKKSetOfThree) shouldBe false
         autfrb shouldBe intKKSetOfThree
-        isSameType(autfrb, intKKSetOfThree) shouldBe false // DUH
+        autfrb.isStrictly(intKKSetOfThree) shouldBe false // DUH
         (@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
         intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
@@ -535,7 +535,7 @@ class FKSetCompanionTest : FunSpec({
         autfbs.strongEqual(intSSetOfThree) shouldBe true
         autfbs.equals(intKKSetOfThree) shouldBe false
         autfbs shouldBe intKKSetOfThree
-        isSameType(autfbs, intKKSetOfThree) shouldBe false // DUH
+        autfbs.isStrictly(intKKSetOfThree) shouldBe false // DUH
         (@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
         intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
@@ -547,7 +547,7 @@ class FKSetCompanionTest : FunSpec({
         auti.strongEqual(intSSetOfThree) shouldBe true
         auti.equals(intKKSetOfThree) shouldBe false
         auti shouldBe intKKSetOfThree
-        isSameType(auti, intKKSetOfThree) shouldBe false // DUH
+        auti.isStrictly(intKKSetOfThree) shouldBe false // DUH
         (@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)).equals(intKKSetOfThree) shouldBe false
         intKKSetOfThree.equals(@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)) shouldBe false
         val auts = ofs(FLCons("1", FLCons("2", FLCons("3", FLNil))))

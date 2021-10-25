@@ -8,8 +8,21 @@ import kotlin.reflect.KClass
 import mu.KotlinLogging
 
 
-// inline fun <reified A, reified B> isSameGeneric(a: A, b: B): Boolean = (a is B) && (b is A)
-fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer -> outer::class == b?.let{ it::class } } ?: false
+private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!::class == b?.let{ it::class } } ?: false
+private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
+private fun <A: Any, B> isLikeSameType(a: KClass<A>, b: B): Boolean = a == b?.let{ it::class }
+private fun <A: Any, B: KClass<Any>> isLikeSameTypeLike(a: KClass<A>, b: B): Boolean = a == b
+fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
+    is KClass<*> -> when(b) {
+        is KClass<*> -> isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
+        else -> isLikeSameType(this, b)
+    }
+    else -> when(b) {
+        is KClass<*> -> isSameTypeLike(this, b)
+        else -> isSameType(this, b)
+    }
+}
+
 inline fun <reified A> fidentity(a: A): A = a
 
 object FT {
@@ -101,12 +114,12 @@ object FT {
         vKc: KClass<out A>,
         ucKc: SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>
     ): Boolean {
-        val strict = item::class == vKc
-        val stricture = if (isContainer(item)) {
+        val strict = item.isStrictly(vKc)
+        val stricture = strict && if (isContainer(item)) {
             item.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
             throw RuntimeException("internal error: unknown nested $item:[${item::class}]")
         } else true
-        return strict && stricture
+        return stricture
     }
 
     internal fun <A, B:Any> entryStrictness(
@@ -115,24 +128,24 @@ object FT {
         vKc: KClass<out B>,
         ucKc: SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>
     ): Boolean where A: Any, A: Comparable<A> {
-        val strictTkv = tkv::class == tkvClass
-        val strictv = tkv.getvKc() == vKc
-        val stricture = if (tkv.fisNested()!!) {
+        val strictTkv = tkv.isStrictly(tkvClass)
+        val strictv = strictTkv && tkv.getvKc().isStrictly(vKc)
+        val stricture = strictv && if (tkv.fisNested()!!) {
             tkv.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
             throw RuntimeException("internal error: unknown nested $tkv:[${tkv.getv()::class}]")
         } else tkv.fisStrict()
-        return strictTkv && strictv && stricture
+        return stricture
     }
 
     internal fun <A> strictly(item: A, kc: KClass<*>): Boolean = item?.let {
         val predicate = when (it) {
-            is IMKSet<*,*> -> it.fempty() || (it::class == kc && it.fisStrict())
-            is IMCollection<*> -> it.fempty() || (it::class == kc && it.fisStrict())
-            is Collection<*> -> it.isEmpty() || (it::class == kc && isStrictCollection(it))
-            is Map<*, *> -> it.isEmpty() || (it::class == kc && isStrictMap(it))
-            is Array<*> -> it.isEmpty() || (it::class == kc && isStrictArray(it))
+            is IMKSet<*,*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
+            is IMCollection<*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
+            is Collection<*> -> it.isEmpty() || (it.isStrictly(kc) && isStrictCollection(it))
+            is Map<*, *> -> it.isEmpty() || (it.isStrictly(kc) && isStrictMap(it))
+            is Array<*> -> it.isEmpty() || (it.isStrictly(kc) && isStrictArray(it))
             is UCon<*, *, *, *, *, *, *> -> throw RuntimeException("internal error")
-            else -> it::class == kc
+            else -> it.isStrictly(kc)
         }
         return predicate
     } ?: false
@@ -203,16 +216,6 @@ object FT {
         c.all { it.let { item -> isContainer(item.value) } }
 
     fun <A> isNestedArray(a: Array<A>): Boolean? = isNestedCollection(a.asList())
-
-    fun <A: Any> strictureOfUCon(a: A, register: SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>): Boolean = if (!isContainer(a)) true else {
-        check(register.isNotInit())
-        a.toUCon()?.let { uc -> if (uc.isEmpty()) true else {
-            register.init(uc.makeSample())
-            val isLike = uc.isStrictLike(register.get()!!)!!
-            val isStrict = uc.isStrictInternally()
-            isLike and isStrict
-        }} ?: throw RuntimeException("internal error: unknown container $a:[${a::class}]")
-    }
 
 }
 

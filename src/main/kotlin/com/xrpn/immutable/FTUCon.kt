@@ -68,11 +68,11 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
     abstract fun isStrictInternally(): Boolean
 
     fun <T: Any> getIfIs(containerKc: KClass<T>): T? = when (this) {
-        is UCIMSET -> if (imset()!!::class == containerKc) @Suppress("UNCHECKED_CAST") (imset()!! as T) else null
-        is UCIMC -> if (imcoll()!!::class == containerKc) @Suppress("UNCHECKED_CAST") (imcoll()!! as T) else null
-        is UCKC -> if (kcoll()!!::class == containerKc) @Suppress("UNCHECKED_CAST") (kcoll()!! as T) else null
-        is UCKMAP -> if (kmap()!!::class == containerKc) @Suppress("UNCHECKED_CAST") (kmap()!! as T) else null
-        is UCARYL -> if (karyl()!!::class == containerKc) @Suppress("UNCHECKED_CAST") (karyl()!! as T) else null
+        is UCIMSET -> if (imset()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imset()!! as T) else null
+        is UCIMC -> if (imcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imcoll()!! as T) else null
+        is UCKC -> if (kcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (kcoll()!! as T) else null
+        is UCKMAP -> if (kmap()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (kmap()!! as T) else null
+        is UCARYL -> if (karyl()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (karyl()!! as T) else null
     }
 
     abstract fun asUC(): UniContainer<V>

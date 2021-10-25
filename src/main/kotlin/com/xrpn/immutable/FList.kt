@@ -85,12 +85,12 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
                 null == ffindAny { maybeContainer: A -> !FT.itemStrictness(maybeContainer, maybeContainer::class, ucKc) }
             } ?: /* all nested containers, all are empty */ run {
                 val auxv = fhead()!!::class
-                fall { it::class == auxv }
+                fall { it.isStrictly(auxv) }
             }
         }
         else -> {
             val auxv = fhead()!!::class
-            fall { it::class == auxv }
+            fall { it.isStrictly(auxv) }
         }
     }}
 

@@ -172,7 +172,7 @@ internal class FStackBody<out A: Any> private constructor (
         other is FStackBody<*> -> when {
             this.fempty() && other.fempty() -> true
             this.fempty() || other.fempty() -> false
-            this.ftop()!!::class == other.ftop()!!::class -> IMStackEqual2(this, other)
+            this.ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)
             else -> false
         }
         else -> false

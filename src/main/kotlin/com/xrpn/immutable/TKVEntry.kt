@@ -73,7 +73,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
                 else (@Suppress("UNCHECKED_CAST") (RITKVEntry(key, value) as TKVEntry<A, B>))
             is String -> if (value is String) (@Suppress("UNCHECKED_CAST") (RKTKVEntry(key, value) as TKVEntry<A, B>))
                 else (@Suppress("UNCHECKED_CAST") (RSTKVEntry(key, value) as TKVEntry<A, B>))
-            else -> if (key::class == value::class) {
+            else -> if (key.isStrictly(value)) {
                 @Suppress("UNCHECKED_CAST") (value as A)
                 val res = @Suppress("UNCHECKED_CAST") (ofkk(key, value) as TKVEntry<A, B>)
                 res
@@ -84,7 +84,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
                 else (@Suppress("UNCHECKED_CAST") (RITKVEntry(key, value, cc as Comparator<Int>) as TKVEntry<A, B>))
             is String ->if (value is String) (@Suppress("UNCHECKED_CAST") (RKTKVEntry(key, value, cc as Comparator<String>) as TKVEntry<A, B>))
                 else (@Suppress("UNCHECKED_CAST") (RSTKVEntry(key, value, cc as Comparator<String>) as TKVEntry<A, B>))
-            else -> if (key::class == value::class) {
+            else -> if (key.isStrictly(value)) {
                 @Suppress("UNCHECKED_CAST") (value as A)
                 val res = @Suppress("UNCHECKED_CAST") (ofkkc(key, value, cc) as TKVEntry<A, B>)
                 res
@@ -255,7 +255,7 @@ internal class RKTKVEntry<A, DUMMY> constructor (
     rk: A, v: A, vc: Comparator<@UnsafeVariance A>? = null
 ): TKVEntryType<A,A>(rk, v, vc), RTKVEntry<A,A> where A: Any, A: Comparable<A>, DUMMY: Any, DUMMY: Comparable<A> {
     init {
-        check(k::class == v::class)
+        check(k.isStrictly(v))
     }
     val rkt = SymKeyType(kClass)
     override fun getrk() = rkt

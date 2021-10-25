@@ -394,7 +394,7 @@ internal class FQueueBody<out A: Any> private constructor(
         other == null -> false
         other is FQueueBody<*> -> {
             @Suppress("UNCHECKED_CAST") if (fqSameSize(other as IMQueue<A>)) when {
-                this.ffirst()!!::class == other.ffirst()!!::class -> {
+                this.ffirst()!!.isStrictly(other.ffirst()!!) -> {
                     @Suppress("UNCHECKED_CAST") this.equal(other as FQueue<A>)
                 }
                 else -> false
