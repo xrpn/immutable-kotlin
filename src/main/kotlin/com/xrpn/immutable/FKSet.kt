@@ -46,6 +46,26 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     @Deprecated("Set has no ordering.", ReplaceWith("fpermutations().fmap() or fcombinations().fmap()"))
     fun <B> zipWithNext(transform: (a: A, b: A) -> B): List<B>  = throw RuntimeException("$transform")
 
+    // from Any
+
+    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
+    override fun equals(other: Any?): Boolean = asIMKSetNotEmpty()?.let { fksetNe -> when {
+        fksetNe === other -> true
+        other == null -> false
+        other is IMKSetNotEmpty<*,*> -> imkSetNotEmptyIMEquality(fksetNe, other)
+        other is Set<*> -> if ( other.isEmpty() || other.any { null == it } ) false else imkSetNotEmptyEquality(fksetNe, @Suppress("UNCHECKED_CAST") (other as Set<Any>))
+        else -> false
+    }} ?: throw RuntimeException("internal error, ${this::class} (size:${this.fsize()}) must not be empty")
+    
+    open val hash: Int by lazy {
+        check(null != this.asIMKSetNotEmpty())
+        // hash of a FRBTree depends on the content AND on the shape of the tree;
+        // for set hash, the shape of the tree is irrelevant, whence the following
+        (131 * (this.body.inorder().hashCode() + 17)) / 127
+    }
+    
+    override fun hashCode(): Int = hash
+
     // from Collection<A> when set is not empty
 
     override operator fun contains(element: @UnsafeVariance A): Boolean = this.fcontains(element)
@@ -90,12 +110,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     override fun fisStrict(): Boolean = strictness
 
-    override fun fpick(): A? {
-      val aux = fpickNested() ?: body.froot()?.getv()
-      print("${aux?.let { it::class} }")
-      val bar = body.froot()?.getv()
-      return bar
-    }
+    override fun fpick(): A? = body.froot()?.getv()
 
     fun fpickNested(): Any? = body.froot()?.let { rt ->  rt.toUCon()?.let { uc -> uc.pick() } }
 
@@ -947,7 +962,7 @@ internal class FKSetEmpty<K, A: Any> private constructor (
         other is Set<*> -> other.isEmpty()
         else -> false
     }
-    val hash: Int by lazy { this::class.simpleName.hashCode() }
+    override val hash: Int by lazy { this::class.simpleName.hashCode() }
     override fun hashCode(): Int = hash
     val show: String by lazy { FKSet::class.simpleName + "(*)" }
     override fun toString(): String = show
@@ -1001,34 +1016,25 @@ internal class FKSetEmpty<K, A: Any> private constructor (
 // FIKSet implementation
 // =====================================================================================================================
 
+private fun <J, K, A: Any, B: Any> imkSetNotEmptyIMEquality(lhs: IMKSetNotEmpty<J, A>, rhsMaybeEmpty: IMKSet<K, B>): Boolean
+where K: Any, K: Comparable<K>, J: Any, J: Comparable<J> = rhsMaybeEmpty.asIMKSetNotEmpty()?.let { rhs -> when {
+    lhs === rhs -> true
+    else -> lhs.toIMBTree().equals(rhs.toIMBTree())
+}} ?: false
+
+private fun <K, A: Any, B: Any> imkSetNotEmptyEquality(lhs: IMKSetNotEmpty<K, A>, rhs: Set<B>): Boolean
+where K: Any, K: Comparable<K> = if (rhs.isEmpty()) false else when {
+    rhs is IMKSetNotEmpty<*, *> -> imkSetNotEmptyIMEquality(lhs, rhs)
+    lhs.fsize() != rhs.size -> false
+    lhs.fpick()!!.isStrictlyNot(rhs.first()) -> false
+    else -> rhs.equals(lhs)
+}
+
+
 private class FIKSetNotEmpty<out A: Any> private constructor (
     b: FRBTINode<@UnsafeVariance A>
 ): FKSet<Int, A>(b), IMKASetNotEmpty<Int, A> {
     override fun isEmpty(): Boolean = false
-    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
-    override fun equals(other: Any?): Boolean = when {
-        this === other -> true
-        other == null -> false
-        other is IMKSetNotEmpty<*,*> -> when {
-            other.fempty() -> false
-            this.fpick()!!::class != other.fpick()!!::class -> false
-            other.fpickKey() !is Int -> false
-            else -> @Suppress("UNCHECKED_CAST") IMKSetEqual2(this, other as IMKSet<Int, A>)
-        }
-        other is Set<*> -> when {
-            other.isEmpty() -> false // type erasure boo-boo
-            fsize() != other.size -> false
-            this.fpick()!!::class != other.first()!!::class -> false
-            else -> other.equals(this)
-        }
-        else -> false
-    }
-    val hash: Int by lazy {
-        // hash of a FRBTree depends on the content AND on the shape of the tree;
-        // for set hash, the shape of the tree is irrelevant, whence the following
-        (131 * (this.body.inorder().hashCode() + 17)) / 127
-    }
-    override fun hashCode(): Int = hash
     val show: String by lazy {
         val spacerOpen = "{"
         val spacerClose = "},"
@@ -1119,30 +1125,6 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     b: FRBTSNode<@UnsafeVariance A>
 ): FKSet<String, A>(b), IMKASetNotEmpty<String, A> {
     override fun isEmpty(): Boolean = false
-    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
-    override fun equals(other: Any?): Boolean = when {
-        this === other -> true
-        other == null -> false
-        other is IMKSetNotEmpty<*,*> -> when {
-            other.fempty() -> false
-            this.fpick()!!::class != other.fpick()!!::class -> false
-            other.fpickKey() !is String -> false
-            else -> @Suppress("UNCHECKED_CAST") IMKSetEqual2(this, other as IMKSet<String, A>)
-        }
-        other is Set<*> -> when {
-            other.isEmpty() -> false // type erasure boo-boo
-            fsize() != other.size -> false
-            this.fpick()!!::class != other.first()!!::class -> false
-            else -> other.equals(this)
-        }
-        else -> false
-    }
-    val hash: Int by lazy {
-        // hash of a FRBTree depends on the content AND on the shape of the tree;
-        // for set hash, the shape of the tree is irrelevant, whence the following
-        (131 * (this.body.inorder().hashCode() + 17)) / 127
-    }
-    override fun hashCode(): Int = hash
     val show: String by lazy {
         val spacerOpen = "{"
         val spacerClose = "},"
@@ -1237,30 +1219,6 @@ private class FKKSetNotEmpty<out A> private constructor (
     b: FRBTKNode<@UnsafeVariance A>
 ): FKSet<A, A>(b), IMKKSetNotEmpty<A> where A: Any, A: Comparable<@UnsafeVariance A> {
     override fun isEmpty(): Boolean = false
-    // short of type erasure, this must maintain reflexive, symmetric and transitive properties
-    override fun equals(other: Any?): Boolean = when {
-        this === other -> true
-        other == null -> false
-        other is IMKSetNotEmpty<*,*> -> when {
-            other.fempty() -> false
-            this.fpick()!!::class != other.fpick()!!::class -> false
-            this.fpickKey()!!::class != other.fpickKey()!!::class -> false
-            else -> @Suppress("UNCHECKED_CAST") IMKSetEqual2(this, other as IMKSet<A, A>)
-        }
-        other is Set<*> -> when {
-            other.isEmpty() -> false // type erasure boo-boo
-            fsize() != other.size -> false
-            this.fpick()!!::class != other.first()!!::class -> false
-            else -> other.equals(this)
-        }
-        else -> false
-    }
-    val hash: Int by lazy {
-        // hash of a FRBTree depends on the content AND on the shape of the tree;
-        // for set hash, the shape of the tree is irrelevant, whence the following
-        (131 * (this.body.inorder().hashCode() + 17)) / 127
-    }
-    override fun hashCode(): Int = hash
     val show: String by lazy {
         val spacerOpen = "{"
         val spacerClose = "},"

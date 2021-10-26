@@ -61,15 +61,8 @@ internal fun <A: Any> IMRSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <K, A: Any> IMKSetEqual2(lhs: IMKSet<K, A>, rhs: IMKSet<K, A>): Boolean  where K: Any, K: Comparable<K> {
-
-    val res = when {
-        lhs === rhs -> true
-        else -> IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
-    }
-
-    return res
-}
+internal fun <K, A: Any> IMKSetEqual2(lhs: IMKSet<K, A>, rhs: IMKSet<K, A>): Boolean  where K: Any, K: Comparable<K> =
+    IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
 
 interface IMKSetCompanion {
 

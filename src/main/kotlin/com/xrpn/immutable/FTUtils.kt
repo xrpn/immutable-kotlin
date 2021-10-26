@@ -12,6 +12,7 @@ private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!
 private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
 private fun <A: Any, B> isLikeSameType(a: KClass<A>, b: B): Boolean = a == b?.let{ it::class }
 private fun <A: Any, B: KClass<Any>> isLikeSameTypeLike(a: KClass<A>, b: B): Boolean = a == b
+
 fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
     is KClass<*> -> when(b) {
         is KClass<*> -> isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
@@ -20,6 +21,17 @@ fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
     else -> when(b) {
         is KClass<*> -> isSameTypeLike(this, b)
         else -> isSameType(this, b)
+    }
+}
+
+fun <A, B> A.isStrictlyNot(b: B): Boolean = when(this) {
+    is KClass<*> -> when(b) {
+        is KClass<*> -> !isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
+        else -> !isLikeSameType(this, b)
+    }
+    else -> when(b) {
+        is KClass<*> -> !isSameTypeLike(this, b)
+        else -> !isSameType(this, b)
     }
 }
 

@@ -63,8 +63,10 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
     fun copy(): TKVEntry<A,B>
     fun toPair(): Pair<A,B> = Pair(getk(),getv())
     fun toSample(): Pair<KClass<out A>, KClass<out B>> = Pair(getkKc(),getvKc())
+    fun untype(): TKVEntry<Comparable<Any>, Any> = @Suppress("UNCHECKED_CAST") (this as TKVEntry<Comparable<Any>, Any>)
     fun equal(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
-    fun strictly(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
+    fun strictly(other: TKVEntry<Comparable<Any>, Any>?): Boolean
+    fun strictlyNot(other: TKVEntry<Comparable<Any>, Any>?): Boolean = !strictly(other)
     fun strictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance A>?, KClass<@UnsafeVariance B>>?): Boolean
 
     companion object {
@@ -149,7 +151,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
         else -> 0 == other.compareTo(this)
     }
 
-    override fun strictly(other: TKVEntry<A,B>?): Boolean = when {
+    override fun strictly(other: TKVEntry<Comparable<Any>,Any>?): Boolean = when {
         this === other -> true
         other == null -> false
         other !is TKVEntryType<*,*> -> false

@@ -350,8 +350,7 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         other == null -> false
         other is IMMap<*, *> -> when {
             other.fempty() -> false
-            this.fpick()!!.getkKc() != other.fpick()!!.getkKc() -> false
-            this.fpick()!!.getvKc() != other.fpick()!!.getvKc() -> false
+            fpick()!!.strictlyNot(other.fpick()!!.untype()) -> false
             else ->  @Suppress("UNCHECKED_CAST") IMMapEqual2(this, other as IMMap<K, V>)
         }
         other is Map<*, *> -> if (other.isEmpty()) false else {

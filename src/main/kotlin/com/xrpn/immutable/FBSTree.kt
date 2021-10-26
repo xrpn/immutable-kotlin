@@ -1095,14 +1095,12 @@ internal data class FBSTNode<out A, out B: Any> (
         other == null -> false
         other is FBSTNode<*, *> -> when {
             other.isEmpty() -> false
-            this.entry.getkKc() != other.entry.getkKc() -> false
-            this.entry.getvKc() != other.entry.getvKc() -> false
+            entry.strictlyNot(other.entry.untype()) -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FBSTNode<A, B>)
         }
         other is IMBTree<*, *> -> when {
             other.fempty() -> false
-            this.froot()?.getk()!!::class != other.froot()?.getk()!!::class -> false
-            this.froot()?.getv()!!::class != other.froot()?.getv()!!::class -> false
+            entry.strictlyNot(other.froot()!!.untype()) -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
         }
         else -> false

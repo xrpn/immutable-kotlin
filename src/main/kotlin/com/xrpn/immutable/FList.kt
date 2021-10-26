@@ -81,7 +81,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             val kc = fpickNotEmpty()?.let { it::class }
             kc?.let { itemKClass ->
                 val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
-                null == ffindAny { innerItem: A -> innerItem::class != itemKClass } &&
+                null == ffindAny { innerItem: A -> innerItem.isStrictlyNot(itemKClass) } &&
                 null == ffindAny { maybeContainer: A -> !FT.itemStrictness(maybeContainer, maybeContainer::class, ucKc) }
             } ?: /* all nested containers, all are empty */ run {
                 val auxv = fhead()!!::class
@@ -738,13 +738,13 @@ data class FLCons<out A: Any>(
         other == null -> false
         other is IMList<*> -> when {
             other.fempty() -> false
-            this.fhead()!!::class != other.fhead()!!::class -> false
+            fhead()!!.isStrictlyNot(other.fhead()!!) -> false
             else -> @Suppress("UNCHECKED_CAST") IMListEqual2(this, other as IMList<A>)
         }
         other is List<*> -> when {
             other.isEmpty() -> false
-            this.fhead()!!::class != other.first()!!::class -> false
-            this.fsize() != other.size -> false
+            fhead()!!.isStrictlyNot(other.first()!!) -> false
+            fsize() != other.size -> false
             else -> other.equals(this)
         }
         else -> false
