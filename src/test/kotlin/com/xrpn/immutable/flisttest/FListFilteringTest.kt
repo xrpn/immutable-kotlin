@@ -16,7 +16,6 @@ private val intListOfThree: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3)
 private val intListOfFour: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
 private val intListOfFourA: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
 private val intListOfFourB: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
-private val intListOfSix = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
 
 class FListFilteringTest : FunSpec({
 
@@ -57,28 +56,6 @@ class FListFilteringTest : FunSpec({
     intListOfOne.fdrop(-1) shouldBe FLNil
     intListOfTwo.fdrop(-1) shouldBe FLNil
     intListOfThree.fdrop(-1) shouldBe FLNil
-  }
-
-  test("fdropAll") {
-    intListOfNone.fdropAll(intListOfNone as IMList<Int>) shouldBe FLNil
-    intListOfOne.fdropAll(intListOfNone) shouldBe intListOfOne
-    intListOfOne.fdropAll(intListOfOne as IMList<Int>) shouldBe FLNil
-    intListOfOne.fdropAll(intListOfTwo as IMList<Int>) shouldBe FLNil
-    FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree as IMList<Int>) shouldBe FLNil
-    FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
-  }
-
-  test("fdropItem") {
-    intListOfNone.fdropItem(0) shouldBe FLNil
-    intListOfOne.fdropItem(0) shouldBe intListOfOne
-    intListOfOne.fdropItem(1) shouldBe FLNil
-    intListOfOne.fdropItem(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(2,1)).fdropItem(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(2,1,2)).fdropItem(2) shouldBe intListOfOne
-    FList.of(*arrayOf<Int>(1, 2, 1, 2)).fdropItem(2) shouldBe FLCons(1, intListOfOne as FList<Int>)
-    intListOfSix.fdropItem(3) shouldBe FList.of(*arrayOf<Int>(1, 2, 2, 1))
-    intListOfSix.fdropItem(2) shouldBe FList.of(*arrayOf<Int>(1, 3, 3, 1))
-    intListOfSix.fdropItem(1) shouldBe FList.of(*arrayOf<Int>(2, 3, 3, 2))
   }
 
   test("fdropFirst") {

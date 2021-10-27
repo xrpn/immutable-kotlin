@@ -1,21 +1,14 @@
 package com.xrpn.immutable.frbtreetest
 
-import com.xrpn.imapi.IMCollection
-import com.xrpn.imapi.IMKeyed
+import com.xrpn.imapi.IMKeyedValue
 import com.xrpn.immutable.*
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
-import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.property.Arb
-import io.kotest.property.arbitrary.int
-import io.kotest.property.checkAll
-import io.kotest.xrpn.frbtree
 
-private val iiTreeOfNone: IMKeyed<Int,Int> = FRBTree.nul<Int,Int>()
-private val iiTreeOfTwo: IMKeyed<Int,Int> = FRBTree.of(1.toIAEntry(), 2.toIAEntry())
-private val ixTreeOfTwo: IMKeyed<Int, FKSet<*, Int>> = FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
+private val iiTreeOfNone: IMKeyedValue<Int,Int> = FRBTree.nul<Int,Int>()
+private val iiTreeOfTwo: IMKeyedValue<Int,Int> = FRBTree.of(1.toIAEntry(), 2.toIAEntry())
+private val ixTreeOfTwo: IMKeyedValue<Int, FKSet<*, Int>> = FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
 private val ixxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry(),
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry()
@@ -47,6 +40,13 @@ class FRBTreeIMKeyedTest : FunSpec({
     frbSlideShareTree.fcontainsKey(100) shouldBe false
   }
 
+  test("ffilterKey") {}
+  test("ffilterKeyNot") {}
+  test("fpickKey") {}
+  test("fisStrictlyLike") {}
+
+  test("asIMBTree") {}
+  test("asIMMap") {}
   test("fcontainsValue") {
     FRBTree.nul<Int, String>().fcontainsValue(zEntry.getv()) shouldBe false
     tailrec fun <A: Comparable<A>, B: Any> go(t: FRBTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
@@ -64,13 +64,11 @@ class FRBTreeIMKeyedTest : FunSpec({
   }
 
   test("fcountValue") {}
-  test("ffilterKey") {}
-  test("ffilterKeyNot") {}
   test("ffilterValue") {}
   test("ffilterValueNot") {}
+  test("ffindAnyValue") {}
   test("fget") {}
   test("fgetOrElse") {}
-  test("fgetOrThrow") {}
-  test("fpickKey") {}
+  test("fpickValue") {}
 
 })

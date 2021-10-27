@@ -1,40 +1,11 @@
 package com.xrpn.immutable.frbtreetest
 
-import com.xrpn.imapi.IMBTreeUtility
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.FRBTree.Companion.of
 import com.xrpn.immutable.FRBTree.Companion.ofvi
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
-import com.xrpn.immutable.bEntry
-import com.xrpn.immutable.cEntry
-import com.xrpn.immutable.dEntry
-import com.xrpn.immutable.eEntry
-import com.xrpn.immutable.frbSlideShareBreadthFirst
-import com.xrpn.immutable.frbSlideShareInorder
-import com.xrpn.immutable.frbSlideSharePostorder
-import com.xrpn.immutable.frbSlideSharePreorder
-import com.xrpn.immutable.frbSlideShareTree
-import com.xrpn.immutable.frbWikiBreadthFirst
-import com.xrpn.immutable.frbWikiInorder
-import com.xrpn.immutable.frbWikiPostorder
-import com.xrpn.immutable.frbWikiPreorder
-import com.xrpn.immutable.frbWikiTree
-import com.xrpn.immutable.hEntry
-import com.xrpn.immutable.lEntry
-import com.xrpn.immutable.mEntry
-import com.xrpn.immutable.n32Entry
-import com.xrpn.immutable.n48Entry
-import com.xrpn.immutable.n50Entry
-import com.xrpn.immutable.n62Entry
-import com.xrpn.immutable.nEntry
-import com.xrpn.immutable.rEntry
-import com.xrpn.immutable.rbSlideShareTree
-import com.xrpn.immutable.rbWikiTree
-import com.xrpn.immutable.sEntry
-import com.xrpn.immutable.uEntry
-import com.xrpn.immutable.zEntry
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -46,7 +17,6 @@ import kotlin.random.Random.Default.nextInt
 class FRBTreeFilteringTest : FunSpec({
 
     val repeatsHigh = Pair(50, 100)
-    val repeatsMid = Pair(25, 500)
 
     beforeTest {}
 
@@ -66,21 +36,6 @@ class FRBTreeFilteringTest : FunSpec({
         frbSlideShareTree.fcontains(TKVEntry.ofIntKey(100)) shouldBe false
     }
 
-    test("dropAll (nil)") {
-        FBSTree.nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
-        FBSTree.nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FRBTree.emptyIMBTree()
-    }
-
-    test("fdropAll") {
-        ofvi(1, 2, 3).fdropAll(FList.emptyIMList()) shouldBe ofvi(1, 2, 3)
-        ofvi(1, 2, 3).fdropAll(FList.of(1.toIAEntry(), 2.toIAEntry())) shouldBe ofvi(3)
-        ofvi(1, 2, 3, 4).fdropAll(FList.of(1.toIAEntry(), 2.toIAEntry())) shouldBe ofvi(3, 4)
-        ofvi(1, 2, 3).fdropAll(FList.of(2.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(1)
-        ofvi(1, 2, 3, 4).fdropAll(FList.of(2.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(1, 4)
-        ofvi(1, 2, 3).fdropAll(FList.of(1.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(2)
-        ofvi(1, 2, 3, 4).fdropAll(FList.of(1.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(2, 4)
-    }
-
     test("dropAlt (nil)") {
         FBSTree.nul<Int, Int>().fdropAlt(emptyIMBTree<Int, Int>()) shouldBe FBSTree.emptyIMBTree()
         FBSTree.nul<Int, Int>().fdropAlt(of(1.toIAEntry())) shouldBe FBSTree.emptyIMBTree()
@@ -96,184 +51,6 @@ class FRBTreeFilteringTest : FunSpec({
         FBSTree.ofvi(1, 2, 3, 4).fdropAlt(FBSTree.of(1.toIAEntry(), 3.toIAEntry())) shouldBe FBSTree.ofvi(2, 4)
     }
 
-    test("fdropItem") {
-        nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe FRBTree.emptyIMBTree()
-
-        tailrec fun goAllWiki(frb: FRBTree<Int, String>, acc: FList<TKVEntry<Int, String>>, inorder: FList<TKVEntry<Int, String>>): FList<TKVEntry<Int, String>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val rbDeleted: RBTree<Int, String> = rbWikiTree.copy()
-                    rbDeleted.rbDelete(TKVEntry.ofkv(acc.head.getk(), acc.head.getv()))
-                    when (val deleted = frb.fdropItem(acc.head)) {
-                        is FRBTNode -> {
-                            FRBTree.rbRootSane(deleted) shouldBe true
-                            val aut1in = deleted.inorder()
-                            val oracle = inorder.ffilterNot { it == acc.head }
-                            aut1in shouldBe oracle
-                            IMBTreeUtility.strongEqual(deleted, rbDeleted) shouldBe true
-                        }
-                        is FRBTNil -> {
-                            true shouldBe false
-                        }
-                    }
-                    goAllWiki(frb, acc.tail, inorder)
-                }
-            }
-
-        // tailrec fun <A: Comparable<A>, B: Any> goAllSS(frb: FRBTree<A,B>, acc: FList<TKVEntry<A,B>>, inorder: FList<TKVEntry<A,B>>): FList<TKVEntry<A,B>> =
-        tailrec fun goAllSS(frb: FRBTree<Int, Int>, acc: FList<TKVEntry<Int, Int>>, inorder: FList<TKVEntry<Int, Int>>): FList<TKVEntry<Int, Int>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val rbDeleted: RBTree<Int, Int> = rbSlideShareTree.copy()
-                    rbDeleted.rbDelete(TKVEntry.ofkk(acc.head.getk(), acc.head.getv()))
-                    when (val deleted = frb.fdropItem(acc.head)) {
-                        is FRBTNode -> {
-                            FRBTree.rbRootSane(deleted) shouldBe true
-                            val aut1in = deleted.inorder()
-                            val oracle = inorder.ffilterNot { it == acc.head }
-                            aut1in shouldBe oracle
-                            IMBTreeUtility.strongEqual(deleted, rbDeleted) shouldBe true
-                        }
-                        is FRBTNil -> {
-                            true shouldBe false
-                        }
-                    }
-                    goAllSS(frb, acc.tail, inorder)
-                }
-            }
-
-        tailrec fun <A: Comparable<A>, B: Any> goTele(t: FRBTree<A, B>, rbDeleted: RBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    rbDeleted.rbDelete(acc.head)
-                    val deleted = t.fdropItem(acc.head)
-                    val oracle = inorder.ffilterNot { it == acc.head }
-                    when (deleted) {
-                        is FRBTNode -> {
-                            FRBTree.rbRootSane(deleted) shouldBe true
-                            val aut1in = deleted.inorder()
-                            aut1in shouldBe oracle
-                            IMBTreeUtility.strongEqual(deleted, rbDeleted) shouldBe true
-                        }
-                        is FRBTNil -> {
-                            deleted.size shouldBe 0
-                            rbDeleted.size() shouldBe 0
-                        }
-                    }
-                    goTele(deleted, rbDeleted, acc.tail, oracle)
-                }
-            }
-        goAllWiki(frbWikiTree, frbWikiPreorder, frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiPostorder, frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiInorder, frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiBreadthFirst, frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiPreorder.freverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiPostorder.freverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiInorder.freverse(), frbWikiInorder)
-        goAllWiki(frbWikiTree, frbWikiBreadthFirst.freverse(), frbWikiInorder)
-        var rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPreorder, frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPostorder, frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiInorder, frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst, frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPreorder.freverse(), frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiPostorder.freverse(), frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiInorder.freverse(), frbWikiInorder)
-        rbMutable = rbWikiTree.copy()
-        goTele(frbWikiTree, rbMutable, frbWikiBreadthFirst.freverse(), frbWikiInorder)
-
-        frbWikiTree.fdropItem(zEntry) shouldBe frbWikiTree
-
-        goAllSS(frbSlideShareTree, frbSlideSharePreorder, frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideSharePostorder, frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareInorder, frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareBreadthFirst, frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideSharePreorder.freverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideSharePostorder.freverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareInorder.freverse(), frbSlideShareInorder)
-        goAllSS(frbSlideShareTree, frbSlideShareBreadthFirst.freverse(), frbSlideShareInorder)
-        var rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePreorder, frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePostorder, frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareInorder, frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst, frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePreorder.freverse(), frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideSharePostorder.freverse(), frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareInorder.freverse(), frbSlideShareInorder)
-        rbMutableSs = rbSlideShareTree.copy()
-        goTele(frbSlideShareTree, rbMutableSs, frbSlideShareBreadthFirst.freverse(), frbSlideShareInorder)
-
-        frbSlideShareTree.fdropItem(TKVEntry.ofIntKey(100)) shouldBe frbSlideShareTree
-    }
-
-    test("fdropItem (property), sorted asc") {
-        checkAll(repeatsMid.first, Arb.int(30..repeatsMid.second)) { n ->
-            val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
-            val ix1 = nextInt(0, n)
-            val frbTree = of(values.iterator())
-            val aut = frbTree.fdropItem(TKVEntry.ofIntKey(ix1))
-            aut.size shouldBe n - 1
-            FRBTree.rbRootSane(aut) shouldBe true
-            val testOracle = FList.of(values.iterator())
-                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
-            aut.inorder() shouldBe testOracle
-        }
-    }
-
-    test("fdropItem (property), sorted desc") {
-        checkAll(repeatsMid.first, Arb.int(30..repeatsMid.second)) { n ->
-            val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
-            val reversed = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
-            reversed.reverse()
-            val ix1 = nextInt(0, n)
-            val frbTree = of(values.iterator())
-            val aut = frbTree.fdropItem(TKVEntry.ofIntKey(ix1))
-            aut.size shouldBe n - 1
-            FRBTree.rbRootSane(aut) shouldBe true
-            val testOracle = FList.of(values.iterator())
-                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
-            aut.inorder() shouldBe testOracle
-        }
-    }
-
-    test("fdropItem (property), shuffled") {
-        checkAll(repeatsMid.first, Arb.int(30..repeatsMid.second)) { n ->
-            val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
-            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
-            shuffled.shuffle()
-            val randoms = IntArray(n/10) { i: Int -> i }
-            randoms.shuffle()
-            val ix1 = randoms[0]
-            val ix2 = randoms[1]
-            val ix3 = randoms[2]
-            val frbTree = of(shuffled.iterator())
-            val aux0 = frbTree.fdropItem(TKVEntry.ofIntKey(ix1))
-            val aux1 = aux0.fdropItem(TKVEntry.ofIntKey(ix2))
-            val aut = aux1.fdropItem(TKVEntry.ofIntKey(ix3))
-            aut.size shouldBe n - 3
-            FRBTree.rbRootSane(aut) shouldBe true
-            val testOracle = FList.of(values.iterator())
-                .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
-                .ffilterNot { it == TKVEntry.ofIntKey(ix2) }
-                .ffilterNot { it == TKVEntry.ofIntKey(ix3) }
-            aut.inorder() shouldBe testOracle
-        }
-    }
 
     test("ffdropItemAll") {
         nul<Int, Int>().fdropItemAll(1.toIAEntry()) shouldBe emptyIMBTree()

@@ -149,7 +149,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun ffilterValueNot(isMatch: (B) -> Boolean): FRBTree<A, B> =
         ffilterValue { !isMatch(it) }
 
-    override fun ffindAnyValue(isMatch: (B) -> Boolean): TKVEntry<A, B>? {
+    override fun ffindAnyValue(isMatch: (B) -> Boolean): B? {
 
         fun traverse(t: FRBTree<A, B>, acc: Pair<Boolean, TKVEntry<A, B>>): Pair<Boolean, TKVEntry<A, B>> = if (acc.first) acc else when (t) {
             is FRBTNil -> acc
@@ -159,7 +159,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return if (this.fempty()) null else {
             val start: Pair<Boolean, TKVEntry<A, B>> = Pair(false, this.froot()!!)
             val stop = traverse(this, start)
-            if (stop.first) stop.second else null
+            if (stop.first) stop.second.getv() else null
         }
     }
 
@@ -168,19 +168,15 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         is FRBTNode -> ffindValueOfKey(key)
     }
 
-    override fun fpickEntry(): TKVEntry<A, B>? = froot()
-
     override fun asIMMap(): IMMap<A, B> = toIMMap()
 
     // =========== extras
 
-    override operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): FRBTree<A, B> {
-        TODO("Not yet implemented")
-    }
+    override operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): FRBTree<A, B> =
+        finsert(TKVEntry.ofkv(k,v))
 
-    override operator fun get(key: @UnsafeVariance A): B? {
-        TODO("Not yet implemented")
-    }
+    override operator fun get(key: @UnsafeVariance A): B? =
+        ffindValueOfKey(key)
 
     // =========== utility
 
@@ -316,7 +312,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         rbtFindKey(this, key)
 
     override fun ffindValueOfKey(key: @UnsafeVariance A): B? =
-        rbtFindValueOFKey(this, key)
+        rbtFindValueOfKey(this, key)
 
     override fun fkeyType(): RestrictedKeyType<A>? = when (this) {
         is FRBTNode -> frbRKeyType
@@ -366,9 +362,14 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         is FRBTNode -> this.entry
     }
 
-    override fun fAND(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
-        TODO("Not yet implemented")
+    override fun fAND(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
+        is FRBTNil -> this
+        is FRBTNode -> if (items.fempty()) emptyIMBTree() else {
+
+            items.ffold(nul()) { acc, tkv -> if (fcontainsKey(tkv.getk())) TODO() else acc }
+        }
     }
+
 
     override fun fOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
         TODO("Not yet implemented")
@@ -704,7 +705,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         internal fun <A, B: Any> rbtFindKey(treeStub: FRBTree<A, B>, key: A): FRBTNode<A, B>?
         where A: Any, A: Comparable<A> = find(treeStub, key, ::fitKey)
 
-        internal fun <A, B: Any> rbtFindValueOFKey(treeStub: FRBTree<A, B>, key: A): B?
+        internal fun <A, B: Any> rbtFindValueOfKey(treeStub: FRBTree<A, B>, key: A): B?
         where A: Any, A: Comparable<A> = when(val found = find(treeStub, key, ::fitKey)) {
             is FRBTNode -> found.entry.getv()
             else -> null
@@ -813,7 +814,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return sanity
         }
 
-        internal inline fun <reified A, reified B: Any> toArray(frbt: FRBTree<A, B>): Array<TKVEntry<A, B>> where A: Any, A: Comparable<A> =
+        internal inline fun <reified A: Comparable<A>, reified B: Any> toArray(frbt: FRBTree<A, B>): Array<TKVEntry<A, B>> = // where A: Any, A: Comparable<A> =
             FTreeIterator.toArray(frbt.size, FTreeIterator(frbt))
 
         // ================= internals

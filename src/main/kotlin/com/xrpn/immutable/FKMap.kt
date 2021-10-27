@@ -4,6 +4,7 @@ import com.xrpn.imapi.*
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.ofIntKey
 import com.xrpn.immutable.TKVEntry.Companion.ofk
+import kotlin.reflect.KClass
 
 //
 // W       W  I  P P P
@@ -89,12 +90,9 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
-    override fun ffindAnyValue(isMatch: (V) -> Boolean): TKVEntry<K, V>? {
+    override fun ffindAnyValue(isMatch: (V) -> Boolean): V? {
         TODO("Not yet implemented")
     }
-
-    override fun fpickEntry(): TKVEntry<K, V>? = fpick()
-
 
     // extras
 
@@ -425,10 +423,14 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
     override val values: Collection<V> by lazy { body.fmapvToList { it } as FList<V> }
     override fun containsKey(key: @UnsafeVariance K): Boolean = body.fcontainsKey(key)
     override fun containsValue(value: @UnsafeVariance V): Boolean = body.fcontainsValue(value)
-    override operator fun get(key: @UnsafeVariance K): V? = body.ffindKey(key)?.froot()?.getv()
+    override operator fun get(key: @UnsafeVariance K): V? = body.ffindValueOfKey(key)
 
     companion object {
         internal fun <K, V: Any> of(b: FRBTNode<K, V>): FKMap<K, V> where K: Any, K: Comparable<K> = FKMapNotEmpty(b)
+    }
+
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? {
+        TODO("Not yet implemented")
     }
 }
 

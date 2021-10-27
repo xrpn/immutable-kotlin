@@ -486,10 +486,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fpickEntry(): TKVEntry<A, B>? {
-        TODO("Not yet implemented")
-    }
-
     override fun fpeek(): TKVEntry<A, B>? {
         TODO("Not yet implemented")
     }
@@ -514,7 +510,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun ffindAnyValue(isMatch: (B) -> Boolean): TKVEntry<A, B>? {
+    override fun ffindAnyValue(isMatch: (B) -> Boolean): B? {
         TODO("Not yet implemented")
     }
 

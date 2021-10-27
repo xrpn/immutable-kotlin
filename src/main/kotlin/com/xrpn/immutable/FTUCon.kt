@@ -2,7 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.IMCollection
 import com.xrpn.imapi.IMKSet
-import com.xrpn.imapi.IMKeyed
+import com.xrpn.imapi.IMKeyedValue
 import com.xrpn.imapi.IMSet
 import java.util.RandomAccess
 import kotlin.reflect.KClass
@@ -113,7 +113,7 @@ internal data class UCIMSET<K, out V: Any>(val im: IMKSet<K, V>): UCon<Nothing, 
     override fun isStrictInternally(): Boolean = im.fempty() || im.fisStrict()
     override fun length(): Int = im.fsize()
     override fun pick(): V? = im.fpickNotEmpty()
-    fun pickEntry(): TKVEntry<K, V>? = im.fpickEntry()
+    fun pickEntry(): TKVEntry<K, V>? = if (im.fempty()) null else im.asIMBTree().fpick()
     override fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean {
         check(!isEmpty())
         return sample.hasKey() &&
@@ -142,7 +142,7 @@ internal data class UCIMC<out V: Any>(val im: IMCollection<V>): UCon<Nothing, No
     override fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean {
         check(!isEmpty())
         return when (im) {
-            is IMKeyed<*, *> ->im.fisStrictlyLike(sample)!!
+            is IMKeyedValue<*, *> ->im.fisStrictlyLike(sample)!!
             else -> (!sample.hasKey()) && sample.isLikeValue(im.fpickNotEmpty()!!::class)
         }
     }

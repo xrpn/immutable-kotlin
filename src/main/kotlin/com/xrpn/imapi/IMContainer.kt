@@ -15,8 +15,8 @@ interface IMSealed {
 interface IMCollection<out A: Any>: IMSealed {
     fun fall(predicate: (A) -> Boolean): Boolean = fempty() || fcount(predicate) == fsize()
     fun fany(predicate: (A) -> Boolean): Boolean = fempty() || ffindAny(predicate) != null
-    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun fcontains(item: @UnsafeVariance A): Boolean
+    fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun fdropAll(items: IMCollection<@UnsafeVariance A>): IMCollection<A>
     fun fdropItem(item: @UnsafeVariance A): IMCollection<A>
     fun fdropWhen(isMatch: (A) -> Boolean): IMCollection<A>
@@ -40,25 +40,25 @@ interface IMCollection<out A: Any>: IMSealed {
     fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!)
 }
 
-interface IMKeyed<out K, out A: Any> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
+interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
+    fun fcontainsKey(key: @UnsafeVariance K): Boolean
+    fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K>
+    fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
+    fun fpickKey(): K?  // peekk at one random key
+    fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean?
+}
+
+interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun asIMBTree(): IMBTree<K,A>?
     fun asIMMap(): IMMap<K,A>?
-    fun fcontainsKey(key: @UnsafeVariance K): Boolean
     fun fcontainsValue(value: @UnsafeVariance A): Boolean
     fun fcountValue(isMatch: (A) -> Boolean): Int // count the values that match the predicate
-//    fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance K, @UnsafeVariance A>>): IMKeyed<K, A>
-    fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K,A>
-    fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K,A>
-    fun ffilterValue(isMatch: (A) -> Boolean): IMKeyed<K,A>
-    fun ffilterValueNot(isMatch: (A) -> Boolean): IMKeyed<K,A>
-    fun ffindAnyValue(isMatch: (A) -> Boolean): TKVEntry<K, A>?
+    fun ffilterValue(isMatch: (A) -> Boolean): IMKeyedValue<K,A>
+    fun ffilterValueNot(isMatch: (A) -> Boolean): IMKeyedValue<K,A>
+    fun ffindAnyValue(isMatch: (A) -> Boolean): A?
     fun fget(key: @UnsafeVariance K): A?
     fun fgetOrElse(key: @UnsafeVariance K, default: () -> @UnsafeVariance A): A = fget(key) ?: default()
-    fun fgetOrThrow(key: @UnsafeVariance K): A = fget(key) ?: throw NoSuchElementException("no value for key $key")
-    fun fpickKey(): K? = fpickEntry()?.getk()  // peekk at one random key
-    fun fpickValue(): A? = fpickEntry()?.getv()  // peekk at one random value
-    fun fpickEntry(): TKVEntry<K, A>?  // peekk at one random entry
-    fun fisStrictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance K>?,KClass<@UnsafeVariance A>>): Boolean?
+    fun fpickValue(): A?  // peekk at one random value
 }
 
 interface IMList<out A:Any>:
@@ -68,6 +68,7 @@ interface IMList<out A:Any>:
     IMListAltering<A>,
     IMListUtility<A>,
     IMListExtras<A>,
+    IMListTyping<A>,
     IMCollection<A>
 
 interface IMSet<out A: Any>:
@@ -77,6 +78,7 @@ interface IMSet<out A: Any>:
     IMSetAltering<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
+    IMSetTyping<A>,
     IMCollection<A> {
     fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>?
     fun asIMRRSetNotEmpty(): IMRRSetNotEmpty<A>?
@@ -90,6 +92,7 @@ interface IMSetNotEmpty<out A: Any>:
     IMSetAltering<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
+    IMSetTyping<A>,
     IMCollection<A> {
     fun edj(): TSDJ<IMRSetNotEmpty<@UnsafeVariance A>, IMRRSetNotEmpty<@UnsafeVariance A>>
 }
@@ -120,25 +123,22 @@ interface IMMap<out K, out V: Any>:
     IMMapUtility<K, V>,
     IMMapAltering<K, V>,
     IMMapExtras<K, V>,
-    IMKeyed<K, V>,
+    IMMapTyping<K, V>,
+    IMKeyedValue<K, V>,
+    IMKeyed<K>,
     IMCollection<TKVEntry<K,V>>
         where K: Any, K: Comparable<@UnsafeVariance K> {
 
     // IMCollection
-
+    override fun fcount(isMatch: (TKVEntry<K,V>) -> Boolean): Int = // count the element that match the predicate
+        asIMBTree().fcount(isMatch)
     override fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!.getv())
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance K>?,KClass<@UnsafeVariance V>>): Boolean? =
-        if (fempty()) null else null == this.toIMBTree().ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
-
     // IMKeyed
-
-    override fun asIMBTree(): IMBTree<K,V>
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
+        if (fempty()) null else null == asIMBTree().ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
+    // IMKeyedValue
     override fun asIMMap(): IMMap<K,V> = this
-    override fun ffilterKey(isMatch: (K) -> Boolean): IMMap<K,V>
-    override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMMap<K,V>
-    override fun ffilterValue(isMatch: (V) -> Boolean): IMMap<K,V>
-    override fun ffilterValueNot(isMatch: (V) -> Boolean): IMMap<K,V>
-    override fun ffindAnyValue(isMatch: (V) -> Boolean): TKVEntry<K,V>?
+
 }
 
 interface IMBTree<out A, out B: Any>:
@@ -149,22 +149,21 @@ interface IMBTree<out A, out B: Any>:
     IMBTreeAltering<A, B>,
     IMBTreeUtility<A, B>,
     IMBTreeExtras<A, B>,
-    IMKeyed<A, B>,
+    IMBTreeTyping<A, B>,
+    IMKeyedValue<A, B>,
+    IMKeyed<A>,
     IMCollection<TKVEntry<A,B>>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // IMCollection
-
     override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int =
-        this.ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
+        ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     override fun fisNested(): Boolean?  = if (fempty()) null else FT.isContainer(fpick()!!.getv())
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance A>?,KClass<@UnsafeVariance B>>): Boolean? =
-        if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
-
     // IMKeyed
-
-    override fun asIMBTree(): IMBTree<A,B>? = this
-    override fun asIMMap(): IMMap<A,B>
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean? =
+        if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
+    // IMKeyedValue
+    override fun asIMBTree(): IMBTree<A,B> = this
     override fun fcontainsValue(value: @UnsafeVariance B): Boolean = if (this.fempty()) false else {
         fun isMatch(entry: TKVEntry<A, B>): Boolean = entry.getv() == value
         ffindAny { isMatch(it) } != null
@@ -172,11 +171,7 @@ interface IMBTree<out A, out B: Any>:
     override fun fcountValue(isMatch: (B) -> Boolean): Int =  if (this.fempty()) 0 else {
         ffold(0) { acc, tkv -> if(isMatch(tkv.getv())) acc + 1 else acc }
     }
-    override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A,B>
-    override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMBTree<A,B>
-    override fun ffilterValue(isMatch: (B) -> Boolean): IMBTree<A,B>
-    override fun ffilterValueNot(isMatch: (B) -> Boolean): IMBTree<A,B>
-    override fun ffindAnyValue(isMatch: (B) -> Boolean): TKVEntry<A,B>?
+
 }
 
 interface IMStack<out A:Any>:
@@ -185,6 +180,7 @@ interface IMStack<out A:Any>:
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMStackUtility<A>,
+    IMStackTyping<A>,
     IMCollection<A>
 
 interface IMQueue<out A:Any>:
@@ -193,17 +189,20 @@ interface IMQueue<out A:Any>:
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
     IMQueueUtility<A>,
+    IMQueueTyping<A>,
     IMCollection<A>
 
 // ============ INTERNAL
 
 internal interface IMKSet<out K, out A:Any>:
     IMSet<A>,
-    IMKeyed<K, A>,
+    IMKeyed<K>,
+    IMKeyedValue<K, A>,
     IMKSetGrouping<K, A>,
     IMKSetTransforming<K, A>,
     IMKSetExtras<K, A>,
-    IMKSetUtility<K, A>
+    IMKSetUtility<K, A>,
+    IMKSetTyping<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
     fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = null
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
@@ -211,19 +210,8 @@ internal interface IMKSet<out K, out A:Any>:
 
     // IMCollection
 
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance K>?,KClass<@UnsafeVariance A>>): Boolean? =
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) }}
-
-    // IMKeyed
-
-    override fun asIMBTree(): IMBTree<K,A>
-    override fun asIMMap(): IMMap<K,A>
-    override fun ffilterKey(isMatch: (K) -> Boolean): IMKSet<K,A>
-    override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKSet<K,A>
-    override fun ffilterValue(isMatch: (A) -> Boolean): IMKSet<K,A>
-    override fun ffilterValueNot(isMatch: (A) -> Boolean): IMKSet<K,A>
-    override fun ffindAnyValue(isMatch: (A) -> Boolean): TKVEntry<K, A>?
-
  }
 
 internal interface IMKSetNotEmpty<out K, out A:Any>:

@@ -65,7 +65,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FList <A> = if (items.fempty()) this else when(items) {
         is IMSet<A> -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.contains(element)) acc else FLCons(element, acc) }
-        is IMKeyed<*,*> -> this.ffoldLeft(emptyIMList()) { acc, element ->
+        is IMKeyedValue<*,*> -> this.ffoldLeft(emptyIMList()) { acc, element ->
             element as TKVEntry<*,*>
             if (items.fcontainsKey(element.getk())) acc else FLCons(element, acc)
         }

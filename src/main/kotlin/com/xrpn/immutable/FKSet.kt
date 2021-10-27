@@ -99,7 +99,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     }
 
     override fun ffindAny(isMatch: (A) -> Boolean): A? = when (this) {
-        is IMKSetNotEmpty<*, *> -> body.ffindAnyValue(isMatch)?.getv()
+        is IMKSetNotEmpty<*, *> -> body.ffindAnyValue(isMatch)
         else ->  null
     }
 
@@ -112,7 +112,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     override fun fpick(): A? = body.froot()?.getv()
 
-    fun fpickNested(): Any? = body.froot()?.let { rt ->  rt.toUCon()?.let { uc -> uc.pick() } }
+    fun fpickNested(): Any? = body.froot()?.let { rt -> rt.toUCon()?.pick() }
 
     // imkeyed
 
@@ -125,19 +125,37 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         TODO("Not yet implemented")
     }
 
-    override fun fcontainsValue(value: @UnsafeVariance A): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun fcountValue(isMatch: (A) -> Boolean): Int {
-        TODO("Not yet implemented")
-    }
-
     override fun ffilterKey(isMatch: (K) -> Boolean): FKSet<K, A> {
         TODO("Not yet implemented")
     }
 
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): FKSet<K, A> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fpickKey(): K? {
+        TODO("Not yet implemented")
+    }
+
+    // imkeyedvalue
+
+    override fun asIMMap(): IMMap<K, A> = when (this) {
+        is FKSetEmpty -> FKMap.emptyIMMap()
+        else -> body.toIMMap()
+    }
+
+    override fun asIMBTree(): IMBTree<K, A> = when (this) {
+        is FKSetEmpty -> FRBTree.emptyIMBTree()
+        is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
+        is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
+        is FKKSetNotEmpty<*> -> body
+    }
+
+    override fun fcontainsValue(value: @UnsafeVariance A): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun fcountValue(isMatch: (A) -> Boolean): Int {
         TODO("Not yet implemented")
     }
 
@@ -149,28 +167,15 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         TODO("Not yet implemented")
     }
 
-    override fun ffindAnyValue(isMatch: (A) -> Boolean): TKVEntry<K, A>? {
-        TODO("Not yet implemented")
-    }
+    override fun ffindAnyValue(isMatch: (A) -> Boolean): A? =
+        ffindAny(isMatch)
 
     override fun fget(key: @UnsafeVariance K): A? {
         TODO("Not yet implemented")
     }
 
-    override fun set(k: @UnsafeVariance K, v: @UnsafeVariance A): IMSet<A> {
+    override fun fpickValue(): A? {
         TODO("Not yet implemented")
-    }
-
-    override fun asIMBTree(): IMBTree<K, A> = when (this) {
-        is FKSetEmpty -> FRBTree.emptyIMBTree()
-        is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
-        is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (body as IMBTree<K,A>)
-        is FKKSetNotEmpty<*> -> body
-    }
-
-    override fun asIMMap(): IMMap<K, A> = when (this) {
-        is FKSetEmpty -> FKMap.emptyIMMap()
-        else -> body.toIMMap()
     }
 
     // utility
@@ -580,6 +585,12 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         }
     }
 
+    // extras
+
+    override fun set(k: @UnsafeVariance K, v: @UnsafeVariance A): IMSet<A> {
+        TODO("Not yet implemented")
+    }
+
     //
     // ========= implementation
     //
@@ -971,7 +982,8 @@ internal class FKSetEmpty<K, A: Any> private constructor (
 
     // FKSet
 
-    override fun fpickEntry(): TKVEntry<K, A>? = null
+    override fun fpickKey(): K? = null
+    override fun fpickValue(): A? = null
     override fun toFRBTree(k: KClass<K>): FRBTree<K, A> = nul()
     override val toKey: (A) -> K
         get() = TODO(msg)
@@ -1030,7 +1042,6 @@ where K: Any, K: Comparable<K> = if (rhs.isEmpty()) false else when {
     else -> rhs.equals(lhs)
 }
 
-
 private class FIKSetNotEmpty<out A: Any> private constructor (
     b: FRBTINode<@UnsafeVariance A>
 ): FKSet<Int, A>(b), IMKASetNotEmpty<Int, A> {
@@ -1046,7 +1057,8 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
 
     // IMKeyed
     
-    override fun fpickEntry(): TKVEntry<Int, A> = body.froot()!!
+    override fun fpickKey(): Int = body.froot()!!.getk()
+    override fun fpickValue(): A = body.froot()!!.getv()
     override fun toSetKey(a: @UnsafeVariance A): Int = toKey(a)
 
     // IMKSetFiltering
@@ -1144,7 +1156,8 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
 
     // IMKeyed
 
-    override fun fpickEntry(): TKVEntry<String, A> = body.froot()!!
+    override fun fpickKey(): String = body.froot()!!.getk()
+    override fun fpickValue(): A = body.froot()!!.getv()
     override fun toSetKey(a: @UnsafeVariance A): String = toKey(a)
 
     // IMKSetFiltering
@@ -1200,7 +1213,6 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     companion object {
         internal fun <A: Any> of(b: FRBTSNode<A>): FKSet<String, A> = FSKSetNotEmpty(b)
     }
-
 }
 
 internal fun <A: Any> ofFSKSBody(b: FRBTree<String, A>): FKSet<String, A> = when(b) {
@@ -1247,8 +1259,9 @@ private class FKKSetNotEmpty<out A> private constructor (
     }
 
     // IMKeyed
-    
-    override fun fpickEntry(): TKVEntry<A, A> = body.froot()!!
+
+    override fun fpickKey(): A = body.froot()!!.getk()
+    override fun fpickValue(): A = body.froot()!!.getv()
     override fun toSetKey(a: @UnsafeVariance A): A = toKey(a)
 
     // IMKSetFiltering
@@ -1313,7 +1326,7 @@ private class FKKSetNotEmpty<out A> private constructor (
     
     // implementation
     
-    val ckt: RestrictedKeyType<A> by lazy { SymKeyType(fpickKey()!!::class) }
+    val ckt: RestrictedKeyType<A> by lazy { SymKeyType(fpickKey()::class) }
     
     fun toFIKSetNotEmpty(): FKSet<Int, A> = if (fpick()!! is Int) @Suppress("UNCHECKED_CAST") (this as FKSet<Int, A>)
         else ofFIKSBody(this.ffold(nul()) { acc, item -> acc.finsert(ofIntKey(item)) })

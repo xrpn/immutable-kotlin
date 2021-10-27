@@ -149,7 +149,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun ffilterValueNot(isMatch: (B) -> Boolean): FBSTree<A, B> =
         ffilterValue { !isMatch(it) }
 
-    override fun ffindAnyValue(isMatch: (B) -> Boolean): TKVEntry<A, B>? {
+    override fun ffindAnyValue(isMatch: (B) -> Boolean): B? {
         TODO("Not yet implemented")
     }
 
@@ -157,8 +157,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         is FBSTNil -> null
         is FBSTNode -> ffindValueOfKey(key)
     }
-
-    override fun fpickEntry(): TKVEntry<A, B>? = froot()
 
     override fun asIMMap(): IMMap<A, B> = toIMMap()
 

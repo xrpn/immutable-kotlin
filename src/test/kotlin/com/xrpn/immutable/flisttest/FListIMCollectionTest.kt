@@ -1,6 +1,7 @@
 package com.xrpn.immutable.flisttest
 
 import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.emptyArrayOfInt
@@ -15,6 +16,9 @@ private val intListOfThree: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3))
 private val intListOfFour: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
 private val intListOfFourA: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
 private val intListOfFourB: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
+private val intListOfSix: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSet: IMCollection<Int> = FKSet.ofs(1,2)
+
 
 private val strListOfNone: IMCollection<String> = FList.of(*emptyArrayOfStr)
 private val strListOfOne: IMCollection<String> = FList.of(*arrayOf<String>("1"))
@@ -24,20 +28,6 @@ private val strListOfThree: IMCollection<String> = FList.of(*arrayOf<String>("1"
 class FListIMCollectionTest : FunSpec({
 
   beforeTest {}
-
-  test("fcount") {
-    intListOfNone.fcount { _ -> true } shouldBe 0
-    intListOfNone.fcount { _ -> false } shouldBe 0
-    intListOfOne.fcount { _ -> true } shouldBe 1
-    intListOfOne.fcount { 0 < it } shouldBe 1
-    intListOfOne.fcount { it < 0 } shouldBe 0
-    intListOfOne.fcount { _ -> false } shouldBe 0
-    intListOfTwo.fcount { _ -> true } shouldBe 2
-    intListOfTwo.fcount { 0 < it } shouldBe 2
-    intListOfTwo.fcount { 1 < it } shouldBe 1
-    intListOfTwo.fcount { it < 0 } shouldBe 0
-    intListOfTwo.fcount { _ -> false } shouldBe 0
-  }
 
   test("fall") {
     intListOfNone.fall { true } shouldBe true
@@ -79,6 +69,48 @@ class FListIMCollectionTest : FunSpec({
     strListOfThree.fcontains("3") shouldBe true
   }
 
+  test("fcount") {
+    intListOfNone.fcount { _ -> true } shouldBe 0
+    intListOfNone.fcount { _ -> false } shouldBe 0
+    intListOfOne.fcount { _ -> true } shouldBe 1
+    intListOfOne.fcount { 0 < it } shouldBe 1
+    intListOfOne.fcount { it < 0 } shouldBe 0
+    intListOfOne.fcount { _ -> false } shouldBe 0
+    intListOfTwo.fcount { _ -> true } shouldBe 2
+    intListOfTwo.fcount { 0 < it } shouldBe 2
+    intListOfTwo.fcount { 1 < it } shouldBe 1
+    intListOfTwo.fcount { it < 0 } shouldBe 0
+    intListOfTwo.fcount { _ -> false } shouldBe 0
+  }
+
+  test("fdropAll") {
+    intListOfNone.fdropAll(intListOfNone as IMList<Int>) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfNone) shouldBe intListOfOne
+    intListOfOne.fdropAll(intListOfOne as IMList<Int>) shouldBe FLNil
+    intListOfOne.fdropAll(intListOfTwo as IMList<Int>) shouldBe FLNil
+    FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree as IMList<Int>) shouldBe FLNil
+    FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
+    intListOfFour.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFourA.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFourB.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFour.fdropAll(intListOfTwo) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFourA.fdropAll(intListOfTwo) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFourB.fdropAll(intListOfTwo) shouldBe FList.of(*arrayOf<Int>(3))
+  }
+
+  test("fdropItem") {
+    intListOfNone.fdropItem(0) shouldBe FLNil
+    intListOfOne.fdropItem(0) shouldBe intListOfOne
+    intListOfOne.fdropItem(1) shouldBe FLNil
+    intListOfOne.fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(2,1,2)).fdropItem(2) shouldBe intListOfOne
+    FList.of(*arrayOf<Int>(1, 2, 1, 2)).fdropItem(2) shouldBe FLCons(1, intListOfOne as FList<Int>)
+    intListOfSix.fdropItem(3) shouldBe FList.of(*arrayOf<Int>(1, 2, 2, 1))
+    intListOfSix.fdropItem(2) shouldBe FList.of(*arrayOf<Int>(1, 3, 3, 1))
+    intListOfSix.fdropItem(1) shouldBe FList.of(*arrayOf<Int>(2, 3, 3, 2))
+  }
+
   test("fdropWhen") {
     intListOfNone.fdropWhen { it > 1 } shouldBe FLNil
     intListOfOne.fdropWhen { it > 1 }  shouldBe FLCons(1, FLNil)
@@ -89,6 +121,14 @@ class FListIMCollectionTest : FunSpec({
     intListOfFourA.fdropWhen { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
     intListOfFourA.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
     intListOfFourB.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
+  }
+
+  test("fempty") {
+    intListOfNone.fempty() shouldBe true
+    strListOfNone.fempty() shouldBe true
+    (intListOfNone === strListOfNone) shouldBe true
+    intListOfOne.fempty() shouldBe false
+    strListOfTwo.fempty() shouldBe false
   }
 
   test("ffilter") {
@@ -105,11 +145,6 @@ class FListIMCollectionTest : FunSpec({
     intListOfTwo.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLNil)
     intListOfThree.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
     FList.of(*arrayOf<Int>(1,2,3,4)).ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
-  }
-
-  test("fempty") {
-    intListOfNone.fempty() shouldBe true
-    strListOfNone.fempty() shouldBe true
   }
 
   test("ffindAny") {
@@ -161,6 +196,30 @@ class FListIMCollectionTest : FunSpec({
     intListOfNone.fpick() shouldBe null
     intListOfOne.fpick()?.let { it::class } shouldBe Int::class
     strListOfOne.fpick()?.let { it::class } shouldBe String::class
+  }
+
+  test("fpickNotEmpty") {
+    intListOfNone.fpickNotEmpty() shouldBe null
+    intListOfOne.fpickNotEmpty()?.let { it::class } shouldBe Int::class
+    strListOfOne.fpickNotEmpty()?.let { it::class } shouldBe String::class
+    FList.of(FKSet.ofi("A"), FKSet.ofs("A")).fpickNotEmpty()?.equals(FKSet.ofi("A")) shouldBe true
+    FList.of(emptySet<Int>(), emptySet<Int>()).fpickNotEmpty() shouldBe null
+    FList.of(emptySet<Int>(), emptySet<Int>(), FKSet.ofi("A")).fpickNotEmpty()?.equals(FKSet.ofi("A")) shouldBe true
+  }
+
+  test ("fpopAndReminder") {
+    val (pop1, reminder1) = intListOfNone.fpopAndRemainder()
+    pop1 shouldBe null
+    reminder1.fempty() shouldBe true
+    val (pop2, reminder2) = intListOfOne.fpopAndRemainder()
+    pop2 shouldBe intListOfOne.fpick()
+    reminder2.fempty() shouldBe true
+    val (pop3, reminder3) = intListOfTwo.fpopAndRemainder()
+    pop3 shouldBe intListOfOne.fpick()
+    reminder3.equals(FLCons(2, FLNil)) shouldBe true
+    val (pop4, reminder4) = intListOfThree.fpopAndRemainder()
+    pop4 shouldBe intListOfOne.fpick()
+    reminder4.equals(FLCons(2, FLCons(3, FLNil))) shouldBe true
   }
 
   test("fsize") {

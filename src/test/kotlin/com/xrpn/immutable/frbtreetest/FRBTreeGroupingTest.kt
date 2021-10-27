@@ -1,13 +1,7 @@
 package com.xrpn.immutable.frbtreetest
 
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FRBTree.Companion.nul
-import com.xrpn.immutable.FRBTree.Companion.ofvi
-import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
-import com.xrpn.immutable.frbSlideShareTree
-import com.xrpn.immutable.frbWikiTree
-import com.xrpn.immutable.mEntry
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -35,28 +29,6 @@ class FRBTreeGroupingTest  : FunSpec({
             odd.forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
             even.size + odd.size shouldBe frbt.size
         }
-    }
-
-    test("fpopAndRemainder") {
-        val (nilPop, nilRemainder) = emptyIMBTree<Int,Int>().fpopAndRemainder()
-        nilPop shouldBe null
-        nilRemainder shouldBe emptyIMBTree()
-
-        val (onePop, oneRemainder) = ofvi(1).fpopAndRemainder()
-        onePop shouldBe 1.toIAEntry()
-        oneRemainder shouldBe emptyIMBTree()
-
-        // this traverses slideShareTree popping one element at a time, and rebuilding the tree with the popped element
-        // could probably have been a forEach...  It's always a fold in the end.
-        val res = frbSlideShareTree.ffold(Pair(nul<Int, Int>(), frbSlideShareTree.fpopAndRemainder())) { acc, _ ->
-            val (rebuild, popAndStub) = acc
-            val (pop, stub) = popAndStub
-            Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
-        }
-        res.first shouldBe slideShareTree
-        val (lastPopped, lastRemainder) = res.second
-        lastPopped shouldBe null
-        lastRemainder shouldBe emptyIMBTree()
     }
 
     test("fmaxDepth") {

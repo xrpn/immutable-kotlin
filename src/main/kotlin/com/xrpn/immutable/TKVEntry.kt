@@ -67,7 +67,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
     fun equal(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
     fun strictly(other: TKVEntry<Comparable<Any>, Any>?): Boolean
     fun strictlyNot(other: TKVEntry<Comparable<Any>, Any>?): Boolean = !strictly(other)
-    fun strictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance A>?, KClass<@UnsafeVariance B>>?): Boolean
+    fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean
 
     companion object {
         fun <A: Comparable<A>, B: Any> ofkv (key:A, value: B): TKVEntry<A, B> = when (key) {
@@ -160,7 +160,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
         else -> true
     }
 
-    override fun strictlyLike(sample: KeyedTypeSample<KClass<@UnsafeVariance A>?, KClass<@UnsafeVariance B>>?): Boolean = sample?.let {
+    override fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean = sample?.let {
         sample.isLikeIfLooselyKey(kClass, vClass)
     } ?: false
 
