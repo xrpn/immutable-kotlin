@@ -30,7 +30,9 @@ fun <A, B> A.isStrictlyNot(b: B): Boolean = when(this) {
         else -> !isLikeSameType(this, b)
     }
     else -> when(b) {
-        is KClass<*> -> !isSameTypeLike(this, b)
+        is KClass<*> -> {
+            val foo = !isSameTypeLike(this, b)
+            foo }
         else -> !isSameType(this, b)
     }
 }
@@ -270,6 +272,7 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
     fun isSym(): Boolean = hasKey() && kKc == vKc
     fun isLikeIfLooselyKey(kClass: KClass<*>?, vClass: KClass<*>): Boolean =( !hasKey() || kKc == kClass ) && vKc == vClass
     fun isLike(kClass: KClass<*>?, vClass: KClass<*>): Boolean = kKc == kClass && vKc == vClass
+    fun <KK: KClass<*>?, VV: KClass<*>> isStrictly(other: KeyedTypeSample<KK, VV>): Boolean = (kKc == other.kKc && vKc == other.vKc)
     fun isLikeKey(kClass: KClass<*>?): Boolean = kKc == kClass
     fun isLikeValue(vClass: KClass<*>): Boolean = vKc == vClass
 }

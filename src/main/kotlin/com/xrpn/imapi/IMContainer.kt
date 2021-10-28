@@ -42,6 +42,7 @@ interface IMCollection<out A: Any>: IMSealed {
 
 interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
     fun fcontainsKey(key: @UnsafeVariance K): Boolean
+    fun fcountKey(isMatch: (K) -> Boolean): Int // count the values that match the predicate
     fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K>
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
@@ -58,6 +59,9 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun ffindAnyValue(isMatch: (A) -> Boolean): A?
     fun fget(key: @UnsafeVariance K): A?
     fun fgetOrElse(key: @UnsafeVariance K, default: () -> @UnsafeVariance A): A = fget(key) ?: default()
+    fun ftypeSample(): KeyedTypeSample<KClass<Any>?,KClass<Any>>? = fpickValue()?.let { value ->
+        (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(fpickKey()!!::class, value::class) as KeyedTypeSample<KClass<Any>?,KClass<Any>>))
+    }
     fun fpickValue(): A?  // peekk at one random value
 }
 
@@ -161,6 +165,7 @@ interface IMBTree<out A, out B: Any>:
     override fun fisNested(): Boolean?  = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean? =
+        // if (fempty()) null else sample.isLikeKey(fpickKey()!!::class) &&  null == ffindAny { tkv -> tkv.getv().isStrictlyNot(sample.vKc) }
         if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
     // IMKeyedValue
     override fun asIMBTree(): IMBTree<A,B> = this
@@ -208,7 +213,11 @@ internal interface IMKSet<out K, out A:Any>:
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
 
-    // IMCollection
+    // IMKeyed
+
+    //    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? = asIMKSetNotEmpty()?.let {
+    //        sample.isLikeKey(it.fpickKey()!!::class) &&  null == it.ffindAny { v -> v.isStrictlyNot(sample.vKc)
+    //    }}
 
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) }}

@@ -355,7 +355,7 @@ class FRBTreeIMCollectionTest : FunSpec({
   test ("ffilter (A), ffilterNot, dropWhen") {
     fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
     fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
-    checkAll(50, Arb.int(20..100)) { n ->
+    checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
       val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       val svalues = values + values
       val ora1 = values.size
@@ -393,7 +393,7 @@ class FRBTreeIMCollectionTest : FunSpec({
   test ("ffilter (B)") {
     fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
     fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
-    checkAll(50, Arb.int(20..100)) { n ->
+    checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
       val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       shuffled.shuffle()
       val svalues = shuffled + shuffled
@@ -420,7 +420,7 @@ class FRBTreeIMCollectionTest : FunSpec({
   test ("ffilter (C)") {
     fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
     fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
-    checkAll(50, Arb.int(20..100)) { n ->
+    checkAll(repeatsHigh.first, Arb.int(20..repeatsHigh.second)) { n ->
       val reversed = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       reversed.reverse()
       val svalues = reversed + reversed
@@ -447,7 +447,7 @@ class FRBTreeIMCollectionTest : FunSpec({
   test("ffindAny") {
     iiTreeOfNone.ffindAny { true } shouldBe null
     iiTreeOfNone.ffindAny { false } shouldBe null
-    Arb.frbtree(Arb.int(1..repeatsHigh.second)).checkAll(PropTestConfig(seed=-5861869923483500910, iterations=repeatsHigh.first)) { frbt ->
+    Arb.frbtree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
       val ts = frbt.size
       var count: Int = 0
       frbt.ffindAny{ count+=1; it == TKVEntry.ofkv(0, 0) } shouldBe null

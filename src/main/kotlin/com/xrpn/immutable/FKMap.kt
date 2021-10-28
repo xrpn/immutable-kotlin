@@ -106,6 +106,11 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.ffindValueOfKey(key) != null
     }
 
+    override fun fcountKey(isMatch: (K) -> Boolean): Int = when (this) {
+        is FKMapEmpty -> 0
+        is FKMapNotEmpty -> body.fcountKey(isMatch)
+    }
+
     override fun fdrop(key: @UnsafeVariance K): FKMap<K,V> = when (this) {
         is FKMapEmpty -> this
         is FKMapNotEmpty -> body.ffindKey(key)?.let { ofFKMapBody(body.fdropItem(it.froot()!!)) } ?: this

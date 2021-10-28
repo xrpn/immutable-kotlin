@@ -127,6 +127,14 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =
         rbtFindKey(this, key) != null
 
+    override fun fcountKey(isMatch: (A) -> Boolean): Int {
+
+        val f4fcountKey: (acc: Int, item: TKVEntry<A, B>) -> Int =
+            { acc, item -> if (isMatch(item.getk())) acc + 1 else acc }
+
+        return ffold(0, f4fcountKey)
+    }
+
     override fun ffilterKey(isMatch: (A) -> Boolean): FRBTree<A, B> {
 
         val f4ffilterKey: (acc: FRBTree<A, B>, item: TKVEntry<A, B>) -> FRBTree<A, B> =

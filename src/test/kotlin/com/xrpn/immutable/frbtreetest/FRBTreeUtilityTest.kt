@@ -2,7 +2,6 @@ package com.xrpn.immutable.frbtreetest
 
 import com.xrpn.imapi.IMKSet
 import com.xrpn.imapi.IntKeyType
-import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import com.xrpn.immutable.frbSlideShareTree

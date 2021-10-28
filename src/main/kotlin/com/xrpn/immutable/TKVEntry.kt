@@ -62,7 +62,8 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
     fun getvKc(): KClass<out B>
     fun copy(): TKVEntry<A,B>
     fun toPair(): Pair<A,B> = Pair(getk(),getv())
-    fun toSample(): Pair<KClass<out A>, KClass<out B>> = Pair(getkKc(),getvKc())
+    fun typeSample(): KeyedTypeSample<KClass<Any>?,KClass<Any>> =
+        (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(getkKc(),getvKc()) as KeyedTypeSample<KClass<Any>?,KClass<Any>>))
     fun untype(): TKVEntry<Comparable<Any>, Any> = @Suppress("UNCHECKED_CAST") (this as TKVEntry<Comparable<Any>, Any>)
     fun equal(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
     fun strictly(other: TKVEntry<Comparable<Any>, Any>?): Boolean
@@ -155,18 +156,19 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
         this === other -> true
         other == null -> false
         other !is TKVEntryType<*,*> -> false
-        kClass != other.getkKc() -> false
-        vClass != other.getvKc() -> false
+        kClass.isStrictlyNot(other.getkKc()) -> false
+        vClass.isStrictlyNot(other.getvKc()) -> false
         else -> true
     }
 
     override fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean = sample?.let {
-        sample.isLikeIfLooselyKey(kClass, vClass)
+//        check(!FT.isContainer(getv()))
+        it./* in case sample key is null */isLikeIfLooselyKey(kClass, vClass)
     } ?: false
 
     val strictness: Boolean by lazy { if (!FT.isContainer(getv())) true else {
         getv().toUCon()!!.let { uc -> if (uc.isEmpty()) true else when {
-            uc.isNested()!! -> uc.isStrictLike(KeyedTypeSample(uc.kKc()?.let { @Suppress("UNCHECKED_CAST")(it as KClass<Any>) }, @Suppress("UNCHECKED_CAST")(uc.vKc()!! as KClass<Any>))) ?: false
+            uc.isNested()!! -> uc.isStrictlyLike(KeyedTypeSample(uc.kKc()?.let { @Suppress("UNCHECKED_CAST")(it as KClass<Any>) }, @Suppress("UNCHECKED_CAST")(uc.vKc()!! as KClass<Any>))) ?: false
             uc.isStrictInternally() -> true
             else -> false
         }}
@@ -225,16 +227,16 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
 
 
 internal open class TKVEntryK<A: Comparable<A>, B:Any> constructor (
-    k: A, v: B, vc: Comparator<@UnsafeVariance A>? = null
-): TKVEntryType<A,B>(k, v, vc) {
+    rk: A, rv: B, vc: Comparator<@UnsafeVariance A>? = null
+): TKVEntryType<A,B>(rk, rv, vc) {
     init {
         check(k::class != v::class)
     }
 }
 
 internal class RITKVEntry<A: Any> constructor (
-    rk: Int, v: A, vc: Comparator<@UnsafeVariance Int>? = null
-): TKVEntryType<Int,A>(rk,v, vc), RTKVEntry<Int, A>{
+    rk: Int, rv: A, vc: Comparator<@UnsafeVariance Int>? = null
+): TKVEntryType<Int,A>(rk, rv, vc), RTKVEntry<Int, A>{
     init {
         check(v !is Int)
         check(k::class != v::class)
@@ -243,8 +245,8 @@ internal class RITKVEntry<A: Any> constructor (
 }
 
 internal class RSTKVEntry<A: Any> constructor (
-    rk: String, v: A, vc: Comparator<@UnsafeVariance String>? = null
-): TKVEntryType<String,A>(rk,v, vc), RTKVEntry<String, A>{
+    rk: String, rv: A, vc: Comparator<@UnsafeVariance String>? = null
+): TKVEntryType<String,A>(rk,rv, vc), RTKVEntry<String, A>{
     init {
         check(v !is String)
         check(k::class != v::class)
@@ -254,8 +256,8 @@ internal class RSTKVEntry<A: Any> constructor (
 
 // DUMMY is workaround for https://discuss.kotlinlang.org/t/problem-with-generic-capturedtype/17069
 internal class RKTKVEntry<A, DUMMY> constructor (
-    rk: A, v: A, vc: Comparator<@UnsafeVariance A>? = null
-): TKVEntryType<A,A>(rk, v, vc), RTKVEntry<A,A> where A: Any, A: Comparable<A>, DUMMY: Any, DUMMY: Comparable<A> {
+    rk: A, rv: A, vc: Comparator<@UnsafeVariance A>? = null
+): TKVEntryType<A,A>(rk, rv, vc), RTKVEntry<A,A> where A: Any, A: Comparable<A>, DUMMY: Any, DUMMY: Comparable<A> {
     init {
         check(k.isStrictly(v))
     }

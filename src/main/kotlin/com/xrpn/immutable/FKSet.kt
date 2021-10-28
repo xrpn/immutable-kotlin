@@ -125,6 +125,10 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         TODO("Not yet implemented")
     }
 
+    override fun fcountKey(isMatch: (K) -> Boolean): Int {
+        TODO("Not yet implemented")
+    }
+
     override fun ffilterKey(isMatch: (K) -> Boolean): FKSet<K, A> {
         TODO("Not yet implemented")
     }

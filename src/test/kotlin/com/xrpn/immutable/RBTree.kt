@@ -411,6 +411,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
+    override fun fcountKey(isMatch: (A) -> Boolean): Int {
+        TODO("Not yet implemented")
+    }
+
     override fun fdropItem(item: TKVEntry<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }

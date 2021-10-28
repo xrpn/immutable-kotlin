@@ -50,17 +50,17 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         is UCIMSET -> pickEntry()?.getkKc()
         else -> null
     }
-    fun makeSample(): KeyedTypeSample<KClass<Any>?, KClass<Any>> = KeyedTypeSample(kKc()?.let { @Suppress("UNCHECKED_CAST") (it as KClass<Any>) }, @Suppress("UNCHECKED_CAST") (vKc()!! as KClass<Any>))
+    fun typeSample(): KeyedTypeSample<KClass<Any>?, KClass<Any>> = KeyedTypeSample(kKc()?.let { @Suppress("UNCHECKED_CAST") (it as KClass<Any>) }, @Suppress("UNCHECKED_CAST") (vKc()!! as KClass<Any>))
     fun isOfKey(kc: KClass<*>): Boolean? = kKc()?.let { it == kc }
     fun isOf(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? = vKc()?.let { sample.isLike(kKc(), it) }
-    fun isStrictLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
+    fun isStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         isOf(sample)?.let { it && strictlyLike(sample) } // NOT recursive if nested
     fun isStrictInternallyOf(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         isOf(sample)?.let { it && strictlyLike(sample) && isStrictInternally() } // checks strictness
     fun stricture(register: SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>): Boolean {
         return if (this.isEmpty()) true else {
-            register.init(makeSample())
-            val isLikeObs = isStrictLike(register.get()!!)!!
+            register.init(typeSample())
+            val isLikeObs = isStrictlyLike(register.get()!!)!!
             isLikeObs && isStrictInternally()
         }
     }
