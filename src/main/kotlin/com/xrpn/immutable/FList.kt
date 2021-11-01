@@ -660,7 +660,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
 
         internal fun <A: Any> flAppend(lead: FList<A>, after: FList<A>): FList<A> =
-            lead.ffoldRight(after) { element, list -> FLCons(element, list) }
+            lead.ffoldRight(after) { leadElement: A, augmentedAfter -> FLCons(leadElement, augmentedAfter) }
 
         internal fun <A: Any> flHasSubsequence(xsa: FList<A>, sub: IMList<A>): Boolean {
 

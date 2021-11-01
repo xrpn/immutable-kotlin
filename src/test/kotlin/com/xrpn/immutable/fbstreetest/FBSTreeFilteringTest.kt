@@ -1,36 +1,11 @@
 package com.xrpn.immutable.fbstreetest
 
-import com.xrpn.imapi.IMBTreeEqual2
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.of
 import com.xrpn.immutable.FBSTree.Companion.ofvi
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
-import com.xrpn.immutable.cEntry
-import com.xrpn.immutable.dEntry
-import com.xrpn.immutable.eEntry
-import com.xrpn.immutable.fEntry
-import com.xrpn.immutable.hEntry
-import com.xrpn.immutable.iEntry
-import com.xrpn.immutable.lEntry
-import com.xrpn.immutable.mEntry
-import com.xrpn.immutable.n17Entry
-import com.xrpn.immutable.n32Entry
-import com.xrpn.immutable.n50Entry
-import com.xrpn.immutable.n78Entry
-import com.xrpn.immutable.nEntry
-import com.xrpn.immutable.rEntry
-import com.xrpn.immutable.sEntry
-import com.xrpn.immutable.slideShareBreadthFirst
-import com.xrpn.immutable.slideShareInorder
-import com.xrpn.immutable.slideSharePostorder
-import com.xrpn.immutable.slideSharePreorder
-import com.xrpn.immutable.uEntry
-import com.xrpn.immutable.wikiInorder
-import com.xrpn.immutable.wikiPostorder
-import com.xrpn.immutable.wikiPreorder
-import com.xrpn.immutable.zEntry
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -51,23 +26,6 @@ class FBSTreeFilteringTest : FunSpec({
         val leftChildMatch = (node.bLeft is FBSTNode) && node.bLeft.entry == match
         val rightChildMatch = (node.bRight is FBSTNode) && node.bRight.entry == match
         return Pair(leftChildMatch, rightChildMatch)
-    }
-
-    test("fcontains") {
-        nul<Int, String>().fcontains(zEntry) shouldBe false
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val p = t.fcontains(acc.head)
-                    p shouldBe true
-                    go(t, acc.tail)
-                }
-            }
-        go(wikiTree, wikiPreorder)
-        wikiTree.fcontains(zEntry) shouldBe false
-        go(slideShareTree, slideShareBreadthFirst)
-        slideShareTree.fcontains(TKVEntry.ofIntKey(100)) shouldBe false
     }
 
     test("fcontainsKey") {
@@ -121,6 +79,7 @@ class FBSTreeFilteringTest : FunSpec({
 
     test("dropAlt (nil)") {
         nul<Int, Int>().fdropAlt(emptyIMBTree<Int, Int>()) shouldBe emptyIMBTree()
+        (nul<Int, Int>().fdropAlt(emptyIMBTree<Int, Int>()) === emptyIMBTree<Int,Int>()) shouldBe true
         nul<Int, Int>().fdropAlt(of(1.toIAEntry())) shouldBe emptyIMBTree()
     }
 
@@ -134,120 +93,12 @@ class FBSTreeFilteringTest : FunSpec({
         ofvi(1,2,3,4).fdropAlt(FRBTree.of(1.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(2, 4)
     }
 
-    test("dropItem") {
-        nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe emptyIMBTree()
-
-        tailrec fun <A: Comparable<A>, B: Any> goAll(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    when (val deleted = t.fdropItem(acc.head)) {
-                        is FBSTNode -> {
-                            deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
-                        }
-                        is FBSTNil -> true shouldBe false
-                    }
-                    goAll(t, acc.tail, inorder)
-                }
-            }
-
-        tailrec fun <A: Comparable<A>, B: Any> goTele(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val deleted = t.fdropItem(acc.head)
-                    val oracle = inorder.ffilterNot { it == acc.head }
-                    when (deleted) {
-                        is FBSTNode -> {
-                            deleted.inorder() shouldBe oracle
-                        }
-                        is FBSTNil -> deleted.size shouldBe 0
-                    }
-                    goTele(deleted, acc.tail, oracle)
-                }
-            }
-
-        goAll(wikiTree, wikiPreorder, wikiInorder)
-        goAll(wikiTree, wikiInorder, wikiInorder)
-        goAll(wikiTree, wikiPostorder, wikiInorder)
-        goAll(wikiTree, wikiPreorder.freverse(), wikiInorder)
-        goAll(wikiTree, wikiInorder.freverse(), wikiInorder)
-        goAll(wikiTree, wikiPostorder.freverse(), wikiInorder)
-        wikiTree.fdropItem(zEntry) shouldBe wikiTree
-        goTele(wikiTree, wikiPreorder, wikiInorder)
-        goTele(wikiTree, wikiInorder, wikiInorder)
-        goTele(wikiTree, wikiPostorder, wikiInorder)
-        goTele(wikiTree, wikiPreorder.freverse(), wikiInorder)
-        goTele(wikiTree, wikiInorder.freverse(), wikiInorder)
-        goTele(wikiTree, wikiPostorder.freverse(), wikiInorder)
-
-        goAll(slideShareTree, slideSharePreorder, slideShareInorder)
-        goAll(slideShareTree, slideShareInorder, slideShareInorder)
-        goAll(slideShareTree, slideSharePostorder, slideShareInorder)
-        goAll(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-        goAll(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
-        goAll(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
-        goAll(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
-        goAll(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
-        slideShareTree.fdropItem(TKVEntry.ofIntKey(100)) shouldBe slideShareTree
-        goTele(slideShareTree, slideSharePreorder, slideShareInorder)
-        goTele(slideShareTree, slideShareInorder, slideShareInorder)
-        goTele(slideShareTree, slideSharePostorder, slideShareInorder)
-        goTele(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-        goTele(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
-        goTele(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
-        goTele(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
-        goTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
-
-        // remove only one
-        val aux5a = slideShareTree.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
-        val aux5b = aux5a.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
-        IMBTreeEqual2(aux5b.fdropItem(slideShareTree.fleftMost()!!), aux5a) shouldBe true
-    }
-
-    test("ffdropItemAll") {
-        nul<Int, Int>().fdropItemAll(1.toIAEntry()) shouldBe FRBTree.emptyIMBTree()
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    when (val deleted = t.fdropItemAll(acc.head)) {
-                        is FBSTNode -> deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
-                        is FBSTNil -> true shouldBe false
-                    }
-                    go(t, acc.tail, inorder)
-                }
-            }
-        val aux1 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-        go(aux1, wikiPreorder, aux1.inorder())
-        val aux2 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-            .finsertDup(wikiTree.froot()!!, allowDups = true)
-        go(aux2, wikiPreorder, aux2.inorder())
-        val aux3 = wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true)
-        go(aux3, wikiPreorder, aux3.inorder())
-        val aux4 = wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true)
-        go(aux4, wikiPreorder, aux4.inorder())
-        val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!)
-            .finsert(slideShareTree.fleftMost()!!)
-        go(aux5, slideShareBreadthFirst, aux5.inorder())
-        val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!)
-            .finsert(slideShareTree.frightMost()!!)
-        go(aux6, slideShareBreadthFirst, aux6.inorder())
-    }
-
-    // TODO dropWhen
-
     test("fempty") {
         FBSTNil.fempty() shouldBe true
         ofvi(1).fempty() shouldBe false
     }
 
-    test("ffilter, filterNot (nil)") {
-        nul<Int, Int>().ffilter { true } shouldBe FRBTree.emptyIMBTree()
-        nul<Int, Int>().ffilterNot { false } shouldBe FRBTree.emptyIMBTree()
-    }
-
-    test("ffilter, filterNot, ffind (A)") {
+    test("ffind (A)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(repeats, Arb.int(20..100)) { n ->
@@ -258,38 +109,22 @@ class FBSTreeFilteringTest : FunSpec({
             val tree: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
             tree.size shouldBe (ora1 * 2)
 
-            val sAll1: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
-            val snAll1: FBSTree<Int, Int> = tree.ffilterNot(pickIfLess(ora1))
             val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            sAll1.size shouldBe ora1
-            snAll1.size shouldBe 0
             saAll1.size shouldBe ora1 * 2
-            val sEmpty1: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
-            val snEmpty1: FBSTree<Int, Int> = tree.ffilterNot(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
-            snEmpty1.size shouldBe ora1
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
-            val snAll2: FBSTree<Int, Int> = tree.ffilterNot(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
-            snAll2.size shouldBe theRestSansOra2 + 1
             saAll2.size shouldBe ora2 * 2
-            val sEmpty2: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
-            val snEmpty2: FBSTree<Int, Int> = tree.ffilterNot(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
-            sEmpty2.size shouldBe theRestSansOra2
-            snEmpty2.size shouldBe ora1 - theRestSansOra2
             saEmpty2.size shouldBe (theRestSansOra2 * 2)
         }
     }
 
-    test("ffilter, ffind (B)") {
+    test("ffind (B)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(repeats, Arb.int(20..100)) { n ->
@@ -301,30 +136,22 @@ class FBSTreeFilteringTest : FunSpec({
             val tree: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
             tree.size shouldBe (ora1 * 2)
 
-            val sAll1: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
             val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            sAll1.size shouldBe ora1
             saAll1.size shouldBe ora1 * 2
-            val sEmpty1: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
             saAll2.size shouldBe ora2 * 2
-            val sEmpty2: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
             saEmpty2.size shouldBe (theRestSansOra2 * 2)
-            sEmpty2.size shouldBe theRestSansOra2
         }
     }
 
-    test("ffilter, ffind (C)") {
+    test("ffind (C)") {
         fun pickIfLess(n: Int): (TKVEntry<Int, Int>) -> Boolean = { it.getv() < n }
         fun pickIfMore(n: Int): (TKVEntry<Int, Int>) -> Boolean = { n < it.getv() }
         checkAll(repeats, Arb.int(20..100)) { n ->
@@ -336,26 +163,18 @@ class FBSTreeFilteringTest : FunSpec({
             val tree: FBSTree<Int, Int> = of(svalues.iterator(), allowDups = true)
             tree.size shouldBe (ora1 * 2)
 
-            val sAll1: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora1))
             val saAll1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora1))
-            sAll1.size shouldBe ora1
             saAll1.size shouldBe ora1 * 2
-            val sEmpty1: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora1))
             val saEmpty1: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora1))
-            sEmpty1.size shouldBe 0
             saEmpty1.size shouldBe 0
 
             val ora2 = ora1 / 2
             val theRestSansOra2 = (ora1 - ora2) - 1
 
-            val sAll2: FBSTree<Int, Int> = tree.ffilter(pickIfLess(ora2))
             val saAll2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfLess(ora2))
-            sAll2.size shouldBe ora2
             saAll2.size shouldBe ora2 * 2
-            val sEmpty2: FBSTree<Int, Int> = tree.ffilter(pickIfMore(ora2))
             val saEmpty2: FList<TKVEntry<Int, Int>> = tree.ffind(pickIfMore(ora2))
             saEmpty2.size shouldBe (theRestSansOra2 * 2)
-            sEmpty2.size shouldBe theRestSansOra2
         }
     }
 
@@ -442,23 +261,6 @@ class FBSTreeFilteringTest : FunSpec({
             tree2.ffindDistinct { it.getv() == ora2 } shouldBe null
             tree1.ffindDistinct { it.getv() == ora2 }?.getv() shouldBe ora2
         }
-    }
-
-    test("ffindAny") {
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<A> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    if (t.ffindAny{ it == acc.head }?.let{ itAny -> itAny == acc.head } != true)  fail("not found: ${acc.head}")
-                    go(t, acc.tail)
-                }
-            }
-        go(wikiTree, wikiPreorder)
-        go(wikiTree, wikiPostorder)
-        go(wikiTree, wikiInorder)
-        wikiTree.ffindAny{ it == zEntry } shouldBe null
-        go(slideShareTree, slideShareBreadthFirst)
-        slideShareTree.ffindAny{ it == TKVEntry.ofIntKey(100) } shouldBe null
     }
 
     test("ffindItem") {

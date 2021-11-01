@@ -7,6 +7,11 @@ import com.xrpn.imapi.IMSet
 import java.util.RandomAccess
 import kotlin.reflect.KClass
 
+/* This, alas, is a form of boxing.  The API must be strictly limited to whatever contract is
+ * supported by all boxed entities.  For instance, <boxed>.first() is NOT ok since ordering has meaning
+ * for a list or a stack or a queue or a heap, but not for a set or a tree or a map; <boxed>.count()
+ * is ok since all containers can count how many items they contain. Were it always that simple... */
+
 internal typealias UniContainer<V> = UCon<Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,V>
 
 internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E, K, out V: Any>() where K: Any, K: Comparable<K>, A: Collection<V>, B: Map<K,V>, C: IMCollection<V>, D: ArrayList<@UnsafeVariance V> {
@@ -42,7 +47,15 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
     }
 
     fun all(predicate: (V) -> Boolean): Boolean = isEmpty() || count(predicate) == length()
-    fun filterNotEmpty() = FT.filterNotEmpty(@Suppress("UNCHECKED_CAST") (this as UniContainer<V>))!!
+    fun filterNotEmpty(): UniContainer<V>? = FT.filterNotEmpty(@Suppress("UNCHECKED_CAST") (this as UniContainer<V>))
+
+    abstract fun asUC(): UniContainer<V>
+    abstract fun count(isMatch: (V) -> Boolean): Int
+    abstract fun isEmpty(): Boolean
+    abstract fun isNested(): Boolean?
+    abstract fun length(): Int
+    abstract fun pick(): V?
+
     fun vKc(): KClass<out V>? = pick()?.let { it::class }
     fun isOfValue(kc: KClass<*>): Boolean? = vKc()?.let { it == kc }
     fun kKc(): KClass<out K>? = when (this) {
@@ -50,11 +63,12 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         is UCIMSET -> pickEntry()?.getkKc()
         else -> null
     }
-    fun typeSample(): KeyedTypeSample<KClass<Any>?, KClass<Any>> = KeyedTypeSample(kKc()?.let { @Suppress("UNCHECKED_CAST") (it as KClass<Any>) }, @Suppress("UNCHECKED_CAST") (vKc()!! as KClass<Any>))
     fun isOfKey(kc: KClass<*>): Boolean? = kKc()?.let { it == kc }
     fun isOf(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? = vKc()?.let { sample.isLike(kKc(), it) }
+    fun typeSample(): KeyedTypeSample<KClass<Any>?, KClass<Any>> = KeyedTypeSample(kKc()?.let { @Suppress("UNCHECKED_CAST") (it as KClass<Any>) }, @Suppress("UNCHECKED_CAST") (vKc()!! as KClass<Any>))
     fun isStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         isOf(sample)?.let { it && strictlyLike(sample) } // NOT recursive if nested
+    abstract fun isStrictInternally(): Boolean
     fun isStrictInternallyOf(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         isOf(sample)?.let { it && strictlyLike(sample) && isStrictInternally() } // checks strictness
     fun stricture(register: SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>): Boolean {
@@ -65,8 +79,6 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         }
     }
 
-    abstract fun isStrictInternally(): Boolean
-
     fun <T: Any> getIfIs(containerKc: KClass<T>): T? = when (this) {
         is UCIMSET -> if (imset()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imset()!! as T) else null
         is UCIMC -> if (imcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imcoll()!! as T) else null
@@ -75,12 +87,6 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         is UCARYL -> if (karyl()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (karyl()!! as T) else null
     }
 
-    abstract fun asUC(): UniContainer<V>
-    abstract fun count(isMatch: (V) -> Boolean): Int
-    abstract fun isEmpty(): Boolean
-    abstract fun isNested(): Boolean?
-    abstract fun length(): Int
-    abstract fun pick(): V?
     protected abstract fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean
 
     companion object {

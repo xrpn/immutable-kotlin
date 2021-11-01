@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
@@ -110,10 +111,27 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
     }
 
-    private val strictness: Boolean by lazy { if (fempty()) true else {
-        val aux = fpick()!!::class
-        val auxv = fpick()?.getv()!!::class
-        fall { it.isStrictly(aux) && FT.strictly( it.getv(), auxv ) }
+    private val strictness: Boolean by lazy { when {
+        fempty() -> true
+        fisNested()!! -> {
+            val maybeNotEmpty = fpickNotEmpty()
+            val tkvClass: KClass<*>? = maybeNotEmpty?.let { it::class }
+            val kc: KClass<out B>? = maybeNotEmpty?.let { it.getvKc() }
+            kc?.let { valueKClass ->
+                val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
+                null == ffindAny { tkv -> !FT.entryStrictness(tkv, tkvClass!!, valueKClass, ucKc) }
+            } ?: /* nested, but all empty */ run {
+                val aux = fpick()!!::class
+                fall {
+                    check(it.toUCon()?.let { uc -> uc.isEmpty() } ?: false )
+                    it.isStrictly(aux) && it.fisStrict()
+                }
+            }
+        }
+        else -> {
+            val aux = fpick()!!::class
+            fall { tkv: TKVEntry<A, B> -> tkv.isStrictly(aux) && tkv.fisStrict() }
+        }
     }}
 
     override fun fisStrict(): Boolean = strictness
@@ -635,7 +653,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 val newValue = /* find replacement value */ eureka.bRight.fleftMost()!!
                 val graftRight =  /* build new right subtree */
                     if ((eureka.bRight as FBSTNode).entry == newValue) eureka.bRight.bRight
-                    else bstPrune(eureka.bRight, newValue)
+                    else {
+                        val newValueRoot: FBSTree<A, B> = treeStub.ffindItem(newValue)!!
+                        val aux = if (newValueRoot.frightMost()?.let { it.equals(newValue) } == true) bstPrune(eureka.bRight, newValue)
+                        else bstPrune(eureka.bRight, newValue).finsertt((newValueRoot as FBSTNode).bRight)
+                        aux as FBSTree
+                    }
                 val stub = /* remove all A */ bstPrune(treeStub, eureka.entry)
                 val graftLeft = /* there may be duplicates */ (bstFind(current, item) as FBSTNode).bLeft
                 val replacement = /* build replacement */
@@ -647,13 +670,13 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 when (current) {
                     is FBSTNil -> trace.ffoldLeft(FBSTNode(item), ::enrichNode)
                     is FBSTNode -> {
-                        when (val last = bstFindLast(current, item)) {
+                        when (val first = bstFind(current, item)) {
                             is FBSTNode -> {
-                                val first = bstFind(current, item) as FBSTNode
+                                val last = bstFindLast(first, item) as FBSTNode
                                 val noDuplicates = last === first || atMostOne
                                 val found = if (atMostOne) first else last
                                 when {
-                                    found.bLeft.isEmpty() && found.bRight.isEmpty() -> if (noDuplicates) /* just remove */ bstPrune(treeStub, item) else {
+                                    found.isLeaf() -> if (noDuplicates) /* just remove */ bstPrune(treeStub, item) else {
                                         when(fitKey(item.getk(), first)) {
                                             FBTFIT.LEFT -> when (first.bRight) {
                                                 is FBSTNil -> bstPrune(treeStub, item)
@@ -704,7 +727,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
 
             return if (!treeStub.fcontains(item)) treeStub
-                else splice(item, treeStub, FLNil)
+            else {
+                val res: FBSTree<A, B> = splice(item, treeStub, FLNil)
+                val pred = deltaRemovalInvariant(res, treeStub, item, 1)
+                check(!atMostOne || pred)
+                res
+            }
         }
 
         internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FBSTree<A, B>
@@ -829,12 +857,19 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             return when {
                 ! treeStub.fcontains(clipMatch) -> /* nothing to prune */ treeStub
                 treeStub.fempty() -> /* nothing to match */ FBSTNil
-                else -> when(bstParent(treeStub, clipMatch)!!) {
-                    is FBSTNil -> /* root; not found was handled above */ FBSTNil
-                    is FBSTNode -> copy(FStack.of(treeStub as FBSTNode), FBSTNil).first
+                else -> {
+                    val clipParent = bstParent(treeStub, clipMatch)!!
+                    when(clipParent) {
+                        is FBSTNil -> /* root; not found was handled above */ FBSTNil
+                        is FBSTNode -> {
+                            val res: FBSTree<A, B> = copy(FStack.of(treeStub as FBSTNode), FBSTNil).first
+                            val pred = deltaRemovalInvariant(res, treeStub, clipMatch, matchingChild(clipParent, clipMatch, ::fit)!!.size)
+                            check(pred)
+                            res
+                        }
+                    }
                 }
             }
-
         }
 
         internal inline fun <reified A, reified B: Any> toArray(fbst: FBSTree<A, B>): Array<TKVEntry<A, B>> where A: Any, A: Comparable<A> =
@@ -878,6 +913,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             val leftChildMatch = (node.bLeft is FBSTNode) && fitMode(item, node.bLeft) == FBTFIT.EQ
             val rightChildMatch = (node.bRight is FBSTNode) && fitMode(item, node.bRight) == FBTFIT.EQ
             return Pair(leftChildMatch, rightChildMatch)
+        }
+
+        private fun <A, B: Any, C: Any> matchingChild(node: FBSTNode<A, B>, item: C, fitMode: (C, FBSTNode<A, B>) -> FBTFIT): FBSTNode<A, B>? where A: Any, A: Comparable<A> = when {
+            node.bLeft is FBSTNode && fitMode(item, node.bLeft) == FBTFIT.EQ -> node.bLeft
+            node.bRight is FBSTNode && fitMode(item, node.bRight) == FBTFIT.EQ -> node.bRight
+            else -> null
         }
 
         // assert the BST property on this node
@@ -1054,6 +1095,19 @@ internal data class FBSTNode<out A, out B: Any> (
     internal fun isLeaf(): Boolean = bLeft is FBSTNil && bRight is FBSTNil
 
     val show: String by lazy {
+
+        val leftMark = "<"
+        val rightMark = ">"
+
+        tailrec fun <C> unwindQueue(
+            queue: FQueue< Pair<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>, String> >,
+            acc: C,
+            accrue: (FQueue< Pair<FBSTNode<A, B>, String> >, C) -> Pair<C, FQueue< Pair<FBSTNode<@UnsafeVariance A, @UnsafeVariance B>, String >>>
+        ): C = if (queue.isEmpty()) acc else {
+                val (newAcc, newQueue) = accrue(queue, acc)
+                unwindQueue(newQueue, newAcc, accrue)
+            }
+
         val sz: String = when (val ns = size) {
             0 -> ""
             else -> "{$ns}"
@@ -1062,32 +1116,24 @@ internal data class FBSTNode<out A, out B: Any> (
 
         fun asString(): String {
 
-            fun accrue(q: FQueue<FBSTNode<A, B>>, acc: FList<String>): Pair<FList<String>, FQueue<FBSTNode<A, B>>> {
-                val (node, dequeued) = q.fdequeueOrThrow()
-                val mind = node.fminDepth()
-                val maxd = node.fmaxDepth()
-                val dmsg = if (1 == maxd && 1 == mind) "(*)" else "(${node.fminDepth()}|${node.fmaxDepth()})"
-                val acc3 = FLCons("{${node.entry}:$dmsg},", acc)
-                val acc1: FList<String>
-                val acc2: FList<String>
-                val q1 = if (node.bLeft is FBSTNil) {
-                    acc1 = FLCons("", acc3)
-                    dequeued
-                } else {
-                    acc1 = FLCons("<", acc3)
-                    dequeued.fenqueue(node.bLeft as FBSTNode)
-                }
-                val q2 = if (node.bRight is FBSTNil) {
-                    acc2 = FLCons("", acc1)
-                    q1
-                } else {
-                    acc2 = FLCons(">", acc1)
-                    q1.fenqueue(node.bRight as FBSTNode)
-                }
-                return Pair(acc2, q2)
+            fun accrue(q: FQueue<Pair<FBSTNode<A, B>, String>>, acc: FList<String>): Pair<FList<String>, FQueue< Pair<FBSTNode<A, B>, String>>> {
+                val (nodelor, dequeued) = q.fdequeueOrThrow()
+
+                val maxl = nodelor.first.bLeft.fmaxDepth()
+                val maxr = nodelor.first.bRight.fmaxDepth()
+                val depthMsg = if (nodelor.first.isLeaf()) "(-|-)" else "(${if (0==maxl) '-' else maxl}|${if (0==maxr) '-' else maxr})"
+                val showEntry = "{${nodelor.first.entry}:${nodelor.second}$depthMsg}"
+
+                val newAcc = acc.fprepend(showEntry)
+                val lq = if (nodelor.first.bLeft is FBSTNil) dequeued
+                else dequeued.fenqueue(Pair(nodelor.first.bLeft as FBSTNode,"[$leftMark$maxl]"))
+                val nq = if (nodelor.first.bRight is FBSTNil) lq
+                else lq.fenqueue(Pair(nodelor.first.bRight as FBSTNode, "[$rightMark$maxr]"))
+                return Pair(newAcc, nq)
             }
 
-            return unwindQueue(FQueue.emptyIMQueue<FBSTNode<A, B>>().fenqueue(this), FLNil, ::accrue).ffoldLeft(""){ acc, item -> item + acc }
+            val res = unwindQueue(emptyIMQueue<Pair<FBSTNode<A, B>, String>>().fenqueue(Pair(this, "")), FLNil, ::accrue)
+            return res.ffoldLeft(""){ acc, item -> item + acc }
         }
 
         "${FBSTree::class.simpleName}@$sz:${asString()}"
@@ -1140,4 +1186,23 @@ internal data class FBSTNode<out A, out B: Any> (
     companion object {
         fun <A, B: Any> hashCode(n: FBSTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hashCode()
     }
+}
+
+private fun <A, B: Any> deltaRemovalInvariant(outcome: FBSTree<A, B>, initialState: FBSTree<A, B>, deltaItem: TKVEntry<A, B>, deltaCount: Int): Boolean
+where A: Any, A: Comparable<A> = if ((outcome.size+deltaCount) == initialState.size) true else {
+    println("${ initialState.size - outcome.size } ($deltaCount expected) missing after deleting $deltaItem from tree of ${initialState.size}")
+    if (initialState.froot()!!.equals(deltaItem)) print("which was root")
+    initialState.ffindItem(deltaItem)?.let { it: FBSTree<A, B> -> println("found at $it") } ?: print("WHICH SHOULD NOT BE MISSING")
+    val inParent = initialState.fparentOf(deltaItem)
+    inParent?.let { it: FBSTree<A, B> -> println("with parent $it") } ?: print("with missing parent")
+    inParent?.let { it.froot()?.let { asEntry ->
+        outcome.ffindItem( asEntry )?.let {
+            println("(==> now  $it)")
+        } ?: print("(==> now  MISSING)")
+    } ?: print("which after removal is now empty") }
+    println("the removed items:")
+    initialState.forEach{
+        if (!outcome.contains(it)) println(it)
+    }
+    false
 }

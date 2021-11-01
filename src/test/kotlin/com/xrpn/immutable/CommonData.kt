@@ -1,7 +1,9 @@
 package com.xrpn.immutable
 
+import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.SymKeyType
 import com.xrpn.immutable.TKVEntry.Companion.toKKEntry
+import io.kotest.matchers.shouldBe
 import kotlin.reflect.KClass
 
 internal val emptyArrayOfInt: Array<Int> = arrayOf()
@@ -433,3 +435,33 @@ internal val copanSetOf4 = ofBody(nnodeRbtOf4)
 internal val copaKKSetOf4 = ofBody(knodeRbtOf4)
 internal val copaISetOf4 = ofBody(inodeRbtOf4)
 internal val copaSSetOf4 = ofBody(snodeRbtOf4)
+
+tailrec fun <A: Comparable<A>, B: Any> goAll(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
+    when (acc) {
+        is FLNil -> FLNil
+        is FLCons -> {
+            when (val deleted = t.fdropItem(acc.head)) {
+                is FBSTNode -> {
+                    deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
+                }
+                is FBSTNil -> true shouldBe false
+            }
+            goAll(t, acc.tail, inorder)
+        }
+    }
+
+internal tailrec fun <A: Comparable<A>, B: Any> goTele(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
+    when (acc) {
+        is FLNil -> FLNil
+        is FLCons -> {
+            val deleted = t.fdropItem(acc.head)
+            val oracle = inorder.ffilterNot { it == acc.head }
+            when (deleted) {
+                is FBSTNode -> {
+                    deleted.inorder() shouldBe oracle
+                }
+                is FBSTNil -> deleted.size shouldBe 0
+            }
+            goTele(deleted, acc.tail, oracle)
+        }
+    }

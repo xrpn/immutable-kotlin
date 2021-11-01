@@ -1,4 +1,4 @@
-package com.xrpn.immutable
+package com.xrpn.imapi
 
 sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>() {
     fun left(): A? = when (this) {
@@ -11,6 +11,6 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>() {
     }
 }
 
-data class TSDL<out A>(val a: A): TSDJ<A,Nothing>()
+data class TSDL<out A>(val a: A): TSDJ<A, Nothing>()
 data class TSDR<out B>(val b: B): TSDJ<Nothing, B>()
 
