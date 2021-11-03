@@ -1,7 +1,7 @@
 package com.xrpn.immutable.fbstreetest
 
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FBSTree.Companion.fbtAssert
+import com.xrpn.immutable.FBSTree.Companion.fbtAssertNodeInvariant
 import com.xrpn.immutable.aEntry
 import com.xrpn.immutable.bEntry
 import com.xrpn.immutable.cEntry
@@ -57,7 +57,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("preorder") {
         FBSTNil.preorder() shouldBe FLNil
-        FBSTNode(mEntry).preorder() shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).preorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.preorder() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.preorder() shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -99,7 +99,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("preorder reverse") {
         FBSTNil.preorder(reverse = true) shouldBe FLNil
-        FBSTNode(mEntry).preorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).preorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.preorder(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.preorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -141,7 +141,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("inorder") {
         FBSTNil.inorder() shouldBe FLNil
-        fbtAssert(FBSTNode(mEntry)).inorder() shouldBe FLCons(mEntry, FLNil)
+        fbtAssertNodeInvariant(FBSTNode.of(mEntry)).inorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.inorder() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.inorder() shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -183,7 +183,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("inorder reverse") {
         FBSTNil.inorder(reverse = true) shouldBe FLNil
-        fbtAssert(FBSTNode(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
+        fbtAssertNodeInvariant(FBSTNode.of(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
 
         depthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).freverse()
         depthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).freverse()
@@ -225,7 +225,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("postorder") {
         FBSTNil.postorder() shouldBe FLNil
-        FBSTNode(mEntry).postorder() shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).postorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.postorder() shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.postorder() shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -267,7 +267,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("postorder reverse") {
         FBSTNil.postorder(reverse = true) shouldBe FLNil
-        FBSTNode(mEntry).postorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).postorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -309,7 +309,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("breadthFirst") {
         FBSTNil.breadthFirst() shouldBe FLNil
-        FBSTNode(mEntry).breadthFirst() shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).breadthFirst() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.breadthFirst() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.breadthFirst() shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -351,7 +351,7 @@ class FBSTreeTraversingTest : FunSpec({
 
     test("breadthFirst reverse") {
         FBSTNil.breadthFirst(reverse = true) shouldBe FLNil
-        FBSTNode(mEntry).breadthFirst(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        FBSTNode.of(mEntry).breadthFirst(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.breadthFirst(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.breadthFirst(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))

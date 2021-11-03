@@ -37,11 +37,15 @@ interface IMBTreeAltering<out A, out B: Any> where A: Any, A: Comparable<@Unsafe
     fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): IMBTree<A, B>
     fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): IMBTree<A, B>
+    fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): IMBTree<A, B>
     fun finsertt(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> =
         items.ffold(this as IMBTree<A, B>) { stub, tkv ->
             stub.finsert(tkv)
         }
-    fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): IMBTree<A, B>
+    fun finserttDup(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): IMBTree<A, B> =
+        items.ffold(this as IMBTree<A, B>) { stub, tkv ->
+            stub.finsertDup(tkv, allowDups)
+        }
 }
 
 interface IMStackAltering<out A: Any> {

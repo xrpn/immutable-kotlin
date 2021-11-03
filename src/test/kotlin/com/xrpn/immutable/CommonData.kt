@@ -2,7 +2,9 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.SymKeyType
+import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toKKEntry
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import kotlin.reflect.KClass
 
@@ -206,30 +208,30 @@ internal val frbDepthTwoRightLeftBreadthFirst = FList.of(nEntry,mEntry,sEntry,rE
 
 // https://en.wikipedia.org/wiki/Tree_traversal
 val wikiTree: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             fEntry,
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     bEntry,
-                    FBSTree.fbtAssert(FBSTNode(aEntry)),
-                    FBSTree.fbtAssert(
-                        FBSTNode(
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(aEntry)),
+                    FBSTree.fbtAssertNodeInvariant(
+                        FBSTNode.of(
                             dEntry,
-                            FBSTree.fbtAssert(FBSTNode(cEntry)),
-                            FBSTree.fbtAssert(FBSTNode(eEntry))
+                            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(cEntry)),
+                            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(eEntry))
                         )
                     ),
                 )
             ),
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     gEntry,
                     FBSTNil,
-                    FBSTree.fbtAssert(
-                        FBSTNode(
+                    FBSTree.fbtAssertNodeInvariant(
+                        FBSTNode.of(
                             iEntry,
-                            FBSTree.fbtAssert(FBSTNode(hEntry)),
+                            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(hEntry)),
                             FBSTNil,
                         )
                     )
@@ -243,27 +245,27 @@ internal val wikiPostorder = FList.of( aEntry,cEntry,eEntry,dEntry,bEntry,hEntry
 
 // https://www.slideshare.net/ERPunitJain/binary-search-tree-472n88Entry612
 val slideShareTree: FBSTree<Int, Int> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             n44Entry,
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     n17Entry,
                     FBSTNil,
-                    FBSTree.fbtAssert(FBSTNode(n32Entry))
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(n32Entry))
                 )
             ),
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     n78Entry,
-                    FBSTree.fbtAssert(
-                        FBSTNode(
+                    FBSTree.fbtAssertNodeInvariant(
+                        FBSTNode.of(
                             n50Entry,
-                            FBSTree.fbtAssert(FBSTNode(n48Entry)),
-                            FBSTree.fbtAssert(FBSTNode(n62Entry))
+                            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(n48Entry)),
+                            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(n62Entry))
                         )
                     ),
-                    FBSTree.fbtAssert(FBSTNode(n88Entry))
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(n88Entry))
                 )
             )
         )
@@ -274,29 +276,29 @@ internal val slideSharePostorder = FList.of(n32Entry,n17Entry,n48Entry,n62Entry,
 internal val slideShareBreadthFirst = FList.of(n44Entry,n17Entry,n78Entry,n32Entry,n50Entry,n88Entry,n48Entry,n62Entry)
 
 val depthOneRight: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             mEntry,
             FBSTNil,
-            FBSTree.fbtAssert(FBSTNode(nEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(nEntry))
         )
     )
 
 val depthOneLeft: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             mEntry,
-            FBSTree.fbtAssert(FBSTNode(lEntry)),
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
             FBSTNil
         )
     )
 
 val depthOneFull: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             mEntry,
-            FBSTree.fbtAssert(FBSTNode(lEntry)),
-            FBSTree.fbtAssert(FBSTNode(nEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(nEntry))
         )
     )
 internal val depthOneFullPreorder = FList.of(mEntry,lEntry,nEntry)
@@ -305,25 +307,25 @@ internal val depthOneFullPostorder = FList.of(lEntry,nEntry,mEntry)
 internal val depthOneFullBreadthFirst = FList.of(mEntry,lEntry,nEntry)
 
 val depthTwoLeftPartial: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(FBSTNode(lEntry)),
-            FBSTree.fbtAssert(FBSTNode(sEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(sEntry))
         )
     )
 val depthTwoLeftRight: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     lEntry,
                     FBSTNil,
-                    FBSTree.fbtAssert(FBSTNode(mEntry))
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(mEntry))
                 )
             ),
-            FBSTree.fbtAssert(FBSTNode(sEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(sEntry))
         )
     )
 internal val depthTwoLeftRightPreorder = FList.of(nEntry,lEntry,mEntry,sEntry)
@@ -332,17 +334,17 @@ internal val depthTwoLeftRightPostorder = FList.of(mEntry,lEntry,sEntry,nEntry)
 internal val depthTwoLeftRightBreadthFirst = FList.of(nEntry,lEntry,sEntry,mEntry)
 
 val depthTwoLeftLeft: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     lEntry,
-                    FBSTree.fbtAssert(FBSTNode(eEntry)),
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(eEntry)),
                     FBSTNil
                 )
             ),
-            FBSTree.fbtAssert(FBSTNode(sEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(sEntry))
         )
     )
 internal val depthTwoLeftLeftPreorder = FList.of(nEntry,lEntry,eEntry,sEntry)
@@ -351,23 +353,23 @@ internal val depthTwoLeftLeftPostorder = FList.of(eEntry,lEntry,sEntry,nEntry)
 internal val depthTwoLeftLeftBreadthFirst = FList.of(nEntry,lEntry,sEntry,eEntry)
 
 val depthTwoRightPartial: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(FBSTNode(mEntry)),
-            FBSTree.fbtAssert(FBSTNode(sEntry))
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(sEntry))
         )
     )
 val depthTwoRightRight: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(FBSTNode(mEntry)),
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     sEntry,
                     FBSTNil,
-                    FBSTree.fbtAssert(FBSTNode(uEntry))
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(uEntry))
                 )
             )
         )
@@ -378,14 +380,14 @@ internal val depthTwoRightRightPostorder = FList.of(mEntry,uEntry,sEntry,nEntry)
 internal val depthTwoRightRightBreadthFirst = FList.of(nEntry,mEntry,sEntry,uEntry)
 
 val depthTwoRightLeft: FBSTree<Int, String> =
-    FBSTree.fbtAssert(
-        FBSTNode(
+    FBSTree.fbtAssertNodeInvariant(
+        FBSTNode.of(
             nEntry,
-            FBSTree.fbtAssert(FBSTNode(mEntry)),
-            FBSTree.fbtAssert(
-                FBSTNode(
+            FBSTree.fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
+            FBSTree.fbtAssertNodeInvariant(
+                FBSTNode.of(
                     sEntry,
-                    FBSTree.fbtAssert(FBSTNode(rEntry)),
+                    FBSTree.fbtAssertNodeInvariant(FBSTNode.of(rEntry)),
                     FBSTNil
                 )
             )
@@ -436,32 +438,34 @@ internal val copaKKSetOf4 = ofBody(knodeRbtOf4)
 internal val copaISetOf4 = ofBody(inodeRbtOf4)
 internal val copaSSetOf4 = ofBody(snodeRbtOf4)
 
-tailrec fun <A: Comparable<A>, B: Any> goAll(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
+tailrec fun <A: Comparable<A>, B: Any> goDropItemAll(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
     when (acc) {
         is FLNil -> FLNil
         is FLCons -> {
-            when (val deleted = t.fdropItem(acc.head)) {
-                is FBSTNode -> {
-                    deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
-                }
-                is FBSTNil -> true shouldBe false
+            val delenda = acc.head
+            val deleted: IMBTree<A, B> = t.fdropItemAll(delenda)
+            val oracle = inorder.ffilterNot { it == delenda }
+            val aut = deleted.inorder()
+            when (deleted) {
+                is FBSTNode -> aut shouldBe oracle
+                is FBSTNil -> fail("empty tree should not be empty")
             }
-            goAll(t, acc.tail, inorder)
+            goDropItemAll(t, acc.tail, inorder)
         }
     }
 
-internal tailrec fun <A: Comparable<A>, B: Any> goTele(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
+internal tailrec fun <A: Comparable<A>, B: Any> goDropItemTele(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
     when (acc) {
         is FLNil -> FLNil
         is FLCons -> {
-            val deleted = t.fdropItem(acc.head)
-            val oracle = inorder.ffilterNot { it == acc.head }
+            val delenda = acc.head
+            val deleted: IMBTree<A, B> = t.fdropItem(delenda)
+            val oracle = inorder.fdropFirst { it == delenda }
+            val aut = deleted.inorder()
             when (deleted) {
-                is FBSTNode -> {
-                    deleted.inorder() shouldBe oracle
-                }
+                is FBSTNode -> aut shouldBe oracle
                 is FBSTNil -> deleted.size shouldBe 0
             }
-            goTele(deleted, acc.tail, oracle)
+            goDropItemTele(deleted, acc.tail, oracle)
         }
     }

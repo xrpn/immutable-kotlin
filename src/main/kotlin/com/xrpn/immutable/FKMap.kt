@@ -404,7 +404,7 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         fun assemblekk(): FKSet<@UnsafeVariance K, @UnsafeVariance K> {
             val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
             val seed: FRBTree<K, K> = FRBTree.of(ofk(ei!!.getk()))
-            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMRSet(seed.fkeyType())!!
+            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMRSet(seed.frestrictedKey())!!
         }
 
         if (null == item) TODO() else {
@@ -418,7 +418,7 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
                     else -> {
                         val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
                         val seed: FRBTree<Int, K> = FRBTree.of(ofIntKey(ei!!.getk()))
-                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMRSet(seed.fkeyType())!!
+                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMRSet(seed.frestrictedKey())!!
                     }
                 }
             }

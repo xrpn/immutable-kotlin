@@ -36,20 +36,20 @@ class FRBTreeUtilityTest  : FunSpec({
     beforeTest {}
 
     test("sanity") {
-        FRBTree.rbRootSane(ttDepthOneRight) shouldBe false
-        FRBTree.rbRootSane(frbDepthOneLeft) shouldBe true
-        FRBTree.rbRootSane(frbDepthOneFull) shouldBe true
+        FRBTree.rbRootInvariant(ttDepthOneRight) shouldBe false
+        FRBTree.rbRootInvariant(frbDepthOneLeft) shouldBe true
+        FRBTree.rbRootInvariant(frbDepthOneFull) shouldBe true
 
-        FRBTree.rbRootSane(ttDepthTwoLeftRight) shouldBe false
-        FRBTree.rbRootSane(frbDepthTwoLeftLeft) shouldBe true
-        FRBTree.rbRootSane(frbDepthTwoRightRight) shouldBe false
-        FRBTree.rbRootSane(frbDepthTwoRightLeft) shouldBe true
+        FRBTree.rbRootInvariant(ttDepthTwoLeftRight) shouldBe false
+        FRBTree.rbRootInvariant(frbDepthTwoLeftLeft) shouldBe true
+        FRBTree.rbRootInvariant(frbDepthTwoRightRight) shouldBe false
+        FRBTree.rbRootInvariant(frbDepthTwoRightLeft) shouldBe true
 
-        FRBTree.rbRootSane(ttDepthTwoLeftPartial) shouldBe false
-        FRBTree.rbRootSane(ttDepthTwoRightPartial) shouldBe false
+        FRBTree.rbRootInvariant(ttDepthTwoLeftPartial) shouldBe false
+        FRBTree.rbRootInvariant(ttDepthTwoRightPartial) shouldBe false
 
-        FRBTree.rbRootSane(frbWikiTree) shouldBe true
-        FRBTree.rbRootSane(frbSlideShareTree) shouldBe true
+        FRBTree.rbRootInvariant(frbWikiTree) shouldBe true
+        FRBTree.rbRootInvariant(frbSlideShareTree) shouldBe true
 
         rbWikiTree.preorder() shouldBe frbWikiTree.preorder()
         rbWikiTree.inorder() shouldBe frbWikiTree.inorder()

@@ -26,7 +26,7 @@ class FRBTreeAlteringTest : FunSpec({
     val verbose = false
 
     fun displayRbOnVerbose(rbTree: IMBTree<Int, Int>, n: Int, force: Boolean = false) {
-        if (verbose || !FRBTree.rbRootSane(rbTree as FRBTree<Int, Int>) || force) {
+        if (verbose || !FRBTree.rbRootInvariant(rbTree as FRBTree<Int, Int>) || force) {
             print("FF size " + n)
             print(", expected depth ${FRBTree.rbMaxDepth(n)}")
             print(", max depth " + rbTree.fmaxDepth())
@@ -40,64 +40,64 @@ class FRBTreeAlteringTest : FunSpec({
     test("finsert items sorted asc") {
         val aux0 = FRBTree.nul<Int,Int>().finsert(TKVEntry.ofIntKey(0))
         if (verbose) println("tree with 0                   $aux0")
-        FRBTree.rbRootSane(aux0) shouldBe true
+        FRBTree.rbRootInvariant(aux0) shouldBe true
         val aux1 = aux0.finsert(TKVEntry.ofIntKey(1))
         if (verbose) println("tree with 0,1                 $aux1")
-        FRBTree.rbRootSane(aux1) shouldBe true
+        FRBTree.rbRootInvariant(aux1) shouldBe true
         val aux2 = aux1.finsert(TKVEntry.ofIntKey(2))
         if (verbose) println("tree with 0,1,2               $aux2")
-        FRBTree.rbRootSane(aux2) shouldBe true
+        FRBTree.rbRootInvariant(aux2) shouldBe true
         val aux3 = aux2.finsert(TKVEntry.ofIntKey(repeatsLow.first))
         if (verbose) println("tree with 0,1,2,repeatsLow.first             $aux3")
-        FRBTree.rbRootSane(aux3) shouldBe true
+        FRBTree.rbRootInvariant(aux3) shouldBe true
         val aux4 = aux3.finsert(TKVEntry.ofIntKey(4))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4           $aux4")
-        FRBTree.rbRootSane(aux4) shouldBe true
+        FRBTree.rbRootInvariant(aux4) shouldBe true
         val aux5 = aux4.finsert(TKVEntry.ofIntKey(5))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5         $aux5")
-        FRBTree.rbRootSane(aux5) shouldBe true
+        FRBTree.rbRootInvariant(aux5) shouldBe true
         val aux6 = aux5.finsert(TKVEntry.ofIntKey(6))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6       $aux6")
-        FRBTree.rbRootSane(aux6) shouldBe true
+        FRBTree.rbRootInvariant(aux6) shouldBe true
         val aux7 = aux6.finsert(TKVEntry.ofIntKey(7))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7     $aux7")
-        FRBTree.rbRootSane(aux7) shouldBe true
+        FRBTree.rbRootInvariant(aux7) shouldBe true
         val aux8 = aux7.finsert(TKVEntry.ofIntKey(8))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7,8   $aux8")
-        FRBTree.rbRootSane(aux8) shouldBe true
+        FRBTree.rbRootInvariant(aux8) shouldBe true
         val aux9 = aux8.finsert(TKVEntry.ofIntKey(9))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7,8,9 $aux9")
-        FRBTree.rbRootSane(aux9) shouldBe true
+        FRBTree.rbRootInvariant(aux9) shouldBe true
     }
 
     test("finsert items sorted desc") {
         val aux0 = FRBTree.nul<Int,Int>().finsert(TKVEntry.ofIntKey(8))
         if (verbose) println("8: $aux0")
-        FRBTree.rbRootSane(aux0) shouldBe true
+        FRBTree.rbRootInvariant(aux0) shouldBe true
         val aux1 = aux0.finsert(TKVEntry.ofIntKey(7))
         if (verbose) println("7: $aux1")
-        FRBTree.rbRootSane(aux1) shouldBe true
+        FRBTree.rbRootInvariant(aux1) shouldBe true
         val aux2 = aux1.finsert(TKVEntry.ofIntKey(6))
         if (verbose) println("6: $aux2")
-        FRBTree.rbRootSane(aux2) shouldBe true
+        FRBTree.rbRootInvariant(aux2) shouldBe true
         val aux3 = aux2.finsert(TKVEntry.ofIntKey(5))
         if (verbose) println("5: $aux3")
-        FRBTree.rbRootSane(aux3) shouldBe true
+        FRBTree.rbRootInvariant(aux3) shouldBe true
         val aux4 = aux3.finsert(TKVEntry.ofIntKey(4))
         if (verbose) println("4: $aux4")
-        FRBTree.rbRootSane(aux4) shouldBe true
+        FRBTree.rbRootInvariant(aux4) shouldBe true
         val aux5 = aux4.finsert(TKVEntry.ofIntKey(repeatsLow.first))
         if (verbose) println("repeatsLow.first: $aux5")
-        FRBTree.rbRootSane(aux5) shouldBe true
+        FRBTree.rbRootInvariant(aux5) shouldBe true
         val aux6 = aux5.finsert(TKVEntry.ofIntKey(2))
         if (verbose) println("2: $aux6")
-        FRBTree.rbRootSane(aux6) shouldBe true
+        FRBTree.rbRootInvariant(aux6) shouldBe true
         val aux7 = aux6.finsert(TKVEntry.ofIntKey(1))
         if (verbose) println("1: $aux7")
-        FRBTree.rbRootSane(aux7) shouldBe true
+        FRBTree.rbRootInvariant(aux7) shouldBe true
         val aux8 = aux7.finsert(TKVEntry.ofIntKey(0))
         if (verbose) println("0: $aux8")
-        FRBTree.rbRootSane(aux8) shouldBe true
+        FRBTree.rbRootInvariant(aux8) shouldBe true
     }
 
     test("finserts, finsertt NIL") {
@@ -128,7 +128,7 @@ class FRBTreeAlteringTest : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val frbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(frbTree, n)
-            FRBTree.rbRootSane(frbTree) shouldBe true
+            FRBTree.rbRootInvariant(frbTree) shouldBe true
             frbTree.size shouldBe n
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
@@ -156,7 +156,7 @@ class FRBTreeAlteringTest : FunSpec({
             values.reverse()
             val frbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(frbTree, n)
-            FRBTree.rbRootSane(frbTree) shouldBe true
+            FRBTree.rbRootInvariant(frbTree) shouldBe true
             frbTree.size shouldBe n
             val rbTree = RBTree.of(values.iterator())
             displayRbtOnVerbose(rbTree, n)
@@ -182,7 +182,7 @@ class FRBTreeAlteringTest : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val rbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(values.iterator())
@@ -196,7 +196,7 @@ class FRBTreeAlteringTest : FunSpec({
             values.reverse()
             val rbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder(reverse = true)
             val testOracle = FList.of(values.iterator())
@@ -209,7 +209,7 @@ class FRBTreeAlteringTest : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val rbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(values.iterator())
@@ -223,7 +223,7 @@ class FRBTreeAlteringTest : FunSpec({
             values.reverse()
             val rbTree = FRBTree.of(values.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder(reverse = true)
             val testOracle = FList.of(values.iterator())
@@ -239,7 +239,7 @@ class FRBTreeAlteringTest : FunSpec({
             shuffled.shuffle()
             val rbTree = FRBTree.of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
@@ -256,7 +256,7 @@ class FRBTreeAlteringTest : FunSpec({
             shuffled.reverse()
             val rbTree = FRBTree.of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
@@ -271,7 +271,7 @@ class FRBTreeAlteringTest : FunSpec({
             shuffled.shuffle()
             val rbTree = FRBTree.of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())
@@ -287,7 +287,7 @@ class FRBTreeAlteringTest : FunSpec({
             shuffled.reverse()
             val rbTree = FRBTree.of(shuffled.iterator())
             displayRbOnVerbose(rbTree, n)
-            FRBTree.rbRootSane(rbTree) shouldBe true
+            FRBTree.rbRootInvariant(rbTree) shouldBe true
             rbTree.size shouldBe n
             val aut = rbTree.inorder()
             val testOracle = FList.of(sorted.iterator())

@@ -13,7 +13,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fbstreeAllowDups
+import io.kotest.xrpn.fbstreeWithDups
 
 class FBSTreeGroupingTest : FunSpec({
 
@@ -22,7 +22,7 @@ class FBSTreeGroupingTest : FunSpec({
     beforeTest {}
 
     test("fcount") {
-        Arb.fbstreeAllowDups<Int, Int>(Arb.int(0..100)).checkAll(repeats) { fbst ->
+        Arb.fbstreeWithDups<Int, Int>(Arb.int(0..100)).checkAll(repeats) { fbst ->
             val mm = fbst.copyToMutableMap()
             val ss = mm.size // size without duplicates
             val ds = fbst.size // size with duplicates
@@ -52,7 +52,7 @@ class FBSTreeGroupingTest : FunSpec({
             nul(),
             nul()
         )
-        Arb.fbstreeAllowDups<Int, Int>(Arb.int(0..100)).checkAll(repeats) { fbst ->
+        Arb.fbstreeWithDups<Int, Int>(Arb.int(0..100)).checkAll(repeats) { fbst ->
             val isEven: (tkv: TKVEntry<Int, Int>) -> Boolean = { tkv -> 0 == tkv.getv() % 2}
             val (even, odd) = fbst.fpartition(isEven)
             even.forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
@@ -85,7 +85,7 @@ class FBSTreeGroupingTest : FunSpec({
 
     test("maxDepth") {
         FBSTNil.fmaxDepth() shouldBe 0
-        FBSTNode(mEntry).fmaxDepth() shouldBe 1
+        FBSTNode.of(mEntry).fmaxDepth() shouldBe 1
 
         depthOneRight.fmaxDepth() shouldBe 2
         depthOneLeft.fmaxDepth() shouldBe 2
@@ -119,7 +119,7 @@ class FBSTreeGroupingTest : FunSpec({
 
     test("fsize") {
         FBSTNil.fsize() shouldBe 0
-        FBSTNode(mEntry).fsize() shouldBe 1
+        FBSTNode.of(mEntry).fsize() shouldBe 1
 
         depthOneRight.fsize() shouldBe 2
         depthOneLeft.fsize() shouldBe 2

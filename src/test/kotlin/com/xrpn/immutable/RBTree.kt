@@ -471,7 +471,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fkeyType(): RestrictedKeyType<A>? {
+    override fun frestrictedKey(): RestrictedKeyType<A>? {
         TODO("Not yet implemented")
     }
 
@@ -526,15 +526,15 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fAND(items: IMBTree<A, B>): IMBTree<A, B> {
+    override fun fAND(items: IMKeyedValue<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fOR(items: IMBTree<A, B>): IMBTree<A, B> {
+    override fun fOR(items: IMKeyedValue<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fXOR(items: IMBTree<A, B>): IMBTree<A, B> {
+    override fun fXOR(items: IMKeyedValue<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 

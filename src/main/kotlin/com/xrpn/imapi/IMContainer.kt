@@ -47,10 +47,11 @@ interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
     fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean?
+    fun asIMCollection(): IMCollection<*> = this as IMCollection<*>
 }
 
 interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun asIMBTree(): IMBTree<K,A>?
+    fun asIMBTree(): IMBTree<K,A>
     fun asIMMap(): IMMap<K,A>?
     fun fcontainsValue(value: @UnsafeVariance A): Boolean
     fun fcountValue(isMatch: (A) -> Boolean): Int // count the values that match the predicate
@@ -138,6 +139,7 @@ interface IMMap<out K, out V: Any>:
         asIMBTree().fcount(isMatch)
     override fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
+    override fun asIMCollection(): IMCollection<*> = this
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         if (fempty()) null else null == asIMBTree().ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
     // IMKeyedValue
@@ -146,17 +148,17 @@ interface IMMap<out K, out V: Any>:
 }
 
 interface IMBTree<out A, out B: Any>:
+    IMCollection<TKVEntry<A,B>>,
+    IMKeyed<A>,
+    IMKeyedValue<A, B>,
+    IMBTreeUtility<A, B>,
     IMBTreeTraversing<A, B>,
     IMBTreeFiltering<A, B>,
     IMBTreeGrouping<A, B>,
     IMBTreeTransforming<A,B>,
     IMBTreeAltering<A, B>,
-    IMBTreeUtility<A, B>,
     IMBTreeExtras<A, B>,
-    IMBTreeTyping<A, B>,
-    IMKeyedValue<A, B>,
-    IMKeyed<A>,
-    IMCollection<TKVEntry<A,B>>
+    IMBTreeTyping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // IMCollection
@@ -165,7 +167,6 @@ interface IMBTree<out A, out B: Any>:
     override fun fisNested(): Boolean?  = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean? =
-        // if (fempty()) null else sample.isLikeKey(fpickKey()!!::class) &&  null == ffindAny { tkv -> tkv.getv().isStrictlyNot(sample.vKc) }
         if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
     // IMKeyedValue
     override fun asIMBTree(): IMBTree<A,B> = this

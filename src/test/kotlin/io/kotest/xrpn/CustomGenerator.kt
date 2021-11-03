@@ -1,10 +1,12 @@
 package io.kotest.xrpn
 
 import com.xrpn.immutable.*
+import com.xrpn.immutable.FBSTree.Companion.fbtDeepInvariant
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.set
+import io.kotest.property.arbitrary.take
 
 fun <A: Any, B> Arb.Companion.flist(
     arbB: Arb<B>,
@@ -112,14 +114,23 @@ fun <A: Any, B> Arb.Companion.fbsStree(
     return Arb.set(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvs(cs.iterator()) }
 }
 
-fun <A: Any, B> Arb.Companion.fbstreeAllowDups(
+fun <A: Any, B> Arb.Companion.fbstreeWithDups(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
 ): Arb<FBSTree<Int, A>> where B:A {
     check(!range.isEmpty()) { "range must not be empty" }
     check(range.first >= 1) { "start of range must not be less than 1" }
-    return Arb.list(arbB, range).map { bs -> bs.map(f) }.map{ cs -> FBSTree.ofvi(cs.iterator(), allowDups = true) }
+    return Arb.list(arbB, range).map { bs -> bs.map(f) }.map{ cs: List<A> ->
+        var count = 0
+        val dups: List<A> = cs.flatMap { a ->
+            if (0 == count % 7)
+                listOf(a, a)
+            else
+                listOf(a)
+        }
+        FBSTree.ofvi(dups.iterator(), allowDups = true)
+    }
 }
 
 fun <A: Any, B> Arb.Companion.fbstreeAsCollection(

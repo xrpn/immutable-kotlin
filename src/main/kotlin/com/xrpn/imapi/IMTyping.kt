@@ -23,6 +23,7 @@ interface IMSetTyping<out A: Any>: IMCollection<A> {
 
 internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, IMKeyedValue<K,A> where K: Any, K: Comparable<@UnsafeVariance K> {
     // IMKeyed
+    override fun asIMCollection(): IMCollection<*> = this
     override fun ffilterKey(isMatch: (K) -> Boolean): IMKSet<K,A>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKSet<K,A>
     // IMKeyedValue
@@ -41,6 +42,7 @@ interface IMMapTyping<out K, out V: Any>: IMCollection<TKVEntry<K,V>>, IMKeyed<K
     override fun ffilter(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // Return all elements that do not match the predicate p
     // IMKeyed
+    override fun asIMCollection(): IMCollection<*> = this
     override fun ffilterKey(isMatch: (K) -> Boolean): IMMap<K,V>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMMap<K,V>
     override fun fpickKey(): K? = fpick()?.getk()  // peekk at one random key
@@ -58,11 +60,13 @@ interface IMBTreeTyping<out A, out B: Any>: IMCollection<TKVEntry<A,B>>, IMKeyed
     override fun fdropWhen(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A,B> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A,B> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A,B> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
     // IMKeyed
+    override fun asIMCollection(): IMCollection<*> = this
     override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A,B>
     override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMBTree<A,B>
     override fun fpickKey(): A? = fpick()?.getk()
-   // IMKeyedValue
+    // IMKeyedValue
     override fun asIMMap(): IMMap<A,B>
     override fun ffilterValue(isMatch: (B) -> Boolean): IMBTree<A,B>
     override fun ffilterValueNot(isMatch: (B) -> Boolean): IMBTree<A,B>

@@ -7,18 +7,15 @@ import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
-import com.xrpn.order.fuzzy.FzyDouble
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.*
-import io.kotest.property.arbitrary.IntShrinker
-import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.int
 import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbstreeWithDups
 import kotlin.random.Random
-import kotlin.random.nextInt
 
 private val iiTreeOfNone: IMCollection<TKVEntry<Int,Int>> = nul<Int,Int>()
 private val iiTreeOfTwo: IMCollection<TKVEntry<Int,Int>> = FBSTree.of(1.toIAEntry(), 2.toIAEntry())
@@ -71,7 +68,7 @@ private val ixxmTreeOfTwo = run {
 
 class FBSTreeIMCollectionTest : FunSpec({
 
-  val repeatsMid = Pair(25, 100)
+  val repeatsMid = Triple(20, 10, 100)
   val repeatsHigh = Pair(50, 100)
 
   beforeTest {}
@@ -192,37 +189,37 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("dropItem") {
     nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe emptyIMBTree()
 
-    goAll(wikiTree, wikiPreorder, wikiInorder)
-    goAll(wikiTree, wikiInorder, wikiInorder)
-    goAll(wikiTree, wikiPostorder, wikiInorder)
-    goAll(wikiTree, wikiPreorder.freverse(), wikiInorder)
-    goAll(wikiTree, wikiInorder.freverse(), wikiInorder)
-    goAll(wikiTree, wikiPostorder.freverse(), wikiInorder)
+    goDropItemAll(wikiTree, wikiPreorder, wikiInorder)
+    goDropItemAll(wikiTree, wikiInorder, wikiInorder)
+    goDropItemAll(wikiTree, wikiPostorder, wikiInorder)
+    goDropItemAll(wikiTree, wikiPreorder.freverse(), wikiInorder)
+    goDropItemAll(wikiTree, wikiInorder.freverse(), wikiInorder)
+    goDropItemAll(wikiTree, wikiPostorder.freverse(), wikiInorder)
     wikiTree.fdropItem(zEntry) shouldBe wikiTree
-    goTele(wikiTree, wikiPreorder, wikiInorder)
-    goTele(wikiTree, wikiInorder, wikiInorder)
-    goTele(wikiTree, wikiPostorder, wikiInorder)
-    goTele(wikiTree, wikiPreorder.freverse(), wikiInorder)
-    goTele(wikiTree, wikiInorder.freverse(), wikiInorder)
-    goTele(wikiTree, wikiPostorder.freverse(), wikiInorder)
+    goDropItemTele(wikiTree, wikiPreorder, wikiInorder)
+    goDropItemTele(wikiTree, wikiInorder, wikiInorder)
+    goDropItemTele(wikiTree, wikiPostorder, wikiInorder)
+    goDropItemTele(wikiTree, wikiPreorder.freverse(), wikiInorder)
+    goDropItemTele(wikiTree, wikiInorder.freverse(), wikiInorder)
+    goDropItemTele(wikiTree, wikiPostorder.freverse(), wikiInorder)
 
-    goAll(slideShareTree, slideSharePreorder, slideShareInorder)
-    goAll(slideShareTree, slideShareInorder, slideShareInorder)
-    goAll(slideShareTree, slideSharePostorder, slideShareInorder)
-    goAll(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-    goAll(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
-    goAll(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
-    goAll(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
-    goAll(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
+    goDropItemAll(slideShareTree, slideSharePreorder, slideShareInorder)
+    goDropItemAll(slideShareTree, slideShareInorder, slideShareInorder)
+    goDropItemAll(slideShareTree, slideSharePostorder, slideShareInorder)
+    goDropItemAll(slideShareTree, slideShareBreadthFirst, slideShareInorder)
+    goDropItemAll(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
+    goDropItemAll(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
+    goDropItemAll(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
+    goDropItemAll(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
     slideShareTree.fdropItem(TKVEntry.ofIntKey(100)) shouldBe slideShareTree
-    goTele(slideShareTree, slideSharePreorder, slideShareInorder)
-    goTele(slideShareTree, slideShareInorder, slideShareInorder)
-    goTele(slideShareTree, slideSharePostorder, slideShareInorder)
-    goTele(slideShareTree, slideShareBreadthFirst, slideShareInorder)
-    goTele(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
-    goTele(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
-    goTele(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
-    goTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
+    goDropItemTele(slideShareTree, slideSharePreorder, slideShareInorder)
+    goDropItemTele(slideShareTree, slideShareInorder, slideShareInorder)
+    goDropItemTele(slideShareTree, slideSharePostorder, slideShareInorder)
+    goDropItemTele(slideShareTree, slideShareBreadthFirst, slideShareInorder)
+    goDropItemTele(slideShareTree, slideSharePreorder.freverse(), slideShareInorder)
+    goDropItemTele(slideShareTree, slideShareInorder.freverse(), slideShareInorder)
+    goDropItemTele(slideShareTree, slideSharePostorder.freverse(), slideShareInorder)
+    goDropItemTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
 
     // remove only one
     val aux5a = slideShareTree.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
@@ -233,43 +230,51 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("ffdropItemAll") {
     nul<Int, Int>().fdropItemAll(1.toIAEntry()) shouldBe emptyIMBTree()
     (nul<Int, Int>().fdropItemAll(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
-    tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-      when (acc) {
-        is FLNil -> FLNil
-        is FLCons -> {
-          when (val deleted = t.fdropItemAll(acc.head)) {
-            is FBSTNode -> deleted.inorder() shouldBe inorder.ffilterNot { it == acc.head }
-            is FBSTNil -> true shouldBe false
-          }
-          go(t, acc.tail, inorder)
-        }
-      }
     val aux1 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-    go(aux1, wikiPreorder, aux1.inorder())
+    goDropItemAll(aux1, wikiPreorder, aux1.inorder())
     val aux2 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
       .finsertDup(wikiTree.froot()!!, allowDups = true)
-    go(aux2, wikiPreorder, aux2.inorder())
+    goDropItemAll(aux2, wikiPreorder, aux2.inorder())
     val aux3 = wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true)
-    go(aux3, wikiPreorder, aux3.inorder())
+    goDropItemAll(aux3, wikiPreorder, aux3.inorder())
     val aux4 = wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true)
-    go(aux4, wikiPreorder, aux4.inorder())
+    goDropItemAll(aux4, wikiPreorder, aux4.inorder())
     val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!)
       .finsert(slideShareTree.fleftMost()!!)
-    go(aux5, slideShareBreadthFirst, aux5.inorder())
+    goDropItemAll(aux5, slideShareBreadthFirst, aux5.inorder())
     val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!)
       .finsert(slideShareTree.frightMost()!!)
-    go(aux6, slideShareBreadthFirst, aux6.inorder())
+    goDropItemAll(aux6, slideShareBreadthFirst, aux6.inorder())
   }
 
+  test("ffdropItem with dups") {
+    nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe emptyIMBTree()
+    (nul<Int, Int>().fdropItem(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
+    val aux1 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
+    goDropItemTele(aux1, wikiPreorder, aux1.inorder())
+    val aux2 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
+      .finsertDup(wikiTree.froot()!!, allowDups = true)
+    goDropItemTele(aux2, wikiPreorder, aux2.inorder())
+    val aux3 = wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true)
+    goDropItemTele(aux3, wikiPreorder, aux3.inorder())
+    val aux4 = wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true)
+    goDropItemTele(aux4, wikiPreorder, aux4.inorder())
+    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!)
+      .finsert(slideShareTree.fleftMost()!!)
+    goDropItemTele(aux5, slideShareBreadthFirst, aux5.inorder())
+    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!)
+      .finsert(slideShareTree.frightMost()!!)
+    goDropItemTele(aux6, slideShareBreadthFirst, aux6.inorder())
+  }
 
   test("fdropItem (property), sorted asc") {
-    checkAll(repeatsMid.first, Arb.int(30..repeatsMid.second)) { n ->
+    checkAll(repeatsMid.first, Arb.int(repeatsMid.second..repeatsMid.third)) { n ->
       val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       val ix1 = Random.nextInt(0, n)
       val fbsTree = FBSTree.of(values.iterator())
       val aut = fbsTree.fdropItem(TKVEntry.ofIntKey(ix1))
       aut.size shouldBe n - 1
-      FBSTree.fbtAssert(aut as FBSTNode<Int, Int>)
+      FBSTree.fbtAssertNodeInvariant(aut as FBSTNode<Int, Int>)
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
       aut.inorder() shouldBe testOracle
@@ -277,7 +282,7 @@ class FBSTreeIMCollectionTest : FunSpec({
   }
 
   test("fdropItem (property), sorted desc") {
-    checkAll(repeatsMid.first, Arb.int(30..repeatsMid.second)) { n ->
+    checkAll(repeatsMid.first, Arb.int(repeatsMid.second..repeatsMid.third)) { n ->
       val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       val reversed = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       reversed.reverse()
@@ -285,7 +290,7 @@ class FBSTreeIMCollectionTest : FunSpec({
       val fbsTree = FBSTree.of(values.iterator())
       val aut = fbsTree.fdropItem(TKVEntry.ofIntKey(ix1))
       aut.size shouldBe n - 1
-      FBSTree.fbtAssert(aut as FBSTNode<Int, Int>)
+      FBSTree.fbtAssertNodeInvariant(aut as FBSTNode<Int, Int>)
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
       aut.inorder() shouldBe testOracle
@@ -294,13 +299,13 @@ class FBSTreeIMCollectionTest : FunSpec({
 
   test("fdropItem (property), shuffled") {
     var count = 0
-    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.int(30..repeatsMid.second)) { n ->
+    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.int(repeatsMid.second..repeatsMid.third)) { n ->
       count += 1
       val values = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
       val rs = RandomSource.seeded(7979028980642872582)
       shuffled.shuffle(rs.random)
-      val randoms = IntArray(n/10) { i: Int -> i }
+      val randoms = IntArray((n/10).coerceAtLeast(3)) { i: Int -> i }
       randoms.shuffle(rs.random)
       val ix1 = randoms[0]
       val ix2 = randoms[1]
@@ -312,15 +317,38 @@ class FBSTreeIMCollectionTest : FunSpec({
       val aux1 = aux0.fdropItem(TKVEntry.ofIntKey(ix2))
       val aut = aux1.fdropItem(TKVEntry.ofIntKey(ix3))
       aut.size shouldBe n - 3
-      FBSTree.fbtAssert(aut as FBSTNode<Int, Int>)
+      FBSTree.fbtAssertNodeInvariant(aut as FBSTNode<Int, Int>)
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
         .ffilterNot { it == TKVEntry.ofIntKey(ix2) }
         .ffilterNot { it == TKVEntry.ofIntKey(ix3) }
       val autInorder = aut.inorder()
       autInorder shouldBe testOracle
+    }
+  }
 
-      goTele(aut, aut.breadthFirst(), autInorder)
+  test("fdropItem (tree property)") {
+    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstree(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+      goDropItemTele(fbst, fbst.breadthFirst(), fbst.inorder())
+    }
+  }
+
+  test("fdropItemAll (tree property)") {
+    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstree(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+      goDropItemAll(fbst, fbst.breadthFirst(), fbst.inorder())
+    }
+  }
+
+  test("fdropItem with dups (tree property)") {
+    // seed = 7180391588938833052)
+    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstreeWithDups(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+      goDropItemTele(fbst, fbst.breadthFirst(), fbst.inorder())
+    }
+  }
+
+  test("fdropItemAll with dups (tree property)") {
+    checkAll(PropTestConfig(iterations = repeatsMid.first, seed = 8525946019726368451), Arb.fbstreeWithDups(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+      goDropItemAll(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
 

@@ -71,19 +71,19 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
     fun ffindLastItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>? // Returns the subtree rooted at item; no dups in it
     fun ffindLastKey(key: @UnsafeVariance A): IMBTree<A, B>?// Returns the subtree rooted at key; no dups in it
     fun ffindValueOfKey(key: @UnsafeVariance A): B? // Returns the value associated with key
-    fun fkeyType(): RestrictedKeyType<A>?
     fun fleftMost(): TKVEntry<A, B>?
     fun fhasDups(): Boolean
     fun fisDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fparentOf(child: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>? // Returns the smallest super-tree of item; or the tree if item is root
     fun fpeek(): TKVEntry<A, B>?
+    fun frestrictedKey(): RestrictedKeyType<A>?
     fun frightMost(): TKVEntry<A, B>?
     fun froot(): TKVEntry<A, B>?
 
-    fun fAND(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    fun fNOT(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = fdropAlt(items)
-    fun fOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    fun fXOR(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = fdropAlt(items.asIMBTree())
+    fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
 
 }
 

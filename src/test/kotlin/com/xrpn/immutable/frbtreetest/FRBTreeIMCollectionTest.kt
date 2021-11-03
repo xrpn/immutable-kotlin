@@ -181,7 +181,7 @@ class FRBTreeIMCollectionTest : FunSpec({
           rbDeleted.rbDelete(TKVEntry.ofkv(acc.head.getk(), acc.head.getv()))
           when (val deleted = frb.fdropItem(acc.head)) {
             is FRBTNode -> {
-              FRBTree.rbRootSane(deleted) shouldBe true
+              FRBTree.rbRootInvariant(deleted) shouldBe true
               val aut1in = deleted.inorder()
               val oracle = inorder.ffilterNot { it == acc.head }
               aut1in shouldBe oracle
@@ -204,7 +204,7 @@ class FRBTreeIMCollectionTest : FunSpec({
           rbDeleted.rbDelete(TKVEntry.ofkk(acc.head.getk(), acc.head.getv()))
           when (val deleted = frb.fdropItem(acc.head)) {
             is FRBTNode -> {
-              FRBTree.rbRootSane(deleted) shouldBe true
+              FRBTree.rbRootInvariant(deleted) shouldBe true
               val aut1in = deleted.inorder()
               val oracle = inorder.ffilterNot { it == acc.head }
               aut1in shouldBe oracle
@@ -227,7 +227,7 @@ class FRBTreeIMCollectionTest : FunSpec({
           val oracle = inorder.ffilterNot { it == acc.head }
           when (deleted) {
             is FRBTNode -> {
-              FRBTree.rbRootSane(deleted) shouldBe true
+              FRBTree.rbRootInvariant(deleted) shouldBe true
               val aut1in = deleted.inorder()
               aut1in shouldBe oracle
               IMBTreeUtility.strongEqual(deleted, rbDeleted) shouldBe true
@@ -302,7 +302,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val frbTree = FRBTree.of(values.iterator())
       val aut = frbTree.fdropItem(TKVEntry.ofIntKey(ix1))
       aut.size shouldBe n - 1
-      FRBTree.rbRootSane(aut) shouldBe true
+      FRBTree.rbRootInvariant(aut) shouldBe true
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
       aut.inorder() shouldBe testOracle
@@ -318,7 +318,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val frbTree = FRBTree.of(values.iterator())
       val aut = frbTree.fdropItem(TKVEntry.ofIntKey(ix1))
       aut.size shouldBe n - 1
-      FRBTree.rbRootSane(aut) shouldBe true
+      FRBTree.rbRootInvariant(aut) shouldBe true
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
       aut.inorder() shouldBe testOracle
@@ -342,7 +342,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val aux1 = aux0.fdropItem(TKVEntry.ofIntKey(ix2))
       val aut = aux1.fdropItem(TKVEntry.ofIntKey(ix3))
       aut.size shouldBe n - 3
-      FRBTree.rbRootSane(aut) shouldBe true
+      FRBTree.rbRootInvariant(aut) shouldBe true
       val testOracle = FList.of(values.iterator())
         .ffilterNot { it == TKVEntry.ofIntKey(ix1) }
         .ffilterNot { it == TKVEntry.ofIntKey(ix2) }
@@ -350,7 +350,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val autInorder = aut.inorder()
       autInorder shouldBe testOracle
 
-      goTele(aut, aut.breadthFirst(), autInorder)
+      goDropItemTele(aut, aut.breadthFirst(), autInorder)
     }
   }
 

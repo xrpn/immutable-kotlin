@@ -28,40 +28,6 @@ class FBSTreeFilteringTest : FunSpec({
         return Pair(leftChildMatch, rightChildMatch)
     }
 
-    test("fcontainsKey") {
-        nul<Int, String>().fcontainsKey(zEntry.getk()) shouldBe false
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val p = t.fcontainsKey(acc.head.getk())
-                    p shouldBe true
-                    go(t, acc.tail)
-                }
-            }
-        go(wikiTree, wikiPreorder)
-        wikiTree.fcontainsKey(zEntry.getk()) shouldBe false
-        go(slideShareTree, slideShareBreadthFirst)
-        slideShareTree.fcontainsKey(100) shouldBe false
-    }
-
-    test("fcontainsValue") {
-        nul<Int, String>().fcontainsValue(zEntry.getv()) shouldBe false
-        tailrec fun <A: Comparable<A>, B: Any> go(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-            when (acc) {
-                is FLNil -> FLNil
-                is FLCons -> {
-                    val p = t.fcontainsValue(acc.head.getv())
-                    p shouldBe true
-                    go(t, acc.tail)
-                }
-            }
-        go(wikiTree, wikiPreorder)
-        wikiTree.fcontainsValue(zEntry.getv()) shouldBe false
-        go(slideShareTree, slideShareBreadthFirst)
-        slideShareTree.fcontainsValue(100) shouldBe false
-    }
-
     test("dropAll (nil)") {
         nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
         nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe emptyIMBTree()
@@ -427,6 +393,10 @@ class FBSTreeFilteringTest : FunSpec({
 
     test("fleftMost") {
         FBSTNil.fleftMost() shouldBe null
+        of(1.toIAEntry()).fleftMost() shouldBe 1.toIAEntry()
+        of(3.toIAEntry(), 1.toIAEntry()).fleftMost() shouldBe 1.toIAEntry()
+        of(3.toIAEntry(), 4.toIAEntry()).fleftMost() shouldBe 3.toIAEntry()
+        of(3.toIAEntry(), 1.toIAEntry(), 4.toIAEntry()).fleftMost() shouldBe 1.toIAEntry()
     }
 
     test("fhasDups") {
@@ -452,7 +422,7 @@ class FBSTreeFilteringTest : FunSpec({
 
     test("fparentOf") {
         nul<Int, String>().fparentOf(TKVEntry.ofIntKey("")) shouldBe null
-        FBSTNode(mEntry).fparentOf(mEntry) shouldBe FBSTNil
+        FBSTNode.of(mEntry).fparentOf(mEntry) shouldBe FBSTNil
 
         depthOneLeft.fparentOf(lEntry) shouldBe depthOneLeft
         depthOneRight.fparentOf(nEntry) shouldBe depthOneRight
@@ -481,7 +451,7 @@ class FBSTreeFilteringTest : FunSpec({
         (slideShareTree.fparentOf(n50Entry) as FBSTNode).entry shouldBe n78Entry
     }
 
-    test("fpick") {
+    test("fpeeck") {
         FBSTNil.fpeek() shouldBe null
         slideShareTree.fpeek() shouldNotBe null
     }

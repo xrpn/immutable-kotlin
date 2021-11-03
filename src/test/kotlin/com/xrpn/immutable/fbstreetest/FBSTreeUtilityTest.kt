@@ -5,7 +5,7 @@ import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.bstParent
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
-import com.xrpn.immutable.FBSTree.Companion.fbtAssert
+import com.xrpn.immutable.FBSTree.Companion.fbtAssertNodeInvariant
 import com.xrpn.immutable.FBSTree.Companion.of
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -36,7 +36,7 @@ class FBSTreeUtilityTest : FunSpec({
     when (val node = bstParent(this, tkv)) {
       is FBSTNil -> Unit
       is FBSTNode<A, B> -> {
-          fbtAssert(node)
+          fbtAssertNodeInvariant(node)
         Unit
       }
       null -> Unit

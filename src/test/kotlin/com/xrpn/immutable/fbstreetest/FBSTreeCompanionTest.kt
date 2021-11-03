@@ -9,7 +9,7 @@ import com.xrpn.immutable.FBSTree.Companion.bstFind
 import com.xrpn.immutable.FBSTree.Companion.bstInsert
 import com.xrpn.immutable.FBSTree.Companion.bstPrune
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
-import com.xrpn.immutable.FBSTree.Companion.fbtAssert
+import com.xrpn.immutable.FBSTree.Companion.fbtAssertNodeInvariant
 import com.xrpn.immutable.FBSTree.Companion.fcontainsIK
 import com.xrpn.immutable.FBSTree.Companion.fcontainsSK
 import com.xrpn.immutable.FBSTree.Companion.fdeleteIK
@@ -193,9 +193,18 @@ class FBSTreeCompanionTest : FunSpec({
         of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
-    test("co.of varargs dups") {
+    test("co.of varargs dups A") {
         of(*arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree()
         of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+    }
+
+    test("co.of varargs dups B") {
+        val aut0 = of(100.toIAEntry(), 50.toIAEntry())
+        aut0.fempty() shouldBe false
+        val aut = of(100.toIAEntry(), 50.toIAEntry(), 150.toIAEntry(), 60.toIAEntry(), 60.toIAEntry(), 61.toIAEntry(), 62.toIAEntry(), 40.toIAEntry(), allowDups = true)
+        val aut1 = aut.finsertDup(50.toIAEntry(), allowDups = true)
+        aut.fempty() shouldBe false
+        aut1.fempty() shouldBe false
     }
 
     test("co.of iterator") {
@@ -210,29 +219,29 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.of IMList (dups and no dups)") {
         of<Int, Int>(FLNil) shouldBe FBSTNil
-        of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FBSTNode(mEntry, FBSTNode(lEntry), FBSTNode(nEntry))
+        of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FBSTNode.of(mEntry, FBSTNode.of(lEntry), FBSTNode.of(nEntry))
         of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)), allowDups = true) shouldBe
-                FBSTNode(
+                FBSTNode.of(
                     mEntry,
-                    FBSTNode(
+                    FBSTNode.of(
                         cEntry,
-                        FBSTNode(
+                        FBSTNode.of(
                             bEntry, FBSTNil,
-                            FBSTNode(bEntry, FBSTNil, FBSTNil)
+                            FBSTNode.of(bEntry, FBSTNil, FBSTNil)
                         ),
-                        FBSTNode(dEntry, FBSTNil, FBSTNil)
+                        FBSTNode.of(dEntry, FBSTNil, FBSTNil)
                     ),
-                    FBSTNode(zEntry, FBSTNil, FBSTNil)
+                    FBSTNode.of(zEntry, FBSTNil, FBSTNil)
                 )
         of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)) /*, allowDups = false */) shouldBe
-                FBSTNode(
+                FBSTNode.of(
                     mEntry,
-                    FBSTNode(
+                    FBSTNode.of(
                         cEntry,
-                        FBSTNode(bEntry, FBSTNil, FBSTNil),
-                        FBSTNode(dEntry, FBSTNil, FBSTNil)
+                        FBSTNode.of(bEntry, FBSTNil, FBSTNil),
+                        FBSTNode.of(dEntry, FBSTNil, FBSTNil)
                     ),
-                    FBSTNode(zEntry, FBSTNil, FBSTNil)
+                    FBSTNode.of(zEntry, FBSTNil, FBSTNil)
                 )
         of(wikiPreorder) shouldBe wikiTree
         of(slideSharePreorder) shouldBe slideShareTree
@@ -518,128 +527,128 @@ class FBSTreeCompanionTest : FunSpec({
         bstPrune(wikiTree, zEntry) /* missing match */ shouldBe wikiTree
         bstPrune(wikiTree, fEntry) /* prune at root */ shouldBe FBSTNil
 
-        bstPrune(depthOneLeft, lEntry) shouldBe FBSTNode(mEntry)
-        bstPrune(depthOneRight, nEntry) shouldBe FBSTNode(mEntry)
+        bstPrune(depthOneLeft, lEntry) shouldBe FBSTNode.of(mEntry)
+        bstPrune(depthOneRight, nEntry) shouldBe FBSTNode.of(mEntry)
         bstPrune(depthOneFull, lEntry) shouldBe depthOneRight
         bstPrune(depthOneFull, nEntry) shouldBe depthOneLeft
 
         bstPrune(depthTwoLeftRight, sEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(
-                    FBSTNode(
+                fbtAssertNodeInvariant(
+                    FBSTNode.of(
                         lEntry,
                     FBSTNil,
-                    fbtAssert(FBSTNode(mEntry))
+                    fbtAssertNodeInvariant(FBSTNode.of(mEntry))
                 )
                 )
             )
             )
         bstPrune(depthTwoLeftRight, mEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(lEntry)),
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoLeftRight, lEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
                 FBSTNil,
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoLeftRight, nEntry) shouldBe FBSTNil
 
         bstPrune(depthTwoLeftLeft, sEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(
-                    FBSTNode(
+                fbtAssertNodeInvariant(
+                    FBSTNode.of(
                         lEntry,
-                    fbtAssert(FBSTNode(eEntry)),
+                    fbtAssertNodeInvariant(FBSTNode.of(eEntry)),
                     FBSTNil
                     )
                 )
             )
             )
         bstPrune(depthTwoLeftLeft, eEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(lEntry)),
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoLeftLeft, lEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
                 FBSTNil,
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoLeftLeft, nEntry) shouldBe FBSTNil
 
         bstPrune(depthTwoRightRight, uEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(mEntry)),
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoRightRight, sEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
                 FBSTNil
             )
             )
         bstPrune(depthTwoRightRight, mEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
                 FBSTNil,
-                fbtAssert(
-                    FBSTNode(
+                fbtAssertNodeInvariant(
+                    FBSTNode.of(
                         sEntry,
                     FBSTNil,
-                    fbtAssert(FBSTNode(uEntry)))
+                    fbtAssertNodeInvariant(FBSTNode.of(uEntry)))
                 ))
             )
         bstPrune(depthTwoRightRight, nEntry) shouldBe FBSTNil
 
         bstPrune(depthTwoRightLeft, rEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(mEntry)),
-                fbtAssert(FBSTNode(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
             )
             )
         bstPrune(depthTwoRightLeft, sEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
-                fbtAssert(FBSTNode(mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
                 FBSTNil
             )
             )
         bstPrune(depthTwoRightLeft, mEntry) shouldBe
-            fbtAssert(
-                FBSTNode(
+            fbtAssertNodeInvariant(
+                FBSTNode.of(
                     nEntry,
                 FBSTNil,
-                fbtAssert(
-                    FBSTNode(
+                fbtAssertNodeInvariant(
+                    FBSTNode.of(
                         sEntry,
-                    fbtAssert(FBSTNode(rEntry)),
+                    fbtAssertNodeInvariant(FBSTNode.of(rEntry)),
                     FBSTNil
                     )
                 )
@@ -653,22 +662,22 @@ class FBSTreeCompanionTest : FunSpec({
         addGraftTestingGremlin(depthOneFull, FBSTNil) shouldBe depthOneFull
         addGraftTestingGremlin(FBSTNil, depthOneFull) shouldBe depthOneFull
 
-        addGraftTestingGremlin(bstPrune(depthOneFull, nEntry), FBSTNode(nEntry)) shouldBe depthOneFull
-        addGraftTestingGremlin(bstPrune(depthOneFull, lEntry), FBSTNode(lEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(bstPrune(depthOneFull, nEntry), FBSTNode.of(nEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(bstPrune(depthOneFull, lEntry), FBSTNode.of(lEntry)) shouldBe depthOneFull
 
-        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode(mEntry)) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode.of(mEntry)) shouldBe depthTwoLeftRight
         addGraftTestingGremlin(bstPrune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight, sEntry)!!) shouldBe depthTwoLeftRight
         addGraftTestingGremlin(bstPrune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight, lEntry)!!) shouldBe depthTwoLeftRight
 
-        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode(eEntry)) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode.of(eEntry)) shouldBe depthTwoLeftLeft
         addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft, sEntry)!!) shouldBe depthTwoLeftLeft
         addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft, lEntry)!!) shouldBe depthTwoLeftLeft
 
-        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode(uEntry)) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode.of(uEntry)) shouldBe depthTwoRightRight
         addGraftTestingGremlin(bstPrune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight, sEntry)!!) shouldBe depthTwoRightRight
         addGraftTestingGremlin(bstPrune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight, mEntry)!!) shouldBe depthTwoRightRight
 
-        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode(rEntry)) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode.of(rEntry)) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft, sEntry)!!) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft, mEntry)!!) shouldBe depthTwoRightLeft
     }

@@ -57,8 +57,6 @@ interface IMBTreeGrouping<out A, out B: Any>: IMCollection<TKVEntry<A, B>> where
     fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ IMBTree<A, B>, /* false */ IMBTree<A, B>> // Two collections created by the predicate p
     fun fmaxDepth(): Int
     fun fminDepth(): Int
-
-    override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
 }
 
 interface IMStackGrouping<out A: Any>: IMCollection<A> {

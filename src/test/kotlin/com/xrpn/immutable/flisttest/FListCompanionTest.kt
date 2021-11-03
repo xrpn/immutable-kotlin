@@ -50,7 +50,7 @@ class FListCompanionTest : FunSpec({
     for (i in (1..100)) {
        aux shouldBe FList.emptyIMList<Int>().hashCode()
     }
-    intListOfTwo.toString() shouldStartWith "${FList::class.simpleName}:"
+    intListOfTwo.toString() shouldStartWith "${FList::class.simpleName}@{"
     val aux2 = intListOfTwo.hashCode()
     for (i in (1..100)) {
       aux2 shouldBe intListOfTwo.hashCode()

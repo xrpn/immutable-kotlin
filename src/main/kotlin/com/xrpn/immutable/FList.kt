@@ -750,7 +750,7 @@ data class FLCons<out A: Any>(
         else -> false
     }
 
-    val show: String by lazy { (ffoldLeft("${FList::class.simpleName}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
+    val show: String by lazy { (ffoldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
 
     // the data class built-in toString is not stack safe
     override fun toString(): String = show
