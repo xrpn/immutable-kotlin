@@ -7,6 +7,7 @@ import com.xrpn.hash.MurMur3at32
 import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
+import java.util.logging.Logger
 import java.util.zip.CRC32C
 import kotlin.reflect.KClass
 

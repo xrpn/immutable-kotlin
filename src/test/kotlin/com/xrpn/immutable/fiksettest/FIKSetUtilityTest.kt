@@ -134,7 +134,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<String, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
-            val fs1: FKSet<String, Int> = FKSet.ofs(fbst)
+            val fs1: FKSet<String, Int> = FKSet.ofs(fbst)!!
             (fs1.asIMRRSetNotEmpty() == null) shouldBe true
             (fs1.asIMRSetNotEmpty() === fs1) shouldBe true
             fs1.asIMRSetNotEmpty()?.equal(fs) shouldBe true
@@ -142,7 +142,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fsset(Arb.string(),20..100)) { fs ->
             val frbt: IMBTree<String, String> = fs.toIMBTree()
             val fbst: FBSTree<String, String> = FBSTree.of(frbt.breadthFirst())
-            val fs1: FKSet<String, String> = FKSet.ofs(fbst)
+            val fs1: FKSet<String, String> = FKSet.ofs(fbst)!!
             (fs1.asIMRRSetNotEmpty() === fs1) shouldBe true
             (fs1.asIMRSetNotEmpty() == null) shouldBe true
             fs1.asIMRRSetNotEmpty()?.equal(fs) shouldBe true

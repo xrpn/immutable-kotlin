@@ -4,6 +4,7 @@ import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -65,17 +66,18 @@ class FRBTreeTransformingTest : FunSpec({
 //    }
 
     test("fmap") {
-        nul<Int, Int>().fmap { 2.toIAEntry() } shouldBe FBSTNil
-        Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
-            val sum = fbst.ffoldv(0) {acc, v -> acc+v }
-            val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
-            val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
-            (sum * 13) shouldBe sum13
-        }
+        fail("revise fmap for fbsTree")
+//        (nul<Int, Int>().fmap { 2.toIAEntry() } === FRBTNil) shouldBe true
+//        Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+//            val sum = fbst.ffoldv(0) {acc, v -> acc+v }
+//            val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
+//            val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
+//            (sum * 13) shouldBe sum13
+//        }
     }
 
     test("fmapToList") {
-        nul<Int, Int>().fmapToList { 2.toIAEntry() } shouldBe FBSTNil
+        (nul<Int, Int>().fmapToList { 2.toIAEntry() } === FLNil) shouldBe true
         val f: (tkv: TKVEntry<Int, Int>) -> TKVEntry<Int, Int> = { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
         Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<TKVEntry<Int, Int>> = fbst.fmapToList(f)
@@ -84,7 +86,7 @@ class FRBTreeTransformingTest : FunSpec({
     }
 
     test("fmapvToList") {
-        nul<Int, Int>().fmapvToList { 2 } shouldBe FBSTNil
+        (nul<Int, Int>().fmapvToList { 2 } === FLNil) shouldBe true
         val f: (v: Int) -> Int = { v -> v*13 }
         Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<Int> = fbst.fmapvToList(f)

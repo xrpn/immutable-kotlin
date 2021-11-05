@@ -1,12 +1,16 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.*
+import mu.KLogger
+import mu.KotlinLogging
+import java.io.PrintStream
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import java.util.logging.Level
+import java.util.logging.Logger
+import java.util.logging.Logger.getLogger
 import kotlin.reflect.KClass
-import mu.KotlinLogging
-
 
 private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!::class == b?.let{ it::class } } ?: false
 private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
@@ -39,7 +43,7 @@ fun <A, B> A.isStrictlyNot(b: B): Boolean = when(this) {
 
 inline fun <reified A> fidentity(a: A): A = a
 
-object FT {
+internal object FT {
 
     fun <A : Any> isContainer(c: A): Boolean = when (c) {
         is TKVEntry<*,*> -> isContainer(c.getv())
@@ -233,6 +237,36 @@ object FT {
 
 }
 
+interface IMLogging<out A>  {
+    val logger: A
+    fun emitUnconditionally(msg: String)
+    fun emitUnconditionally(e: Exception)
+}
+
+data class IMSimpleLogging(val forClass: KClass<*>): IMLogging<Logger> {
+    override fun emitUnconditionally(msg: String) = if(logger.isLoggable(Level.SEVERE)) logger.severe(msg) else System.err.println(msg)
+    override fun emitUnconditionally(e: Exception) = if(logger.isLoggable(Level.SEVERE)) logger.log(Level.SEVERE, "emitUnconditionally", e) else e.printStackTrace(System.err)
+    override val logger: Logger by lazy { getEngine() }
+    private fun getEngine(): Logger = getLogger(forClass.qualifiedName ?: "<local or anonymous>")
+}
+
+data class IMKLogging(val forClass: KClass<*>): IMLogging<KLogger> {
+    override fun emitUnconditionally(msg: String) = if(logger.isErrorEnabled) logger.error(msg) else System.err.println(msg)
+    override fun emitUnconditionally(e: Exception) = if(logger.isErrorEnabled) logger.error("emitUnconditionally", e) else e.printStackTrace(System.err)
+    override val logger: KLogger by lazy { getEngine() }
+    private fun getEngine(): KLogger = KotlinLogging.logger(forClass.qualifiedName ?: "<local or anonymous>")
+}
+
+data class IMSystemErrLogging(val forClass: KClass<*>): IMLogging<PrintStream> {
+    override fun emitUnconditionally(msg: String) = System.err.println(msg)
+    override fun emitUnconditionally(e: Exception) = e.printStackTrace(System.err)
+    override val logger: PrintStream by lazy { getEngine() }
+    private fun getEngine(): PrintStream {
+        System.err.println("LOGGING FOR ${forClass.qualifiedName ?: "<local or anonymous>"} WILL GO TO STANDARD ERROR STREAM")
+        return System.err
+    }
+}
+
 fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))
 fun <A, B, C, D> Pair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): Pair<C, D> = Pair(f(this.first), g(this.second))
 fun <A: Any> Pair<A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLNil))
@@ -289,7 +323,7 @@ fun <C: Comparator<C>> C.compareTo(other: C): Int = toComparable(this).compareTo
 
 class TimingDynamicInvocationHandler<C: Any>(private val target: C) : InvocationHandler {
     private val methods: MutableMap<String, Method> = HashMap()
-    private val logger = KotlinLogging.logger("TimingProxy(${target::class.simpleName!!})")
+    private val logger: KLogger = KotlinLogging.logger("TimingProxy(${target::class.simpleName!!})")
 
     @Throws(Throwable::class)
     override fun invoke(proxy: Any, method: Method, args: Array<Any>): Any {

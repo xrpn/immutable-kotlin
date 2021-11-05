@@ -117,19 +117,20 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
     }
 
+    // TODO this cannot be lazy if tree contains mutable containers
     private val strictness: Boolean by lazy { when {
         fempty() -> true
         fisNested()!! -> {
             val maybeNotEmpty = fpickNotEmpty()
             val tkvClass: KClass<*>? = maybeNotEmpty?.let { it::class }
-            val kc: KClass<out B>? = maybeNotEmpty?.let { it.getvKc() }
+            val kc: KClass<out B>? = maybeNotEmpty?.getvKc()
             kc?.let { valueKClass ->
                 val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
                 null == ffindAny { tkv -> !FT.entryStrictness(tkv, tkvClass!!, valueKClass, ucKc) }
             } ?: /* nested, but all empty */ run {
                 val aux = fpick()!!::class
                 fall {
-                    check(it.toUCon()?.let { uc -> uc.isEmpty() } ?: false )
+                    check(it.toUCon()?.isEmpty() ?: false )
                     it.isStrictly(aux) && it.fisStrict()
                 }
             }
@@ -426,7 +427,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return ffold(Pair(nul(), nul()), ::f4fpartition)
     }
 
-    val maxFrbDepth: Int by lazy { when(this) {
+    private val maxFrbDepth: Int by lazy { when(this) {
         is FRBTNode -> 1 + when(Pair(this.bLeft is FRBTNode, this.bRight is FRBTNode)) {
             Pair(true, true) -> Integer.max(this.bLeft.fmaxDepth(), this.bRight.fmaxDepth())
             Pair(false, true) -> this.bRight.fmaxDepth()
@@ -457,10 +458,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
         this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FRBTree<C, D>)) }
 
-    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("fflatMap(f)"))
-    override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =
-        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else fflatMap(f)
-
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
         // this is a generic preorder
@@ -475,10 +472,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
         this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
 
-    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("fmap(f)"))
-    override fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
-        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else fmap(f)
-
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FRBTNil -> null
         is FRBTNode -> {
@@ -492,16 +485,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
         rbtInsert(this, item)
 
-    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("finsert(item)"))
-    override fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): FRBTree<A, B> =
-        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else rbtInsert(this, item)
-
     override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> =
         rbtInserts(this, items as FList<TKVEntry<A,B>>)
-
-    @Deprecated("FRBTree does not allow duplicates", ReplaceWith("finserts(items)"))
-    override fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FRBTree<A, B> =
-        if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else rbtInserts(this, items as FList<TKVEntry<A,B>>)
 
     // =========== internals
 
@@ -543,81 +528,48 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // =================
 
         override fun <A, B: Any> of(vararg items: TKVEntry<A,B>): FRBTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator())
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(vararg items: TKVEntry<A, B>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items.iterator())
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A,B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = FRBTNil
             items.forEach  { res = rbtInsert(res, it) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
         override fun <A, B: Any> of(items: IMList<TKVEntry<A,B>>): FRBTree<A,B> where A: Any, A: Comparable<A> =
             items.ffoldLeft(nul(), ::rbtInsert)
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B : Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A : Comparable<A> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else of(items)
 
         // ===============
 
         override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>): FRBTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items.iterator())
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>, allowDups: Boolean): FRBTree<A, B> where A: Any, A: Comparable<A> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items.iterator())
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = nul()
             items.forEach { res = rbtInsert(res, TKVEntry.ofkvc(it.getk(), it.getv(), cc)) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofc(items)"))
-        override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FRBTree<A, B> where A: Any, A: Comparable<A> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofc(cc, items)
 
         // =================
 
         override fun <B : Any> ofvi(vararg items: B): FRBTree<Int, B> = ofvi(items.iterator())
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(vararg items: B, allowDups: Boolean): FRBTree<Int, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items.iterator())
         override fun <B : Any> ofvi(items: Iterator<B>): FRBTree<Int, B> {
             var res: FRBTree<Int, B> = FRBTNil
             items.forEach { res = rbtInsert(res, TKVEntry.ofIntKey(it))}
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(items: Iterator<B>, allowDups: Boolean): FRBTree<Int, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
         override fun <B : Any> ofvi(items: IMList<B>): FRBTree<Int, B> {
             val f: (IMBTree<Int, B>, B) -> IMBTree<Int, B> = { stub, item -> finsertIK(stub, item) }
             return items.ffoldLeft(emptyIMBTree(), f) as FRBTree<Int, B>
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvi(items: IMList<B>, allowDups: Boolean): FRBTree<Int, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvi(items)
 
         // =================
 
         override fun <B : Any> ofvs(vararg items: B): FRBTree<String, B> = ofvs(items.iterator())
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(vararg items: B, allowDups: Boolean): FRBTree<String, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items.iterator())
         override fun <B : Any> ofvs(items: Iterator<B>): FRBTree<String, B> {
             var res: FRBTree<String, B> = FRBTNil
             items.forEach { res = rbtInsert(res, TKVEntry.ofStrKey(it)) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(items: Iterator<B>, allowDups: Boolean): FRBTree<String, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
         override fun <B : Any> ofvs(items: IMList<B>): FRBTree<String, B> {
             val f: (IMBTree<String, B>, B) -> IMBTree<String, B> = { stub, item -> finsertSK(stub, item) }
             return items.ffoldLeft(emptyIMBTree(), f) as FRBTree<String, B>
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("of(items)"))
-        override fun <B : Any> ofvs(items: IMList<B>, allowDups: Boolean): FRBTree<String, B> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvs(items)
 
         // =================
 
@@ -626,9 +578,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             items.forEach { res = rbtInsert(res, f(it)) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofMap(items, f)"))
-        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofMap(items, f)
 
         // =================
 
@@ -637,9 +586,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             items.forEach { res = rbtInsert(res, TKVEntry.ofIntKey(f(it))) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofviMap(items, f)"))
-        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<Int, C> =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofviMap(items, f)
 
         // =================
 
@@ -648,9 +594,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             items.forEach { res = rbtInsert(res, TKVEntry.ofStrKey(f(it))) }
             return res
         }
-        @Deprecated("FRBTree does not allow duplicates", ReplaceWith("ofvsMap(items, f)"))
-        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FRBTree<String, C>  =
-            if (allowDups) throw RuntimeException("FRBTree does not allow duplicates") else ofvsMap(items, f)
 
         // =================
 
@@ -1109,8 +1052,6 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is DeratedCustomKeyType -> kType.specialize<K>()?.let { toFRBTreeImpl(t, it) }
             }
         }
-
-        private class BreakoutException(): RuntimeException()
 
     }
 }

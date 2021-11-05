@@ -359,10 +359,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun <C, D : Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): IMBTree<C, D> where C: Any, C : Comparable<C> {
-        TODO("Not yet implemented")
-    }
-
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
         TODO("Not yet implemented")
     }
@@ -391,15 +387,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun finsertDup(item: TKVEntry<A, B>, allowDups: Boolean): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
     override fun finserts(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun finsertsDup(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
@@ -456,10 +444,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun fhasDups(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override fun <C, D : Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C: Any, C : Comparable<C> {
         TODO("Not yet implemented")
     }
 

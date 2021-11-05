@@ -75,7 +75,7 @@ class FBSTreeGroupingTest : FunSpec({
         val res = slideShareTree.ffold(Pair(nul<Int, Int>(), slideShareTree.fpopAndRemainder())) { acc, _ ->
             val (rebuild, popAndStub) = acc
             val (pop, stub) = popAndStub
-            Pair(rebuild.finsertDup(pop!!, allowDups = true), stub.fpopAndRemainder())
+            Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
         }
         res.first shouldBe slideShareTree
         val (lastPopped, lastRemainder) = res.second
@@ -84,8 +84,9 @@ class FBSTreeGroupingTest : FunSpec({
     }
 
     test("maxDepth") {
-        FBSTNil.fmaxDepth() shouldBe 0
-        FBSTNode.of(mEntry).fmaxDepth() shouldBe 1
+        FBSTGeneric.empty.fmaxDepth() shouldBe 0
+        FBSTUnique.empty.fmaxDepth() shouldBe 0
+        FBSTNode.of(false, mEntry).fmaxDepth() shouldBe 1
 
         depthOneRight.fmaxDepth() shouldBe 2
         depthOneLeft.fmaxDepth() shouldBe 2
@@ -101,8 +102,8 @@ class FBSTreeGroupingTest : FunSpec({
     }
 
     test("minDepth") {
-        FBSTNil.fminDepth() shouldBe 0
-        // FBTNode(mEntry).minDepth() shouldBe 1
+        FBSTGeneric.empty.fminDepth() shouldBe 0
+        FBSTUnique.empty.fminDepth() shouldBe 0
 
         depthOneRight.fminDepth() shouldBe 2
         depthOneLeft.fminDepth() shouldBe 2
@@ -118,8 +119,9 @@ class FBSTreeGroupingTest : FunSpec({
     }
 
     test("fsize") {
-        FBSTNil.fsize() shouldBe 0
-        FBSTNode.of(mEntry).fsize() shouldBe 1
+        FBSTGeneric.empty.fsize() shouldBe 0
+        FBSTUnique.empty.fsize() shouldBe 0
+        FBSTNode.of(true, mEntry).fsize() shouldBe 1
 
         depthOneRight.fsize() shouldBe 2
         depthOneLeft.fsize() shouldBe 2

@@ -222,48 +222,42 @@ class FBSTreeIMCollectionTest : FunSpec({
     goDropItemTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
 
     // remove only one
-    val aux5a = slideShareTree.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
-    val aux5b = aux5a.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
+    val aux5a = slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!)
+    val aux5b = aux5a.finsert(slideShareTree.fleftMost()!!)
     IMBTreeEqual2(aux5b.fdropItem(slideShareTree.fleftMost()!!), aux5a) shouldBe true
   }
 
   test("ffdropItemAll") {
     nul<Int, Int>().fdropItemAll(1.toIAEntry()) shouldBe emptyIMBTree()
     (nul<Int, Int>().fdropItemAll(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
-    val aux1 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
+    val aux1 = wikiTreeLoose.finsert(wikiTree.froot()!!)
     goDropItemAll(aux1, wikiPreorder, aux1.inorder())
-    val aux2 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-      .finsertDup(wikiTree.froot()!!, allowDups = true)
+    val aux2 = wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!)
     goDropItemAll(aux2, wikiPreorder, aux2.inorder())
-    val aux3 = wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true)
+    val aux3 = wikiTreeLoose.finsert(wikiTree.fleftMost()!!)
     goDropItemAll(aux3, wikiPreorder, aux3.inorder())
-    val aux4 = wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true)
+    val aux4 = wikiTreeLoose.finsert(wikiTree.frightMost()!!)
     goDropItemAll(aux4, wikiPreorder, aux4.inorder())
-    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!)
-      .finsert(slideShareTree.fleftMost()!!)
+    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!)
     goDropItemAll(aux5, slideShareBreadthFirst, aux5.inorder())
-    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!)
-      .finsert(slideShareTree.frightMost()!!)
+    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!)
     goDropItemAll(aux6, slideShareBreadthFirst, aux6.inorder())
   }
 
   test("ffdropItem with dups") {
     nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe emptyIMBTree()
     (nul<Int, Int>().fdropItem(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
-    val aux1 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
+    val aux1 = wikiTreeLoose.finsert(wikiTree.froot()!!)
     goDropItemTele(aux1, wikiPreorder, aux1.inorder())
-    val aux2 = wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-      .finsertDup(wikiTree.froot()!!, allowDups = true)
+    val aux2 = wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!)
     goDropItemTele(aux2, wikiPreorder, aux2.inorder())
-    val aux3 = wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true)
+    val aux3 = wikiTreeLoose.finsert(wikiTree.fleftMost()!!)
     goDropItemTele(aux3, wikiPreorder, aux3.inorder())
-    val aux4 = wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true)
+    val aux4 = wikiTreeLoose.finsert(wikiTree.frightMost()!!)
     goDropItemTele(aux4, wikiPreorder, aux4.inorder())
-    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!)
-      .finsert(slideShareTree.fleftMost()!!)
+    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!)
     goDropItemTele(aux5, slideShareBreadthFirst, aux5.inorder())
-    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!)
-      .finsert(slideShareTree.frightMost()!!)
+    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!)
     goDropItemTele(aux6, slideShareBreadthFirst, aux6.inorder())
   }
 
@@ -354,7 +348,8 @@ class FBSTreeIMCollectionTest : FunSpec({
 
   test("fempty") {
     iiTreeOfNone.fempty() shouldBe true
-    FBSTNil.fempty() shouldBe true
+    FBSTGeneric.empty.fempty() shouldBe true
+    FBSTUnique.empty.fempty() shouldBe true
     FBSTree.ofvi(1).fempty() shouldBe false
   }
 

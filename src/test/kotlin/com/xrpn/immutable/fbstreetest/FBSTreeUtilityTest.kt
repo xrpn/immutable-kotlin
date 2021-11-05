@@ -14,6 +14,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fbsStree
 import io.kotest.xrpn.fbstree
+import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
 
 private val intFBSTreeOfNone = FBSTree.Companion.ofvi(*emptyArrayOfInt)
@@ -40,6 +41,7 @@ class FBSTreeUtilityTest : FunSpec({
         Unit
       }
       null -> Unit
+      else -> throw RuntimeException("unknown ${node::class}")
     }
 
   test("sanity") {

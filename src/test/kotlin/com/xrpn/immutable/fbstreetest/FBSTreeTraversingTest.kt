@@ -2,6 +2,7 @@ package com.xrpn.immutable.fbstreetest
 
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.fbtAssertNodeInvariant
+import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.aEntry
 import com.xrpn.immutable.bEntry
 import com.xrpn.immutable.cEntry
@@ -48,16 +49,18 @@ import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbstreeWithDups
 
 class FBSTreeTraversingTest : FunSpec({
 
-    val repeats = 50
+    val repeats = 25
 
     beforeTest {}
 
     test("preorder") {
-        FBSTNil.preorder() shouldBe FLNil
-        FBSTNode.of(mEntry).preorder() shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().preorder() === FLNil) shouldBe true
+        (nul<Int,Int>(true).preorder() === FLNil) shouldBe true
+        FBSTNode.of(false, mEntry).preorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.preorder() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.preorder() shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -95,11 +98,14 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             )
         slideShareTree.preorder() shouldBe slideSharePreorder
+        slideShareTreeLoose.preorder() shouldBe slideSharePreorder
     }
 
     test("preorder reverse") {
-        FBSTNil.preorder(reverse = true) shouldBe FLNil
-        FBSTNode.of(mEntry).preorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().preorder(true) === FLNil) shouldBe true
+        (nul<Int,Int>(true).preorder(true) === FLNil) shouldBe true
+
+        FBSTNode.of(false, mEntry).preorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.preorder(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.preorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -137,11 +143,13 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             )
         slideShareTree.preorder(reverse = true) shouldBe slideSharePreorder.freverse()
+        slideShareTreeLoose.preorder(reverse = true) shouldBe slideSharePreorder.freverse()
     }
 
     test("inorder") {
-        FBSTNil.inorder() shouldBe FLNil
-        fbtAssertNodeInvariant(FBSTNode.of(mEntry)).inorder() shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().inorder() === FLNil) shouldBe true
+        (nul<Int,Int>(true).inorder() === FLNil) shouldBe true
+        fbtAssertNodeInvariant(FBSTNode.of(true, mEntry)).inorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.inorder() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.inorder() shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -179,11 +187,13 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             )
         slideShareTree.inorder() shouldBe slideShareInorder
+        slideShareTreeLoose.inorder() shouldBe slideShareInorder
     }
 
     test("inorder reverse") {
-        FBSTNil.inorder(reverse = true) shouldBe FLNil
-        fbtAssertNodeInvariant(FBSTNode.of(mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
+        (nul<Int,Int>().inorder(true) === FLNil) shouldBe true
+        (nul<Int,Int>(true).inorder(true) === FLNil) shouldBe true
+        fbtAssertNodeInvariant(FBSTNode.of(false, mEntry)).inorder(reverse = true) shouldBe FLCons(mEntry, FLNil).freverse()
 
         depthOneRight.inorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil)).freverse()
         depthOneLeft.inorder(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil)).freverse()
@@ -221,11 +231,13 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             ).freverse()
         slideShareTree.inorder(reverse = true) shouldBe slideShareInorder.freverse()
+        slideShareTreeLoose.inorder(reverse = true) shouldBe slideShareInorder.freverse()
     }
 
     test("postorder") {
-        FBSTNil.postorder() shouldBe FLNil
-        FBSTNode.of(mEntry).postorder() shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().postorder() === FLNil) shouldBe true
+        (nul<Int,Int>(true).postorder() === FLNil) shouldBe true
+        FBSTNode.of(true, mEntry).postorder() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.postorder() shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.postorder() shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -263,11 +275,13 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             )
         slideShareTree.postorder() shouldBe slideSharePostorder
+        slideShareTreeLoose.postorder() shouldBe slideSharePostorder
     }
 
     test("postorder reverse") {
-        FBSTNil.postorder(reverse = true) shouldBe FLNil
-        FBSTNode.of(mEntry).postorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().postorder(true) === FLNil) shouldBe true
+        (nul<Int,Int>(true).postorder(true) === FLNil) shouldBe true
+        FBSTNode.of(false, mEntry).postorder(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.postorder(reverse = true) shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -305,11 +319,13 @@ class FBSTreeTraversingTest : FunSpec({
                 )
             )
         slideShareTree.postorder(reverse = true) shouldBe slideSharePostorder.freverse()
+        slideShareTreeLoose.postorder(reverse = true) shouldBe slideSharePostorder.freverse()
     }
 
     test("breadthFirst") {
-        FBSTNil.breadthFirst() shouldBe FLNil
-        FBSTNode.of(mEntry).breadthFirst() shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().breadthFirst() === FLNil) shouldBe true
+        (nul<Int,Int>(true).breadthFirst() === FLNil) shouldBe true
+        FBSTNode.of(false, mEntry).breadthFirst() shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.breadthFirst() shouldBe FLCons(mEntry, FLCons(nEntry, FLNil))
         depthOneLeft.breadthFirst() shouldBe FLCons(mEntry, FLCons(lEntry, FLNil))
@@ -350,8 +366,9 @@ class FBSTreeTraversingTest : FunSpec({
     }
 
     test("breadthFirst reverse") {
-        FBSTNil.breadthFirst(reverse = true) shouldBe FLNil
-        FBSTNode.of(mEntry).breadthFirst(reverse = true) shouldBe FLCons(mEntry, FLNil)
+        (nul<Int,Int>().breadthFirst(true) === FLNil) shouldBe true
+        (nul<Int,Int>(true).breadthFirst(true) === FLNil) shouldBe true
+        FBSTNode.of(true, mEntry).breadthFirst(reverse = true) shouldBe FLCons(mEntry, FLNil)
 
         depthOneRight.breadthFirst(reverse = true) shouldBe FLCons(nEntry, FLCons(mEntry, FLNil))
         depthOneLeft.breadthFirst(reverse = true) shouldBe FLCons(lEntry, FLCons(mEntry, FLNil))
@@ -392,9 +409,14 @@ class FBSTreeTraversingTest : FunSpec({
     }
 
     test("values") {
-        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats, PropTestConfig(seed = -5060833568559122518)) { fbst ->
+        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
             val lv = fbst.copyToMutableMap().map { it.value }.sorted()
             fbst.inorderValues() shouldBe lv
+        }
+        Arb.fbstreeWithDups(Arb.int(),5..30).checkAll(repeats) { fbst ->
+            val lv: List<Int> = fbst.copyToMutableMap().map { it.value }.sorted()
+            lv.forEach { v -> fbst.fcontainsValue(v) shouldBe true }
+            fbst.forEach { v: TKVEntry<Int, Int> -> lv.contains(v.getv()) shouldBe true }
         }
     }
 })

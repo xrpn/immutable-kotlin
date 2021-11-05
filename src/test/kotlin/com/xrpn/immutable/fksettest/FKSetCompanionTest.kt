@@ -465,13 +465,16 @@ class FKSetCompanionTest : FunSpec({
         (@Suppress("UNCHECKED_CAST") (ofi(arrayOf(1, 2, 3).iterator()) as IMKKSetNotEmpty<Int>)).strongEqual(intKKSetOfThree) shouldBe true
     }
 
-    test("co.ofi IMBTree<K, A>"){
+    test("co.ofi FBSTree<K, A>"){
         ofi(FRBTree.nul<Int, Int>()) shouldBe emptyIMKSet()
         (ofi(FRBTree.nul<Int, Int>()) === emptyIMKSet<Int, Int>()) shouldBe true
         ofi(FBSTree.nul<Int, Int>()) shouldBe emptyIMKSet()
         (ofi(FBSTree.nul<Int, Int>()) === emptyIMKSet<Int, Int>()) shouldBe true
+        ofi(FBSTree.nul<Int, Int>(true)) shouldBe emptyIMKSet()
+        (ofi(FBSTree.nul<Int, Int>(true)) === emptyIMKSet<Int, Int>()) shouldBe true
         (@Suppress("UNCHECKED_CAST") (ofi(FRBTree.ofvi(1, 2, 3)) as IMKKSetNotEmpty<Int>)) shouldBe intKKSetOfThree
         (@Suppress("UNCHECKED_CAST") (ofi(FBSTree.ofvi(1, 2, 3)) as IMKKSetNotEmpty<Int>)) shouldBe intKKSetOfThree
+        ofi(FBSTree.ofvi(1, 2, 3, allowDups = true)) shouldBe null
     }
 
     test("co.ofi IMList"){
@@ -516,10 +519,10 @@ class FKSetCompanionTest : FunSpec({
         intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
 
-    test("co.ofs IMBTree<K, A>") {
+    test("co.ofs FRBTree<K, A>") {
         ofs(FRBTree.nul<String, Int>()) shouldBe emptyIMKSet()
         (ofs(FRBTree.nul<String, Int>()) === emptyIMKSet<String, Int>()) shouldBe true
-        val autfrb: IMKSet<String, Int> = ofs(FRBTree.ofvs(1, 2, 3))
+        val autfrb: IMKSet<String, Int> = ofs(FRBTree.ofvs(1, 2, 3))!!
         autfrb.strongEqual(intSSetOfThree) shouldBe true
         autfrb.equals(intKKSetOfThree) shouldBe false
         autfrb shouldBe intKKSetOfThree
@@ -531,7 +534,9 @@ class FKSetCompanionTest : FunSpec({
     test("co.ofs FBSTree<K, A>"){
         ofs(FBSTree.nul<String, Int>()) shouldBe emptyIMKSet()
         (ofs(FBSTree.nul<String, Int>()) === emptyIMKSet<String, Int>()) shouldBe true
-        val autfbs: FKSet<String, Int> = ofs(FBSTree.ofvs(1, 2, 3))
+        (ofs(FBSTree.nul<String, Int>(true)) === emptyIMKSet<String, Int>()) shouldBe true
+        ofs(FBSTree.ofvs(1, 2, 3, allowDups = true)) shouldBe null
+        val autfbs: FKSet<String, Int> = ofs(FBSTree.ofvs(1, 2, 3))!!
         autfbs.strongEqual(intSSetOfThree) shouldBe true
         autfbs.equals(intKKSetOfThree) shouldBe false
         autfbs shouldBe intKKSetOfThree

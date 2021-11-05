@@ -10,6 +10,7 @@ import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
@@ -57,11 +58,6 @@ class FBSTreeFilteringTest : FunSpec({
         ofvi(1,2,3,4).fdropAlt(FRBTree.of(2.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(1, 4)
         ofvi(1,2,3).fdropAlt(FRBTree.of(1.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(2)
         ofvi(1,2,3,4).fdropAlt(FRBTree.of(1.toIAEntry(), 3.toIAEntry())) shouldBe ofvi(2, 4)
-    }
-
-    test("fempty") {
-        FBSTNil.fempty() shouldBe true
-        ofvi(1).fempty() shouldBe false
     }
 
     test("ffind (A)") {
@@ -304,21 +300,12 @@ class FBSTreeFilteringTest : FunSpec({
                     go(t, acc.tail)
                 }
             }
-        go(wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true), wikiPreorder)
-        go(
-            wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-            .finsertDup(wikiTree.froot()!!, allowDups = true), wikiPreorder
-        )
-        go(wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true), wikiPreorder)
-        go(wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true), wikiPreorder)
-        go(
-            slideShareTree.finsert(slideShareTree.fleftMost()!!)
-            .finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst
-        )
-        go(
-            slideShareTree.finsert(slideShareTree.frightMost()!!)
-            .finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst
-        )
+        go(wikiTreeLoose.finsert(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.fleftMost()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.frightMost()!!), wikiPreorder)
+        go(slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
+        go(slideShareTreeLoose.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst)
     }
 
     test("ffindLastKey no dups") {
@@ -358,21 +345,12 @@ class FBSTreeFilteringTest : FunSpec({
                     go(t, acc.tail)
                 }
             }
-        go(wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true), wikiPreorder)
-        go(
-            wikiTree.finsertDup(wikiTree.froot()!!, allowDups = true)
-            .finsertDup(wikiTree.froot()!!, allowDups = true), wikiPreorder
-        )
-        go(wikiTree.finsertDup(wikiTree.fleftMost()!!, allowDups = true), wikiPreorder)
-        go(wikiTree.finsertDup(wikiTree.frightMost()!!, allowDups = true), wikiPreorder)
-        go(
-            slideShareTree.finsert(slideShareTree.fleftMost()!!)
-            .finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst
-        )
-        go(
-            slideShareTree.finsert(slideShareTree.frightMost()!!)
-            .finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst
-        )
+        go(wikiTreeLoose.finsert(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.fleftMost()!!), wikiPreorder)
+        go(wikiTreeLoose.finsert(wikiTree.frightMost()!!), wikiPreorder)
+        go(slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
+        go(slideShareTreeLoose.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst)
     }
 
     test("ffindValueOfKey") {
@@ -392,7 +370,8 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("fleftMost") {
-        FBSTNil.fleftMost() shouldBe null
+        FBSTGeneric.empty.fleftMost() shouldBe null
+        FBSTUnique.empty.fleftMost() shouldBe null
         of(1.toIAEntry()).fleftMost() shouldBe 1.toIAEntry()
         of(3.toIAEntry(), 1.toIAEntry()).fleftMost() shouldBe 1.toIAEntry()
         of(3.toIAEntry(), 4.toIAEntry()).fleftMost() shouldBe 3.toIAEntry()
@@ -409,20 +388,22 @@ class FBSTreeFilteringTest : FunSpec({
     test("fisDup") {
         nul<Int, Int>().fisDup(1.toIAEntry()) shouldBe false
         slideShareTree.fisDup(slideShareTree.fleftMost()!!) shouldBe false
-        val aux5a = slideShareTree.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
+        val aux5a = slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!)
         aux5a.fisDup(slideShareTree.fleftMost()!!) shouldBe true
         aux5a.fisDup(slideShareTree.froot()!!) shouldBe false
-        val aux5b = aux5a.finsertDup(slideShareTree.fleftMost()!!, allowDups = true)
+        val aux5b = aux5a.finsert(slideShareTree.fleftMost()!!)
         aux5b.fisDup(slideShareTree.fleftMost()!!) shouldBe true
         aux5b.fisDup(slideShareTree.froot()!!) shouldBe false
-        val aux5c = slideShareTree.finsertDup(slideShareTree.froot()!!, allowDups = true)
+        val aux5c = slideShareTreeLoose.finsert(slideShareTree.froot()!!)
         aux5c.fisDup(slideShareTree.fleftMost()!!) shouldBe false
         aux5c.fisDup(slideShareTree.froot()!!) shouldBe true
     }
 
     test("fparentOf") {
         nul<Int, String>().fparentOf(TKVEntry.ofIntKey("")) shouldBe null
-        FBSTNode.of(mEntry).fparentOf(mEntry) shouldBe FBSTNil
+        nul<Int, String>(true).fparentOf(TKVEntry.ofIntKey("")) shouldBe null
+        (FBSTNode.of(false, mEntry).fparentOf(mEntry) === FBSTUnique.empty) shouldBe true
+        (FBSTNode.of(true, mEntry).fparentOf(mEntry) === FBSTGeneric.empty) shouldBe true
 
         depthOneLeft.fparentOf(lEntry) shouldBe depthOneLeft
         depthOneRight.fparentOf(nEntry) shouldBe depthOneRight
@@ -442,7 +423,8 @@ class FBSTreeFilteringTest : FunSpec({
         (depthTwoRightLeft.fparentOf(sEntry) as FBSTNode).entry shouldBe nEntry
         (depthTwoRightLeft.fparentOf(mEntry) as FBSTNode).entry shouldBe nEntry
 
-        wikiTree.fparentOf(fEntry)  /* parent of root */ shouldBe FBSTNil
+        wikiTree.fparentOf(fEntry)  /* parent of root */ .shouldBeInstanceOf<FBSTUnique>()
+        wikiTreeLoose.fparentOf(fEntry)  /* parent of root */ .shouldBeInstanceOf<FBSTGeneric>()
         (wikiTree.fparentOf(cEntry) as FBSTNode).entry shouldBe dEntry
         (wikiTree.fparentOf(hEntry) as FBSTNode).entry shouldBe iEntry
         wikiTree.fparentOf(zEntry) /* parent of missing value */ shouldBe null
@@ -451,8 +433,9 @@ class FBSTreeFilteringTest : FunSpec({
         (slideShareTree.fparentOf(n50Entry) as FBSTNode).entry shouldBe n78Entry
     }
 
-    test("fpeeck") {
-        FBSTNil.fpeek() shouldBe null
+    test("fpeek") {
+        FBSTGeneric.empty.fpeek() shouldBe null
+        FBSTUnique.empty.fpeek() shouldBe null
         slideShareTree.fpeek() shouldNotBe null
     }
 
@@ -469,7 +452,8 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("frightMost") {
-        FBSTNil.frightMost() shouldBe null
+        FBSTGeneric.empty.frightMost() shouldBe null
+        FBSTUnique.empty.frightMost() shouldBe null
     }
 
     test("fleftMost frightMost int") {
@@ -483,7 +467,8 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("froot") {
-        FBSTNil.froot() shouldBe null
+        FBSTGeneric.empty.froot() shouldBe null
+        FBSTUnique.empty.froot() shouldBe null
         for (size in IntRange(1, 20)) {
             val ary = IntArray(size) {nextInt()}
             of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).froot() shouldBe TKVEntry.ofIntKey(ary[0])

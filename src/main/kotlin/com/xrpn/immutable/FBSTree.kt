@@ -46,6 +46,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override operator fun contains(element: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean = when(this) {
         is FBSTNil -> false
         is FBSTNode<A, B> -> this.fcontains(element)
+        else -> throw RuntimeException("internal error")
     }
 
     override fun containsAll(elements: Collection<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): Boolean {
@@ -87,7 +88,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         val f4ffilter: (acc: FBSTree<A, B>, item: TKVEntry<A, B>) -> FBSTree<A, B> =
             { acc, item -> if (isMatch(item)) bstInsert(acc, item, allowDups = false) else acc }
 
-        return ffold(nul(), f4ffilter)
+        return ffold(nul(isAcceptDuplicates()), f4ffilter)
     }
 
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): FBSTree<A, B> =
@@ -159,7 +160,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         val f4ffilterKey: (acc: FBSTree<A, B>, item: TKVEntry<A, B>) -> FBSTree<A, B> =
             { acc, item -> if (isMatch(item.getk())) bstInsert(acc, item, allowDups = true) else acc }
 
-        return ffold(nul(), f4ffilterKey)
+        return ffold(nul(isAcceptDuplicates()), f4ffilterKey)
     }
 
     override fun ffilterKeyNot(isMatch: (A) -> Boolean): FBSTree<A, B> =
@@ -170,7 +171,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         val f4ffilterValue: (acc: FBSTree<A, B>, item: TKVEntry<A, B>) -> FBSTree<A, B> =
             { acc, item -> if (isMatch(item.getv())) bstInsert(acc, item, allowDups = true) else acc }
 
-        return ffold(nul(), f4ffilterValue)
+        return ffold(nul(isAcceptDuplicates()), f4ffilterValue)
     }
 
     override fun ffilterValueNot(isMatch: (B) -> Boolean): FBSTree<A, B> =
@@ -202,6 +203,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fget(key: @UnsafeVariance A): B? = when (this) {
         is FBSTNil -> null
         is FBSTNode -> ffindValueOfKey(key)
+        else -> throw RuntimeException("internal error")
     }
 
     override fun asIMMap(): IMMap<A, B> = toIMMap()
@@ -222,17 +224,17 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
 
-    override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> =
-        toFBSTreeImpl(this, kType)
+    override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> = toFBSTreeImpl(this, kType)
 
     override fun toIMMap(): IMMap<A, B> = ofFKMapBody(this.toFRBTree())
 
-    override fun copy(): FBSTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+    override fun copy(): FBSTree<A, B> = this.ffold(nul(isAcceptDuplicates())) { acc, tkv -> acc.finsert(tkv) }
 
     // =========== traversable
 
     override fun preorder(reverse: Boolean): FList<TKVEntry<A, B>> {
-        val fl = this.ffold(FList.emptyIMList<TKVEntry<A,B>>()) { acc, item -> FLCons(item, acc) }
+        val seed = FList.emptyIMList<TKVEntry<A,B>>()
+        val fl = this.ffold(seed) { acc: FList<TKVEntry<A, B>>, item -> FLCons(item, acc) }
         return if(reverse) fl else fl.freverse()
     }
 
@@ -242,6 +244,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             when (t) {
                 is FBSTNil -> stack
                 is FBSTNode -> inoLeftDescent(t.bLeft, stack.fpush(t))
+                else -> throw RuntimeException("internal error")
             }
 
         tailrec fun inoChangeDirection(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> =
@@ -356,7 +359,9 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is FBSTNode -> when (bt.bLeft) {
                     is FBSTNil -> bt.entry
                     is FBSTNode -> leftDescent(bt.bLeft)
+                    else -> throw RuntimeException("internal error")
                 }
+                else -> throw RuntimeException("internal error")
             }
 
         return leftDescent(this)
@@ -374,15 +379,17 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is FBSTNode -> when (bt.bRight) {
                     is FBSTNil -> bt.entry
                     is FBSTNode -> rightDescent(bt.bRight)
+                    else -> throw RuntimeException("internal error")
                 }
+                else -> throw RuntimeException("internal error")
             }
 
         return rightDescent(this)
     }
 
     override fun froot(): TKVEntry<A,B>? = when(this) {
-        is FBSTNil -> null
         is FBSTNode -> this.entry
+        else -> null
     }
 
     override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
@@ -408,20 +415,20 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (isMatch(current)) Pair(bstInsert(acc.first, current, allowDups = true), acc.second)
             else Pair(acc.first, bstInsert(acc.second, current, allowDups = true))
 
-        return ffold(Pair(nul(), nul()), ::f4fpartition)
+        return ffold(Pair(nul(isAcceptDuplicates()), nul(isAcceptDuplicates())), ::f4fpartition)
     }
 
     override fun fpopAndRemainder(): Pair<TKVEntry<A,B>?, FBSTree<A, B>> {
         val pop: TKVEntry<A,B>? = this.fpeek()
         // computing the remainder can be very expensive; if traversing
         // the full tree, .inorder() or .forEach() may be cheaper
-        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: FBSTNil
+        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: emptyFBSTree
         return Pair(pop, remainder)
     }
 
     // returns the maximum path length from the root of a tree to any node.
 
-    val maxBstDepth: Int by lazy {
+    private val maxBstDepth: Int by lazy {
         fun accrue(q: FQueue<FBSTNode<A, B>>, depth: Int): Pair<Int, FQueue<FBSTNode<A, B>>> {
 
             tailrec fun harvestThisLevel(q: FQueue<FBSTNode<A, B>>, r: FQueue<FBSTNode<A, B>>): FQueue<FBSTNode<A, B>> {
@@ -444,7 +451,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fmaxDepth(): Int = maxBstDepth
 
-    val minBstDepth: Int by lazy {
+    private val minBstDepth: Int by lazy {
 
         fun accrue(q: FQueue<FBSTNode<A, B>>, depth: Int): Pair<Int, FQueue<FBSTNode<A, B>>> {
 
@@ -473,11 +480,13 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     // =========== transforming
 
-    override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =  // 	When working with sequences, it works like map followed by flatten
-        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = false) }
-
-    override fun <C, D: Any> fflatMapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> IMBTree<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> =  // 	When working with sequences, it works like map followed by flatten
-        this.ffold(nul()) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = true) }
+    override fun <C, D: Any> fflatMap(f: (TKVEntry<A, B>) -> IMBTree<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = when(this) {
+        is FBSTNodeGeneric -> ffold(nul(true)) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = true) }
+        is FBSTNodeUnique -> ffold(nul(false)) { acc, tkv -> mergeAppender(acc, (f(tkv) as FBSTree<C, D>), allowDups = false) }
+        is FBSTGeneric -> this
+        is FBSTUnique -> this
+        else -> throw RuntimeException("internal error, unknown ${this::class}")
+    }
 
     override fun <C> ffold(z: C, f: (acc: C, TKVEntry<A, B>) -> C): C {
 
@@ -494,44 +503,42 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         else  unwindStack(FStack.of(this as FBSTNode), z, ::accrueForFold)
     }
 
-    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
-        this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
-
-    override fun <C, D: Any> fmapDup(allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
-        this.ffold(nul()) { acc, tkv -> acc.finsertDup(f(tkv), allowDups) }
+    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = when(this) {
+        is FBSTNodeGeneric -> ffold(nul(true)) { acc, tkv -> acc.finsert(f(tkv)) }
+        is FBSTNodeUnique -> ffold(nul(false)) { acc, tkv -> acc.finsert(f(tkv)) }
+        is FBSTGeneric -> this
+        is FBSTUnique -> this
+        else -> throw RuntimeException("internal error, unknown ${this::class}")
+    }
 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
-        is FBSTNil -> null
         is FBSTNode -> {
             val (seedTkv, stub) = this.fpopAndRemainder()
             stub.ffold(seedTkv!!){ acc, tkv -> f(acc, tkv) }
         }
+        else -> null
     }
 
     // =========== altering
 
     override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> =
-        bstInsert(this, item, allowDups = false)
-
-    override fun finsertDup(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>, allowDups: Boolean): FBSTree<A, B> =
-        bstInsert(this, item, allowDups)
+        bstInsert(this, item)
 
     override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> =
-        bstInserts(this, items as FList<TKVEntry<A, B>>, allowDups = false)
-
-    override fun finsertsDup(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, allowDups: Boolean): FBSTree<A, B> =
-        bstInserts(this, items as FList<TKVEntry<A, B>>, allowDups)
+        bstInserts(this, items as FList<TKVEntry<A, B>>)
 
     // =========== internals
 
     private fun visit(t: FBSTree<A, B>, acc: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> = when(t) {
         is FBSTNil -> acc
         is FBSTNode -> FLCons(t.entry, acc)
+        else -> throw RuntimeException("internal error, unknown ${t::class}")
     }
 
     private fun <C> visitForFold(t: FBSTree<A, B>, acc: C, f: (acc: C, TKVEntry<A, B>) -> C): C = when(t) {
         is FBSTNil -> acc
         is FBSTNode -> f(acc, t.entry)
+        else -> throw RuntimeException("internal error, unknown ${t::class}")
     }
 
     private tailrec fun <C> unwindStack(stack: IMStack<FBSTNode<A, B>>,
@@ -553,110 +560,115 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     internal fun toFRBTree(): FRBTree<A, B> = this.ffold(FRBTree.nul(), ::rbtInsert)
 
-    companion object: IMBTreeCompanion {
+    internal fun toEmptyFBSTree(): FBSTree<A, B> = if (fempty()) this else when(this) {
+        is FBSTNodeGeneric<A,B> -> FBSTGeneric.empty
+        is FBSTNodeUnique<A,B> -> FBSTUnique.empty
+        else -> throw RuntimeException("internal error")
+    }
+
+    internal fun toGeneric(): FBSTree<A, B> = when (this) {
+        is FBSTUnique -> FBSTGeneric.empty
+        is FBSTNodeUnique -> breadthFirst().ffoldLeft(FBSTGeneric.empty as FBSTree<A, B>) { t, tkv -> bstInsert(t, tkv) }
+        else -> this
+    }
+
+    internal fun toUnique(): FBSTree<A, B> = when (this) {
+        is FBSTGeneric -> FBSTUnique.empty
+        is FBSTNodeGeneric -> breadthFirst().ffoldLeft(FBSTUnique.empty as FBSTree<A, B>) { t, tkv -> bstInsert(t, tkv) }
+        else -> this
+    }
+
+    internal fun isAcceptDuplicates(): Boolean = when(this) {
+        is FBSTGeneric -> true
+        is FBSTNodeGeneric -> true
+        is FBSTUnique -> false
+        is FBSTNodeUnique -> false
+        else -> throw RuntimeException("internal error")
+    }
+
+    companion object: IMBTreeDupCompanion {
 
         const val NOT_FOUND = -1
 
-        fun <A, B: Any> nul(): FBSTree<A, B> where A: Any, A: Comparable<A> = FBSTNil
+        internal fun <A, B: Any> nul(allowDups: Boolean = false): FBSTree<A, B> where A: Any, A: Comparable<A> = if (allowDups) FBSTGeneric.empty else FBSTUnique.empty
 
-        override fun <A, B : Any> emptyIMBTree(): FBSTree<A, B> where A: Any,  A : Comparable<A> = nul()
+        override fun <A, B : Any> emptyIMBTree(allowDups: Boolean): FBSTree<A, B> where A: Any,  A: Comparable<A> = nul(allowDups)
 
         // ===============
 
-        override fun <A, B: Any> of(vararg items: TKVEntry<A,B>): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator(), false)
         override fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator(), allowDups)
-        override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items, false)
         override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
-            var res: FBSTree<A, B> = nul()
+            var res: FBSTree<A, B> = nul(allowDups)
             items.forEach{ res = bstInsert(res, it, allowDups) }
             return res
         }
-        override fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> =
-            items.ffoldLeft(nul(), appender(false))
         override fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> =
-            items.ffoldLeft(nul(), appender(allowDups))
+            items.ffoldLeft(nul(allowDups), appender(allowDups))
 
         // ===============
 
-        override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>): FBSTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items.iterator(), false)
         override fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items.iterator(), allowDups)
-        override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>): FBSTree<A, B> where A: Any, A: Comparable<A> = ofc(cc, items, false)
         override fun <A, B: Any> ofc(cc: Comparator<A>, items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
-            var res: FBSTree<A, B> = nul()
+            var res: FBSTree<A, B> = nul(allowDups)
             items.forEach { res = bstInsert(res, TKVEntry.ofkvc(it.getk(), it.getv(), cc), allowDups) }
             return res
         }
 
         // =================
 
-        override fun <B : Any> ofvi(vararg items: B): FBSTree<Int, B> = ofvi(items.iterator(), false)
         override fun <B : Any> ofvi(vararg items: B, allowDups: Boolean): FBSTree<Int, B> = ofvi(items.iterator(), allowDups)
-        override fun <B : Any> ofvi(items: Iterator<B>): FBSTree<Int, B> = ofvi(items, false)
         override fun <B : Any> ofvi(items: Iterator<B>, allowDups: Boolean): FBSTree<Int, B> {
-            var res: FBSTree<Int, B> = nul()
-            items.forEach { res = bstInsert(res, TKVEntry.ofIntKey(it), allowDups) }
+            var res: FBSTree<Int, B> = nul(allowDups)
+            items.forEach {
+                res = bstInsert(res, TKVEntry.ofIntKey(it), allowDups)
+            }
             return res
         }
-        override fun <B: Any> ofvi(items: IMList<B>): FBSTree<Int, B> = items.ffoldLeft(nul(), appenderIntKey(false))
-        override fun <B: Any> ofvi(items: IMList<B>, allowDups: Boolean): FBSTree<Int, B> = items.ffoldLeft(nul(), appenderIntKey(allowDups))
+        override fun <B: Any> ofvi(items: IMList<B>, allowDups: Boolean): FBSTree<Int, B> = items.ffoldLeft(nul(allowDups), appenderIntKey(allowDups))
 
         // ===============
 
-        override fun <B : Any> ofvs(vararg items: B): FBSTree<String, B> = ofvs(items.iterator(), false)
         override fun <B : Any> ofvs(vararg items: B, allowDups: Boolean): FBSTree<String, B> = ofvs(items.iterator(), allowDups)
-        override fun <B: Any> ofvs(items: IMList<B>): FBSTree<String, B> =
-            items.ffoldLeft(nul(), appenderStrKey(false))
-        override fun <B: Any> ofvs(items: IMList<B>, allowDups: Boolean): FBSTree<String, B> =
-            items.ffoldLeft(nul(), appenderStrKey(allowDups))
-        override fun <B : Any> ofvs(items: Iterator<B>): FBSTree<String, B> = ofvs(items, false)
+        override fun <B: Any> ofvs(items: IMList<B>, allowDups: Boolean): FBSTree<String, B> = items.ffoldLeft(nul(allowDups), appenderStrKey(allowDups))
         override fun <B : Any> ofvs(items: Iterator<B>, allowDups: Boolean): FBSTree<String, B>  {
-            var res: FBSTree<String, B> = nul()
+            var res: FBSTree<String, B> = nul(allowDups)
             items.forEach { res = bstInsert(res, TKVEntry.ofStrKey(it), allowDups) }
             return res
         }
 
         // ===============
 
-        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> = ofMap(items, false, f)
-        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> {
-            var res: FBSTree<C, D> = nul()
+        override fun <A, B : Any, C, D : Any> ofMap(items: Iterator<TKVEntry<A, B>>, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> = ofMapImpl(items, false, f)
+        override fun <A, B : Any, C, D : Any> ofMapNotUnique(items: Iterator<TKVEntry<A, B>>, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A: Comparable<A>, C: Any, C: Comparable<C> = ofMapImpl(items, true, f)
+        private fun <A, B : Any, C, D : Any> ofMapImpl(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where A: Any, A : Comparable<A>, C: Any, C : Comparable<C> {
+            var res: FBSTree<C, D> = nul(allowDups)
             items.forEach { res = bstInsert(res, f(it), allowDups) }
             return res
         }
 
         // ===============
 
-        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, f: (B) -> C): FBSTree<Int, C> = ofviMap(items, false, f)
-        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FBSTree<Int, C> {
-            var res: FBSTree<Int, C> = nul()
+        override fun <B : Any, C : Any> ofviMap(items: Iterator<B>, f: (B) -> C): FBSTree<Int, C> = ofviMapImpl(items, false, f)
+        override fun <B : Any, C : Any> ofviMapNotUnique(items: Iterator<B>, f: (B) -> C): FBSTree<Int, C> = ofviMapImpl(items, true, f)
+        private fun <B : Any, C : Any> ofviMapImpl(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FBSTree<Int, C> {
+            var res: FBSTree<Int, C> = nul(allowDups)
             items.forEach { res = bstInsert(res, TKVEntry.ofIntKey(f(it)), allowDups) }
             return res
         }
 
         // ===============
 
-        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, f: (B) -> C): FBSTree<String, C> = ofvsMap(items, false, f)
-        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FBSTree<String, C> {
-            var res: FBSTree<String, C> = nul()
+        override fun <B : Any, C : Any> ofvsMap(items: Iterator<B>, f: (B) -> C): FBSTree<String, C> = ofvsMapImpl(items, false, f)
+        override fun <B : Any, C : Any> ofvsMapNotUnique(items: Iterator<B>, f: (B) -> C): FBSTree<String, C> = ofvsMapImpl(items, true, f)
+        private fun <B : Any, C : Any> ofvsMapImpl(items: Iterator<B>, allowDups: Boolean, f: (B) -> C): FBSTree<String, C> {
+            var res: FBSTree<String, C> = nul(allowDups)
             items.forEach { res = bstInsert(res, TKVEntry.ofStrKey(f(it)), allowDups) }
             return res
         }
 
-        // =================
-
-//        override fun <A, B : Any> Collection<TKVEntry<A, B>>.toIMBTree(): FBSTree<A, B> where A: Any, A : Comparable<A> =
-//            if (this.isEmpty()) nul() else when(this) {
-//                is FBSTree<*, *> -> this as FBSTree<A, B>
-//                is FRBTree<*, *> -> @Suppress("UNCHECKED_CAST") (this as IMBTree<A, B>).ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
-//                is IMKSet<*,*> -> this.toIMBTree().ffold(nul()) { acc: FBSTree<A, B>, item -> acc.finsert(item) }
-//                is List<*> -> of(this.iterator(), allowDups = true)
-//                is Set<*> -> of(this.iterator())
-//                else -> /* TODO this would be interesting */ throw RuntimeException(this::class.simpleName)
-//            }
-
         override fun <A, B: Any> Map<A, B>.toIMBTree(): FBSTree<A, B> where A: Any, A: Comparable<A> {
-            var res: FBSTree<A, B> = nul()
-            for (entry in this) { res = res.finsertDup(TKVEntry.ofme(entry), allowDups = true) }
+            var res: FBSTree<A, B> = nul(false)
+            for (entry in this) { res = res.finsert(TKVEntry.ofme(entry)) }
             return res
         }
 
@@ -664,74 +676,77 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // delete entry from treeStub.
         internal fun <A, B: Any> bstDelete(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>, atMostOne: Boolean = false): FBSTree<A, B>
-        where A: Any, A: Comparable<A> {
-
-            fun buildReplacement(
-                nodeOfInterest: FBSTNode<A, B>,
-                graftLeft: FBSTree<A, B>,
-            ): FBSTNode<A, B> {
-                nodeOfInterest.bRight as FBSTNode
-                /*
-                   we need the smallest of the larger entries in the tree as replacement;
-                   this entry is the smallest (leftMost) of the larger (right) branch
-                   TODO use implicit FIT ordering instead of left-right
-                 */
-                val replacementEntry = nodeOfInterest.bRight.fleftMost()!!
-                return if (replacementEntry == nodeOfInterest.entry)
-                    /* just drop one of the duplicates */
-                    FBSTNode.of(replacementEntry, graftLeft, nodeOfInterest.bRight.bRight)
-                else {
-                    val replacementCount = nodeOfInterest.fcount{ it == replacementEntry }
-                    check(0 < replacementCount)
-                    if ( 1 == replacementCount) {
-                        val replacementNode = nodeOfInterest.ffindItem(replacementEntry)!! as FBSTNode<A, B>
-                        check(replacementNode.bLeft is FBSTNil)
-                        val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry).finserttDup(replacementNode.bRight, true) as FBSTree<A,B>
-                        FBSTNode.of(replacementEntry, graftLeft, graftRight)
-                    } else {
-                        /* I need to move ALL replacementCount */
-                        val replacementNodeFirst = nodeOfInterest.ffindItem(replacementEntry)!! as FBSTNode<A, B>
-                        check(replacementNodeFirst.bLeft is FBSTNil)
-                        val replacementNodeLast = nodeOfInterest.ffindLastItem(replacementEntry)!! as FBSTNode<A, B>
-                        check(replacementNodeLast.bLeft is FBSTNil)
-                        when (val tail = replacementNodeLast.bRight) {
-                            is FBSTNil -> {
-                                val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry)
-                                FBSTNode.of(replacementEntry, graftLeft, graftRight).finserttDup(replacementNodeFirst.bRight, true) as FBSTNode<A,B>
-                            }
-                            is FBSTNode -> {
-                                val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry).finserttDup(tail, true) as FBSTree<A,B>
-                                val prunedReplacement = bstPrune(replacementNodeFirst, tail.entry) as FBSTNode
-                                FBSTNode.of(replacementEntry, graftLeft, graftRight).finserttDup(prunedReplacement.bRight, true) as FBSTNode<A,B>
+        where A: Any, A: Comparable<A> = when {
+            treeStub.fempty() -> treeStub
+            1 == treeStub.fsize() -> if (treeStub.froot()!!.equal(item)) nul(treeStub.isAcceptDuplicates()) else treeStub
+            else -> {
+                fun buildReplacement(
+                    nodeOfInterest: FBSTNode<A, B>,
+                    graftLeft: FBSTree<A, B>,
+                ): FBSTNode<A, B> {
+                    nodeOfInterest.bRight as FBSTNode
+                    /*
+                       we need the smallest of the larger entries in the tree as replacement;
+                       this entry is the smallest (leftMost) of the larger (right) branch
+                       TODO use implicit FIT ordering instead of left-right
+                     */
+                    val replacementEntry = nodeOfInterest.bRight.fleftMost()!!
+                    return if (replacementEntry == nodeOfInterest.entry)
+                        /* just drop one of the duplicates */
+                        FBSTNode.of(treeStub.isAcceptDuplicates(), replacementEntry, graftLeft, nodeOfInterest.bRight.bRight)
+                    else {
+                        val replacementCount = nodeOfInterest.fcount{ it == replacementEntry }
+                        check(0 < replacementCount)
+                        if ( 1 == replacementCount) {
+                            val replacementNode = nodeOfInterest.ffindItem(replacementEntry)!! as FBSTNode<A, B>
+                            check(replacementNode.bLeft is FBSTNil)
+                            val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry).finsertt(replacementNode.bRight) as FBSTree<A,B>
+                            FBSTNode.of(treeStub.isAcceptDuplicates(), replacementEntry, graftLeft, graftRight)
+                        } else {
+                            /* I need to move ALL replacementCount */
+                            val replacementNodeFirst = nodeOfInterest.ffindItem(replacementEntry)!! as FBSTNode<A, B>
+                            check(replacementNodeFirst.bLeft is FBSTNil)
+                            val replacementNodeLast = nodeOfInterest.ffindLastItem(replacementEntry)!! as FBSTNode<A, B>
+                            check(replacementNodeLast.bLeft is FBSTNil)
+                            when (val tail = replacementNodeLast.bRight) {
+                                is FBSTNil -> {
+                                    val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry)
+                                    FBSTNode.of(treeStub.isAcceptDuplicates(), replacementEntry, graftLeft, graftRight).finsertt(replacementNodeFirst.bRight) as FBSTNode<A,B>
+                                }
+                                is FBSTNode -> {
+                                    val graftRight = bstPrune(nodeOfInterest.bRight, replacementEntry).finsertt(tail) as FBSTree<A,B>
+                                    val prunedReplacement = bstPrune(replacementNodeFirst, tail.entry) as FBSTNode
+                                    FBSTNode.of(treeStub.isAcceptDuplicates(), replacementEntry, graftLeft, graftRight).finsertt(prunedReplacement.bRight) as FBSTNode<A,B>
+                                }
+                                else -> throw RuntimeException("internal error, unknown ${tail::class}")
                             }
                         }
                     }
                 }
-            }
 
-            fun replace(entryOfInterest: TKVEntry<A, B>): FBSTree<A, B> = when (val nodeItemFirst = bstFind(treeStub, entryOfInterest)) {
-                is FBSTNode -> {
-                    val nodeItemLast = bstFindLast(nodeItemFirst, entryOfInterest) as FBSTNode
-                    val nodeOfInterest = if (atMostOne) nodeItemFirst else nodeItemLast
-                    val spliced: FBSTree<A, B> = when {
-                        nodeOfInterest.isLeaf() -> /* just remove */ bstPrune(treeStub, entryOfInterest).finserttDup(nodeItemFirst.bLeft, allowDups = true) as FBSTree
-                        nodeItemFirst.bLeft.isEmpty() -> /* replace with right child */ addGraft(bstPrune(treeStub, nodeOfInterest.entry), nodeOfInterest.bRight)
-                        nodeOfInterest.bRight.isEmpty() -> /* replace with left child */ addGraft(bstPrune(treeStub, nodeOfInterest.entry), nodeItemFirst.bLeft)
-                        else -> {
-                            val replacement = buildReplacement(nodeOfInterest, nodeItemFirst.bLeft)
-                            val stub = bstPrune(bstPrune(treeStub, entryOfInterest), replacement.entry)
-                            addGraft(stub, replacement)
+                fun replace(entryOfInterest: TKVEntry<A, B>): FBSTree<A, B> = when (val nodeItemFirst = bstFind(treeStub, entryOfInterest)) {
+                    is FBSTNode -> {
+                        val nodeItemLast = bstFindLast(nodeItemFirst, entryOfInterest) as FBSTNode
+                        val nodeOfInterest = if (atMostOne) nodeItemFirst else nodeItemLast
+                        val spliced: FBSTree<A, B> = when {
+                            nodeOfInterest.isLeaf() -> /* just remove */ bstPrune(treeStub, entryOfInterest).finsertt(nodeItemFirst.bLeft) as FBSTree
+                            nodeItemFirst.bLeft.isEmpty() -> /* replace with right child */ addGraft(bstPrune(treeStub, nodeOfInterest.entry), nodeOfInterest.bRight)
+                            nodeOfInterest.bRight.isEmpty() -> /* replace with left child */ addGraft(bstPrune(treeStub, nodeOfInterest.entry), nodeItemFirst.bLeft)
+                            else -> {
+                                val replacement = buildReplacement(nodeOfInterest, nodeItemFirst.bLeft)
+                                val stub = bstPrune(bstPrune(treeStub, entryOfInterest), replacement.entry)
+                                addGraft(stub, replacement)
+                            }
                         }
+                        check(deltaRemovalInvariant(spliced, treeStub, item, atMostOne))
+                        spliced
                     }
-                    check(deltaRemovalInvariant(spliced, treeStub, item, atMostOne))
-                    spliced
-                }
-                else -> treeStub
-           }
+                    else -> treeStub
+               }
 
-           return replace(item)
+               replace(item)
 
-        }
+        }}
 
         internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FBSTree<A, B>
         where A: Any, A: Comparable<A> {
@@ -761,8 +776,17 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         internal fun <A, B: Any> bstFindLastKey(treeStub: FBSTree<A, B>, key: A): FBSTNode<A, B>?
         where A: Any, A: Comparable<A> = findLast(treeStub, key, ::fitKey)
 
+        internal fun <A, B: Any> bstInsert(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>): FBSTree<A, B>
+        where A: Any, A: Comparable<A> = when (treeStub) {
+            is FBSTNodeGeneric -> bstInsert(treeStub, item, allowDups = true)
+            is FBSTNodeUnique -> bstInsert(treeStub, item, allowDups = false)
+            is FBSTGeneric -> bstInsert(treeStub, item, allowDups = true)
+            is FBSTUnique -> bstInsert(treeStub, item, allowDups = false)
+            else -> throw RuntimeException("internal error")
+        }
+
         // insert item into treeStub at the correct position
-        internal fun <A, B: Any> bstInsert(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>, allowDups: Boolean = false): FBSTNode<A, B>
+        private fun <A, B: Any> bstInsert(treeStub: FBSTree<A, B>, item: TKVEntry<A, B>, allowDups: Boolean): FBSTNode<A, B>
         where A: Any, A: Comparable<A> {
 
             fun emplace(node: FBSTNode<A, B>, tree: Trace<A, B>): FBSTNode<A, B> {
@@ -775,16 +799,26 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 return res
             }
 
-            val res = when (treeStub) {
-                is FBSTNil -> FBSTNode.of(item)
-                is FBSTNode -> reshapeWithItem(FBSTNode.of(item), treeStub, FLNil, ::emplace)
+            val res: FBSTNode<A, B> = when (treeStub) {
+                is FBSTNodeGeneric -> reshapeWithItem(FBSTNodeGeneric.of(item), treeStub, FLNil, ::emplace)
+                is FBSTNodeUnique -> reshapeWithItem(FBSTNodeUnique.of(item), treeStub, FLNil, ::emplace)
+                else -> FBSTNode.of(allowDups, item)
             }
 
             return res
         }
 
+        internal fun <A, B: Any> bstInserts(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A, B>>): FBSTree<A, B>
+        where A: Any, A: Comparable<A> = if (items.fempty()) treeStub else when (treeStub) {
+            is FBSTNodeGeneric -> bstInserts(treeStub, items, allowDups = true)
+            is FBSTGeneric -> bstInserts(FBSTNodeGeneric.of(items.fhead()!!), items.ftail())
+            is FBSTNodeUnique -> bstInserts(treeStub, items, allowDups = false)
+            is FBSTUnique -> bstInserts(FBSTNodeUnique.of(items.fhead()!!), items.ftail())
+            else -> throw RuntimeException("internal error")
+        }
+
         // insert items into treeStub at the correct position
-        internal tailrec fun <A, B: Any> bstInserts(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A, B>>, allowDups: Boolean = false): FBSTree<A, B>
+        private tailrec fun <A, B: Any> bstInserts(treeStub: FBSTree<A, B>, items: FList<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
                 is FLCons -> bstInserts(bstInsert(treeStub, items.head, allowDups), items.tail, allowDups)
@@ -809,15 +843,17 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     }
                     if (next == null) items else go(next.second, next)
                 }
+                else -> throw RuntimeException("internal error")
             }
 
             return when(treeStub) {
                 is FBSTNil -> null
                 is FBSTNode -> when {
-                    treeStub.froot()!! == childItem -> nul()
-                    treeStub.fcontains(childItem) -> go(treeStub, Pair(FBSTNil, FBSTNil)).first
+                    treeStub.froot()!! == childItem -> treeStub.toEmptyFBSTree()
+                    treeStub.fcontains(childItem) -> go(treeStub, Pair(emptyFBSTree, emptyFBSTree)).first
                     else -> null
                 }
+                else -> throw RuntimeException("internal error")
             }
         }
 
@@ -829,18 +865,18 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     val (node, shortStack) = stack.fpopOrThrow()
                     val (newStack, newAcc) = when (isChildMatch(node, clipMatch, ::fit)) {
                         Pair(noLeftMatch, noRightMatch) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val na = bstInsert(acc, node.entry)
                             val auxStack = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
                             val ns = if (node.bLeft is FBSTNode) auxStack.fpush(node.bLeft) else auxStack
                             Pair(ns, na)
                         }
                         Pair(haveLeftMatch,  noRightMatch) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val na = bstInsert(acc, node.entry)
                             val ns = if (node.bRight is FBSTNode) shortStack.fpush(node.bRight) else shortStack
                             Pair(ns, na)
                         }
                         Pair(noLeftMatch,  haveRightMatch) -> {
-                            val na = bstInsert(acc, node.entry, allowDups = true)
+                            val na = bstInsert(acc, node.entry)
                             val ns = if (node.bLeft is FBSTNode) shortStack.fpush(node.bLeft) else shortStack
                             Pair(ns, na)
                         }
@@ -852,15 +888,16 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
             return when {
                 ! treeStub.fcontains(clipMatch) -> /* nothing to prune */ treeStub
-                treeStub.fempty() -> /* nothing to match */ FBSTNil
+                treeStub.fempty() -> /* nothing to match */ treeStub
                 else -> {
                     val clipParent = bstParent(treeStub, clipMatch)!!
                     when(clipParent) {
-                        is FBSTNil -> /* root; not found was handled above */ FBSTNil
+                        is FBSTNil -> /* root; not found was handled above */ treeStub.toEmptyFBSTree()
                         is FBSTNode -> {
-                            val res: FBSTree<A, B> = copy(FStack.of(treeStub as FBSTNode), FBSTNil).first
+                            val res: FBSTree<A, B> = copy(FStack.of(treeStub as FBSTNode), treeStub.toEmptyFBSTree()).first
                             res
                         }
+                        else -> throw RuntimeException("internal error")
                     }
                 }
             }
@@ -917,8 +954,15 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         // assert the BST property on this node
         internal fun <A, B: Any> fbtAssertNodeInvariant(n: FBSTNode<A, B>): FBSTNode<A, B> where A: Any, A: Comparable<A> {
-            if (n.bLeft is FBSTNode) check(FBTFIT.RIGHT == fitKey(n.entry.getk(), n.bLeft)) { "${n.bLeft} must be smaller than its parent $n" }
-            if (n.bRight is FBSTNode) check((FBTFIT.LEFT == fitKey(n.entry.getk(), n.bRight) || FBTFIT.EQ == fitKey(n.entry.getk(), n.bRight))) { "${n.bRight} must be larger than or equal to its parent  $n" }
+            if (n.bLeft is FBSTNode) check(n.isStrictly(n.bLeft) && FBTFIT.RIGHT == fitKey(n.entry.getk(), n.bLeft)) {
+                "${n.bLeft::class.simpleName} left ${n.bLeft} must be smaller than its ${n::class.simpleName} parent $n"
+            }
+            if (n.bRight is FBSTNodeGeneric) check( n is FBSTNodeGeneric && (FBTFIT.LEFT == fitKey(n.entry.getk(), n.bRight) || FBTFIT.EQ == fitKey(n.entry.getk(), n.bRight))) {
+                "${n.bRight::class.simpleName} right ${n.bRight} must be larger than or equal to its ${n::class.simpleName} parent $n"
+            }
+            if (n.bRight is FBSTNodeUnique) check( n is FBSTNodeUnique && (FBTFIT.LEFT == fitKey(n.entry.getk(), n.bRight))) {
+                "${n.bRight::class.simpleName} right ${n.bRight} must be larger than its ${n::class.simpleName} parent $n"
+            }
             return n
         }
 
@@ -954,6 +998,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 }
                 if (next == null) treeStub else find(next, item, fitMode)
             }
+            else -> throw RuntimeException("internal error")
         }
 
         private tailrec fun <A, B: Any, C: Any> findLast(treeStub: FBSTree<A, B>, item: C, fitMode: (C, FBSTNode<A, B>) -> FBTFIT): FBSTNode<A, B>? where A: Any, A: Comparable<A> {
@@ -977,25 +1022,36 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                     // next?.let { find(next, value) } ?: treeStub
                     if (next == null) treeStub else findLast(next, item, fitMode)
                 }
+                else -> throw RuntimeException("internal error")
             }
         }
 
         private fun <A, B: Any> enrichNode(node: FBSTNode<A, B>, treePath: Trace<A, B>): FBSTNode<A, B>
-        where A: Any, A: Comparable<A> {
-            val res = when (treePath.direction) {
-                FBTFIT.EQ -> FBSTNode.of( // EQ goes to the right
-                    treePath.treeStub.entry,
-                    treePath.treeStub.bLeft,
-                    FBSTNode.of(treePath.treeStub.entry, FBSTNil, treePath.treeStub.bRight)
-                )
-                FBTFIT.RIGHT -> FBSTNode.of(treePath.treeStub.entry, treePath.treeStub.bLeft, node)
-                FBTFIT.LEFT -> {
-                    val obse = treePath.treeStub.entry
-                    val obsr = treePath.treeStub.bRight
-                    FBSTNode.of(obse, node, obsr)
+        where A: Any, A: Comparable<A> = when (node) {
+            is FBSTNodeGeneric -> {
+                check(treePath.treeStub is FBSTNodeGeneric)
+                when (treePath.direction) {
+                    FBTFIT.EQ -> /* EQ goes to the right */ FBSTNodeGeneric.of(
+                        treePath.treeStub.entry,
+                        treePath.treeStub.bLeft,
+                        FBSTNodeGeneric.of(
+                            treePath.treeStub.entry,
+                            treePath.treeStub.toEmptyFBSTree(),
+                            treePath.treeStub.bRight)
+                    )
+                    FBTFIT.RIGHT -> FBSTNodeGeneric.of(treePath.treeStub.entry, treePath.treeStub.bLeft, node)
+                    FBTFIT.LEFT -> FBSTNodeGeneric.of(treePath.treeStub.entry, node, treePath.treeStub.bRight)
                 }
             }
-            return res
+            is FBSTNodeUnique -> {
+                check(treePath.treeStub is FBSTNodeUnique)
+                when (treePath.direction) {
+                    FBTFIT.EQ -> /* discard */ treePath.treeStub
+                    FBTFIT.RIGHT -> FBSTNodeUnique.of(treePath.treeStub.entry, treePath.treeStub.bLeft, node)
+                    FBTFIT.LEFT -> FBSTNodeUnique.of(treePath.treeStub.entry, node, treePath.treeStub.bRight)
+                }
+            }
+            else -> throw RuntimeException("internal error")
         }
 
         // Takes an existing tree stub ("descent"), and a new node ("item").
@@ -1006,6 +1062,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             descent: FBSTNode<A, B>,
             trace: FList<Trace<A, B>>,
             reshape: (FBSTNode<A, B>, Trace<A, B>) -> FBSTNode<A, B>): FBSTNode<A, B> where A: Any, A: Comparable<A> {
+                check(item.isAcceptDuplicates() == descent.isAcceptDuplicates())
                 // which way do I go to find where item fits?
                 val direction = fitKey(item.entry.getk(), descent)
                 return when (val nextCheckPoint = descent.branch(direction)) {
@@ -1020,6 +1077,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                         val breadCrumbs = FLCons(breadCrumb, trace)
                         reshapeWithItem(item, nextCheckPoint, breadCrumbs, reshape)
                     }
+                    else -> throw RuntimeException("internal error, unknown ${nextCheckPoint::class}")
                 }
             }
 
@@ -1028,22 +1086,27 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         // NOTE: reinserting graft into treeStub MUST ALWAYS maintain the BST property (see ::fit for details)
         // there is a tight relationship between treeStub and graft -- this is not a general purpose utility
         private fun <A, B: Any> addGraft(treeStub: FBSTree<A, B>, graft: FBSTree<A, B>): FBSTree<A, B> where A: Any, A: Comparable<A> = when {
-            treeStub.fempty() && graft.fempty() -> FBSTNil
-            treeStub.fempty() -> graft
+            treeStub.fempty() && graft.fempty() -> treeStub
             graft.fempty() -> treeStub
-            else -> reshapeWithItem(graft as FBSTNode, treeStub as FBSTNode, FLNil, ::enrichNode)
+            treeStub.fempty() && (treeStub.isAcceptDuplicates() == graft.isAcceptDuplicates()) -> graft
+            treeStub.fempty() -> if (treeStub.isAcceptDuplicates()) graft.toGeneric() else graft.toUnique()
+            else -> {
+                val aux = if (treeStub.isAcceptDuplicates()) graft.toGeneric() else graft.toUnique()
+                reshapeWithItem(aux as FBSTNode, treeStub as FBSTNode, FLNil, ::enrichNode)
+            }
         }
 
+        // TODO XXXQQQXXX check tree nature !!
         private tailrec fun <A, B: Any> mergeAppender(t1: FBSTree<A, B>, t2: FBSTree<A, B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = when {
             t1 is FBSTNil -> t2
             t2 is FBSTNil -> t1
-            t1.size < t2.size -> {
+            t1.size < t2.size && (t1.isAcceptDuplicates() == t2.isAcceptDuplicates()) -> {
                 val (entry, stub) = t1.fpopAndRemainder()
-                mergeAppender(t2.finsertDup(entry!!, allowDups), stub, allowDups)
+                mergeAppender(bstInsert(t2, entry!!), stub, allowDups)
             }
             else -> {
                 val (entry, stub) = t2.fpopAndRemainder()
-                mergeAppender(t1.finsertDup(entry!!, allowDups), stub, allowDups)
+                mergeAppender(t1.finsert(entry!!), stub, allowDups)
             }
         }
 
@@ -1057,6 +1120,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             { treeStub: FBSTree<String, B>, item: B -> bstInsert(treeStub, item.toSAEntry(), allowDups = withDups)}
 
         private fun <A, B: Any> toFKSetImpl(t: FBSTree<A, B>, kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
+            t.isAcceptDuplicates() -> null
             t.fempty() -> FKSetEmpty.empty()
             null == kType -> t.frestrictedKey()?.let { toFKSetImpl(t, it) }
             t.frestrictedKey() == kType -> ofBody(t.toFRBTree())
@@ -1066,17 +1130,18 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         }
 
         private fun <K, A, B:Any> toFBSTreeImpl(t: FBSTree<A, B>, kType: RestrictedKeyType<K>): FBSTree<K, B>? where A: Any, A: Comparable<A>, K: Any, K: Comparable<K> = when {
-            t.fempty() -> nul()
+            t.isAcceptDuplicates() -> null
+            t.fempty() -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
             t.frestrictedKey() == kType -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
             (kType is IntKeyType) && (t.frestrictedKey()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
             (kType is StrKeyType) && (t.frestrictedKey()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as FBSTree<K, B>)
             else ->  when (kType) {
                 is IntKeyType ->   {
-                    val res: FBSTree<Int, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toIAEntry()) }
+                    val res: FBSTree<Int, B> = t.ffold(nul(true)) { acc, tkv -> acc.finsert(tkv.getv().toIAEntry()) }
                     @Suppress("UNCHECKED_CAST") (res as FBSTree<K, B>)
                 }
                 is StrKeyType -> {
-                    val res: FBSTree<String, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toSAEntry()) }
+                    val res: FBSTree<String, B> = t.ffold(nul(true)) { acc, tkv -> acc.finsert(tkv.getv().toSAEntry()) }
                     @Suppress("UNCHECKED_CAST") (res as FBSTree<K, B>)
                 }
                 is SymKeyType -> if (kType.kc != t.froot()!!.getvKc()) null else {
@@ -1093,21 +1158,37 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     }
 }
 
-internal object FBSTNil: FBSTree<Nothing, Nothing>() {
+internal abstract class FBSTNil(): FBSTree<Nothing, Nothing>() {
     override fun toString(): String = "FBSTNil"
     override fun hashCode(): Int = toString().hashCode()
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
+        other is FBSTGeneric -> true
+        other is FBSTUnique -> true
         other is IMBTree<*, *> -> other.fempty()
         else -> false
     }
 }
 
-internal class FBSTNode<out A, out B: Any> private constructor (
+internal class FBSTGeneric private constructor (val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
+    companion object {
+        val empty = FBSTGeneric(emptyFBSTree)
+    }
+}
+
+internal class FBSTUnique private constructor(val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
+    companion object {
+        val empty = FBSTUnique(emptyFBSTree)
+    }
+}
+
+private object emptyFBSTree: FBSTree<Nothing, Nothing>()
+
+internal abstract class FBSTNode<out A, out B: Any> protected constructor (
     val entry: TKVEntry<A, B>,
-    val bLeft: FBSTree<A, B> = FBSTNil,
-    val bRight: FBSTree<A, B> = FBSTNil
+    val bLeft: FBSTree<A, B>,
+    val bRight: FBSTree<A, B>
 ): FBSTree<A, B>() where A: Any, A: Comparable<@UnsafeVariance A> {
 
     internal fun branch(position: FBTFIT): FBSTree<A, B> = when (position) {
@@ -1207,9 +1288,34 @@ internal class FBSTNode<out A, out B: Any> private constructor (
     }}
 
     companion object {
-        fun <A, B: Any> of(entry: TKVEntry<A, B>, bLeft: FBSTree<A, B> = FBSTNil, bRight: FBSTree<A, B> = FBSTNil): FBSTNode<A,B> where A: Any, A: Comparable<A> =
-            FBSTNode(entry, bLeft, bRight) // fbtAssertNodeInvariant(FBSTNode(entry, bLeft, bRight))
+        fun <A, B: Any> emptyOf(allowDups: Boolean): FBSTNil = if (allowDups) FBSTGeneric.empty else FBSTUnique.empty
+        fun <A, B: Any> of(allowDups: Boolean, entry: TKVEntry<A, B>, bLeft: FBSTree<A, B> = emptyOf<A,B>(allowDups), bRight: FBSTree<A, B> = emptyOf<A,B>(allowDups)): FBSTNode<A,B> where A: Any, A: Comparable<A> =
+            if (allowDups) FBSTNodeGeneric.of(entry, bLeft, bRight) else FBSTNodeUnique.of(entry, bLeft, bRight) // fbtAssertNodeInvariant(FBSTNode(entry, bLeft, bRight))
         fun <A, B: Any> hashCode(n: FBSTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hashCode()
+    }
+}
+
+internal class FBSTNodeGeneric<out A, out B: Any> private constructor (
+    entry: TKVEntry<A, B>,
+    bLeft: FBSTree<A, B>,
+    bRight: FBSTree<A, B>
+): FBSTNode<A, B>(entry, bLeft, bRight) where A: Any, A: Comparable<@UnsafeVariance A> {
+    companion object {
+        fun <A, B: Any> of(entry: TKVEntry<A, B>, bLeft: FBSTree<A, B> = FBSTGeneric.empty, bRight: FBSTree<A, B> = FBSTGeneric.empty): FBSTNode<A,B> where A: Any, A: Comparable<A> =
+            //FBSTNodeGeneric(entry, bLeft, bRight)
+            fbtAssertNodeInvariant(FBSTNodeGeneric(entry, bLeft, bRight))
+    }
+}
+
+internal class FBSTNodeUnique<out A, out B: Any> private constructor (
+    entry: TKVEntry<A, B>,
+    bLeft: FBSTree<A, B>,
+    bRight: FBSTree<A, B>
+): FBSTNode<A, B>(entry, bLeft, bRight) where A: Any, A: Comparable<@UnsafeVariance A> {
+    companion object {
+        fun <A, B: Any> of(entry: TKVEntry<A, B>, bLeft: FBSTree<A, B> = FBSTUnique.empty, bRight: FBSTree<A, B> = FBSTUnique.empty): FBSTNode<A,B> where A: Any, A: Comparable<A> =
+            // FBSTNodeUnique(entry, bLeft, bRight)
+            fbtAssertNodeInvariant(FBSTNodeUnique(entry, bLeft, bRight))
     }
 }
 

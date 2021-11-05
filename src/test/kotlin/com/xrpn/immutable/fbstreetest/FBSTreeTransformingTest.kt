@@ -4,6 +4,7 @@ import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
+import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -60,24 +61,23 @@ class FBSTreeTransformingTest : FunSpec({
         }
     }
 
-    test("fflatMapDup (A)") {
+    test("fflatMap (AA)") {
         nul<Int, String>()
-            .fflatMapDup(true) { depthOneRight } shouldBe nul()
+            .fflatMap { depthOneRight } shouldBe nul()
         nul<Int, String>()
-            .fflatMapDup(true) { tkv -> depthOneRight.finsert(tkv) } shouldBe nul()
-        depthOneRight.fflatMapDup(true) { nul<Int, String>() } shouldBe nul()
-        depthOneRight.fflatMapDup(true) { tkv -> nul<Int, String>().finsert(tkv) } shouldBe depthOneRight
-        nul<Int, String>()
-            .flatMap{ depthOneRight } shouldBe nul()
+            .fflatMap { tkv -> depthOneRight.finsert(tkv) } shouldBe nul()
+        depthOneRight.fflatMap{ nul<Int, String>() } shouldBe nul()
+        depthOneRight.fflatMap{ tkv -> nul<Int, String>().finsert(tkv) } shouldBe depthOneRight
+        nul<Int, String>().flatMap{ depthOneRight } shouldBe nul()
         depthOneRight.flatMap{ nul<Int, String>() } shouldBe nul()
         depthOneRight.flatMap{ tkv -> nul<Int, String>().finsert(tkv) } shouldBe depthOneRight
     }
 
-    test("fflatMapDup (B)") {
+    test("fflatMap (BB)") {
         checkAll(repeats, Arb.fbstreeWithDups<Int, Int>(Arb.int()), Arb.fbstreeWithDups<Int, Int>(Arb.int())) { fbst1, fbst2 ->
 
             var counter = 0
-            val res: FBSTree<Int, Int> = fbst1.fflatMapDup(true) { tkv ->
+            val res: FBSTree<Int, Int> = fbst1.fflatMap { tkv ->
                 val fbst: FBSTree<Int, Int> = fbst2.finsert(tkv)
                 counter += fbst.size
                 fbst
@@ -99,20 +99,29 @@ class FBSTreeTransformingTest : FunSpec({
 //    }
 
     test("fmap") {
-        nul<Int, Int>().fmap { 2.toIAEntry() } shouldBe FBSTNil
-        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+        (nul<Int, Int>().fmap { 2.toIAEntry() } === FBSTUnique.empty) shouldBe true
+        Arb.fbstree(Arb.int((-50..50))).checkAll(repeats) { fbst ->
             val sum = fbst.ffoldv(0) {acc, v -> acc+v }
             val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
+            aut.fhasDups() shouldBe fbst.fhasDups()
             val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
             (sum * 13) shouldBe sum13
         }
+        fail("revise fmap for fbsTree")
+//        nul<Int, Int>().fmap { 2.toIAEntry() } shouldBe FBSTNil
+//        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+//            val sum = fbst.ffoldv(0) {acc, v -> acc+v }
+//            val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
+//            val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
+//            (sum * 13) shouldBe sum13
+//        }
     }
 
     test("fmapDup") {
-        nul<Int, Int>().fmapDup(true) { 2.toIAEntry() } shouldBe FBSTNil
-        Arb.fbstreeWithDups<Int, Int>(Arb.int((-50..50))).checkAll(repeats) { fbst ->
+        (nul<Int, Int>(true).fmap { 2.toIAEntry() } === FBSTGeneric.empty) shouldBe true
+        Arb.fbstreeWithDups(Arb.int((-50..50))).checkAll(repeats) { fbst ->
             val sum = fbst.ffoldv(0) {acc, v -> acc+v }
-            val aut = fbst.fmapDup(true) { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
+            val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
             aut.fhasDups() shouldBe fbst.fhasDups()
             val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
             (sum * 13) shouldBe sum13
@@ -120,18 +129,28 @@ class FBSTreeTransformingTest : FunSpec({
     }
 
     test("fmapToList") {
-        nul<Int, Int>().fmapToList { 2.toIAEntry() } shouldBe FBSTNil
+        (nul<Int, Int>().fmapToList { 2.toIAEntry() } === FLNil) shouldBe true
+        (nul<Int, Int>(true).fmapToList { 2.toIAEntry() } === FLNil) shouldBe true
         val f: (tkv: TKVEntry<Int, Int>) -> TKVEntry<Int, Int> = { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
         Arb.fbstreeWithDups<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+            val aut: IMList<TKVEntry<Int, Int>> = fbst.fmapToList(f)
+            aut shouldBe fbst.preorder(reverse = true).fmap(f)
+        }
+        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<TKVEntry<Int, Int>> = fbst.fmapToList(f)
             aut shouldBe fbst.preorder(reverse = true).fmap(f)
         }
     }
 
     test("fmapvToList") {
-        nul<Int, Int>().fmapvToList { 2 } shouldBe FBSTNil
+        (nul<Int, Int>().fmapvToList { 2 } === FLNil) shouldBe true
+        (nul<Int, Int>(true).fmapvToList { 2 } === FLNil) shouldBe true
         val f: (v: Int) -> Int = { v -> v*13 }
-        Arb.fbstreeWithDups<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbstreeWithDups(Arb.int()).checkAll(repeats) { fbst ->
+            val aut: IMList<Int> = fbst.fmapvToList(f)
+            aut shouldBe fbst.preorderValues(reverse = true).fmap(f)
+        }
+        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<Int> = fbst.fmapvToList(f)
             aut shouldBe fbst.preorderValues(reverse = true).fmap(f)
         }
@@ -139,8 +158,13 @@ class FBSTreeTransformingTest : FunSpec({
 
     test("freduce") {
         nul<Int, Int>().freduce { _, _ -> 2.toIAEntry() } shouldBe null
+        nul<Int, Int>(true).freduce { _, _ -> 2.toIAEntry() } shouldBe null
         val f: (tkv1: TKVEntry<Int, Int>, tkv2: TKVEntry<Int, Int>) -> TKVEntry<Int, Int> = { tkv1, tkv2 -> (tkv1.getv()+tkv2.getv()).toIAEntry() }
-        Arb.fbstreeWithDups<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbstreeWithDups(Arb.int()).checkAll(repeats) { fbst ->
+            val aut: TKVEntry<Int, Int>? = fbst.freduce(f)
+            aut shouldBe fbst.preorder().ffoldLeft(0.toIAEntry(), f)
+        }
+        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
             val aut: TKVEntry<Int, Int>? = fbst.freduce(f)
             aut shouldBe fbst.preorder().ffoldLeft(0.toIAEntry(), f)
         }

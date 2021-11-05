@@ -663,11 +663,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
             }
         }
 
-        override fun <A: Any> ofi(items: IMBTree<Int, A>): FKSet<Int, A> = when {
+        override fun <A: Any> ofi(items: IMBTree<Int, A>): FKSet<Int, A>? = when {
             items.fempty() -> FKSetEmpty.empty()
             items is FRBTINode<A> -> ofFIKSNotEmpty(items)
             items is FRBTKNode<*> -> @Suppress("UNCHECKED_CAST") (ofFKKSNotEmpty(@Suppress("UNCHECKED_CAST") (items as FRBTKNode<Int>)) as FKSet<Int, A>)
-            items is FBSTNode<Int, A> -> items.toIMRSet(null)!! // takes care of FBSTNode<Int, Int>
+            items is FBSTNode<Int, A> -> items.toIMRSet(null) // takes care of FBSTNode<Int, Int>
             else -> throw RuntimeException("impossible branch")
         }
 
@@ -748,11 +748,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
             }
         }
 
-        override fun <A: Any> ofs(items: IMBTree<String, A>): FKSet<String, A> = when {
+        override fun <A: Any> ofs(items: IMBTree<String, A>): FKSet<String, A>? = when {
             items.fempty() -> FKSetEmpty.empty()
             items is FRBTSNode<A> -> ofFSKSNotEmpty(items)
             items is FRBTKNode<*> -> @Suppress("UNCHECKED_CAST") (ofFKKSNotEmpty(@Suppress("UNCHECKED_CAST") (items as FRBTKNode<String>)) as FKSet<String, A>)
-            items is FBSTNode<String, A> -> items.toIMRSet(null)!! // takes care of FBSTNode<String, String>
+            items is FBSTNode<String, A> -> items.toIMRSet(null) // takes care of FBSTNode<String, String>
             else -> throw RuntimeException("impossible branch")
         }
 

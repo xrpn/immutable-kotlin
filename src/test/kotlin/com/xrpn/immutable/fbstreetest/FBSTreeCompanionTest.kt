@@ -20,16 +20,17 @@ import com.xrpn.immutable.FBSTree.Companion.ffindLastIK
 import com.xrpn.immutable.FBSTree.Companion.ffindLastSK
 import com.xrpn.immutable.FBSTree.Companion.finsertIK
 import com.xrpn.immutable.FBSTree.Companion.finsertSK
-import com.xrpn.immutable.FBSTree.Companion.finsertDupIK
-import com.xrpn.immutable.FBSTree.Companion.finsertDupSK
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.FBSTree.Companion.of
 import com.xrpn.immutable.FBSTree.Companion.ofMap
+import com.xrpn.immutable.FBSTree.Companion.ofMapNotUnique
 import com.xrpn.immutable.FBSTree.Companion.ofc
 import com.xrpn.immutable.FBSTree.Companion.ofvi
 import com.xrpn.immutable.FBSTree.Companion.ofviMap
+import com.xrpn.immutable.FBSTree.Companion.ofviMapNotUnique
 import com.xrpn.immutable.FBSTree.Companion.ofvs
 import com.xrpn.immutable.FBSTree.Companion.ofvsMap
+import com.xrpn.immutable.FBSTree.Companion.ofvsMapNotUnique
 import com.xrpn.immutable.FBSTree.Companion.toArray
 import com.xrpn.immutable.FBSTree.Companion.toIMBTree
 
@@ -51,6 +52,7 @@ import com.xrpn.immutable.slideSharePreorder
 import com.xrpn.immutable.uEntry
 import com.xrpn.immutable.wikiPreorder
 import com.xrpn.immutable.zEntry
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -60,6 +62,7 @@ import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fbstree
 import kotlin.random.Random.Default.nextInt
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 private val intFbstOfNone = ofvi(*emptyArrayOfInt)
 private val intFbstOfOne = ofvi(*arrayOf<Int>(1))
@@ -114,7 +117,7 @@ class FBSTreeCompanionTest : FunSpec({
         intFbstOfTwo.equals(1) shouldBe false
     }
 
-    test("toString() hashCode()") {
+    test("toString() hashCode() unique") {
         emptyIMBTree<Int,Int>().toString() shouldBe "FBSTNil"
         val aux = emptyIMBTree<Int,Int>().hashCode()
         for (i in (1..100)) {
@@ -130,10 +133,29 @@ class FBSTreeCompanionTest : FunSpec({
         }
     }
 
+    test("toString() hashCode() generic") {
+        emptyIMBTree<Int,Int>().toString() shouldBe "FBSTNil"
+        val aux = emptyIMBTree<Int,Int>().hashCode()
+        for (i in (1..100)) {
+            aux shouldBe emptyIMBTree<Int,Int>().hashCode()
+        }
+        intFbstOfTwo.toString() shouldStartWith "${FBSTree::class.simpleName}@"
+        val aux2 = intFbstOfTwo.hashCode()
+        for (i in (1..100)) {
+            aux2 shouldBe intFbstOfTwo.hashCode()
+        }
+        for (i in (1..100)) {
+            FBSTNode.hashCode(intFbstOfTwo as FBSTNode<Int, Int>) shouldBe intFbstOfTwo.hashCode()
+        }
+    }
+
     // =========================== IMBTreeCompanion
 
     test("co.empty") {
-        emptyIMBTree<Int, Int>() shouldBe FBSTNil
+        emptyIMBTree<Int, Int>(true) shouldBe FBSTGeneric.empty
+        (emptyIMBTree<Int, Int>(true) === FBSTGeneric.empty) shouldBe true
+        emptyIMBTree<Int, Int>(false) shouldBe FBSTUnique.empty
+        (emptyIMBTree<Int, Int>(false) === FBSTUnique.empty) shouldBe true
     }
 
     test("co.[ IMBTreeEqual2 ]") {
@@ -199,12 +221,13 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.of varargs dups B") {
-        val aut0 = of(100.toIAEntry(), 50.toIAEntry())
-        aut0.fempty() shouldBe false
-        val aut = of(100.toIAEntry(), 50.toIAEntry(), 150.toIAEntry(), 60.toIAEntry(), 60.toIAEntry(), 61.toIAEntry(), 62.toIAEntry(), 40.toIAEntry(), allowDups = true)
-        val aut1 = aut.finsertDup(50.toIAEntry(), allowDups = true)
-        aut.fempty() shouldBe false
-        aut1.fempty() shouldBe false
+        // TODO remove
+//        val aut0 = of(100.toIAEntry(), 50.toIAEntry())
+//        aut0.fempty() shouldBe false
+//        val aut = of(100.toIAEntry(), 50.toIAEntry(), 150.toIAEntry(), 60.toIAEntry(), 60.toIAEntry(), 61.toIAEntry(), 62.toIAEntry(), 40.toIAEntry(), allowDups = true)
+//        val aut1 = aut.finsert(50.toIAEntry())
+//        aut.fempty() shouldBe false
+//        aut1.fempty() shouldBe false
     }
 
     test("co.of iterator") {
@@ -218,30 +241,31 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.of IMList (dups and no dups)") {
-        of<Int, Int>(FLNil) shouldBe FBSTNil
-        of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FBSTNode.of(mEntry, FBSTNode.of(lEntry), FBSTNode.of(nEntry))
+        of<Int, Int>(FLNil) shouldBe FBSTUnique.empty
+        of<Int, Int>(FLNil) shouldBe FBSTGeneric.empty
+        of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,nEntry))
         of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)), allowDups = true) shouldBe
-                FBSTNode.of(
+                FBSTNode.of(true,
                     mEntry,
-                    FBSTNode.of(
+                    FBSTNode.of(true,
                         cEntry,
-                        FBSTNode.of(
-                            bEntry, FBSTNil,
-                            FBSTNode.of(bEntry, FBSTNil, FBSTNil)
+                        FBSTNode.of(true,
+                            bEntry, FBSTGeneric.empty,
+                            FBSTNode.of(true,bEntry, FBSTGeneric.empty, FBSTGeneric.empty)
                         ),
-                        FBSTNode.of(dEntry, FBSTNil, FBSTNil)
+                        FBSTNode.of(true,dEntry, FBSTGeneric.empty, FBSTGeneric.empty)
                     ),
-                    FBSTNode.of(zEntry, FBSTNil, FBSTNil)
+                    FBSTNode.of(true,zEntry, FBSTGeneric.empty, FBSTGeneric.empty)
                 )
         of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)) /*, allowDups = false */) shouldBe
-                FBSTNode.of(
+                FBSTNode.of(false,
                     mEntry,
-                    FBSTNode.of(
+                    FBSTNode.of(false,
                         cEntry,
-                        FBSTNode.of(bEntry, FBSTNil, FBSTNil),
-                        FBSTNode.of(dEntry, FBSTNil, FBSTNil)
+                        FBSTNode.of(false,bEntry, FBSTUnique.empty, FBSTUnique.empty),
+                        FBSTNode.of(false,dEntry, FBSTUnique.empty, FBSTUnique.empty)
                     ),
-                    FBSTNode.of(zEntry, FBSTNil, FBSTNil)
+                    FBSTNode.of(false,zEntry, FBSTUnique.empty, FBSTUnique.empty)
                 )
         of(wikiPreorder) shouldBe wikiTree
         of(slideSharePreorder) shouldBe slideShareTree
@@ -249,36 +273,47 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.ofc varargs") {
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree(true)
+        (ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
     }
 
     test("co.ofc varargs dups") {
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree(true)
+        (ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
     }
 
     test("co.ofc iterator") {
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree(true)
+        (ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
     }
 
     test("co.ofc iterator dups") {
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree(true)
+        (ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
     }
 
     test("co.ofvi varargs") {
         ofvi(*emptyArrayOfInt) shouldBe emptyIMBTree()
+        (ofvi(*emptyArrayOfInt) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi varargs dups") {
-        ofvi(*emptyArrayOfInt) shouldBe emptyIMBTree()
+        ofvi(*emptyArrayOfInt, allowDups = true) shouldBe emptyIMBTree(true)
+        (ofvi(*emptyArrayOfInt, allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi iterator") {
         ofvi(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
+        (ofvi(emptyArrayOfInt.iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
@@ -295,72 +330,97 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.ofvi iterator dups") {
-        ofvi(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofvi(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree(true)
+        (ofvi(emptyArrayOfInt.iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi IMList") {
         ofvi(FList.emptyIMList()) shouldBe emptyIMBTree()
+        (ofvi(FList.emptyIMList()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvi(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvi IMList dups") {
-        ofvi(FList.emptyIMList(), allowDups = true) shouldBe emptyIMBTree()
+        ofvi(FList.emptyIMList(), allowDups = true) shouldBe emptyIMBTree(true)
+        (ofvi(FList.emptyIMList(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvi(FList.of(3, 2, 1, 1), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
     }
 
     test("co.ofvs varargs") {
         ofvs(*emptyArrayOfInt) shouldBe emptyIMBTree()
+        (ofvs(*emptyArrayOfInt) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs varargs dups") {
-        ofvs(*emptyArrayOfInt) shouldBe emptyIMBTree()
+        ofvs(*emptyArrayOfInt, allowDups = true) shouldBe emptyIMBTree(true)
+        (ofvs(*emptyArrayOfInt, allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvs(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs iterator") {
         ofvs(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
+        (ofvs(emptyArrayOfInt.iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs iterator dups") {
-        ofvs(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree()
+        ofvs(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree(true)
+        (ofvs(emptyArrayOfInt.iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs IMList") {
         ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
+        (ofvs(FList.emptyIMList()) === emptyIMBTree<Int,Int>()) shouldBe true
         ofvs(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofvs IMList dups") {
-        ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvs(FList.emptyIMList(), true) shouldBe emptyIMBTree(true)
+        (ofvs(FList.emptyIMList(), true) === emptyIMBTree<Int,Int>(true)) shouldBe true
         ofvs(FList.of(3, 2, 1, 1), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
     }
 
     test("co.ofMap ABCD Iterator") {
         ofMap(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) } shouldBe emptyIMBTree()
+        (ofMap(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) } === emptyIMBTree<Int,Int>()) shouldBe true 
     }
 
+    test("co emptyness") {
+        for (i in 1..10) {
+            (emptyIMBTree<Int,Int>() === emptyIMBTree<Int,Int>(true)) shouldBe false
+            (emptyIMBTree<Int,Int>() === emptyIMBTree<Int,Int>()) shouldBe true
+            (emptyIMBTree<Int,Int>(false) === emptyIMBTree<Int,Int>(false)) shouldBe true
+        }
+    }
+    
     test("co.ofMap ABCD Iterator dups") {
-        ofMap(emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) { tkv ->
+        ofMapNotUnique(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv ->
             TKVEntry.ofkv(
                 tkv.getk(),
                 tkv.getv().toString()
             )
-        } shouldBe emptyIMBTree()
-        ofMap(listOf(1, 1, 2, 3).map{
+        } shouldBe emptyIMBTree(true)
+        (ofMapNotUnique(emptyList<TKVEntry<Int, Int>>().iterator()) { tkv ->
+            TKVEntry.ofkv(
+                tkv.getk(),
+                tkv.getv().toString()
+            )
+        } === emptyIMBTree<Int,Int>(true)) shouldBe true 
+        ofMapNotUnique(listOf(1, 1, 2, 3).map{
             TKVEntry.ofkk(
                 it,
                 -it
             )
-        }.iterator(), allowDups = true) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
+        }.iterator()) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
                 listOf(TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(2, "2"), TKVEntry.ofkv(3, "3"))
     }
 
     test("co.ofviMap Iterator") {
         ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        (ofviMap(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>()) shouldBe true 
         ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
@@ -370,8 +430,9 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.ofviMap Iterator dups") {
-        ofviMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
-        ofviMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+        ofviMapNotUnique(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree(true)
+        (ofviMapNotUnique(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>(true)) shouldBe true 
+        ofviMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
@@ -382,13 +443,15 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.ofvsMap Iterator") {
         ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
+        (ofvsMap(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>()) shouldBe true 
         ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(TKVEntry.ofkk("1", "1"), TKVEntry.ofkk("2", "2"), TKVEntry.ofkk("3", "3"))
     }
 
     test("co.ofvsMap Iterator dups") {
-        ofvsMap(emptyList<Int>().iterator(), allowDups = true) { it.toString() } shouldBe emptyIMBTree()
-        ofvsMap(listOf(1, 1, 2, 3).iterator(), allowDups = true) { it.toString() }.inorder() shouldBe
+        ofvsMapNotUnique(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree(true)
+        (ofvsMapNotUnique(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>(true)) shouldBe true 
+        ofvsMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
                 listOf(
                     TKVEntry.ofkk("1", "1"),
                     TKVEntry.ofkk("1", "1"),
@@ -402,6 +465,9 @@ class FBSTreeCompanionTest : FunSpec({
             fun f(t: Int): Pair<Int, String> = Pair(t, (-t).toString())
             val m: Map<Int, String> = l.associate(::f)
             m.toIMBTree() shouldBe ofMap(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
+                TKVEntry.ofkv(tkv.getk(), tkv.getv().toString())
+            }
+            m.toIMBTree() shouldBe ofMapNotUnique(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
                 TKVEntry.ofkv(tkv.getk(), tkv.getv().toString())
             }
         }
@@ -437,13 +503,9 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.finsertIK") {
         finsertIK(intFbstOfTwo, 3) shouldBe intFbstOfThree
+        finsertIK(emptyIMBTree(), "c").shouldBeInstanceOf<FBSTNodeUnique<Int,String>>()
+        finsertIK(emptyIMBTree(true), "c").shouldBeInstanceOf<FBSTNodeGeneric<Int,String>>()
     }
-
-    test("co.finsertDupIK") {
-        finsertDupIK(finsertDupIK(intFbstOfOne, 2, allowDups = true), 2, allowDups = true) shouldBe finsertDupIK(
-            intFbstOfTwo, 2, allowDups = true)
-    }
-
 
     test("co.fcontainsSK") {
         fcontainsSK(strFbstOfThree, "a") shouldBe true
@@ -472,11 +534,8 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.finsertSK") {
         finsertSK(strFbstOfTwo, "c") shouldBe strFbstOfThree
-    }
-
-    test("co.finsertDupSK") {
-        finsertDupSK(finsertDupSK(strFbstOfOne, "b", allowDups = true), "b", allowDups = true) shouldBe finsertDupSK(
-            strFbstOfTwo, "b", allowDups = true)
+        finsertSK(emptyIMBTree(), "c").shouldBeInstanceOf<FBSTNodeUnique<String,String>>()
+        finsertSK(emptyIMBTree(true), "c").shouldBeInstanceOf<FBSTNodeGeneric<String,String>>()
     }
 
     // =========================== implementation
@@ -486,7 +545,10 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.nul") {
-        nul<Int, Int>() shouldBe FBSTNil
+        (nul<Int, Int>(true) == FBSTGeneric.empty) shouldBe true
+        (nul<Int, Int>(true) === FBSTGeneric.empty) shouldBe true
+        (nul<Int, Int>() == FBSTUnique.empty) shouldBe true
+        (nul<Int, Int>() === FBSTUnique.empty) shouldBe true
     }
 
     test("co.bstDelete with dups (remove only one dup)") {
@@ -501,17 +563,17 @@ class FBSTreeCompanionTest : FunSpec({
                     go(t, acc.tail, inorder)
                 }
             }
-        val aux1 = bstInsert(wikiTree, wikiTree.froot()!!, allowDups = true)
+        val aux1 = bstInsert(wikiTreeLoose, wikiTree.froot()!!)
         go(aux1, wikiPreorder, aux1.inorder())
         val aux2 = bstInsert(
             bstInsert(
-                wikiTree,
-                wikiTree.froot()!!, allowDups = true),
-            wikiTree.froot()!!, allowDups = true)
+                wikiTreeLoose,
+                wikiTree.froot()!!),
+            wikiTree.froot()!!)
         go(aux2, wikiPreorder, aux2.inorder())
-        val aux3 = bstInsert(wikiTree, wikiTree.fleftMost()!!, allowDups = true)
+        val aux3 = bstInsert(wikiTreeLoose, wikiTree.fleftMost()!!)
         go(aux3, wikiPreorder, aux3.inorder())
-        val aux4 = bstInsert(wikiTree, wikiTree.frightMost()!!, allowDups = true)
+        val aux4 = bstInsert(wikiTreeLoose, wikiTree.frightMost()!!)
         go(aux4, wikiPreorder, aux4.inorder())
         val aux5 = bstInsert(
             bstInsert(slideShareTree, slideShareTree.fleftMost()!!),
@@ -523,161 +585,216 @@ class FBSTreeCompanionTest : FunSpec({
         go(aux6, slideShareBreadthFirst, aux6.inorder())
     }
 
+    test("generic vs unique node invariant"){
+        shouldThrow<IllegalStateException> {
+            fbtAssertNodeInvariant(
+                FBSTNode.of(false,
+                    nEntry,
+                    FBSTUnique.empty,
+                    fbtAssertNodeInvariant(
+                        FBSTNode.of(true,
+                            sEntry,
+                            fbtAssertNodeInvariant(FBSTNode.of(false, rEntry)),
+                            FBSTUnique.empty
+                        )
+                    )
+                )
+            )
+        }
+        shouldThrow<IllegalStateException> {
+            fbtAssertNodeInvariant(
+                FBSTNode.of(true,
+                    nEntry,
+                    FBSTUnique.empty,
+                    fbtAssertNodeInvariant(
+                        FBSTNode.of(false,
+                            sEntry,
+                            fbtAssertNodeInvariant(FBSTNode.of(true, rEntry)),
+                            FBSTUnique.empty
+                        )
+                    )
+                )
+            )
+        }
+    }
+
     test("co.bstPrune") {
         bstPrune(wikiTree, zEntry) /* missing match */ shouldBe wikiTree
-        bstPrune(wikiTree, fEntry) /* prune at root */ shouldBe FBSTNil
+        bstPrune(wikiTree, fEntry) /* prune at root */ shouldBe FBSTUnique.empty
+        bstPrune(wikiTreeLoose, fEntry) /* prune at root */ shouldBe FBSTGeneric.empty
 
-        bstPrune(depthOneLeft, lEntry) shouldBe FBSTNode.of(mEntry)
-        bstPrune(depthOneRight, nEntry) shouldBe FBSTNode.of(mEntry)
+        bstPrune(depthOneLeft, lEntry) shouldBe FBSTNode.of(false,mEntry)
+        bstPrune(depthOneRight, nEntry) shouldBe FBSTNode.of(false,mEntry)
         bstPrune(depthOneFull, lEntry) shouldBe depthOneRight
         bstPrune(depthOneFull, nEntry) shouldBe depthOneLeft
 
         bstPrune(depthTwoLeftRight, sEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
                 fbtAssertNodeInvariant(
-                    FBSTNode.of(
+                    FBSTNode.of(false,
                         lEntry,
-                    FBSTNil,
-                    fbtAssertNodeInvariant(FBSTNode.of(mEntry))
+                    FBSTUnique.empty,
+                    fbtAssertNodeInvariant(FBSTNode.of(false,mEntry))
                 )
                 )
             )
             )
         bstPrune(depthTwoLeftRight, mEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(false,lEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
         bstPrune(depthTwoLeftRight, lEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                FBSTNil,
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                FBSTUnique.empty,
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
-        bstPrune(depthTwoLeftRight, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoLeftRight, nEntry) shouldBe FBSTUnique.empty
 
         bstPrune(depthTwoLeftLeft, sEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
                 fbtAssertNodeInvariant(
-                    FBSTNode.of(
+                    FBSTNode.of(false,
                         lEntry,
-                    fbtAssertNodeInvariant(FBSTNode.of(eEntry)),
-                    FBSTNil
+                    fbtAssertNodeInvariant(FBSTNode.of(false,eEntry)),
+                    FBSTUnique.empty
                     )
                 )
             )
             )
         bstPrune(depthTwoLeftLeft, eEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(lEntry)),
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(false,lEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
         bstPrune(depthTwoLeftLeft, lEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                FBSTNil,
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                FBSTUnique.empty,
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
-        bstPrune(depthTwoLeftLeft, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoLeftLeft, nEntry) shouldBe FBSTUnique.empty
 
         bstPrune(depthTwoRightRight, uEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(false,mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
         bstPrune(depthTwoRightRight, sEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
-                FBSTNil
+                fbtAssertNodeInvariant(FBSTNode.of(false,mEntry)),
+                FBSTUnique.empty
             )
             )
         bstPrune(depthTwoRightRight, mEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                FBSTNil,
+                FBSTUnique.empty,
                 fbtAssertNodeInvariant(
-                    FBSTNode.of(
+                    FBSTNode.of(false,
                         sEntry,
-                    FBSTNil,
-                    fbtAssertNodeInvariant(FBSTNode.of(uEntry)))
+                    FBSTUnique.empty,
+                    fbtAssertNodeInvariant(FBSTNode.of(false,uEntry)))
                 ))
             )
-        bstPrune(depthTwoRightRight, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoRightRight, nEntry) shouldBe FBSTUnique.empty
 
         bstPrune(depthTwoRightLeft, rEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
-                fbtAssertNodeInvariant(FBSTNode.of(sEntry))
+                fbtAssertNodeInvariant(FBSTNode.of(false,mEntry)),
+                fbtAssertNodeInvariant(FBSTNode.of(false,sEntry))
             )
             )
         bstPrune(depthTwoRightLeft, sEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                fbtAssertNodeInvariant(FBSTNode.of(mEntry)),
-                FBSTNil
+                fbtAssertNodeInvariant(FBSTNode.of(false,mEntry)),
+                FBSTUnique.empty
             )
             )
         bstPrune(depthTwoRightLeft, mEntry) shouldBe
             fbtAssertNodeInvariant(
-                FBSTNode.of(
+                FBSTNode.of(false,
                     nEntry,
-                FBSTNil,
+                FBSTUnique.empty,
                 fbtAssertNodeInvariant(
-                    FBSTNode.of(
+                    FBSTNode.of(false,
                         sEntry,
-                    fbtAssertNodeInvariant(FBSTNode.of(rEntry)),
-                    FBSTNil
+                    fbtAssertNodeInvariant(FBSTNode.of(false,rEntry)),
+                    FBSTUnique.empty
                     )
                 )
             )
             )
-        bstPrune(depthTwoRightLeft, nEntry) shouldBe FBSTNil
+        bstPrune(depthTwoRightLeft, nEntry) shouldBe FBSTUnique.empty
     }
 
     test("co.addGraftTesting") {
-        addGraftTestingGremlin(FBSTNil, FBSTNil) shouldBe FBSTNil
-        addGraftTestingGremlin(depthOneFull, FBSTNil) shouldBe depthOneFull
-        addGraftTestingGremlin(FBSTNil, depthOneFull) shouldBe depthOneFull
+        addGraftTestingGremlin(FBSTGeneric.empty, FBSTGeneric.empty).shouldBeInstanceOf<FBSTGeneric>()
+        addGraftTestingGremlin(FBSTUnique.empty, FBSTGeneric.empty).shouldBeInstanceOf<FBSTUnique>()
+        addGraftTestingGremlin(FBSTGeneric.empty, FBSTUnique.empty).shouldBeInstanceOf<FBSTGeneric>()
+        addGraftTestingGremlin(FBSTUnique.empty, FBSTUnique.empty).shouldBeInstanceOf<FBSTUnique>()
 
-        addGraftTestingGremlin(bstPrune(depthOneFull, nEntry), FBSTNode.of(nEntry)) shouldBe depthOneFull
-        addGraftTestingGremlin(bstPrune(depthOneFull, lEntry), FBSTNode.of(lEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(depthOneFull, FBSTUnique.empty) shouldBe depthOneFull
+        (addGraftTestingGremlin(depthOneFull, FBSTUnique.empty) === depthOneFull) shouldBe true 
+        addGraftTestingGremlin(depthOneFull, FBSTGeneric.empty) shouldBe depthOneFull
+        (addGraftTestingGremlin(depthOneFull, FBSTGeneric.empty) === depthOneFull) shouldBe true
+        
+        addGraftTestingGremlin(FBSTGeneric.empty, depthOneFull) shouldBe depthOneFull
+        val depthOneFullLoose = depthOneFull.toGeneric()
+        (addGraftTestingGremlin(FBSTGeneric.empty, depthOneFullLoose) === depthOneFullLoose) shouldBe true
+        (addGraftTestingGremlin(FBSTGeneric.empty, depthOneFull) === depthOneFull) shouldBe false
+        addGraftTestingGremlin(FBSTGeneric.empty, depthOneFull).shouldBeInstanceOf<FBSTNodeGeneric<*,*>>()
 
-        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode.of(mEntry)) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(FBSTUnique.empty, depthOneFull) shouldBe depthOneFull
+        (addGraftTestingGremlin(FBSTUnique.empty, depthOneFull) === depthOneFull) shouldBe true
+        (addGraftTestingGremlin(FBSTUnique.empty, depthOneFull.toGeneric()) === depthOneFull) shouldBe false
+        addGraftTestingGremlin(FBSTUnique.empty, depthOneFull).shouldBeInstanceOf<FBSTNodeUnique<*,*>>()
+
+        addGraftTestingGremlin(bstPrune(depthOneFull, nEntry), FBSTNode.of(false,nEntry)) shouldBe depthOneFull
+        addGraftTestingGremlin(bstPrune(depthOneFull, lEntry), FBSTNode.of(false,lEntry)) shouldBe depthOneFull
+
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode.of(false,mEntry)) shouldBe depthTwoLeftRight
+        addGraftTestingGremlin(bstPrune(depthTwoLeftRight, mEntry), FBSTNode.of(true,mEntry)) shouldBe depthTwoLeftRight
         addGraftTestingGremlin(bstPrune(depthTwoLeftRight, sEntry), bstFind(depthTwoLeftRight, sEntry)!!) shouldBe depthTwoLeftRight
         addGraftTestingGremlin(bstPrune(depthTwoLeftRight, lEntry), bstFind(depthTwoLeftRight, lEntry)!!) shouldBe depthTwoLeftRight
 
-        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode.of(eEntry)) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode.of(false,eEntry)) shouldBe depthTwoLeftLeft
+        addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, eEntry), FBSTNode.of(true,eEntry)) shouldBe depthTwoLeftLeft
         addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, sEntry), bstFind(depthTwoLeftLeft, sEntry)!!) shouldBe depthTwoLeftLeft
         addGraftTestingGremlin(bstPrune(depthTwoLeftLeft, lEntry), bstFind(depthTwoLeftLeft, lEntry)!!) shouldBe depthTwoLeftLeft
 
-        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode.of(uEntry)) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode.of(false,uEntry)) shouldBe depthTwoRightRight
+        addGraftTestingGremlin(bstPrune(depthTwoRightRight, uEntry), FBSTNode.of(true,uEntry)) shouldBe depthTwoRightRight
         addGraftTestingGremlin(bstPrune(depthTwoRightRight, sEntry), bstFind(depthTwoRightRight, sEntry)!!) shouldBe depthTwoRightRight
         addGraftTestingGremlin(bstPrune(depthTwoRightRight, mEntry), bstFind(depthTwoRightRight, mEntry)!!) shouldBe depthTwoRightRight
 
-        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode.of(rEntry)) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode.of(false,rEntry)) shouldBe depthTwoRightLeft
+        addGraftTestingGremlin(bstPrune(depthTwoRightLeft, rEntry), FBSTNode.of(true,rEntry)) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, sEntry), bstFind(depthTwoRightLeft, sEntry)!!) shouldBe depthTwoRightLeft
         addGraftTestingGremlin(bstPrune(depthTwoRightLeft, mEntry), bstFind(depthTwoRightLeft, mEntry)!!) shouldBe depthTwoRightLeft
     }
