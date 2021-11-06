@@ -370,7 +370,30 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTGeneric.empty
                     )
                 )
+    }
 
+    test("finsertDup (B) rejection") {
+        depthTwoLeftPartial.finsert(mEntry) shouldBe depthTwoLeftRight
+        depthTwoLeftPartial.finsert(eEntry) shouldBe depthTwoLeftLeft
+        depthTwoRightPartial.finsert(uEntry) shouldBe depthTwoRightRight
+        depthTwoRightPartial.finsert(rEntry) shouldBe depthTwoRightLeft
+
+        (depthTwoLeftRight.finsert(nEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsert(lEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsert(mEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsert(sEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftLeft.finsert(nEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsert(lEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsert(eEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsert(sEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoRightRight.finsert(nEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsert(mEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsert(sEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsert(uEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightLeft.finsert(nEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsert(mEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsert(sEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsert(rEntry) === depthTwoRightLeft) shouldBe true
     }
 
     test("finserts, finsertt, finsertsDup (A)") {

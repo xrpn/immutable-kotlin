@@ -422,7 +422,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         val pop: TKVEntry<A,B>? = this.fpeek()
         // computing the remainder can be very expensive; if traversing
         // the full tree, .inorder() or .forEach() may be cheaper
-        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: emptyFBSTree
+        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: emptyFBSTreeKernel
         return Pair(pop, remainder)
     }
 
@@ -791,6 +791,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
             fun emplace(node: FBSTNode<A, B>, tree: Trace<A, B>): FBSTNode<A, B> {
                 val isDup = tree.direction == FBTFIT.EQ
+                check(if (isDup) node is FBSTNodeGeneric else true)
                 val res = when {
                     allowDups -> enrichNode(node, tree)
                     isDup -> tree.treeStub
@@ -801,7 +802,8 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
             val res: FBSTNode<A, B> = when (treeStub) {
                 is FBSTNodeGeneric -> reshapeWithItem(FBSTNodeGeneric.of(item), treeStub, FLNil, ::emplace)
-                is FBSTNodeUnique -> reshapeWithItem(FBSTNodeUnique.of(item), treeStub, FLNil, ::emplace)
+                is FBSTNodeUnique -> if (treeStub.fcontainsKey(item.getk())) treeStub
+                    else reshapeWithItem(FBSTNodeUnique.of(item), treeStub, FLNil, ::emplace)
                 else -> FBSTNode.of(allowDups, item)
             }
 
@@ -850,7 +852,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is FBSTNil -> null
                 is FBSTNode -> when {
                     treeStub.froot()!! == childItem -> treeStub.toEmptyFBSTree()
-                    treeStub.fcontains(childItem) -> go(treeStub, Pair(emptyFBSTree, emptyFBSTree)).first
+                    treeStub.fcontains(childItem) -> go(treeStub, Pair(emptyFBSTreeKernel, emptyFBSTreeKernel)).first
                     else -> null
                 }
                 else -> throw RuntimeException("internal error")
@@ -1046,7 +1048,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             is FBSTNodeUnique -> {
                 check(treePath.treeStub is FBSTNodeUnique)
                 when (treePath.direction) {
-                    FBTFIT.EQ -> /* discard */ treePath.treeStub
+                    FBTFIT.EQ -> throw RuntimeException("internal error") // treePath.treeStub
                     FBTFIT.RIGHT -> FBSTNodeUnique.of(treePath.treeStub.entry, treePath.treeStub.bLeft, node)
                     FBTFIT.LEFT -> FBSTNodeUnique.of(treePath.treeStub.entry, node, treePath.treeStub.bRight)
                 }
@@ -1096,7 +1098,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        // TODO XXXQQQXXX check tree nature !!
         private tailrec fun <A, B: Any> mergeAppender(t1: FBSTree<A, B>, t2: FBSTree<A, B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = when {
             t1 is FBSTNil -> t2
             t2 is FBSTNil -> t1
@@ -1171,19 +1172,19 @@ internal abstract class FBSTNil(): FBSTree<Nothing, Nothing>() {
     }
 }
 
-internal class FBSTGeneric private constructor (val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
+internal class FBSTGeneric private constructor (private val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
     companion object {
-        val empty = FBSTGeneric(emptyFBSTree)
+        val empty = FBSTGeneric(emptyFBSTreeKernel)
     }
 }
 
-internal class FBSTUnique private constructor(val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
+internal class FBSTUnique private constructor(private val krn:FBSTree<Nothing, Nothing>): FBSTNil() {
     companion object {
-        val empty = FBSTUnique(emptyFBSTree)
+        val empty = FBSTUnique(emptyFBSTreeKernel)
     }
 }
 
-private object emptyFBSTree: FBSTree<Nothing, Nothing>()
+private object emptyFBSTreeKernel: FBSTree<Nothing, Nothing>()
 
 internal abstract class FBSTNode<out A, out B: Any> protected constructor (
     val entry: TKVEntry<A, B>,

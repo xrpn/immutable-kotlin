@@ -68,6 +68,7 @@ private val ixxmTreeOfTwo = run {
 
 class FBSTreeIMCollectionTest : FunSpec({
 
+  val repeatsLow = Triple(20, 5, 20)
   val repeatsMid = Triple(20, 10, 100)
   val repeatsHigh = Pair(50, 100)
 
@@ -322,26 +323,26 @@ class FBSTreeIMCollectionTest : FunSpec({
   }
 
   test("fdropItem (tree property)") {
-    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstree(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemTele(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
 
   test("fdropItemAll (tree property)") {
-    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstree(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemAll(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
 
   test("fdropItem with dups (tree property)") {
     // seed = 7180391588938833052)
-    checkAll(PropTestConfig(iterations = repeatsMid.first), Arb.fbstreeWithDups(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstreeWithDups(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemTele(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
 
   test("fdropItemAll with dups (tree property)") {
-    checkAll(PropTestConfig(iterations = repeatsMid.first, seed = 8525946019726368451), Arb.fbstreeWithDups(Arb.int(),repeatsMid.second..repeatsMid.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstreeWithDups(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemAll(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
