@@ -84,6 +84,10 @@ sealed class FStack<out A: Any>: IMStack<A> {
         TODO("Not yet implemented")
     }
 
+    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? {
+        TODO("Not yet implemented")
+    }
+
     override fun <B : Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> =
         fpop().let { pit ->
             pit.first?.let {
@@ -93,6 +97,18 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     override fun freverse(): FStack<A> =
         FStackBody.of(this.toFList().freverse())
+
+    override fun frotr(): IMStack<A> {
+        TODO("Not yet implemented")
+    }
+
+    override fun frotl(): IMStack<A> {
+        TODO("Not yet implemented")
+    }
+
+    override fun fswaph(): IMStack<A> {
+        TODO("Not yet implemented")
+    }
 
     override fun <B : Any> ftopMap(f: (A) -> B): B? =
         ftop()?.let{ f(it) }

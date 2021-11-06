@@ -56,6 +56,18 @@ class FListTransformingTest : FunSpec({
     intListOfThreeA.ffoldLeft(1, d) shouldBe -7
   }
 
+  test("fold diff") {
+
+    val d = { acc: Int, b: Int -> acc - b }
+
+    (intListOfNone as FList<Int>).ffold(1, d) shouldBe 1
+    (intListOfOne as FList<Int>).ffold(1, d) shouldBe 0
+    (intListOfTwo as FList<Int>).ffold(1, d) shouldBe -2
+    (intListOfTwoA as FList<Int>).ffold(1, d) shouldBe -3
+    (intListOfThree as FList<Int>).ffold(1, d) shouldBe -5
+    (intListOfThreeA as FList<Int>).ffold(1, d) shouldBe -7
+  }
+
   test("foldLeft product") {
 
     val s = { acc: Int, b: Int -> acc * b}
@@ -130,27 +142,6 @@ class FListTransformingTest : FunSpec({
     intListOfTwoC.freduceRight(ss) shouldBe 3
     intListOfThree.freduceRight(ss) shouldBe 0
     intListOfThreeA.freduceRight(ss) shouldBe 2
-  }
-
-  test("frotl") {
-    intListOfNone.frotl() shouldBe intListOfNone
-    intListOfOne.frotl() shouldBe intListOfOne
-    intListOfTwo.frotl() shouldBe FLCons(2, FLCons(1, FLNil))
-    intListOfThree.frotl() shouldBe FLCons(2, FLCons(3, FLCons(1, FLNil)))
-  }
-
-  test("frotr") {
-    intListOfNone.frotr() shouldBe intListOfNone
-    intListOfOne.frotr() shouldBe intListOfOne
-    intListOfTwo.frotr() shouldBe FLCons(2, FLCons(1, FLNil))
-    intListOfThree.frotr() shouldBe FLCons(3, FLCons(1, FLCons(2, FLNil)))
-  }
-
-  test("fswaph") {
-    intListOfNone.fswaph() shouldBe intListOfNone
-    intListOfOne.fswaph() shouldBe intListOfOne
-    intListOfTwo.fswaph() shouldBe FLCons(2, FLCons(1, FLNil))
-    intListOfThree.fswaph() shouldBe FLCons(2, FLCons(1, FLCons(3, FLNil)))
   }
 
 })

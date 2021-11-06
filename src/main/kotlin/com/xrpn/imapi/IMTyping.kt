@@ -3,13 +3,18 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FQueue
 import com.xrpn.immutable.TKVEntry
 
-interface IMListTyping<out A: Any>: IMCollection<A> {
+interface IMListTyping<out A: Any>: IMCollection<A>, IMFoldable<A>, IMOrdered<A> {
     // IMCollection
     override fun fdropAll(items: IMCollection<@UnsafeVariance A>): IMList<A>
     override fun fdropItem(item: @UnsafeVariance A): IMList<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMList<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMList<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMList<A> // Return all elements that do not match the predicate p
+    // IMOrdered
+    override fun freverse(): IMList<A>
+    override fun frotr(): IMList<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    override fun frotl(): IMList<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    override fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
 interface IMSetTyping<out A: Any>: IMCollection<A> {
@@ -74,20 +79,30 @@ interface IMBTreeTyping<out A, out B: Any>: IMCollection<TKVEntry<A,B>>, IMKeyed
     override fun fpickValue(): B? = fpick()?.getv()
 }
 
-interface IMStackTyping<out A: Any>: IMCollection<A> {
+interface IMStackTyping<out A: Any>: IMCollection<A>, IMOrdered<A> {
     // IMCollection
     override fun fdropAll(items: IMCollection<@UnsafeVariance A>): IMStack<A>
     override fun fdropItem(item:  @UnsafeVariance A): IMStack<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMStack<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMStack<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMStack<A> // Return all elements that do not match the predicate p
+    // IMOrdered
+    override fun freverse(): IMStack<A>
+    override fun frotr(): IMStack<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    override fun frotl(): IMStack<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    override fun fswaph(): IMStack<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
-interface IMQueueTyping<out A: Any>: IMCollection<A> {
+interface IMQueueTyping<out A: Any>: IMCollection<A>, IMOrdered<A> {
     // IMCollection
     override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FQueue<A>
     override fun fdropItem(item: @UnsafeVariance A): FQueue<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMQueue<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
+    // IMOrdered
+    override fun freverse(): IMQueue<A>
+    override fun frotr(): IMQueue<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    override fun frotl(): IMQueue<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    override fun fswaph(): IMQueue<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }

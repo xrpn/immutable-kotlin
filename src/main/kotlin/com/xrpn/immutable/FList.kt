@@ -524,7 +524,9 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return freduceLeft(xsar, ::g)
     }
 
-    override fun freverse(): FList<A> = this.ffoldLeft(emptyIMList()) { b, a -> FLCons(a, b) }
+    override fun freverse(): FList<A> = fhead()?.let {
+        if(ftail() is FLNil) this else ffoldLeft(emptyIMList()) { b, a -> FLCons(a, b) }
+    } ?: this
 
     override fun frotr(): FList<A> = when(this) {
         is FLNil -> FLNil

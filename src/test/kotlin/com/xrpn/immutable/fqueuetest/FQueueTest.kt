@@ -87,20 +87,6 @@ class FQueueTest : FunSpec({
     intQueueOfThreesNR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfTwo23YR)
   }
 
-  test("freverse") {
-    (intQueueOfNoneNR.freverse() === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfOne1NR.freverse().fqStrongEqual(intQueueOfOne1YR) shouldBe true
-    intQueueOfOne1YR.freverse().fqStrongEqual(intQueueOfOne1NR) shouldBe true
-    intQueueOfTworNR.freverse().fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfTwoYR.freverse().fqStrongEqual(intQueueOfTworNR) shouldBe true
-    intQueueOfThreesYR.freverse().fqStrongEqual(intQueueOfThreesrNR) shouldBe true
-    intQueueOfThreesrNR.freverse().fqStrongEqual(intQueueOfThreesYR) shouldBe true
-    intQueueOfThreer2F.freverse().fqStrongEqual(intQueueOfThree2F) shouldBe true
-    intQueueOfThree2F.freverse().fqStrongEqual(intQueueOfThreer2F) shouldBe true
-    intQueueOfThree2B.freverse().fqStrongEqual(intQueueOfThreer2B) shouldBe true
-    intQueueOfThreer2B.freverse().fqStrongEqual(intQueueOfThree2B) shouldBe true
-  }
-
   test("fpeekMap") {
     intQueueOfNoneYR.fpeekMap { it + 10 } shouldBe null
     intQueueOfOne1YR.fpeekMap { it + 10 } shouldBe 11
@@ -120,16 +106,22 @@ class FQueueTest : FunSpec({
     intQueueOfNoneYR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
     intQueueOfOne1YR.fdequeue() shouldBe Pair(1, emptyIMQueue<Int>())
     intQueueOfTwoYR.fdequeue() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfTwoYR.fdequeue() shouldBe Pair(intQueueOfTwoYR.ffirst(), intQueueOfTwoYR.fdiscardFront())
     intQueueOfThreeYR.fdequeue() shouldBe Pair(3, intQueueOfTwoYR)
+    intQueueOfThreeYR.fdequeue() shouldBe Pair(intQueueOfThreeYR.ffirst(), intQueueOfThreeYR.fdiscardFront())
     intQueueOfThreesYR.fdequeue() shouldBe Pair(1, intQueueOfTwo23YR)
+    intQueueOfThreesYR.fdequeue() shouldBe Pair(intQueueOfThreesYR.ffirst(), intQueueOfThreesYR.fdiscardFront())
   }
 
   test("fdequeue (not ready)") {
     intQueueOfNoneNR.fdequeue() shouldBe Pair(null, emptyIMQueue<Int>())
     intQueueOfOne1NR.fdequeueOrThrow() shouldBe Pair(1, emptyIMQueue<Int>())
     intQueueOfTwoNR.fdequeueOrThrow() shouldBe Pair(1, intQueueOfOne2YR)
+    intQueueOfTwoYR.fdequeue() shouldBe Pair(intQueueOfTwoYR.ffirst(), intQueueOfTwoYR.fdiscardFront())
     intQueueOfThreeNR.fdequeueOrThrow() shouldBe  Pair(3, intQueueOfTwoYR)
+    intQueueOfThreeNR.fdequeue() shouldBe Pair(intQueueOfThreeNR.ffirst(), intQueueOfThreeNR.fdiscardFront())
     intQueueOfThreesNR.fdequeue() shouldBe Pair(1, intQueueOfTwo23YR)
+    intQueueOfThreesNR.fdequeue() shouldBe Pair(intQueueOfThreesNR.ffirst(), intQueueOfThreesNR.fdiscardFront())
   }
 
   test("dequeue repeat (ready)") {

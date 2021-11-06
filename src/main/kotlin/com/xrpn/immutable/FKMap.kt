@@ -198,7 +198,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
-    override fun freducev(f: (acc: V, V) -> @UnsafeVariance V): V? {
+    override fun freduce(f: (acc: V, V) -> @UnsafeVariance V): V? {
         TODO("Not yet implemented")
     }
 

@@ -197,7 +197,6 @@ class FQueueFilteringTest : FunSpec({
 
   test("ffrontMatch (not ready"){
     intQueueOfTwoNR.fqFrontMatch { it < 2 } shouldBe true
-
     intQueueOfNoneNR.fqFrontMatch { false } shouldBe false
     intQueueOfNoneNR.fqFrontMatch { true } shouldBe false
     intQueueOfOne1NR.fqFrontMatch { false } shouldBe false

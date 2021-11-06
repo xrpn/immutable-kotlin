@@ -138,3 +138,27 @@ fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
 ): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbstree(arbB, range, f)
+
+fun <A: Any, B> Arb.Companion.fqueue(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FQueue<A>> where B:A {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.list(arbB, range).map { bs: List<B> ->
+        when  {
+            0 == bs.size % 3 -> FQueue.ofMap(bs.iterator(), true, f)
+            1 == bs.size % 3 -> FQueue.ofMap(bs.iterator(), false, f)
+            2 == bs.size % 3 -> {
+                var count = 0
+                val (a: List<B>, b: List<B>) = bs.partition { count += 1; 0 == count % 2 }
+                val front = FList.ofMap(a.iterator(), f)
+                val back = FList.ofMap(b.iterator(), f)
+                FQueueBody.of(front, back)
+            }
+            else -> throw RuntimeException("internal error")
+        }
+    }
+}
+

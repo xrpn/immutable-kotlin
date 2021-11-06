@@ -66,6 +66,27 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fpickValue(): A?  // peekk at one random value
 }
 
+interface IMFoldable<out A: Any> {
+    // “Fold” elements using the binary operator o, using an initial seed s
+    // The order of traversal is deterministic only if ordering is an intrinsic
+    // property; if so, the traversal is from first to last.  Else, the order
+    // of traversal is undetermined.  In the latter case, f MUST be commutative
+    // or the outcome will also be undetermined and not necessarily repeatable.
+    fun <R> ffold(z: R, f: (acc: R, A) -> R): R
+
+}
+
+interface IMReducible<out A: Any> {
+    fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A?
+}
+
+interface IMOrdered<out A: Any> {
+    fun freverse(): IMOrdered<A>
+    fun frotr(): IMOrdered<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    fun frotl(): IMOrdered<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
+}
+
 interface IMList<out A:Any>:
     IMListFiltering<A>,
     IMListGrouping<A>,
@@ -73,8 +94,15 @@ interface IMList<out A:Any>:
     IMListAltering<A>,
     IMListUtility<A>,
     IMListExtras<A>,
-    IMListTyping<A>,
-    IMCollection<A>
+    IMCollection<A>,
+    IMFoldable<A>,
+    IMReducible<A>,
+    IMOrdered<A>,
+    IMListTyping<A> {
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R = ffoldLeft(z, f)
+    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
+}
+
 
 interface IMSet<out A: Any>:
     IMSetFiltering<A>,
@@ -83,8 +111,10 @@ interface IMSet<out A: Any>:
     IMSetAltering<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
-    IMSetTyping<A>,
-    IMCollection<A> {
+    IMCollection<A>,
+    IMFoldable<A>,
+    IMReducible<A>,
+    IMSetTyping<A> {
     fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>?
     fun asIMRRSetNotEmpty(): IMRRSetNotEmpty<A>?
     fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
@@ -128,10 +158,12 @@ interface IMMap<out K, out V: Any>:
     IMMapUtility<K, V>,
     IMMapAltering<K, V>,
     IMMapExtras<K, V>,
-    IMMapTyping<K, V>,
-    IMKeyedValue<K, V>,
+    IMCollection<TKVEntry<K,V>>,
     IMKeyed<K>,
-    IMCollection<TKVEntry<K,V>>
+    IMKeyedValue<K, V>,
+    IMReducible<V>,
+    IMFoldable<TKVEntry<K,V>>,
+    IMMapTyping<K, V>
         where K: Any, K: Comparable<@UnsafeVariance K> {
 
     // IMCollection
@@ -145,12 +177,19 @@ interface IMMap<out K, out V: Any>:
     // IMKeyedValue
     override fun asIMMap(): IMMap<K,V> = this
 
+    // derivatives
+
+    // since order is an ambiguous property of Tree, f MUST be commutative
+    fun <C> ffoldv(z: C, f: (acc: C, V) -> C): C = // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
+        ffold(z) { acc, tkv -> f(acc, tkv.getv()) }
+    fun <T: Any> fmapToList(f: (TKVEntry<K, V>) -> T): IMList<T> = // 	Return a new sequence by applying the function f to each element in the List
+        ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
+    fun <W: Any> fmapvToList(f: (V) -> W): IMList<W> = // 	Return a new sequence by applying the function f to each element in the List
+        ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
+
 }
 
 interface IMBTree<out A, out B: Any>:
-    IMCollection<TKVEntry<A,B>>,
-    IMKeyed<A>,
-    IMKeyedValue<A, B>,
     IMBTreeUtility<A, B>,
     IMBTreeTraversing<A, B>,
     IMBTreeFiltering<A, B>,
@@ -158,6 +197,11 @@ interface IMBTree<out A, out B: Any>:
     IMBTreeTransforming<A,B>,
     IMBTreeAltering<A, B>,
     IMBTreeExtras<A, B>,
+    IMCollection<TKVEntry<A,B>>,
+    IMKeyed<A>,
+    IMKeyedValue<A, B>,
+    IMFoldable<TKVEntry<A,B>>,
+    IMReducible<TKVEntry<A,B>>,
     IMBTreeTyping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -178,6 +222,15 @@ interface IMBTree<out A, out B: Any>:
         ffold(0) { acc, tkv -> if(isMatch(tkv.getv())) acc + 1 else acc }
     }
 
+    // derivatives
+
+    // since order is an ambiguous property of Tree, f MUST be commutative
+    fun <C> ffoldv(z: C, f: (acc: C, B) -> C): C = // 	“Fold” the value of the tree using the binary operator o, using an initial seed s, going from left to right (see also reduceLeft)
+        ffold(z) { acc, tkv -> f(acc, tkv.getv()) }
+    fun <T: Any> fmapToList(f: (TKVEntry<A, B>) -> T): IMList<T> = // 	Return a new sequence by applying the function f to each element in the List
+        ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
+    fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
+        ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
 }
 
 interface IMStack<out A:Any>:
@@ -186,8 +239,11 @@ interface IMStack<out A:Any>:
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMStackUtility<A>,
-    IMStackTyping<A>,
-    IMCollection<A>
+    IMCollection<A>,
+    IMFoldable<A>,
+    IMReducible<A>,
+    IMOrdered<A>,
+    IMStackTyping<A>
 
 interface IMQueue<out A:Any>:
     IMQueueFiltering<A>,
@@ -195,8 +251,9 @@ interface IMQueue<out A:Any>:
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
     IMQueueUtility<A>,
-    IMQueueTyping<A>,
-    IMCollection<A>
+    IMCollection<A>,
+    IMOrdered<A>,
+    IMQueueTyping<A>
 
 // ============ INTERNAL
 

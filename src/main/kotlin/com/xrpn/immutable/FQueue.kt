@@ -46,7 +46,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fpick(): A? =
         this.fqGetBack().fhead() ?: this.fqGetFront().fhead()
 
-    override fun fpopAndRemainder(): Pair<A?, FQueue<A>> = Pair(ffirst(), fdiscardFront())
+    override fun fpopAndRemainder(): Pair<A?, FQueue<A>> = fdequeue()
 
     // ============ filtering
 
@@ -153,6 +153,22 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun freverse(): FQueue<A> =
         FQueueBody.of(fqGetBack(), fqGetFront())
 
+    override fun frotr(): FQueue<A> = if (fempty() || (1 == fsize())) this else { // (A, B, C).frotr() becomes (C, A, B)
+        val last = flast()!!
+        val shortQueue = fdiscardBack()
+        val front = FLCons(last, shortQueue.fqForceFront(merge = true).fqGetFront())
+        FQueueBody.of(front, FLNil)
+    }
+
+    override fun frotl(): FQueue<A> = if (fempty() || (1 == fsize())) this else { // (A, B, C).frotl() becomes (B, C, A)
+        val (head, shortQueue) = fdequeue()
+        shortQueue.fenqueue(head!!)
+    }
+
+    override fun fswaph(): FQueue<A> = if (fempty() || (1 == fsize())) this else { // (A, B, C).fswaph() becomes (B, A, C)
+        TODO("Not yet implemented")
+    }
+
     override fun <B : Any> fpeekMap(f: (A) -> B): B? =
         ffirst()?.let { f(it) }
 
@@ -176,12 +192,6 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fdequeueOrThrow(): Pair<A, FQueue<A>> {
         val maybe = fdequeue()
         return maybe.first?.let { Pair(it, maybe.second) } ?: throw IllegalStateException("dequeue on empty queue")
-    }
-
-    // ============ transforming
-
-    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R {
-        TODO("Not yet implemented")
     }
 
     // ============ utility
