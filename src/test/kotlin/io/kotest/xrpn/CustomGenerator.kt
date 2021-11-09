@@ -162,3 +162,12 @@ fun <A: Any, B> Arb.Companion.fqueue(
     }
 }
 
+fun <A: Any, B> Arb.Companion.fstack(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<FStack<A>> where B:A {
+    check(!range.isEmpty()) { "range must not be empty" }
+    check(range.first >= 1) { "start of range must not be less than 1" }
+    return Arb.list(arbB, range).map { bs -> FStackBody.of(FList.ofMap(bs, f)) }
+}

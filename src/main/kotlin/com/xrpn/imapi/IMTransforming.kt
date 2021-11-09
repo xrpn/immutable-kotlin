@@ -45,11 +45,13 @@ interface IMBTreeTransforming<out A, out B: Any> where A: Any, A: Comparable<@Un
 }
 
 interface IMStackTransforming<out A: Any> {
+    fun <B: Any> fmap(f: (A) -> B): IMStack<B> // 	Return a new sequence by applying the function f to each element in the List
     fun <B: Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> // Apply f to the top, pop, return the rest
     fun <B: Any> ftopMap(f: (A) -> B): B? // Apply f to the top
 }
 
 interface IMQueueTransforming<out A: Any> {
     fun <B: Any> fdequeueMap(f: (A) -> B): Pair<B?, IMQueue<A>> // Apply f to the top, pop, return the rest
+    fun <B: Any> fmap(f: (A) -> B): IMQueue<B> // 	Return a new sequence by applying the function f to each element in the List
     fun <B: Any> fpeekMap(f: (A) -> B): B? // Apply f to the top
 }

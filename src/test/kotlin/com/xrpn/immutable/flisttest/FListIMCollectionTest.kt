@@ -3,6 +3,7 @@ package com.xrpn.immutable.flisttest
 import com.xrpn.imapi.IMCollection
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
+import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
@@ -87,10 +88,14 @@ class FListIMCollectionTest : FunSpec({
     intListOfNone.fdropAll(intListOfNone as IMList<Int>) shouldBe FLNil
     intListOfOne.fdropAll(intListOfNone) shouldBe intListOfOne
     intListOfOne.fdropAll(intListOfOne as IMList<Int>) shouldBe FLNil
+    intListOfOne.fdropAll(FLNil) shouldBe intListOfOne
+    (intListOfOne.fdropAll(FLNil) === intListOfOne) shouldBe true
     intListOfOne.fdropAll(intListOfTwo as IMList<Int>) shouldBe FLNil
     FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree as IMList<Int>) shouldBe FLNil
     FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
     intListOfFour.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
+    intListOfFour.fdropAll(emptyIMRSet()) shouldBe intListOfFour
+    (intListOfFour.fdropAll(emptyIMRSet()) === intListOfFour) shouldBe true
     intListOfFourA.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
     intListOfFourB.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
     intListOfFour.fdropAll(intListOfTwo) shouldBe FList.of(*arrayOf<Int>(3))
@@ -113,11 +118,14 @@ class FListIMCollectionTest : FunSpec({
 
   test("fdropWhen") {
     intListOfNone.fdropWhen { it > 1 } shouldBe FLNil
-    intListOfOne.fdropWhen { it > 1 }  shouldBe FLCons(1, FLNil)
+    intListOfOne.fdropWhen { it > 1 } shouldBe FLCons(1, FLNil)
+    (intListOfOne.fdropWhen { false } === intListOfOne) shouldBe true
     FList.of(*arrayOf<Int>(2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1, FLNil)
     FList.of(*arrayOf<Int>(3,2,1)).fdropWhen { it > 1 }  shouldBe FLCons(1, FLNil)
     FList.of(*arrayOf<Int>(3,2,1,0)).fdropWhen { it > 1 } shouldBe FLCons(1, FLCons(0, FLNil))
     intListOfFour.fdropWhen { it > 1 } shouldBe FLCons(1, FLCons(1, FLNil))
+    intListOfFour.fdropWhen { false } shouldBe intListOfFour
+    (intListOfFour.fdropWhen { false } === intListOfFour) shouldBe true
     intListOfFourA.fdropWhen { it < 2 } shouldBe FLCons(2, FLCons(2, FLCons(3, FLNil)))
     intListOfFourA.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
     intListOfFourB.fdropWhen { it < 3 } shouldBe FLCons(3, FLNil)
@@ -134,16 +142,23 @@ class FListIMCollectionTest : FunSpec({
   test("ffilter") {
     intListOfNone.ffilter {0 == it % 2} shouldBe FLNil
     intListOfOne.ffilter {0 == it % 2} shouldBe FLNil
+    (intListOfOne.ffilter {true} === intListOfOne) shouldBe true
     intListOfTwo.ffilter {0 == it % 2} shouldBe FLCons(2,FLNil)
+    (intListOfTwo.ffilter {true} === intListOfTwo) shouldBe true
     intListOfThree.ffilter {0 == it % 2} shouldBe FLCons(2,FLNil)
+    (intListOfThree.ffilter {true} === intListOfThree) shouldBe true
     FList.of(*arrayOf<Int>(1,2,3,4)).ffilter {0 == it % 2} shouldBe FLCons(2,FLCons(4,FLNil))
   }
 
   test("ffilterNot") {
     intListOfNone.ffilterNot {0 == it % 2} shouldBe FLNil
     intListOfOne.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLNil)
+    intListOfOne.ffilterNot {false} shouldBe intListOfOne
+    (intListOfOne.ffilterNot {false} === intListOfOne) shouldBe true
     intListOfTwo.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLNil)
+    (intListOfTwo.ffilterNot {false} === intListOfTwo) shouldBe true
     intListOfThree.ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
+    (intListOfThree.ffilterNot {false} === intListOfThree) shouldBe true
     FList.of(*arrayOf<Int>(1,2,3,4)).ffilterNot {0 == it % 2} shouldBe FLCons(1,FLCons(3,FLNil))
   }
 

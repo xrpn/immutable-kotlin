@@ -9,54 +9,17 @@ import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intListOfNone: IMListFiltering<Int> = FList.of(*emptyArrayOfInt)
-private val intListOfOne: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1))
-private val intListOfTwo: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2))
-private val intListOfThree: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3))
-private val intListOfFour: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
-private val intListOfFourA: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
-private val intListOfFourB: IMListFiltering<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
+private val intListOfNone: IMList<Int> = FList.of(*emptyArrayOfInt)
+private val intListOfOne: IMList<Int> = FList.of(*arrayOf<Int>(1))
+private val intListOfTwo: IMList<Int> = FList.of(*arrayOf<Int>(1,2))
+private val intListOfThree: IMList<Int> = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFour: IMList<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
+private val intListOfFourA: IMList<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
+private val intListOfFourB: IMList<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
 
 class FListFilteringTest : FunSpec({
 
   beforeTest {}
-
-  test("fdrop 0") {
-    intListOfNone.fdrop(0) shouldBe FLNil
-    intListOfOne.fdrop(0) shouldBe intListOfOne
-    intListOfTwo.fdrop(0) shouldBe intListOfTwo
-    intListOfThree.fdrop(0) shouldBe intListOfThree
-  }
-
-  test("fdrop 1") {
-    intListOfNone.fdrop(1) shouldBe FLNil
-    intListOfOne.fdrop(1) shouldBe FLNil
-    intListOfTwo.fdrop(1) shouldBe FLCons(2,FLNil)
-    intListOfThree.fdrop(1) shouldBe FLCons(2,FLCons(3,FLNil))
-  }
-
-  test("fdrop 2") {
-    intListOfNone.fdrop(2) shouldBe FLNil
-    intListOfOne.fdrop(2) shouldBe FLNil
-    intListOfTwo.fdrop(2) shouldBe FLNil
-    intListOfThree.fdrop(2) shouldBe FLCons(3,FLNil)
-    FList.of(*arrayOf<Int>(1,2,3,4)).fdrop(2) shouldBe FLCons(3,FLCons(4,FLNil))
-  }
-
-  test("fdrop 3") {
-    intListOfNone.fdrop(3) shouldBe FLNil
-    intListOfOne.fdrop(3) shouldBe FLNil
-    intListOfTwo.fdrop(3) shouldBe FLNil
-    intListOfThree.fdrop(3) shouldBe FLNil
-    FList.of(*arrayOf<Int>(1,2,3,4)).fdrop(3) shouldBe FLCons(4,FLNil)
-  }
-
-  test("fdrop negative") {
-    intListOfNone.fdrop(-1) shouldBe FLNil
-    intListOfOne.fdrop(-1) shouldBe FLNil
-    intListOfTwo.fdrop(-1) shouldBe FLNil
-    intListOfThree.fdrop(-1) shouldBe FLNil
-  }
 
   test("fdropFirst") {
     intListOfNone.fdropFirst { it > 1 } shouldBe FLNil
@@ -134,18 +97,18 @@ class FListFilteringTest : FunSpec({
 
   test("fhasSubsequence") {
     intListOfNone.fhasSubsequence(FList.of(*emptyArrayOfInt)) shouldBe true
-    intListOfNone.fhasSubsequence(intListOfOne as IMList<Int>) shouldBe false
+    intListOfNone.fhasSubsequence(intListOfOne) shouldBe false
 
-    intListOfOne.fhasSubsequence(intListOfNone as IMList<Int>) shouldBe true
+    intListOfOne.fhasSubsequence(intListOfNone) shouldBe true
     intListOfOne.fhasSubsequence(intListOfOne) shouldBe true
-    intListOfOne.fhasSubsequence(intListOfTwo as IMList<Int>) shouldBe false
+    intListOfOne.fhasSubsequence(intListOfTwo) shouldBe false
 
     intListOfTwo.fhasSubsequence(intListOfNone) shouldBe true
     intListOfTwo.fhasSubsequence(intListOfOne) shouldBe true
     intListOfTwo.fhasSubsequence(FLCons(2, FLNil) as IMList<Int>) shouldBe true
     intListOfTwo.fhasSubsequence(intListOfTwo) shouldBe true
     intListOfTwo.fhasSubsequence(intListOfTwo.freverse()) shouldBe false
-    intListOfTwo.fhasSubsequence(intListOfThree as IMList<Int>) shouldBe false
+    intListOfTwo.fhasSubsequence(intListOfThree) shouldBe false
 
     intListOfThree.fhasSubsequence(intListOfNone) shouldBe true
     intListOfThree.fhasSubsequence(intListOfOne) shouldBe true

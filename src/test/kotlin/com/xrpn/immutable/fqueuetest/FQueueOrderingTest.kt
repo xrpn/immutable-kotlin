@@ -11,12 +11,17 @@ import io.kotest.property.checkAll
 import io.kotest.xrpn.fqueue
 
 private val intQueueOfNoneNR = FQueue.of(*emptyArrayOfInt)
+private val intQueueOfNoneYR = FQueue.of(*emptyArrayOfInt, readyToDequeue = true)
 private val intQueueOfOne1NR = FQueue.of(*arrayOf<Int>(1))
+private val intQueueOfOne2NR = FQueue.of(*arrayOf<Int>(2))
+private val intQueueOfOne2YR = FQueue.of(*arrayOf<Int>(2), readyToDequeue = true)
 private val intQueueOfTwoNR = FQueue.of(*arrayOf<Int>(1, 2))
 private val intQueueOfTworNR = FQueue.of(*arrayOf<Int>(2, 1))
 private val intQueueOfThreesrNR = FQueue.of(*arrayOf<Int>(3, 2, 1))
 private val intQueueOfOne1YR = FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
 private val intQueueOfTwoYR = FQueue.of(*arrayOf<Int>(1, 2), readyToDequeue = true)
+private val intQueueOfThreeNR = FQueue.of(*arrayOf<Int>(3, 1, 2))
+private val intQueueOfThreeYR = FQueue.of(*arrayOf<Int>(3, 1, 2), readyToDequeue = true)
 private val intQueueOfThreesYR = FQueue.of(*arrayOf<Int>(1, 2, 3), readyToDequeue = true)
 private val intQueueOfThree2B = FQueueBody.of(FLCons(3, FLNil), FLCons(2,FLCons(1, FLNil)))
 private val intQueueOfThreer2B = FQueueBody.of(FLCons(2,FLCons(1, FLNil)), FLCons(3, FLNil))
@@ -41,6 +46,45 @@ class FQueueOrderingTest : FunSpec({
   val repeats = Triple(5, 3, 10)
 
   beforeTest {}
+
+  test("fdrop (not ready)") {
+    (intQueueOfNoneNR.fdrop(0) === intQueueOfNoneNR.fdiscardFront()) shouldBe true
+    (intQueueOfOne1NR.fdrop(1) === emptyIMQueue<Int>()) shouldBe true
+    (intQueueOfTwoNR.fdrop(0) === intQueueOfTwoNR) shouldBe true
+    (intQueueOfTwoNR.fdrop(1) === intQueueOfTwoNR.fdiscardFront()) shouldBe false
+    intQueueOfTwoNR.fdrop(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
+    (intQueueOfTwoNR.fdrop(2) === emptyIMQueue<Int>()) shouldBe true
+    intQueueOfThreeNR.fdrop(0) shouldBe intQueueOfThreeNR
+    intQueueOfThreeNR.fdrop(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfThreeNR.fdrop(2) shouldBe intQueueOfOne2NR
+    intQueueOfThreeNR.fdrop(3) shouldBe FQueue.emptyIMQueue()
+  }
+
+  test("fdrop (ready)") {
+    (intQueueOfNoneYR.fdrop(0) === intQueueOfNoneNR.fdiscardFront()) shouldBe true
+    (intQueueOfOne1YR.fdrop(1) === emptyIMQueue<Int>()) shouldBe true
+    (intQueueOfTwoYR.fdrop(0) === intQueueOfTwoYR) shouldBe true
+    (intQueueOfTwoYR.fdrop(1) === intQueueOfTwoYR.fdiscardFront()) shouldBe false
+    intQueueOfTwoYR.fdrop(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
+    (intQueueOfTwoYR.fdrop(2) === emptyIMQueue<Int>()) shouldBe true
+    intQueueOfThreeYR.fdrop(0) shouldBe intQueueOfThreeNR
+    intQueueOfThreeYR.fdrop(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfThreeYR.fdrop(2) shouldBe intQueueOfOne2NR
+    intQueueOfThreeYR.fdrop(3) shouldBe FQueue.emptyIMQueue()
+  }
+
+  test("fdrop") {
+    intQueueOfThree2F.fdrop(1).fqStructuralEqual(intQueueOfTwoYR) shouldBe false
+    intQueueOfThree2F.fdrop(1).fqStructuralEqual(intQueueOfTwoNR) shouldBe false
+    intQueueOfThree2F.fdrop(1).equal(intQueueOfTwoYR) shouldBe true
+    intQueueOfThree2F.fdrop(1).equal(intQueueOfTwoNR) shouldBe true
+    intQueueOfThree2F.fdrop(2).fqStrongEqual(intQueueOfOne2NR) shouldBe true
+    (intQueueOfThree2F.fdrop(3) === emptyIMQueue<Int>()) shouldBe true
+    intQueueOfThree2B.fdrop(1).fqStrongEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfThree2B.fdrop(1).equal(intQueueOfTwoYR) shouldBe true
+    intQueueOfThree2B.fdrop(2).fqStrongEqual(intQueueOfOne2YR) shouldBe true
+    (intQueueOfThree2B.fdrop(3) === emptyIMQueue<Int>()) shouldBe true
+  }
 
   test("freverse") {
     (intQueueOfNoneNR.freverse() === emptyIMQueue<Int>()) shouldBe true

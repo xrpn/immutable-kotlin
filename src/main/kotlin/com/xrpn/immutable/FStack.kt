@@ -7,9 +7,9 @@ import com.xrpn.immutable.FList.Companion.toIMList
 
 sealed class FStack<out A: Any>: IMStack<A> {
 
-    val size: Int by lazy { this.toFList().size }
+    val size: Int by lazy { toFList().size }
 
-    fun isEmpty(): Boolean = this.toFList().isEmpty()
+    fun isEmpty(): Boolean = toFList().isEmpty()
 
     fun iterator(): FStackIterator<A> = FStackIterator(this)
 
@@ -18,75 +18,82 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override val seal: IMSC = IMSC.IMSTACK
 
     override fun fcontains(item: @UnsafeVariance A): Boolean=
-        this.toFList().fcontains(item)
+        toFList().fcontains(item)
 
-    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FStack<A> {
-        TODO("Not yet implemented")
+
+    override fun fcount(isMatch: (A) -> Boolean): Int =
+        toFList().fcount(isMatch)
+
+    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FStack<A> =
+        if (items.fempty()) this else FStackBody.of(toFList().fdropAll(items))
+
+    override fun fdropItem(item: @UnsafeVariance A): IMStack<A> =
+        FStackBody.of(toFList().fdropItem(item))
+
+    override fun ffilter(isMatch: (A) -> Boolean): FStack<A> {
+        val filtered = toFList().ffilter(isMatch)
+        return if (filtered === toFList()) this else FStackBody.of(filtered)
     }
-
-    override fun fdropItem(item: @UnsafeVariance A): IMStack<A> {
-        TODO("Not yet implemented")
-    }
-
-    override fun ffilter(isMatch: (A) -> Boolean): FStack<A> =
-        FStackBody.of(this.toFList().ffilter(isMatch))
 
     override fun ffilterNot(isMatch: (A) -> Boolean): FStack<A> =
         ffilter { !isMatch(it) }
 
     override fun ffindAny(isMatch: (A) -> Boolean): A? =
-        this.toFList().ffindAny(isMatch)
+        toFList().ffindAny(isMatch)
 
     override fun fisStrict(): Boolean =
-        this.toFList().fisStrict()
+        toFList().fisStrict()
 
     override fun fpick(): A? =
-        this.toFList().fhead()
+        toFList().fhead()
 
     override fun fpopAndRemainder(): Pair<A?, FStack<A>> = fpop()
 
-    // ============ filtering
+    override fun fsize(): Int =
+        toFList().size
+
+    // ============ IMOrdered
 
     override fun fdrop(n: Int): FStack<A> =
-        if (0 < n) FStackBody.of(this.toFList().fdrop(n)) else this
+        if (0 < n) FStackBody.of(toFList().fdrop(n)) else this
 
+    override fun freverse(): FStack<A> =
+        FStackBody.of(toFList().freverse())
+
+    override fun frotl(): IMStack<A> =
+        FStackBody.of(toFList().frotl())
+
+    override fun frotr(): IMStack<A> =
+        FStackBody.of(toFList().frotr())
+
+    override fun fswaph(): IMStack<A> =
+        FStackBody.of(toFList().fswaph())
+
+    // ============ filtering
 
     override fun fdropIfTop(item: @UnsafeVariance A): FStack<A> = ftop()?.let {
         if (it.equals(item)) fpopOrThrow().second else this
     } ?: this
 
     override fun fdropTopWhen(isMatch: (A) -> Boolean): FStack<A> =
-        if (ftopMatch(isMatch)) FStackBody.of(this.toFList().ftail()) else this
+        if (ftopMatch(isMatch)) FStackBody.of(toFList().ftail()) else this
 
     override fun fdropWhile(isMatch: (A) -> Boolean): FStack<A> =
-        FStackBody.of(this.toFList().fdropWhile(isMatch))
+        FStackBody.of(toFList().fdropWhile(isMatch))
 
     override fun ftopMatch(isMatch: (A) -> Boolean): Boolean =
         ftop()?.let { isMatch(it) } ?: false
 
-    override fun ftop(): A? = this.toFList().fhead()
+    override fun ftop(): A? = toFList().fhead()
 
     override fun ftopOrThrow(): A = ftop() ?: throw IllegalStateException("top of empty stack")
 
-    // ============ grouping
-
-    override fun fcount(isMatch: (A) -> Boolean): Int =
-        this.toFList().fcount(isMatch)
-
-    override fun fsize(): Int =
-        this.toFList().size
+    // ============ grouping - NOP
 
     // ============ transforming
 
-    // ============ transforming
-
-    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R {
-        TODO("Not yet implemented")
-    }
-
-    override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? {
-        TODO("Not yet implemented")
-    }
+    override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
+        FStackBody.of(toFList().fmap(f))
 
     override fun <B : Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> =
         fpop().let { pit ->
@@ -94,21 +101,6 @@ sealed class FStack<out A: Any>: IMStack<A> {
                 pit.pmap2({ a -> f(a!!) }, { it })
             } ?: Pair(null, pit.second)
         }
-
-    override fun freverse(): FStack<A> =
-        FStackBody.of(this.toFList().freverse())
-
-    override fun frotr(): IMStack<A> {
-        TODO("Not yet implemented")
-    }
-
-    override fun frotl(): IMStack<A> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fswaph(): IMStack<A> {
-        TODO("Not yet implemented")
-    }
 
     override fun <B : Any> ftopMap(f: (A) -> B): B? =
         ftop()?.let{ f(it) }
@@ -122,24 +114,24 @@ sealed class FStack<out A: Any>: IMStack<A> {
         ftop()?.let { buildPair() } ?: throw IllegalStateException("pop from empty stack")
 
     override fun fpush(top: @UnsafeVariance A): FStack<A> =
-        FStackBody.of(FLCons(top, this.toFList()))
+        FStackBody.of(FLCons(top, toFList()))
 
     // ============ utility
 
     override fun equal(rhs: IMStack<@UnsafeVariance A>): Boolean =
-        this.toFList().equal(rhs.toIMList())
+        toFList().equal(rhs.toIMList())
 
     override fun fforEach(f: (A) -> Unit) =
-        this.toFList().fforEach(f)
-
-    override fun toIMList(): IMList<A> =
-        this.toFList()
+        toFList().fforEach(f)
 
     override fun copy(): FStack<A> =
-        FStackBody.of(this.toFList().copy())
+        FStackBody.of(toFList().copy())
 
     override fun copyToMutableList(): MutableList<@UnsafeVariance A> =
-        this.toFList().copyToMutableList()
+        toFList().copyToMutableList()
+
+    override fun toIMList(): IMList<A> =
+        toFList()
 
     // ============ implementation
 
@@ -174,7 +166,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
             FStackBody.of(FList.ofMap(items, f))
 
         override fun <A : Any> Collection<A>.toIMStack(): FStack<A> =
-            FStackBody.of(this.toIMList() as FList<A>)
+            FStackBody.of(toIMList() as FList<A>)
     }
 
 }
@@ -186,9 +178,9 @@ internal class FStackBody<out A: Any> private constructor (
         this === other -> true
         other == null -> false
         other is FStackBody<*> -> when {
-            this.fempty() && other.fempty() -> true
-            this.fempty() || other.fempty() -> false
-            this.ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)
+            fempty() && other.fempty() -> true
+            fempty() || other.fempty() -> false
+            ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)
             else -> false
         }
         else -> false
@@ -199,7 +191,7 @@ internal class FStackBody<out A: Any> private constructor (
     }
 
     val show: String by lazy {
-        if (this.fempty()) FStack::class.simpleName+"(*)"
+        if (fempty()) FStack::class.simpleName+"(*)"
         else this::class.simpleName+"("+body.ffoldLeft("") { str, h -> "$str{$h}" }+")"
     }
 

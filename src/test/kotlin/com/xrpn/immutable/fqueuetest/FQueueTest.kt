@@ -3,6 +3,7 @@ package com.xrpn.immutable.fqueuetest
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.emptyArrayOfInt
+import com.xrpn.immutable.fstacktest.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -14,11 +15,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 private val intQueueOfNoneNR = FQueue.of(*emptyArrayOfInt)
 private val intQueueOfOne1NR = FQueue.of(*arrayOf<Int>(1))
+private val intQueueOfOne2NR = FQueue.of(*arrayOf<Int>(2))
 private val intQueueOfTwoNR = FQueue.of(*arrayOf<Int>(1, 2))
-private val intQueueOfTworNR = FQueue.of(*arrayOf<Int>(2, 1))
 private val intQueueOfThreeNR = FQueue.of(*arrayOf<Int>(3, 1, 2))
 private val intQueueOfThreesNR = FQueue.of(*arrayOf<Int>(1, 2, 3))
-private val intQueueOfThreesrNR = FQueue.of(*arrayOf<Int>(3, 2, 1))
 private val intQueueOfNoneYR = FQueue.of(*emptyArrayOfInt, readyToDequeue = true)
 private val intQueueOfOne1YR = FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
 private val intQueueOfOne2YR = FQueue.of(*arrayOf<Int>(2), readyToDequeue = true)
@@ -29,8 +29,6 @@ private val intQueueOfThreesYR = FQueue.of(*arrayOf<Int>(1, 2, 3), readyToDequeu
 private val intQueueOfThree2B = FQueueBody.of(FLCons(3, FLNil), FLCons(2,FLCons(1, FLNil)))
 private val intQueueOfThreer2B = FQueueBody.of(FLCons(2,FLCons(1, FLNil)), FLCons(3, FLNil))
 private val intQueueOfThree2F = FQueueBody.of(FLCons(3, FLCons(1, FLNil)), FLCons(2,FLNil))
-private val intQueueOfThreer2F = FQueueBody.of(FLCons(2,FLNil), FLCons(3, FLCons(1, FLNil)))
-private val intQueueOfTwoAF = FQueueBody.of(FLCons(1, FLNil), FLCons(2,FLNil))
 
 class FQueueTest : FunSpec({
 
@@ -38,39 +36,7 @@ class FQueueTest : FunSpec({
 
   beforeTest {}
 
-  // ======== grouping
-
-  test("fsize") {
-    intQueueOfNoneNR.fsize() shouldBe 0
-    intQueueOfNoneYR.fsize() shouldBe 0
-    intQueueOfOne1NR.fsize() shouldBe 1
-    intQueueOfOne1YR.fsize() shouldBe 1
-    intQueueOfTwoNR.fsize() shouldBe 2
-    intQueueOfTwoYR.fsize() shouldBe 2
-    intQueueOfTwoAF.fsize() shouldBe 2
-    intQueueOfThreeYR.fsize() shouldBe 3
-    intQueueOfThreeNR.fsize() shouldBe 3
-    intQueueOfThree2F.fsize() shouldBe 3
-    intQueueOfThree2B.fsize() shouldBe 3
-  }
-
-  test("fcount") {
-    intQueueOfNoneNR.fcount { true } shouldBe 0
-    intQueueOfNoneYR.fcount { false } shouldBe 0
-    intQueueOfOne1NR.fcount { true } shouldBe 1
-    intQueueOfOne1YR.fcount { false } shouldBe 0
-    intQueueOfTwoNR.fcount { true } shouldBe 2
-    intQueueOfTwoYR.fcount { false } shouldBe 0
-    intQueueOfTwoYR.fcount { it == 2 } shouldBe 1
-    intQueueOfThreeYR.fcount { it < 3 } shouldBe 2
-    intQueueOfThreeNR.fcount { it < 3 } shouldBe 2
-    intQueueOfThree2F.fcount { it < 3 } shouldBe 2
-    intQueueOfThree2B.fcount { it < 3 } shouldBe 2
-    intQueueOfThreeYR.fcount { 2 < it } shouldBe 1
-    intQueueOfThreeNR.fcount { 2 < it } shouldBe 1
-    intQueueOfThree2F.fcount { 2 < it } shouldBe 1
-    intQueueOfThree2B.fcount { 2 < it } shouldBe 1
-  }
+  // ======== grouping (NOP)
 
   // ======== transforming
 
@@ -85,6 +51,13 @@ class FQueueTest : FunSpec({
     intQueueOfTwoNR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfOne2YR)
     intQueueOfThreeNR.fdequeueMap { it + 10 } shouldBe Pair(13, intQueueOfTwoYR)
     intQueueOfThreesNR.fdequeueMap { it + 10 } shouldBe Pair(11, intQueueOfTwo23YR)
+  }
+
+  test("fmap") {
+    (intQueueOfNoneNR.fmap { it + 1} === emptyIMQueue<Int>()) shouldBe true
+    (intQueueOfOne1NR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfOne2NR) shouldBe true
+    (intQueueOfTwoNR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfTwo23YR) shouldBe false
+    (intQueueOfTwoYR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfTwo23YR) shouldBe true
   }
 
   test("fpeekMap") {

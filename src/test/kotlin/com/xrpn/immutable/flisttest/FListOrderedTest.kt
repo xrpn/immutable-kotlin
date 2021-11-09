@@ -23,6 +23,43 @@ class FListOrderedTest : FunSpec({
 
   beforeTest {}
 
+  test("fdrop 0") {
+    intListOfNone.fdrop(0) shouldBe FLNil
+    intListOfOne.fdrop(0) shouldBe intListOfOne
+    intListOfTwo.fdrop(0) shouldBe intListOfTwo
+    intListOfThree.fdrop(0) shouldBe intListOfThree
+  }
+
+  test("fdrop 1") {
+    intListOfNone.fdrop(1) shouldBe FLNil
+    intListOfOne.fdrop(1) shouldBe FLNil
+    intListOfTwo.fdrop(1) shouldBe FLCons(2,FLNil)
+    intListOfThree.fdrop(1) shouldBe FLCons(2,FLCons(3,FLNil))
+  }
+
+  test("fdrop 2") {
+    intListOfNone.fdrop(2) shouldBe FLNil
+    intListOfOne.fdrop(2) shouldBe FLNil
+    intListOfTwo.fdrop(2) shouldBe FLNil
+    intListOfThree.fdrop(2) shouldBe FLCons(3,FLNil)
+    FList.of(*arrayOf<Int>(1,2,3,4)).fdrop(2) shouldBe FLCons(3,FLCons(4,FLNil))
+  }
+
+  test("fdrop 3") {
+    intListOfNone.fdrop(3) shouldBe FLNil
+    intListOfOne.fdrop(3) shouldBe FLNil
+    intListOfTwo.fdrop(3) shouldBe FLNil
+    intListOfThree.fdrop(3) shouldBe FLNil
+    FList.of(*arrayOf<Int>(1,2,3,4)).fdrop(3) shouldBe FLCons(4,FLNil)
+  }
+
+  test("fdrop negative") {
+    intListOfNone.fdrop(-1) shouldBe FLNil
+    intListOfOne.fdrop(-1) shouldBe FLNil
+    intListOfTwo.fdrop(-1) shouldBe FLNil
+    intListOfThree.fdrop(-1) shouldBe FLNil
+  }
+
   test("freverse") {
     intListOfNone.freverse() shouldBe intListOfNone
     (intListOfNone.freverse() === intListOfNone) shouldBe true

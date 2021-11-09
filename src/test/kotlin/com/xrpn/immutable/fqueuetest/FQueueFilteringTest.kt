@@ -64,45 +64,6 @@ class FQueueFilteringTest : FunSpec({
     intQueueOfThreeYR.fdiscardFront().fqStructuralEqual(intQueueOfTwoNR) shouldBe true
   }
 
-  test("dropFront (not ready)") {
-    (intQueueOfNoneNR.fdropFront(0) === intQueueOfNoneNR.fdiscardFront()) shouldBe true
-    (intQueueOfOne1NR.fdropFront(1) === emptyIMQueue<Int>()) shouldBe true
-    (intQueueOfTwoNR.fdropFront(0) === intQueueOfTwoNR) shouldBe true
-    (intQueueOfTwoNR.fdropFront(1) === intQueueOfTwoNR.fdiscardFront()) shouldBe false
-    intQueueOfTwoNR.fdropFront(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
-    (intQueueOfTwoNR.fdropFront(2) === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfThreeNR.fdropFront(0) shouldBe intQueueOfThreeNR
-    intQueueOfThreeNR.fdropFront(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfThreeNR.fdropFront(2) shouldBe intQueueOfOne2NR
-    intQueueOfThreeNR.fdropFront(3) shouldBe FQueue.emptyIMQueue()
-  }
-
-  test("dropFront (ready)") {
-    (intQueueOfNoneYR.fdropFront(0) === intQueueOfNoneNR.fdiscardFront()) shouldBe true
-    (intQueueOfOne1YR.fdropFront(1) === emptyIMQueue<Int>()) shouldBe true
-    (intQueueOfTwoYR.fdropFront(0) === intQueueOfTwoYR) shouldBe true
-    (intQueueOfTwoYR.fdropFront(1) === intQueueOfTwoYR.fdiscardFront()) shouldBe false
-    intQueueOfTwoYR.fdropFront(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
-    (intQueueOfTwoYR.fdropFront(2) === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfThreeYR.fdropFront(0) shouldBe intQueueOfThreeNR
-    intQueueOfThreeYR.fdropFront(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfThreeYR.fdropFront(2) shouldBe intQueueOfOne2NR
-    intQueueOfThreeYR.fdropFront(3) shouldBe FQueue.emptyIMQueue()
-  }
-
-  test("dropFront") {
-    intQueueOfThree2F.fdropFront(1).fqStructuralEqual(intQueueOfTwoYR) shouldBe false
-    intQueueOfThree2F.fdropFront(1).fqStructuralEqual(intQueueOfTwoNR) shouldBe false
-    intQueueOfThree2F.fdropFront(1).equal(intQueueOfTwoYR) shouldBe true
-    intQueueOfThree2F.fdropFront(1).equal(intQueueOfTwoNR) shouldBe true
-    intQueueOfThree2F.fdropFront(2).fqStrongEqual(intQueueOfOne2NR) shouldBe true
-    (intQueueOfThree2F.fdropFront(3) === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfThree2B.fdropFront(1).fqStrongEqual(intQueueOfTwoNR) shouldBe true
-    intQueueOfThree2B.fdropFront(1).equal(intQueueOfTwoYR) shouldBe true
-    intQueueOfThree2B.fdropFront(2).fqStrongEqual(intQueueOfOne2YR) shouldBe true
-    (intQueueOfThree2B.fdropFront(3) === emptyIMQueue<Int>()) shouldBe true
-  }
-
   test("fdropFrontWhile (not ready)"){
     (intQueueOfNoneNR.fdropFrontWhile { false } === emptyIMQueue<Int>()) shouldBe true
     (intQueueOfNoneNR.fdropFrontWhile { true } === emptyIMQueue<Int>()) shouldBe true

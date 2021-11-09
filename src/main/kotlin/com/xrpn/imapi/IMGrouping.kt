@@ -19,8 +19,6 @@ interface IMListGrouping<out A: Any>: IMCollection<A> {
     fun <B: Any> fzipWith(xs: Iterator<B>): IMList<Pair<A,B>> // A collection of pairs by matching the list with the elements of the iterator
     fun fzipWithIndex(): IMList<Pair<A, Int>> // Each and all element contained in a tuple along with its 0-based index
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
-
-    override fun fpopAndRemainder(): Pair<A?, IMList<A>>
 }
 
 interface IMSetGrouping<out A: Any>: IMCollection<A> {
@@ -59,10 +57,6 @@ interface IMBTreeGrouping<out A, out B: Any>: IMCollection<TKVEntry<A, B>> where
     fun fminDepth(): Int
 }
 
-interface IMStackGrouping<out A: Any>: IMCollection<A> {
-    override fun fpopAndRemainder(): Pair<A?, IMStack<A>>
-}
+interface IMStackGrouping<out A: Any>: IMCollection<A>
 
-interface IMQueueGrouping<out A: Any>: IMCollection<A> {
-    override fun fpopAndRemainder(): Pair<A?, IMQueue<A>>
-}
+interface IMQueueGrouping<out A: Any>: IMCollection<A>

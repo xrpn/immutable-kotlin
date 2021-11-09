@@ -81,9 +81,10 @@ interface IMReducible<out A: Any> {
 }
 
 interface IMOrdered<out A: Any> {
+    fun fdrop(n: Int): IMOrdered<A> // Return all elements after the first n elements
     fun freverse(): IMOrdered<A>
-    fun frotr(): IMOrdered<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     fun frotl(): IMOrdered<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    fun frotr(): IMOrdered<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
@@ -240,8 +241,6 @@ interface IMStack<out A:Any>:
     IMStackAltering<A>,
     IMStackUtility<A>,
     IMCollection<A>,
-    IMFoldable<A>,
-    IMReducible<A>,
     IMOrdered<A>,
     IMStackTyping<A>
 

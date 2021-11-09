@@ -4,8 +4,6 @@ import com.xrpn.immutable.TKVEntry
 
 interface IMListFiltering<out A: Any> {
 
-    // fun fdistinct(): IMKSet<A> // 	Return a new sequence with no duplicate elements
-    fun fdrop(n: Int): IMList<A> // 	Return all elements after the first n elements
     fun fdropFirst(isMatch: (A) -> Boolean): IMList<A> // 	Drop the first element that matches the predicate p
     fun fdropRight(n: Int): IMList<A> //	Return all elements except the last n elements
     fun fdropWhile(isMatch: (A) -> Boolean): IMList<A> // 	Drop the first elements that match the predicate p
@@ -88,9 +86,8 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
 }
 
 interface IMStackFiltering<out A: Any> {
-    fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
-    fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> // True if top matches the oredicate
     fun fdropIfTop(item: @UnsafeVariance A): IMStack<A>
+    fun fdropTopWhen(isMatch: (A) -> Boolean): IMStack<A> // True if top matches the oredicate
     fun fdropWhile(isMatch: (A) -> Boolean): IMStack<A> // Drop the top elements that match the predicate
     fun ftopMatch(isMatch: (A) -> Boolean): Boolean // True if top matches the oredicate
     fun ftop(): A? // the top element
@@ -99,12 +96,11 @@ interface IMStackFiltering<out A: Any> {
 
 interface IMQueueFiltering<out A: Any> {
     fun fdiscardFront(): IMQueue<A> // Return all elements after the first element
-    fun fdropFront(n: Int): IMQueue<A> // Return all elements after the first n elements
     fun fdropFrontWhile(isMatch: (A) -> Boolean): IMQueue<A> // Drop the front elements that match the predicate
     fun fdropFrontWhen(isMatch: (A) -> Boolean): IMQueue<A> // True if top matches the oredicate
     fun fdropIfFront(item: @UnsafeVariance A): IMQueue<A>
     fun fdiscardBack(): IMQueue<A> // Return all elements after the first n elements
-    fun fdropBack(n: Int): IMQueue<A> // Return all elements after the first n elements
+    fun fdropBack(n: Int): IMQueue<A> // Return all elements except the last n elements
     fun fdropBackWhen(isMatch: (A) -> Boolean): IMQueue<A> // True if top matches the oredicate
     fun fdropBackWhile(isMatch: (A) -> Boolean): IMQueue<A> // Drop the front elements that match the predicate
     fun fdropIfBack(item: @UnsafeVariance A): IMQueue<A>

@@ -10,7 +10,9 @@ interface IMListTyping<out A: Any>: IMCollection<A>, IMFoldable<A>, IMOrdered<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMList<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMList<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMList<A> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<A?, IMList<A>>
     // IMOrdered
+    override fun fdrop(n: Int): IMList<A> // Return all elements after the first n elements
     override fun freverse(): IMList<A>
     override fun frotr(): IMList<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     override fun frotl(): IMList<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
@@ -86,7 +88,9 @@ interface IMStackTyping<out A: Any>: IMCollection<A>, IMOrdered<A> {
     override fun fdropWhen(isMatch: (A) -> Boolean): IMStack<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMStack<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMStack<A> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<A?, IMStack<A>>
     // IMOrdered
+    override fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
     override fun freverse(): IMStack<A>
     override fun frotr(): IMStack<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     override fun frotl(): IMStack<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
@@ -100,7 +104,9 @@ interface IMQueueTyping<out A: Any>: IMCollection<A>, IMOrdered<A> {
     override fun fdropWhen(isMatch: (A) -> Boolean): IMQueue<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<A?, IMQueue<A>>
     // IMOrdered
+    override fun fdrop(n: Int): IMQueue<A> // Return all elements after the first n elements
     override fun freverse(): IMQueue<A>
     override fun frotr(): IMQueue<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     override fun frotl(): IMQueue<A> // rotate left (A, B, C).frotl() becomes (B, C, A)

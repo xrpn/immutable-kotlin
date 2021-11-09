@@ -7,7 +7,7 @@ import com.xrpn.hash.MurMur3at32
 import com.xrpn.hash.to8ByteArray
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
-import java.util.logging.Logger
+import java.util.ArrayList
 import java.util.zip.CRC32C
 import kotlin.reflect.KClass
 
@@ -64,6 +64,16 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun fcontains(item: @UnsafeVariance A): Boolean =
         null != ffind { it == item }
 
+    override fun fcount(isMatch: (A) -> Boolean): Int {
+
+        tailrec fun go(xs: FList<A>, counter: Int): Int = when(xs) {
+            is FLNil -> counter
+            is FLCons -> go(xs.tail, if (isMatch(xs.head)) counter + 1 else counter)
+        }
+
+        return go(this, 0)
+    }
+
     override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FList <A> = if (items.fempty()) this else when(items) {
         is IMSet<A> -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.contains(element)) acc else FLCons(element, acc) }
         is IMKeyedValue<*,*> -> this.ffoldLeft(emptyIMList()) { acc, element ->
@@ -73,10 +83,35 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         else -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.fcontains(element)) acc else FLCons(element, acc) }
     }
 
-    override fun ffindAny(isMatch: (A) -> Boolean): A? =
+    override fun fdropItem(item: @UnsafeVariance A): FList<A> = this.ffilterNot { it == item }
+
+    override fun ffilter(isMatch: (A) -> Boolean): FList<A> {
+
+        tailrec fun go(xs: FList<A>, pos: Int, markers: ArrayList<Boolean>, acc: FList<A>): FList<A> = when(xs) {
+            is FLNil -> acc
+            is FLCons -> go(xs.tail,pos+1, markers, if (markers[pos]) FLCons(xs.head,acc) else acc)
+        }
+
+        val marks = matchTally(isMatch)
+        return when (marks.first) {
+            0 -> FLNil
+            fsize() -> this
+            else -> {
+                val markers = marks.second!!
+                go(this, 0, markers, FLNil).freverse()
+            }
+        }
+    }
+
+    override fun ffilterNot(isMatch: (A) -> Boolean): FList<A> {
+        val aux: (A) -> Boolean = { a -> !isMatch(a) }
+        return ffilter(aux)
+    }
+
+    override fun ffindAny(isMatch: (A) -> Boolean): A? = // TODO stop immediately after positive match
         ffind(isMatch)
 
-    private val strictness: Boolean by lazy { when {
+    private val strictness: Boolean by lazy { when { // TODO cannot be immutable if holding mutable containers
         fempty() -> true
         fisNested()!! -> {
             val kc = fpickNotEmpty()?.let { it::class }
@@ -101,44 +136,9 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun fpopAndRemainder(): Pair<A?, FList<A>> = Pair(fhead(), ftail())
 
-    // utility
+    override fun fsize(): Int = size
 
-    override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = this.equals(rhs)
-
-    override fun fforEach (f: (A) -> Unit) {
-
-        tailrec fun go(xs: FList<A>): Unit = when(xs) {
-            is FLNil -> Unit
-            is FLCons -> {
-                f(xs.head)
-                go(xs.tail)
-            }
-        }
-
-        return go(this)
-    }
-
-    override fun fforEachReverse (f: (A) -> Unit) {
-
-        val n = this.size
-        tailrec fun go(xs: FList<A>, backwardIx: Int): Unit = if (backwardIx < 0) Unit else {
-            val item: A? = atWantedIxPosition(backwardIx, n, xs, 0)
-            item?.let{ f(it) }
-            go(xs, backwardIx-1)
-        }
-
-        return go(this, n-1)
-    }
-
-    override fun copy(): FList<A> = this.ffoldRight(emptyIMList()) { a, b -> FLCons(a, b) }
-
-    override fun copyToMutableList(): MutableList<@UnsafeVariance A> {
-        val aux = arrayListOf<@UnsafeVariance A>()
-        aux.ensureCapacity(fsize())
-        return this.ffoldLeft(aux) { a, b -> a.add(b); a }
-    }
-
-    // filtering
+    // IMOrdered
 
     override fun fdrop(n: Int): FList<A> {
 
@@ -153,7 +153,28 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
     }
 
-    override fun fdropItem(item: @UnsafeVariance A): FList<A> = this.ffilterNot { it == item }
+    override fun freverse(): FList<A> = fhead()?.let {
+        if(ftail() is FLNil) this else ffoldLeft(emptyIMList()) { b, a -> FLCons(a, b) }
+    } ?: this
+
+    override fun frotr(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if( 1 == this.size) this else {
+            FLCons(this.flast()!!, this.fdropRight(1))
+        }
+    }
+
+    override fun frotl(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if( 1 == this.size) this else this.tail.fappend(this.head)
+    }
+
+    override fun fswaph(): FList<A> = when(this) {
+        is FLNil -> FLNil
+        is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
+    }
+
+    // filtering
 
     override fun fdropFirst(isMatch: (A) -> Boolean): FList<A> {
         val (before, _, after) = ffindFirst(isMatch)
@@ -178,38 +199,14 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return dropWhileIsMatch(isMatch, this)
     }
 
-
-    override fun ffilter(isMatch: (A) -> Boolean): FList<A> {
-
-        tailrec fun go(xs: FList<A>, acc: FList<A>): FList<A> = when(xs) {
-            is FLNil -> acc
-            is FLCons -> go(xs.tail, if (isMatch(xs.head)) FLCons(xs.head,acc) else acc)
-        }
-
-        return go(this, FLNil).freverse()
-    }
-
-    override fun ffilterNot(isMatch: (A) -> Boolean): FList<A> {
-
-        tailrec fun go(xs: FList<A>, acc: FList<A>): FList<A> = when(xs) {
-            is FLNil -> acc
-            is FLCons -> go(xs.tail, if (isMatch(xs.head)) acc else FLCons(xs.head,acc))
-        }
-
-        return go(this, FLNil).freverse()
-    }
-
     override fun ffind(isMatch: (A) -> Boolean): A? {
 
-        tailrec fun go(xs: FList<A>): A? = when (xs) {
+        tailrec fun go(xs: FList<A>, pred: Boolean, value: A?): A? = if (pred) value else when (xs) {
             is FLNil -> null
-            is FLCons -> when {
-                isMatch(xs.fhead()!!) -> xs.fhead()
-                else -> go(xs.tail)
-            }
+            is FLCons -> go(xs.tail, isMatch(xs.fhead()!!), xs.fhead()!!)
         }
 
-        return go(this)
+        return go(this, false, null)
     }
 
     override fun ffindLast(isMatch: (A) -> Boolean): A? {
@@ -245,7 +242,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             null -> acc
             else -> {
                 val newAcc = if (currentIx < 0 || size <= currentIx) acc
-                    else FLCons(get(currentIx), acc)
+                else FLCons(get(currentIx), acc)
                 go(ixs.ftail(), newAcc)
             }
         }
@@ -292,18 +289,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     }
 
     // grouping
-
-    override fun fsize(): Int = size
-
-    override fun fcount(isMatch: (A) -> Boolean): Int {
-
-        tailrec fun go(xs: FList<A>, counter: Int): Int = when(xs) {
-            is FLNil -> counter
-            is FLCons -> go(xs.tail, if (isMatch(xs.head)) counter + 1 else counter)
-        }
-
-        return go(this, 0)
-    }
 
     override fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ FList<A>, A?, /* after */ FList<A>> {
 
@@ -524,27 +509,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return freduceLeft(xsar, ::g)
     }
 
-    override fun freverse(): FList<A> = fhead()?.let {
-        if(ftail() is FLNil) this else ffoldLeft(emptyIMList()) { b, a -> FLCons(a, b) }
-    } ?: this
-
-    override fun frotr(): FList<A> = when(this) {
-        is FLNil -> FLNil
-        is FLCons -> if( 1 == this.size) this else {
-            FLCons(this.flast()!!, this.fdropRight(1))
-        }
-    }
-
-    override fun frotl(): FList<A> = when(this) {
-        is FLNil -> FLNil
-        is FLCons -> if( 1 == this.size) this else this.tail.fappend(this.head)
-    }
-
-    override fun fswaph(): FList<A> = when(this) {
-        is FLNil -> FLNil
-        is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
-    }
-
     // ===== altering
 
     override fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
@@ -561,8 +525,69 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         else -> flAppend(of(elements), this)
     }
 
+    // utility
+
+    override fun equal(rhs: IMList<@UnsafeVariance A>): Boolean = this.equals(rhs)
+
+    override fun fforEach (f: (A) -> Unit) {
+
+        tailrec fun go(xs: FList<A>): Unit = when(xs) {
+            is FLNil -> Unit
+            is FLCons -> {
+                f(xs.head)
+                go(xs.tail)
+            }
+        }
+
+        return go(this)
+    }
+
+    override fun fforEachReverse (f: (A) -> Unit) {
+
+        val n = this.size
+        tailrec fun go(xs: FList<A>, backwardIx: Int): Unit = if (backwardIx < 0) Unit else {
+            val item: A? = atWantedIxPosition(backwardIx, n, xs, 0)
+            item?.let{ f(it) }
+            go(xs, backwardIx-1)
+        }
+
+        return go(this, n-1)
+    }
+
+    override fun copy(): FList<A> = this.ffoldRight(emptyIMList()) { a, b -> FLCons(a, b) }
+
+    override fun copyToMutableList(): MutableList<@UnsafeVariance A> {
+        val aux = arrayListOf<@UnsafeVariance A>()
+        aux.ensureCapacity(fsize())
+        return this.ffoldLeft(aux) { a, b -> a.add(b); a }
+    }
+
+    // extras
+
     override operator fun plus(rhs: IMList<@UnsafeVariance A>): IMList<A> = this.fappendAll(of(rhs))
     override operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A> = this.fdropAll(of(rhs))
+
+    // implementation
+
+    private fun matchTally(isMatch: (A) -> Boolean): Pair<Int, ArrayList<Boolean>?> = when (this) {
+        is FLNil -> Pair(0, null)
+        is FLCons -> {
+            val res = ArrayList<Boolean>(fsize())
+            var tally: Int = 0
+            tailrec fun go(xs: FList<A>, acc: ArrayList<Boolean>, ix: Int): ArrayList<Boolean> = when(xs) {
+                is FLNil -> acc
+                is FLCons -> {
+                    if(isMatch(xs.head)) {
+                        res.add(true)
+                        tally += 1
+                    } else res.add(false)
+                    go(xs.tail, res,ix+1)
+                }
+            }
+            val marks = go(this,res,0)
+            Pair(tally, marks)
+        }
+    }
 
     companion object: IMListCompanion {
 
@@ -715,6 +740,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             ix == wantedIx -> l.fhead()
             else -> atWantedIxPosition(wantedIx, stop, l.ftail(), ix + 1)
         }
+
     }
 }
 
