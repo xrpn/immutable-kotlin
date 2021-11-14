@@ -69,7 +69,6 @@ internal fun <K, A: Any> IMKSetEqual2(lhs: IMKSet<K, A>, rhs: IMKSet<K, A>): Boo
 
 interface IMKSetCompanion {
 
-    fun <A: Any> emptyIMRSet(): IMSet<A>
     fun <A: Any> ofi(vararg items: A): IMSet<A>
     fun <A: Any> ofi(items: Iterator<A>): IMSet<A>
     fun <A: Any> ofi(items: IMBTree<Int, A>): IMSet<A>?
@@ -98,7 +97,6 @@ interface IMKSetCompanion {
     fun <A: Any> Collection<A>.toIMISet(): IMSet<A>
     fun <A: Any> Collection<A>.toIMSSet(): IMSet<A>
 }
-
 
 // because of type erasure, this is not entirely type safe, hence "internal"
 internal fun <K, V: Any> IMMapEqual2(lhs: IMMap<K, V>, rhs: IMMap<K, V>): Boolean  where K: Any, K: Comparable<K> {

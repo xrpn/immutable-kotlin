@@ -1,8 +1,10 @@
 package com.xrpn.immutable.fksettest
 
+import com.xrpn.imapi.IntKeyType
+import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FKSet.Companion.asFKSet
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
@@ -10,14 +12,14 @@ import io.kotest.matchers.shouldBe
 
 
 private val strKKSOfNone = FKSet.ofs(*emptyArrayOfStr)
-private val strKKSOfOne = FKSet.ofs("1").rrne()!!
-private val strKKSOfTwo = FKSet.ofs("1", "2").rrne()!!
-private val strKKSOfTwoOfst1 = FKSet.ofs("2", "3").rrne()!!
-private val strKKSOfThree = FKSet.ofs("1", "2", "3").rrne()!!
-private val intKKSOfThree = FKSet.ofk(1, 2, 3).rrne()!!
-private val strKKSOfFour = FKSet.ofs("1", "2", "3", "4").rrne()!!
-private val strKKSOfFive = FKSet.ofs("1", "2", "3", "4", "5").rrne()!!
-private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).rrne()!!
+private val strKKSOfOne = FKSet.ofs("1").nex<String>()!!
+private val strKKSOfTwo = FKSet.ofs("1", "2").nex<String>()!!
+private val strKKSOfTwoOfst1 = FKSet.ofs("2", "3").nex<String>()!!
+private val strKKSOfThree = FKSet.ofs("1", "2", "3").nex<String>()!!
+private val intKKSOfThree = FKSet.ofk(1, 2, 3).nex<Int>()!!
+private val strKKSOfFour = FKSet.ofs("1", "2", "3", "4").nex<String>()!!
+private val strKKSOfFive = FKSet.ofs("1", "2", "3", "4", "5").nex<String>()!!
+private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).nex<Int>()!!
 private val strKKSOfTwonc = FKSet.ofs("1", "2")
 
 private val strISOfNone = FKSet.ofi(*emptyArrayOfStr)
@@ -28,11 +30,11 @@ private val strISOfThree = FKSet.ofi("1", "2", "3")
 private val strISOfFour = FKSet.ofi("1", "2", "3", "4")
 private val strISOfFive = FKSet.ofi("1", "2", "3", "4", "5")
 
-
 class FKSetTransformingStrVTest : FunSpec({
 
     test("fflatMap") {
-        asFKSet<String,String>(strKKSOfNone).fflatMap {FKSet.ofs(it)} shouldBe emptyIMRSet()
+        asFKSet<String,String>(strKKSOfNone).fflatMap {FKSet.ofs(it)} shouldBe emptyIMKSet<String,String>(StrKeyType)
+        (asFKSet<String,String>(strKKSOfNone).fflatMap {FKSet.ofs(it)} === emptyIMKSet<String,String>(StrKeyType)) shouldBe true
         strKKSOfOne.fflatMap {FKSet.ofs(it)}.equals(strKKSOfOne) shouldBe true
         strKKSOfOne.fflatMapKK {FKSet.ofs(it)}.equals(strKKSOfOne) shouldBe true
         fun arrayBuilderConst(arg: Int) = Array(arg) { arg.toString() }
@@ -50,7 +52,8 @@ class FKSetTransformingStrVTest : FunSpec({
         fun arrayBuilderIncrementI(arg: Int) = Array(arg) { i -> arg + i }
         strKKSOfThree.fflatMapKK { FKSet.ofk(*arrayBuilderIncrementI(it.toInt())) }.equals(intKKSOfFive) shouldBe true
 
-        asFKSet<Int, String>(strISOfNone).fflatMap {FKSet.ofi(it.toInt())} shouldBe emptyIMRSet()
+        asFKSet<Int, String>(strISOfNone).fflatMap {FKSet.ofi(it.toInt())} shouldBe emptyIMKSet<Int,String>(IntKeyType)
+        (asFKSet<Int, String>(strISOfNone).fflatMap {FKSet.ofi(it.toInt())} === emptyIMKSet<Int,String>(IntKeyType)) shouldBe true
         strISOfOne.fflatMap {FKSet.ofi(it)}.equals(strISOfOne) shouldBe true
         strISOfTwo.fflatMap {FKSet.ofi(*arrayBuilderConst(it.toInt()))}.equals(strISOfTwo) shouldBe true
         strISOfTwo.fflatMap {FKSet.ofi(*arrayBuilderIncrement(it.toInt()))}.equals(strISOfThree) shouldBe true
@@ -73,12 +76,14 @@ class FKSetTransformingStrVTest : FunSpec({
     }
 
     test("fmap") {
-        strKKSOfNone.fmap { it + 1 } shouldBe emptyIMRSet()
+        strKKSOfNone.fmap { it + 1 } shouldBe emptyIMKSet<String,String>(StrKeyType)
+        (strKKSOfNone.fmap { it + 1 } === emptyIMKSet<String,String>(StrKeyType)) shouldBe true
         strKKSOfTwo.fmap { (it[0].code + 1).toChar().toString() }.equals(strKKSOfTwoOfst1) shouldBe true
         strKKSOfFive.fmap { it.toInt() }.equals(intKKSOfFive) shouldBe true
         strKKSOfFive.fmapKK { it.toInt() }.equals(intKKSOfFive) shouldBe true
 
-        strISOfNone.fmap { it + 1 } shouldBe emptyIMRSet()
+        strISOfNone.fmap { it + 1 } shouldBe emptyIMKSet<Int,String>(IntKeyType)
+        (strISOfNone.fmap { it + 1 } === emptyIMKSet<Int,String>(IntKeyType)) shouldBe true
         strISOfTwo.fmap { (it[0].code + 1).toChar().toString() }.equals(strISOfTwoOfst1) shouldBe true
         strISOfFive.fmap { it.toInt() }.equals(intKKSOfFive) shouldBe true
     }

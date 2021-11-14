@@ -5,24 +5,24 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val longKKSetOfNone = FKSet.ofk(*arrayOf<Long>())
-private val longKKSetOfOne = FKSet.ofk(1L).rrne()!!
-private val longKKSetOfOne3 = FKSet.ofk(3L).rrne()!!
-private val longKKSetOfTwo = FKSet.ofk(1L, 2L).rrne()!!
-private val longKKSetOfTwoOfst1 = FKSet.ofk(2L, 3L).rrne()!!
-private val longKKSetOfTwoOfst2 = FKSet.ofk(3L, 4L).rrne()!!
-private val longKKSetOfThree = FKSet.ofk(1L, 2L, 3L).rrne()!!
-private val longKKSetOfFour = FKSet.ofk(1L, 2L, 3L, 4L).rrne()!!
-private val longKKSetMaverick = FKSet.ofk(113L, 97L).rrne()!!
+private val longKKSetOfOne = FKSet.ofk(1L).nex<Long>()!!
+private val longKKSetOfOne3 = FKSet.ofk(3L).nex<Long>()!!
+private val longKKSetOfTwo = FKSet.ofk(1L, 2L).nex<Long>()!!
+private val longKKSetOfTwoOfst1 = FKSet.ofk(2L, 3L).nex<Long>()!!
+private val longKKSetOfTwoOfst2 = FKSet.ofk(3L, 4L).nex<Long>()!!
+private val longKKSetOfThree = FKSet.ofk(1L, 2L, 3L).nex<Long>()!!
+private val longKKSetOfFour = FKSet.ofk(1L, 2L, 3L, 4L).nex<Long>()!!
+private val longKKSetMaverick = FKSet.ofk(113L, 97L).nex<Long>()!!
 
 private val longSSetOfNone = FKSet.ofs(*arrayOf<Long>())
-private val longSSetOfOne = FKSet.ofs(1L).rne()!!
-private val longSSetOfOne3 = FKSet.ofs(3L).rne()!!
-private val longSSetOfTwo = FKSet.ofs(1L, 2L).rne()!!
-private val longSSetOfTwoOfst1 = FKSet.ofs(2L, 3L).rne()!!
-private val longSSetOfTwoOfst2 = FKSet.ofs(3L, 4L).rne()!!
-private val longSSetOfThree = FKSet.ofs(1L, 2L, 3L).rne()!!
-private val longSSetOfFour = FKSet.ofs(1L, 2L, 3L, 4L).rne()!!
-private val longSSetMaverick = FKSet.ofs(113L, 97L).rne()!!
+private val longSSetOfOne = FKSet.ofs(1L).ne()!!
+private val longSSetOfOne3 = FKSet.ofs(3L).ne()!!
+private val longSSetOfTwo = FKSet.ofs(1L, 2L).ne()!!
+private val longSSetOfTwoOfst1 = FKSet.ofs(2L, 3L).ne()!!
+private val longSSetOfTwoOfst2 = FKSet.ofs(3L, 4L).ne()!!
+private val longSSetOfThree = FKSet.ofs(1L, 2L, 3L).ne()!!
+private val longSSetOfFour = FKSet.ofs(1L, 2L, 3L, 4L).ne()!!
+private val longSSetMaverick = FKSet.ofs(113L, 97L).ne()!!
 
 class FKSetFilteringLongKStrTest : FunSpec({
 
@@ -205,7 +205,9 @@ class FKSetFilteringLongKStrTest : FunSpec({
         longKKSetOfOne.fempty() shouldBe false
         longSSetOfNone.fempty() shouldBe true
         longSSetOfOne.fempty() shouldBe false
-        (longKKSetOfNone === longSSetOfNone) shouldBe true
+        longKKSetOfNone.equals(longSSetOfNone) shouldBe true
+        longKKSetOfNone.equal(longSSetOfNone) shouldBe true
+        (longKKSetOfNone === longSSetOfNone) shouldBe false
     }
 
     test("ffilter") {
@@ -315,174 +317,174 @@ class FKSetFilteringLongKStrTest : FunSpec({
 
     test("fAND") {
         longKKSetOfNone.fAND(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfNone.fAND(longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfNone and longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
 
-        longKKSetOfOne.fAND(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfOne.fAND(longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
-        longKKSetOfOne.fAND(longKKSetOfThree).equals(longKKSetOfOne) shouldBe true
-        longKKSetOfThree.fAND(longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfOne and longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfOne and longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfOne and longKKSetOfThree).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfThree and longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
 
-        longKKSetOfTwo.fAND(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfTwo.fAND(longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfTwo.fAND(longKKSetOfThree).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfThree.fAND(longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo and longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfTwo and longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo and longKKSetOfThree).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfThree and longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
 
-        longKKSetOfThree.fAND(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfThree.fAND(longKKSetOfThree).equals(longKKSetOfThree) shouldBe true
-        FKSet.ofk(2L).fAND(longKKSetOfThree).equals(FKSet.ofk(2L)) shouldBe true
-        longKKSetOfThree.fAND(FKSet.ofi(2L)).equals(FKSet.ofk(2L)) shouldBe true
+        (longKKSetOfThree and longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfThree and longKKSetOfThree).equals(longKKSetOfThree) shouldBe true
+        (FKSet.ofk(2L) and longKKSetOfThree).equals(FKSet.ofk(2L)) shouldBe true
+        (longKKSetOfThree and FKSet.ofi(2L)).equals(FKSet.ofk(2L)) shouldBe true
 
-        longSSetOfNone.fAND(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfNone.fAND(longSSetOfOne).equals(longSSetOfNone) shouldBe true
+        (longSSetOfNone and longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfNone and longSSetOfOne).equals(longSSetOfNone) shouldBe true
 
-        longSSetOfOne.fAND(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfOne.fAND(longSSetOfOne).equals(longSSetOfOne) shouldBe true
-        longSSetOfOne.fAND(longSSetOfThree).equals(longSSetOfOne) shouldBe true
-        longSSetOfThree.fAND(longSSetOfOne).equals(longSSetOfOne) shouldBe true
+        (longSSetOfOne and longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfOne and longSSetOfOne).equals(longSSetOfOne) shouldBe true
+        (longSSetOfOne and longSSetOfThree).equals(longSSetOfOne) shouldBe true
+        (longSSetOfThree and longSSetOfOne).equals(longSSetOfOne) shouldBe true
 
-        longSSetOfTwo.fAND(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfTwo.fAND(longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
-        longSSetOfTwo.fAND(longSSetOfThree).equals(longSSetOfTwo) shouldBe true
-        longSSetOfThree.fAND(longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo and longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfTwo and longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo and longSSetOfThree).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfThree and longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
 
-        longSSetOfThree.fAND(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfThree.fAND(longSSetOfThree).equals(longSSetOfThree) shouldBe true
-        FKSet.ofi(2L).fAND(longSSetOfThree).equals(FKSet.ofi(2L)) shouldBe true
-        longSSetOfThree.fAND(FKSet.ofi(2L)).equals(FKSet.ofs(2L)) shouldBe true
+        (longSSetOfThree and longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfThree and longSSetOfThree).equals(longSSetOfThree) shouldBe true
+        (FKSet.ofi(2L) and longSSetOfThree).equals(FKSet.ofi(2L)) shouldBe true
+        (longSSetOfThree and FKSet.ofi(2L)).equals(FKSet.ofs(2L)) shouldBe true
 
         // mixed mode
 
-        longSSetOfThree.fAND(longKKSetOfTwo).equals(longSSetOfTwo) shouldBe true
-        longKKSetOfThree.fAND(longSSetOfTwo).equals(longKKSetOfTwo) shouldBe true
+        (longSSetOfThree and longKKSetOfTwo).equals(longSSetOfTwo) shouldBe true
+        (longKKSetOfThree and longSSetOfTwo).equals(longKKSetOfTwo) shouldBe true
 
     }
 
     test("fNOT") {
         longKKSetOfNone.fNOT(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfNone.fNOT(longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfNone not longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
 
-        longKKSetOfOne.fNOT(longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
-        longKKSetOfOne.fNOT(longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfOne.fNOT(longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfThree.fNOT(longKKSetOfOne).equals(FKSet.ofk(2L,3L)) shouldBe true
+        (longKKSetOfOne not longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfOne not longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfOne not longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfThree not longKKSetOfOne).equals(FKSet.ofk(2L,3L)) shouldBe true
 
-        longKKSetOfTwo.fNOT(longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfTwo.fNOT(longKKSetOfTwo).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfTwo.fNOT(longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfThree.fNOT(longKKSetOfTwo).equals(longKKSetOfOne3) shouldBe true
+        (longKKSetOfTwo not longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo not longKKSetOfTwo).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfTwo not longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfThree not longKKSetOfTwo).equals(longKKSetOfOne3) shouldBe true
 
-        longKKSetOfThree.fNOT(longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfThree.fNOT(longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
-        FKSet.ofi(2L).fNOT(longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfThree.fNOT(FKSet.ofi(2L)).equals(FKSet.ofk(1L,3L)) shouldBe true
+        (longKKSetOfThree not longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfThree not longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
+        (FKSet.ofi(2L) not longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfThree not FKSet.ofi(2L)).equals(FKSet.ofk(1L,3L)) shouldBe true
 
-        longSSetOfNone.fNOT(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfNone.fNOT(longSSetOfOne).equals(longSSetOfNone) shouldBe true
+        (longSSetOfNone not longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfNone not longSSetOfOne).equals(longSSetOfNone) shouldBe true
 
-        longSSetOfOne.fNOT(longSSetOfNone).equals(longSSetOfOne) shouldBe true
-        longSSetOfOne.fNOT(longSSetOfOne).equals(longSSetOfNone) shouldBe true
-        longSSetOfOne.fNOT(longSSetOfThree).equals(longSSetOfNone) shouldBe true
-        longSSetOfThree.fNOT(longSSetOfOne).equals(FKSet.ofs(2L,3L)) shouldBe true
+        (longSSetOfOne not longSSetOfNone).equals(longSSetOfOne) shouldBe true
+        (longSSetOfOne not longSSetOfOne).equals(longSSetOfNone) shouldBe true
+        (longSSetOfOne not longSSetOfThree).equals(longSSetOfNone) shouldBe true
+        (longSSetOfThree not longSSetOfOne).equals(FKSet.ofs(2L,3L)) shouldBe true
 
-        longSSetOfTwo.fNOT(longSSetOfNone).equals(longSSetOfTwo) shouldBe true
-        longSSetOfTwo.fNOT(longSSetOfTwo).equals(longSSetOfNone) shouldBe true
-        longSSetOfTwo.fNOT(longSSetOfThree).equals(longSSetOfNone) shouldBe true
-        longSSetOfThree.fNOT(longSSetOfTwo).equals(longSSetOfOne3) shouldBe true
+        (longSSetOfTwo not longSSetOfNone).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo not longSSetOfTwo).equals(longSSetOfNone) shouldBe true
+        (longSSetOfTwo not longSSetOfThree).equals(longSSetOfNone) shouldBe true
+        (longSSetOfThree not longSSetOfTwo).equals(longSSetOfOne3) shouldBe true
 
-        longSSetOfThree.fNOT(longSSetOfNone).equals(longSSetOfThree) shouldBe true
-        longSSetOfThree.fNOT(longSSetOfThree).equals(longSSetOfNone) shouldBe true
-        FKSet.ofs(2L).fNOT(longSSetOfThree).equals(longSSetOfNone) shouldBe true
-        longSSetOfThree.fNOT(FKSet.ofi(2L)).equals(FKSet.ofs(1L,3L)) shouldBe true
+        (longSSetOfThree not longSSetOfNone).equals(longSSetOfThree) shouldBe true
+        (longSSetOfThree not longSSetOfThree).equals(longSSetOfNone) shouldBe true
+        (FKSet.ofs(2L) not longSSetOfThree).equals(longSSetOfNone) shouldBe true
+        (longSSetOfThree not FKSet.ofi(2L)).equals(FKSet.ofs(1L,3L)) shouldBe true
 
         // mixed mode
 
-        longSSetOfThree.fNOT(longKKSetOfTwo).equals(longSSetOfOne3) shouldBe true
-        longKKSetOfThree.fNOT(longSSetOfTwo).equals(longKKSetOfOne3) shouldBe true
+        (longSSetOfThree not longKKSetOfTwo).equals(longSSetOfOne3) shouldBe true
+        (longKKSetOfThree not longSSetOfTwo).equals(longKKSetOfOne3) shouldBe true
     }
 
     test("fOR") {
         longKKSetOfNone.fOR(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfOne.fOR(longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
-        longKKSetOfNone.fOR(longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfOne or longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfNone or longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
 
-        longKKSetOfTwo.fOR(longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfTwo.fOR(longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfNone.fOR(longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfTwo.fOR(longKKSetOfTwoOfst1).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfTwoOfst1.fOR(longKKSetOfTwo).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfTwo.fOR(longKKSetOfTwoOfst2).equals(longKKSetOfFour) shouldBe true
-        longKKSetOfTwoOfst2.fOR(longKKSetOfTwo).equals(longKKSetOfFour) shouldBe true
+        (longKKSetOfTwo or longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo or longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfNone or longKKSetOfTwo).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo or longKKSetOfTwoOfst1).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfTwoOfst1 or longKKSetOfTwo).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfTwo or longKKSetOfTwoOfst2).equals(longKKSetOfFour) shouldBe true
+        (longKKSetOfTwoOfst2 or longKKSetOfTwo).equals(longKKSetOfFour) shouldBe true
 
-        longKKSetOfThree.fOR(longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfThree.fOR(longKKSetOfThree).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfThree.fOR(FKSet.ofi(2L)).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfThree or longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfThree or longKKSetOfThree).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfThree or FKSet.ofi(2L)).equals(longKKSetOfThree) shouldBe true
 
-        longSSetOfNone.fOR(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfOne.fOR(longSSetOfNone).equals(longSSetOfOne) shouldBe true
-        longSSetOfNone.fOR(longSSetOfOne).equals(longSSetOfOne) shouldBe true
+        (longSSetOfNone or longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfOne or longSSetOfNone).equals(longSSetOfOne) shouldBe true
+        (longSSetOfNone or longSSetOfOne).equals(longSSetOfOne) shouldBe true
 
-        longSSetOfTwo.fOR(longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
-        longSSetOfTwo.fOR(longSSetOfNone).equals(longSSetOfTwo) shouldBe true
-        longSSetOfNone.fOR(longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
-        longSSetOfTwo.fOR(longSSetOfTwoOfst1).equals(longSSetOfThree) shouldBe true
-        longSSetOfTwoOfst1.fOR(longSSetOfTwo).equals(longSSetOfThree) shouldBe true
-        longSSetOfTwo.fOR(longSSetOfTwoOfst2).equals(longSSetOfFour) shouldBe true
-        longSSetOfTwoOfst2.fOR(longSSetOfTwo).equals(longSSetOfFour) shouldBe true
+        (longSSetOfTwo or longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo or longSSetOfNone).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfNone or longSSetOfTwo).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo or longSSetOfTwoOfst1).equals(longSSetOfThree) shouldBe true
+        (longSSetOfTwoOfst1 or longSSetOfTwo).equals(longSSetOfThree) shouldBe true
+        (longSSetOfTwo or longSSetOfTwoOfst2).equals(longSSetOfFour) shouldBe true
+        (longSSetOfTwoOfst2 or longSSetOfTwo).equals(longSSetOfFour) shouldBe true
 
-        longSSetOfThree.fOR(longSSetOfNone).equals(longSSetOfThree) shouldBe true
-        longSSetOfThree.fOR(longSSetOfThree).equals(longSSetOfThree) shouldBe true
-        FKSet.ofs(2L).fOR(longSSetOfThree).equals(longSSetOfThree) shouldBe true
-        longSSetOfThree.fOR(FKSet.ofs(2)).equals(longSSetOfThree) shouldBe true
+        (longSSetOfThree or longSSetOfNone).equals(longSSetOfThree) shouldBe true
+        (longSSetOfThree or longSSetOfThree).equals(longSSetOfThree) shouldBe true
+        (FKSet.ofs(2L) or longSSetOfThree).equals(longSSetOfThree) shouldBe true
+        (longSSetOfThree or FKSet.ofs(2)).equals(longSSetOfThree) shouldBe true
 
         // mixed mode
 
-        longSSetOfTwoOfst1.fOR(longKKSetOfTwo).equals(longSSetOfThree) shouldBe true
-        longSSetOfTwo.fOR(longKKSetOfTwoOfst2).equals(longSSetOfFour) shouldBe true
+        (longSSetOfTwoOfst1 or longKKSetOfTwo).equals(longSSetOfThree) shouldBe true
+        (longSSetOfTwo or longKKSetOfTwoOfst2).equals(longSSetOfFour) shouldBe true
 
-        longKKSetOfTwoOfst1.fOR(longSSetOfTwo).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfTwo.fOR(longSSetOfTwoOfst2).equals(longKKSetOfFour) shouldBe true
+        (longKKSetOfTwoOfst1 or longSSetOfTwo).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfTwo or longSSetOfTwoOfst2).equals(longKKSetOfFour) shouldBe true
     }
 
     test("fXOR") {
         longKKSetOfNone.fXOR(longKKSetOfNone).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfNone.fXOR(longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfNone xor longKKSetOfOne).equals(longKKSetOfOne) shouldBe true
 
-        longKKSetOfOne.fXOR(longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
-        longKKSetOfOne.fXOR(longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfOne.fXOR(longKKSetOfThree).equals(FKSet.ofk(2L,3L)) shouldBe true
-        longKKSetOfThree.fXOR(longKKSetOfOne).equals(FKSet.ofk(2L,3L)) shouldBe true
+        (longKKSetOfOne xor longKKSetOfNone).equals(longKKSetOfOne) shouldBe true
+        (longKKSetOfOne xor longKKSetOfOne).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfOne xor longKKSetOfThree).equals(FKSet.ofk(2L,3L)) shouldBe true
+        (longKKSetOfThree xor longKKSetOfOne).equals(FKSet.ofk(2L,3L)) shouldBe true
 
-        longKKSetOfTwo.fXOR(longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
-        longKKSetOfTwo.fXOR(longKKSetOfTwo).equals(longKKSetOfNone) shouldBe true
-        longKKSetOfTwo.fXOR(longKKSetOfThree).equals(longKKSetOfOne3) shouldBe true
-        longKKSetOfThree.fXOR(longKKSetOfTwo).equals(longKKSetOfOne3) shouldBe true
+        (longKKSetOfTwo xor longKKSetOfNone).equals(longKKSetOfTwo) shouldBe true
+        (longKKSetOfTwo xor longKKSetOfTwo).equals(longKKSetOfNone) shouldBe true
+        (longKKSetOfTwo xor longKKSetOfThree).equals(longKKSetOfOne3) shouldBe true
+        (longKKSetOfThree xor longKKSetOfTwo).equals(longKKSetOfOne3) shouldBe true
 
-        longKKSetOfThree.fXOR(longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
-        longKKSetOfThree.fXOR(longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
-        FKSet.ofi(2L).fXOR(longKKSetOfThree).equals(FKSet.ofi(1L,3L)) shouldBe true
-        longKKSetOfThree.fXOR(FKSet.ofi(2L)).equals(FKSet.ofk(1L,3L)) shouldBe true
+        (longKKSetOfThree xor longKKSetOfNone).equals(longKKSetOfThree) shouldBe true
+        (longKKSetOfThree xor longKKSetOfThree).equals(longKKSetOfNone) shouldBe true
+        (FKSet.ofi(2L) xor longKKSetOfThree).equals(FKSet.ofi(1L,3L)) shouldBe true
+        (longKKSetOfThree xor FKSet.ofi(2L)).equals(FKSet.ofk(1L,3L)) shouldBe true
 
-        longSSetOfNone.fXOR(longSSetOfNone).equals(longSSetOfNone) shouldBe true
-        longSSetOfNone.fXOR(longSSetOfOne).equals(longSSetOfOne) shouldBe true
+        (longSSetOfNone xor longSSetOfNone).equals(longSSetOfNone) shouldBe true
+        (longSSetOfNone xor longSSetOfOne).equals(longSSetOfOne) shouldBe true
 
-        longSSetOfOne.fXOR(longSSetOfNone).equals(longSSetOfOne) shouldBe true
-        longSSetOfOne.fXOR(longSSetOfOne).equals(longSSetOfNone) shouldBe true
-        longSSetOfOne.fXOR(longSSetOfThree).equals(FKSet.ofs(2L,3L)) shouldBe true
-        longSSetOfThree.fXOR(longSSetOfOne).equals(FKSet.ofs(2L,3L)) shouldBe true
+        (longSSetOfOne xor longSSetOfNone).equals(longSSetOfOne) shouldBe true
+        (longSSetOfOne xor longSSetOfOne).equals(longSSetOfNone) shouldBe true
+        (longSSetOfOne xor longSSetOfThree).equals(FKSet.ofs(2L,3L)) shouldBe true
+        (longSSetOfThree xor longSSetOfOne).equals(FKSet.ofs(2L,3L)) shouldBe true
 
-        longSSetOfTwo.fXOR(longSSetOfNone).equals(longSSetOfTwo) shouldBe true
-        longSSetOfTwo.fXOR(longSSetOfTwo).equals(longSSetOfNone) shouldBe true
-        longSSetOfTwo.fXOR(longSSetOfThree).equals(longSSetOfOne3) shouldBe true
-        longSSetOfThree.fXOR(longSSetOfTwo).equals(longSSetOfOne3) shouldBe true
+        (longSSetOfTwo xor longSSetOfNone).equals(longSSetOfTwo) shouldBe true
+        (longSSetOfTwo xor longSSetOfTwo).equals(longSSetOfNone) shouldBe true
+        (longSSetOfTwo xor longSSetOfThree).equals(longSSetOfOne3) shouldBe true
+        (longSSetOfThree xor longSSetOfTwo).equals(longSSetOfOne3) shouldBe true
 
-        longSSetOfThree.fXOR(longSSetOfNone).equals(longSSetOfThree) shouldBe true
-        longSSetOfThree.fXOR(longSSetOfThree).equals(longSSetOfNone) shouldBe true
-        FKSet.ofs(2L).fXOR(longSSetOfThree).equals(FKSet.ofs(1L,3L)) shouldBe true
-        longSSetOfThree.fXOR(FKSet.ofs(2L)).equals(FKSet.ofs(1L,3L)) shouldBe true
+        (longSSetOfThree xor longSSetOfNone).equals(longSSetOfThree) shouldBe true
+        (longSSetOfThree xor longSSetOfThree).equals(longSSetOfNone) shouldBe true
+        (FKSet.ofs(2L) xor longSSetOfThree).equals(FKSet.ofs(1L,3L)) shouldBe true
+        (longSSetOfThree xor FKSet.ofs(2L)).equals(FKSet.ofs(1L,3L)) shouldBe true
 
         // mixed mode
 
-        longSSetOfTwo.fXOR(longKKSetOfThree).equals(longSSetOfOne3) shouldBe true
-        longKKSetOfTwo.fXOR(longSSetOfThree).equals(longKKSetOfOne3) shouldBe true
+        (longSSetOfTwo xor longKKSetOfThree).equals(longSSetOfOne3) shouldBe true
+        (longKKSetOfTwo xor longSSetOfThree).equals(longKKSetOfOne3) shouldBe true
     }
 })

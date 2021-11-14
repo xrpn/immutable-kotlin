@@ -1,22 +1,25 @@
 package com.xrpn.immutable.fksettest
 
+import com.xrpn.imapi.IntKeyType
+import com.xrpn.imapi.StrKeyType
+import com.xrpn.imapi.SymKeyType
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FKSet.Companion.asFKSet
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 
 private val longKKSOfNone = FKSet.ofk(*arrayOf<Long>())
-private val longKKSOfOne = FKSet.ofk(1L).rrne()!!
-private val longKKSOfTwo = FKSet.ofk(1L, 2L).rrne()!!
-private val longKKSOfTwoOfst1 = FKSet.ofk(2L, 3L).rrne()!!
-private val longKKSOfThree = FKSet.ofk(1L, 2L, 3L).rrne()!!
-private val strKKSOfThree = FKSet.ofk("1", "2", "3").rrne()!!
-private val longKKSOfFour = FKSet.ofk(1L, 2L, 3L, 4L).rrne()!!
-private val longKKSOfFive = FKSet.ofk(1L, 2L, 3L, 4L, 5L).rrne()!!
-private val strKKSOfFive = FKSet.ofk("1", "2", "3", "4", "5").rrne()!!
+private val longKKSOfOne = FKSet.ofk(1L).nex<Long>()!!
+private val longKKSOfTwo = FKSet.ofk(1L, 2L).nex<Long>()!!
+private val longKKSOfTwoOfst1 = FKSet.ofk(2L, 3L).nex<Long>()!!
+private val longKKSOfThree = FKSet.ofk(1L, 2L, 3L).nex<Long>()!!
+private val strKKSOfThree = FKSet.ofk("1", "2", "3").nex<Long>()!!
+private val longKKSOfFour = FKSet.ofk(1L, 2L, 3L, 4L).nex<Long>()!!
+private val longKKSOfFive = FKSet.ofk(1L, 2L, 3L, 4L, 5L).nex<Long>()!!
+private val strKKSOfFive = FKSet.ofk("1", "2", "3", "4", "5").nex<Long>()!!
 private val longKKSOfTwonc = FKSet.ofs(1L, 2L)
 
 private val longSSOfNone = FKSet.ofs(*arrayOf<Long>())
@@ -30,12 +33,11 @@ private val longISOfThree = FKSet.ofi(1L, 2L, 3L)
 private val longSSOfFour = FKSet.ofs(1L, 2L, 3L, 4L)
 private val longSSOfFive = FKSet.ofs(1L, 2L, 3L, 4L, 5L)
 
-
-
 class FKSetTransformingLongKStrTest : FunSpec({
 
     test("fflatMap") {
-        asFKSet<Long, Long>(longKKSOfNone).fflatMap {FKSet.ofs(it)} shouldBe emptyIMRSet()
+        asFKSet<Long, Long>(longKKSOfNone).fflatMap {FKSet.ofs(it)} shouldBe emptyIMKSet<Long,Long>(SymKeyType(Long::class))
+        (asFKSet<Long, Long>(longKKSOfNone).fflatMap {FKSet.ofs(it)} === emptyIMKSet<Long,Long>(SymKeyType(Long::class))) shouldBe true
         longKKSOfOne.fflatMap {FKSet.ofs(it)}.equals(longSSOfOne) shouldBe true
         longKKSOfOne.fflatMap {FKSet.ofi(it)}.equals(longKKSOfOne) shouldBe false
         longKKSOfOne.fflatMap {FKSet.ofk(it)}.equals(longKKSOfOne) shouldBe true
@@ -73,7 +75,8 @@ class FKSetTransformingLongKStrTest : FunSpec({
         longKKSOfFive.fflatMap {FKSet.ofs(*arrayBuilderConstS(it))}.equals(strKKSOfFive) shouldBe true
         longKKSOfFive.fflatMap {FKSet.ofk(*arrayBuilderConstS(it))}.equals(strKKSOfFive) shouldBe true
 
-        asFKSet<Int, Long>(longSSOfNone).fflatMap {FKSet.ofs(it.toInt())} shouldBe emptyIMRSet()
+        asFKSet<Int, Long>(longSSOfNone).fflatMap {FKSet.ofs(it.toInt())} shouldBe emptyIMKSet<Int,Long>(IntKeyType)
+        (asFKSet<Int, Long>(longSSOfNone).fflatMap {FKSet.ofs(it.toInt())} === emptyIMKSet<Int,Long>(IntKeyType)) shouldBe true
         longSSOfOne.fflatMap {FKSet.ofs(it)}.equals(longSSOfOne) shouldBe true
         longSSOfTwo.fflatMap {FKSet.ofs(*arrayBuilderConst(it))}.equals(longSSOfTwo) shouldBe true
         longSSOfTwo.fflatMap {FKSet.ofs(*arrayBuilderIncrement(it))}.equals(longSSOfThree) shouldBe true
@@ -102,12 +105,14 @@ class FKSetTransformingLongKStrTest : FunSpec({
     }
 
     test("fmap") {
-        longKKSOfNone.fmap { it + 1L } shouldBe emptyIMRSet()
+        longKKSOfNone.fmap { it + 1L } shouldBe emptyIMKSet(SymKeyType(Long::class))
+        (longKKSOfNone.fmap { it + 1L } === emptyIMKSet<Long,Long>(SymKeyType(Long::class))) shouldBe true
         longKKSOfTwo.fmap { it + 1L }.equals(longKKSOfTwoOfst1) shouldBe true
         longKKSOfFive.fmap { it.toString() }.equals(strKKSOfFive) shouldBe true
         longKKSOfFive.fmapKK { it.toString() }.equals(strKKSOfFive) shouldBe true
 
-        longSSOfNone.fmap { it + 1L } shouldBe emptyIMRSet()
+        longSSOfNone.fmap { it + 1L } shouldBe emptyIMKSet<String,Long>(StrKeyType)
+        (longSSOfNone.fmap { it + 1L } === emptyIMKSet<String,Long>(StrKeyType)) shouldBe true
         longSSOfTwo.fmap { it + 1L }.equals(longSSOfTwoOfst1) shouldBe true
         longSSOfFive.fmap { it.toString() }.equals(strKKSOfFive) shouldBe true
     }

@@ -303,7 +303,9 @@ class SingleInit<T: Any>() {
 
 data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) {
     fun hasKey(): Boolean = null != kKc
-    fun isSym(): Boolean = hasKey() && kKc == vKc
+    fun isSymRkc(): Boolean = hasKey() && kKc == vKc
+    fun isIntRkc(): Boolean = hasKey() && kKc == Int::class
+    fun isStrRkc(): Boolean = hasKey() && kKc == String::class
     fun isLikeIfLooselyKey(kClass: KClass<*>?, vClass: KClass<*>): Boolean =( !hasKey() || kKc == kClass ) && vKc == vClass
     fun isLike(kClass: KClass<*>?, vClass: KClass<*>): Boolean = kKc == kClass && vKc == vClass
     fun <KK: KClass<*>?, VV: KClass<*>> isStrictly(other: KeyedTypeSample<KK, VV>): Boolean = (kKc == other.kKc && vKc == other.vKc)

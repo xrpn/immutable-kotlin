@@ -14,24 +14,24 @@ import io.kotest.xrpn.fset
 import io.kotest.xrpn.fsset
 
 private val strKKSetOfNone = FKSet.ofs(*emptyArrayOfStr)
-private val strKKSetOfOne = FKSet.ofs("1").rrne()!!
-private val strKKSetOfOne3 = FKSet.ofs("3").rrne()!!
-private val strKKSetOfTwo = FKSet.ofs("1", "2").rrne()!!
-private val strKKSetOfTwoOfst1 = FKSet.ofs("2", "3").rrne()!!
-private val strKKSetOfTwoOfst2 = FKSet.ofs("3", "4").rrne()!!
-private val strKKSetOfThree = FKSet.ofs("1", "2", "3").rrne()!!
-private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").rrne()!!
-private val strKKSetMaverick = FKSet.ofs("113", "97").rrne()!!
+private val strKKSetOfOne = FKSet.ofs("1").nex<String>()!!
+private val strKKSetOfOne3 = FKSet.ofs("3").nex<String>()!!
+private val strKKSetOfTwo = FKSet.ofs("1", "2").nex<String>()!!
+private val strKKSetOfTwoOfst1 = FKSet.ofs("2", "3").nex<String>()!!
+private val strKKSetOfTwoOfst2 = FKSet.ofs("3", "4").nex<String>()!!
+private val strKKSetOfThree = FKSet.ofs("1", "2", "3").nex<String>()!!
+private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").nex<String>()!!
+private val strKKSetMaverick = FKSet.ofs("113", "97").nex<String>()!!
 
 private val strISetOfNone = FKSet.ofi(*emptyArrayOfStr)
-private val strISetOfOne = FKSet.ofi("1").rne()!!
-private val strISetOfOne3 = FKSet.ofi("3").rne()!!
-private val strISetOfTwo = FKSet.ofi("1", "2").rne()!!
-private val strISetOfTwoOfst1 = FKSet.ofi("2", "3").rne()!!
-private val strISetOfTwoOfst2 = FKSet.ofi("3", "4").rne()!!
-private val strISetOfThree = FKSet.ofi("1", "2", "3").rne()!!
-private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").rne()!!
-private val strISetMaverick = FKSet.ofi("113", "97").rne()!!
+private val strISetOfOne = FKSet.ofi("1").ne()!!
+private val strISetOfOne3 = FKSet.ofi("3").ne()!!
+private val strISetOfTwo = FKSet.ofi("1", "2").ne()!!
+private val strISetOfTwoOfst1 = FKSet.ofi("2", "3").ne()!!
+private val strISetOfTwoOfst2 = FKSet.ofi("3", "4").ne()!!
+private val strISetOfThree = FKSet.ofi("1", "2", "3").ne()!!
+private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").ne()!!
+private val strISetMaverick = FKSet.ofi("113", "97").ne()!!
 
 class FKSetFilteringStrVTest : FunSpec({
 
@@ -226,7 +226,8 @@ class FKSetFilteringStrVTest : FunSpec({
         strKKSetOfOne.fempty() shouldBe false
         strISetOfNone.fempty() shouldBe true
         strISetOfOne.fempty() shouldBe false
-        (strKKSetOfNone === strISetOfNone) shouldBe true
+        strKKSetOfNone.equals(strISetOfNone) shouldBe true
+        (strKKSetOfNone === strISetOfNone) shouldBe false
     }
 
     test("ffilter") {
@@ -361,175 +362,175 @@ class FKSetFilteringStrVTest : FunSpec({
 
     test("fAND") { 
         strKKSetOfNone.fAND(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfNone.fAND(strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfNone and strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
 
-        strKKSetOfOne.fAND(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfOne.fAND(strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.fAND(strKKSetOfThree).equals(strKKSetOfOne) shouldBe true
-        strKKSetOfThree.fAND(strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfOne and strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfOne and strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfOne and strKKSetOfThree).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfThree and strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
 
-        strKKSetOfTwo.fAND(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfTwo.fAND(strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.fAND(strKKSetOfThree).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfThree.fAND(strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo and strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfTwo and strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo and strKKSetOfThree).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfThree and strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
 
-        strKKSetOfThree.fAND(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfThree.fAND(strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
-        FKSet.ofs("2").fAND(strKKSetOfThree).equals(FKSet.ofs("2")) shouldBe true
-        strKKSetOfThree.fAND(FKSet.ofs("2")).equals(FKSet.ofs("2")) shouldBe true
+        (strKKSetOfThree and strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfThree and strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
+        (FKSet.ofs("2") and strKKSetOfThree).equals(FKSet.ofs("2")) shouldBe true
+        (strKKSetOfThree and FKSet.ofs("2")).equals(FKSet.ofs("2")) shouldBe true
 
-        strISetOfNone.fAND(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfNone.fAND(strISetOfOne).equals(strISetOfNone) shouldBe true
+        (strISetOfNone and strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfNone and strISetOfOne).equals(strISetOfNone) shouldBe true
 
-        strISetOfOne.fAND(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfOne.fAND(strISetOfOne).equals(strISetOfOne) shouldBe true
-        strISetOfOne.fAND(strISetOfThree).equals(strISetOfOne) shouldBe true
-        strISetOfThree.fAND(strISetOfOne).equals(strISetOfOne) shouldBe true
+        (strISetOfOne and strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfOne and strISetOfOne).equals(strISetOfOne) shouldBe true
+        (strISetOfOne and strISetOfThree).equals(strISetOfOne) shouldBe true
+        (strISetOfThree and strISetOfOne).equals(strISetOfOne) shouldBe true
 
-        strISetOfTwo.fAND(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfTwo.fAND(strISetOfTwo).equals(strISetOfTwo) shouldBe true
-        strISetOfTwo.fAND(strISetOfThree).equals(strISetOfTwo) shouldBe true
-        strISetOfThree.fAND(strISetOfTwo).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo and strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfTwo and strISetOfTwo).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo and strISetOfThree).equals(strISetOfTwo) shouldBe true
+        (strISetOfThree and strISetOfTwo).equals(strISetOfTwo) shouldBe true
 
-        strISetOfThree.fAND(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfThree.fAND(strISetOfThree).equals(strISetOfThree) shouldBe true
-        FKSet.ofs("2").fAND(strISetOfThree).equals(FKSet.ofs("2")) shouldBe true
-        strISetOfThree.fAND(FKSet.ofs("2")).equals(FKSet.ofi("2")) shouldBe true
+        (strISetOfThree and strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfThree and strISetOfThree).equals(strISetOfThree) shouldBe true
+        (FKSet.ofs("2") and strISetOfThree).equals(FKSet.ofs("2")) shouldBe true
+        (strISetOfThree and FKSet.ofs("2")).equals(FKSet.ofi("2")) shouldBe true
 
         // mixed mode
 
-        strISetOfThree.fAND(strKKSetOfTwo).equals(strISetOfTwo) shouldBe true
-        strKKSetOfThree.fAND(strISetOfTwo).equals(strKKSetOfTwo) shouldBe true
+        (strISetOfThree and strKKSetOfTwo).equals(strISetOfTwo) shouldBe true
+        (strKKSetOfThree and strISetOfTwo).equals(strKKSetOfTwo) shouldBe true
 
     }
 
     test("fNOT") {
         strKKSetOfNone.fNOT(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfNone.fNOT(strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfNone not strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
 
-        strKKSetOfOne.fNOT(strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.fNOT(strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfOne.fNOT(strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfThree.fNOT(strKKSetOfOne).equals(FKSet.ofs("2","3")) shouldBe true
+        (strKKSetOfOne not strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfOne not strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfOne not strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfThree not strKKSetOfOne).equals(FKSet.ofs("2","3")) shouldBe true
 
-        strKKSetOfTwo.fNOT(strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.fNOT(strKKSetOfTwo).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfTwo.fNOT(strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfThree.fNOT(strKKSetOfTwo).equals(strKKSetOfOne3) shouldBe true
+        (strKKSetOfTwo not strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo not strKKSetOfTwo).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfTwo not strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfThree not strKKSetOfTwo).equals(strKKSetOfOne3) shouldBe true
 
-        strKKSetOfThree.fNOT(strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfThree.fNOT(strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        FKSet.ofs("2").fNOT(strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfThree.fNOT(FKSet.ofs("2")).equals(FKSet.ofs("1","3")) shouldBe true
+        (strKKSetOfThree not strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfThree not strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
+        (FKSet.ofs("2") not strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfThree not FKSet.ofs("2")).equals(FKSet.ofs("1","3")) shouldBe true
 
-        strISetOfNone.fNOT(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfNone.fNOT(strISetOfOne).equals(strISetOfNone) shouldBe true
+        (strISetOfNone not strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfNone not strISetOfOne).equals(strISetOfNone) shouldBe true
 
-        strISetOfOne.fNOT(strISetOfNone).equals(strISetOfOne) shouldBe true
-        strISetOfOne.fNOT(strISetOfOne).equals(strISetOfNone) shouldBe true
-        strISetOfOne.fNOT(strISetOfThree).equals(strISetOfNone) shouldBe true
-        strISetOfThree.fNOT(strISetOfOne).equals(FKSet.ofi("2","3")) shouldBe true
+        (strISetOfOne not strISetOfNone).equals(strISetOfOne) shouldBe true
+        (strISetOfOne not strISetOfOne).equals(strISetOfNone) shouldBe true
+        (strISetOfOne not strISetOfThree).equals(strISetOfNone) shouldBe true
+        (strISetOfThree not strISetOfOne).equals(FKSet.ofi("2","3")) shouldBe true
 
-        strISetOfTwo.fNOT(strISetOfNone).equals(strISetOfTwo) shouldBe true
-        strISetOfTwo.fNOT(strISetOfTwo).equals(strISetOfNone) shouldBe true
-        strISetOfTwo.fNOT(strISetOfThree).equals(strISetOfNone) shouldBe true
-        strISetOfThree.fNOT(strISetOfTwo).equals(strISetOfOne3) shouldBe true
+        (strISetOfTwo not strISetOfNone).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo not strISetOfTwo).equals(strISetOfNone) shouldBe true
+        (strISetOfTwo not strISetOfThree).equals(strISetOfNone) shouldBe true
+        (strISetOfThree not strISetOfTwo).equals(strISetOfOne3) shouldBe true
 
-        strISetOfThree.fNOT(strISetOfNone).equals(strISetOfThree) shouldBe true
-        strISetOfThree.fNOT(strISetOfThree).equals(strISetOfNone) shouldBe true
-        FKSet.ofs("2").fNOT(strISetOfThree).equals(strISetOfNone) shouldBe true
-        strISetOfThree.fNOT(FKSet.ofs("2")).equals(FKSet.ofi("1","3")) shouldBe true
+        (strISetOfThree not strISetOfNone).equals(strISetOfThree) shouldBe true
+        (strISetOfThree not strISetOfThree).equals(strISetOfNone) shouldBe true
+        (FKSet.ofs("2") not strISetOfThree).equals(strISetOfNone) shouldBe true
+        (strISetOfThree not FKSet.ofs("2")).equals(FKSet.ofi("1","3")) shouldBe true
 
         // mixed mode
 
-        strISetOfThree.fNOT(strKKSetOfTwo).equals(strISetOfOne3) shouldBe true
-        strKKSetOfThree.fNOT(strISetOfTwo).equals(strKKSetOfOne3) shouldBe true
+        (strISetOfThree not strKKSetOfTwo).equals(strISetOfOne3) shouldBe true
+        (strKKSetOfThree not strISetOfTwo).equals(strKKSetOfOne3) shouldBe true
     }
 
     test("fOR") {
         strKKSetOfNone.fOR(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfOne.fOR(strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
-        strKKSetOfNone.fOR(strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfOne or strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfNone or strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
 
-        strKKSetOfTwo.fOR(strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.fOR(strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfNone.fOR(strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.fOR(strKKSetOfTwoOfst1).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfTwoOfst1.fOR(strKKSetOfTwo).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfTwo.fOR(strKKSetOfTwoOfst2).equals(strKKSetOfFour) shouldBe true
-        strKKSetOfTwoOfst2.fOR(strKKSetOfTwo).equals(strKKSetOfFour) shouldBe true
+        (strKKSetOfTwo or strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo or strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfNone or strKKSetOfTwo).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo or strKKSetOfTwoOfst1).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfTwoOfst1 or strKKSetOfTwo).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfTwo or strKKSetOfTwoOfst2).equals(strKKSetOfFour) shouldBe true
+        (strKKSetOfTwoOfst2 or strKKSetOfTwo).equals(strKKSetOfFour) shouldBe true
 
-        strKKSetOfThree.fOR(strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfThree.fOR(strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
-        FKSet.ofs("2").fOR(strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfThree.fOR(FKSet.ofs("2")).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfThree or strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfThree or strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
+        (FKSet.ofs("2") or strKKSetOfThree).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfThree or FKSet.ofs("2")).equals(strKKSetOfThree) shouldBe true
 
-        strISetOfNone.fOR(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfOne.fOR(strISetOfNone).equals(strISetOfOne) shouldBe true
-        strISetOfNone.fOR(strISetOfOne).equals(strISetOfOne) shouldBe true
+        (strISetOfNone or strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfOne or strISetOfNone).equals(strISetOfOne) shouldBe true
+        (strISetOfNone or strISetOfOne).equals(strISetOfOne) shouldBe true
 
-        strISetOfTwo.fOR(strISetOfTwo).equals(strISetOfTwo) shouldBe true
-        strISetOfTwo.fOR(strISetOfNone).equals(strISetOfTwo) shouldBe true
-        strISetOfNone.fOR(strISetOfTwo).equals(strISetOfTwo) shouldBe true
-        strISetOfTwo.fOR(strISetOfTwoOfst1).equals(strISetOfThree) shouldBe true
-        strISetOfTwoOfst1.fOR(strISetOfTwo).equals(strISetOfThree) shouldBe true
-        strISetOfTwo.fOR(strISetOfTwoOfst2).equals(strISetOfFour) shouldBe true
-        strISetOfTwoOfst2.fOR(strISetOfTwo).equals(strISetOfFour) shouldBe true
+        (strISetOfTwo or strISetOfTwo).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo or strISetOfNone).equals(strISetOfTwo) shouldBe true
+        (strISetOfNone or strISetOfTwo).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo or strISetOfTwoOfst1).equals(strISetOfThree) shouldBe true
+        (strISetOfTwoOfst1 or strISetOfTwo).equals(strISetOfThree) shouldBe true
+        (strISetOfTwo or strISetOfTwoOfst2).equals(strISetOfFour) shouldBe true
+        (strISetOfTwoOfst2 or strISetOfTwo).equals(strISetOfFour) shouldBe true
 
-        strISetOfThree.fOR(strISetOfNone).equals(strISetOfThree) shouldBe true
-        strISetOfThree.fOR(strISetOfThree).equals(strISetOfThree) shouldBe true
-        FKSet.ofi("2").fOR(strISetOfThree).equals(strISetOfThree) shouldBe true
-        strISetOfThree.fOR(FKSet.ofs("2")).equals(strISetOfThree) shouldBe true
+        (strISetOfThree or strISetOfNone).equals(strISetOfThree) shouldBe true
+        (strISetOfThree or strISetOfThree).equals(strISetOfThree) shouldBe true
+        (FKSet.ofi("2") or strISetOfThree).equals(strISetOfThree) shouldBe true
+        (strISetOfThree or FKSet.ofs("2")).equals(strISetOfThree) shouldBe true
 
         // mixed mode
 
-        strISetOfTwoOfst1.fOR(strKKSetOfTwo).equals(strISetOfThree) shouldBe true
-        strISetOfTwo.fOR(strKKSetOfTwoOfst2).equals(strISetOfFour) shouldBe true
+        (strISetOfTwoOfst1 or strKKSetOfTwo).equals(strISetOfThree) shouldBe true
+        (strISetOfTwo or strKKSetOfTwoOfst2).equals(strISetOfFour) shouldBe true
 
-        strKKSetOfTwoOfst1.fOR(strISetOfTwo).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfTwo.fOR(strISetOfTwoOfst2).equals(strKKSetOfFour) shouldBe true
+        (strKKSetOfTwoOfst1 or strISetOfTwo).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfTwo or strISetOfTwoOfst2).equals(strKKSetOfFour) shouldBe true
     }
 
     test("fXOR") {
         strKKSetOfNone.fXOR(strKKSetOfNone).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfNone.fXOR(strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfNone xor strKKSetOfOne).equals(strKKSetOfOne) shouldBe true
 
-        strKKSetOfOne.fXOR(strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.fXOR(strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfOne.fXOR(strKKSetOfThree).equals(FKSet.ofs("2","3")) shouldBe true
-        strKKSetOfThree.fXOR(strKKSetOfOne).equals(FKSet.ofs("2","3")) shouldBe true
+        (strKKSetOfOne xor strKKSetOfNone).equals(strKKSetOfOne) shouldBe true
+        (strKKSetOfOne xor strKKSetOfOne).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfOne xor strKKSetOfThree).equals(FKSet.ofs("2","3")) shouldBe true
+        (strKKSetOfThree xor strKKSetOfOne).equals(FKSet.ofs("2","3")) shouldBe true
 
-        strKKSetOfTwo.fXOR(strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.fXOR(strKKSetOfTwo).equals(strKKSetOfNone) shouldBe true
-        strKKSetOfTwo.fXOR(strKKSetOfThree).equals(strKKSetOfOne3) shouldBe true
-        strKKSetOfThree.fXOR(strKKSetOfTwo).equals(strKKSetOfOne3) shouldBe true
+        (strKKSetOfTwo xor strKKSetOfNone).equals(strKKSetOfTwo) shouldBe true
+        (strKKSetOfTwo xor strKKSetOfTwo).equals(strKKSetOfNone) shouldBe true
+        (strKKSetOfTwo xor strKKSetOfThree).equals(strKKSetOfOne3) shouldBe true
+        (strKKSetOfThree xor strKKSetOfTwo).equals(strKKSetOfOne3) shouldBe true
 
-        strKKSetOfThree.fXOR(strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
-        strKKSetOfThree.fXOR(strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        FKSet.ofs("2").fXOR(strKKSetOfThree).equals(FKSet.ofs("1", "3")) shouldBe true
-        strKKSetOfThree.fXOR(FKSet.ofs("2")).equals(FKSet.ofs("1","3")) shouldBe true
+        (strKKSetOfThree xor strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
+        (strKKSetOfThree xor strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
+        (FKSet.ofs("2") or strKKSetOfThree).equals(FKSet.ofs("1", "3")) shouldBe true
+        (strKKSetOfThree xor FKSet.ofs("2")).equals(FKSet.ofs("1","3")) shouldBe true
 
-        strISetOfNone.fXOR(strISetOfNone).equals(strISetOfNone) shouldBe true
-        strISetOfNone.fXOR(strISetOfOne).equals(strISetOfOne) shouldBe true
+        (strISetOfNone xor strISetOfNone).equals(strISetOfNone) shouldBe true
+        (strISetOfNone xor strISetOfOne).equals(strISetOfOne) shouldBe true
 
-        strISetOfOne.fXOR(strISetOfNone).equals(strISetOfOne) shouldBe true
-        strISetOfOne.fXOR(strISetOfOne).equals(strISetOfNone) shouldBe true
-        strISetOfOne.fXOR(strISetOfThree).equals(FKSet.ofi("2","3")) shouldBe true
-        strISetOfThree.fXOR(strISetOfOne).equals(FKSet.ofi("2","3")) shouldBe true
+        (strISetOfOne xor strISetOfNone).equals(strISetOfOne) shouldBe true
+        (strISetOfOne xor strISetOfOne).equals(strISetOfNone) shouldBe true
+        (strISetOfOne xor strISetOfThree).equals(FKSet.ofi("2","3")) shouldBe true
+        (strISetOfThree xor strISetOfOne).equals(FKSet.ofi("2","3")) shouldBe true
 
-        strISetOfTwo.fXOR(strISetOfNone).equals(strISetOfTwo) shouldBe true
-        strISetOfTwo.fXOR(strISetOfTwo).equals(strISetOfNone) shouldBe true
-        strISetOfTwo.fXOR(strISetOfThree).equals(strISetOfOne3) shouldBe true
-        strISetOfThree.fXOR(strISetOfTwo).equals(strISetOfOne3) shouldBe true
+        (strISetOfTwo xor strISetOfNone).equals(strISetOfTwo) shouldBe true
+        (strISetOfTwo xor strISetOfTwo).equals(strISetOfNone) shouldBe true
+        (strISetOfTwo xor strISetOfThree).equals(strISetOfOne3) shouldBe true
+        (strISetOfThree xor strISetOfTwo).equals(strISetOfOne3) shouldBe true
 
-        strISetOfThree.fXOR(strISetOfNone).equals(strISetOfThree) shouldBe true
-        strISetOfThree.fXOR(strISetOfThree).equals(strISetOfNone) shouldBe true
-        FKSet.ofs("2").fXOR(strISetOfThree).equals(FKSet.ofs("1","3")) shouldBe true
-        strISetOfThree.fXOR(FKSet.ofs("2")).equals(FKSet.ofi("1","3")) shouldBe true
+        (strISetOfThree xor strISetOfNone).equals(strISetOfThree) shouldBe true
+        (strISetOfThree xor strISetOfThree).equals(strISetOfNone) shouldBe true
+        (FKSet.ofs("2") or strISetOfThree).equals(FKSet.ofs("1","3")) shouldBe true
+        (strISetOfThree xor FKSet.ofs("2")).equals(FKSet.ofi("1","3")) shouldBe true
 
         // mixed mode
 
-        strISetOfTwo.fXOR(strKKSetOfThree).equals(strISetOfOne3) shouldBe true
-        strKKSetOfTwo.fXOR(strISetOfThree).equals(strKKSetOfOne3) shouldBe true
+        (strISetOfTwo xor strKKSetOfThree).equals(strISetOfOne3) shouldBe true
+        (strKKSetOfTwo xor strISetOfThree).equals(strKKSetOfOne3) shouldBe true
     }
 })

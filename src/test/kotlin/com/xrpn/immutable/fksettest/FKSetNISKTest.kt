@@ -10,8 +10,8 @@ import io.kotest.matchers.shouldBe
 class FKSetNISKTest : FunSpec({
 
     test ("N") {
-        copaNSetOf3 shouldBe FKSet.emptyIMKSet()
-        copaNSetOf3 shouldBe FKSet.emptyIMKSet()
+        copaNSetOf3 shouldBe null
+        copaNSetOf3 shouldBe null
     }
 
     test ("I") {

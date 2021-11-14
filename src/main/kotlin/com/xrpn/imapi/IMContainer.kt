@@ -43,6 +43,7 @@ interface IMCollection<out A: Any>: IMSealed {
 interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
     fun fcontainsKey(key: @UnsafeVariance K): Boolean
     fun fcountKey(isMatch: (K) -> Boolean): Int // count the values that match the predicate
+    fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMKeyed<K>
     fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K>
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
@@ -52,7 +53,7 @@ interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
 
 interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun asIMBTree(): IMBTree<K,A>
-    fun asIMMap(): IMMap<K,A>?
+    fun asIMMap(): IMMap<K,A>
     fun fcontainsValue(value: @UnsafeVariance A): Boolean
     fun fcountValue(isMatch: (A) -> Boolean): Int // count the values that match the predicate
     fun ffilterValue(isMatch: (A) -> Boolean): IMKeyedValue<K,A>
@@ -63,7 +64,13 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun ftypeSample(): KeyedTypeSample<KClass<Any>?,KClass<Any>>? = fpickValue()?.let { value ->
         (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(fpickKey()!!::class, value::class) as KeyedTypeSample<KClass<Any>?,KClass<Any>>))
     }
-    fun fpickValue(): A?  // peekk at one random value
+    fun fpickValue(): A?  // peek at one random value
+
+    fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
+    fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
+    fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
+    fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
+
 }
 
 interface IMFoldable<out A: Any> {
@@ -106,50 +113,53 @@ interface IMList<out A:Any>:
 
 
 interface IMSet<out A: Any>:
+    IMRSetAltering<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
     IMSetTransforming<A>,
-    IMSetAltering<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
     IMCollection<A>,
     IMFoldable<A>,
     IMReducible<A>,
     IMSetTyping<A> {
-    fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>?
-    fun asIMRRSetNotEmpty(): IMRRSetNotEmpty<A>?
-    fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
+    fun asIMSetNotEmpty(): IMSetNotEmpty<A>?
+    fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K>
+    fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = null
 }
 
-interface IMSetNotEmpty<out A: Any>:
+interface IMRSetNotEmpty<out A: Any>:
+    IMRSetAltering<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
-    IMSetTransforming<A>,
-    IMSetAltering<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
     IMSetTyping<A>,
     IMCollection<A> {
-    fun edj(): TSDJ<IMRSetNotEmpty<@UnsafeVariance A>, IMRRSetNotEmpty<@UnsafeVariance A>>
+    // fun <KK> edj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<KK>> where KK: Any, KK: Comparable<KK>
+    fun edj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<*>>
 }
 
-interface IMRSetNotEmpty<out A:Any>:
+interface IMSetNotEmpty<out A:Any>:
     IMSet<A>,
-    IMSetNotEmpty<A>,
-    IMRSetAltering<A> {
+    IMRSetNotEmpty<A>,
+    IMSetAltering<A>,
+    IMSetTransforming<A> {
+    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = this
+    override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = null
     override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = this
-    override fun asIMRRSetNotEmpty(): IMRRSetNotEmpty<A>? = null
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = this
 }
 
-interface IMRRSetNotEmpty<out A:Any>:
+interface IMXSetNotEmpty<out A>:
     IMSet<A>,
-    IMSetNotEmpty<A>,
-    IMRRSetTransforming<A>,
-    IMRRSetAltering<A> {
-    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = null
-    override fun asIMRRSetNotEmpty(): IMRRSetNotEmpty<A>? = this
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = this
+    IMRSetNotEmpty<A>,
+    IMXSetAltering<A>,
+    IMXSetTransforming<A>
+        where A: Any, A: Comparable<@UnsafeVariance A> {
+    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
+    override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> =
+        @Suppress("UNCHECKED_CAST") (this as IMXSetNotEmpty<K>)
+    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = this
 }
 
 interface IMMap<out K, out V: Any>:
@@ -266,6 +276,10 @@ internal interface IMKSet<out K, out A:Any>:
     IMKSetUtility<K, A>,
     IMKSetTyping<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun isKeyedAlike(rhs: IMSet<@UnsafeVariance A>): Boolean? = if (fempty()) null else {
+        rhs as IMKSet<*, A>
+        if (rhs.fempty()) null else fpickKey().isStrictly(rhs.fpickKey())
+    }
     fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = null
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
@@ -283,7 +297,7 @@ internal interface IMKSet<out K, out A:Any>:
 internal interface IMKSetNotEmpty<out K, out A:Any>:
     IMKSet<K,A>,
     IMKSetFiltering<K,A>,
-    IMSetNotEmpty<A>
+    IMRSetNotEmpty<A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
     fun toSetKey(a: @UnsafeVariance A): K
     override fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = this
@@ -291,9 +305,10 @@ internal interface IMKSetNotEmpty<out K, out A:Any>:
 
 internal interface IMKASetNotEmpty<out K, out A:Any>:
     IMKSetNotEmpty<K, A>,
-    IMRSetNotEmpty<A>,
+    IMSetNotEmpty<A>,
     IMKASetAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
+    // override fun edj(): TSDJ<IMSetNotEmpty<A>, IMXSetNotEmpty<K>> = TSDL(this)
     override fun edj() = TSDL(this)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>? = this
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = null
@@ -301,7 +316,7 @@ internal interface IMKASetNotEmpty<out K, out A:Any>:
 
 internal interface IMKKSetNotEmpty<out K>:
     IMKSetNotEmpty<K, K>,
-    IMRRSetNotEmpty<K>,
+    IMXSetNotEmpty<K>,
     IMKKSetTransforming<K>,
     IMKKSetAltering<K>
         where K: Any, K: Comparable<@UnsafeVariance K> {

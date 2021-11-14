@@ -135,8 +135,8 @@ class FBSTreeIMKeyedTest : FunSpec({
 
   test("asIMMap") {
     (iiTreeOfNone.asIMMap() === emptyIMMap<Int,Int>()) shouldBe true
-    (iiTreeOfTwo.asIMMap()!!::class === FKMapNotEmpty::class) shouldBe true
-    iiTreeOfTwo.asIMMap()!!.fsize() shouldBe 2
+    (iiTreeOfTwo.asIMMap()::class === FKMapNotEmpty::class) shouldBe true
+    iiTreeOfTwo.asIMMap().fsize() shouldBe 2
     (iiTreeOfTwo as FBSTree<Int,Int>).fdropAll(iiTreeOfTwo.asIMMap()).fempty() shouldBe true
     (iiTreeOfTwo.asIMMap().toIMBTree() === iiTreeOfTwo) shouldBe false
     (iiTreeOfTwo.asIMMap().toIMBTree().equal(iiTreeOfTwo)) shouldBe true

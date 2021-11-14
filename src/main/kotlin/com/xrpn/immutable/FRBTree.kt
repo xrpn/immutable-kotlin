@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import kotlin.math.log2
@@ -166,6 +167,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             { acc, item -> if (isMatch(item.getk())) acc + 1 else acc }
 
         return ffold(0, f4fcountKey)
+    }
+
+    override fun fdropKeys(keys: IMSet<@UnsafeVariance A>): FRBTree<A, B> = keys.ffold(nul()) { acc, key ->
+        if (fcontainsKey(key)) acc else rbtFindKey(this, key)?.let {
+            finsert(it.froot()!!)
+        } ?: acc
     }
 
     override fun ffilterKey(isMatch: (A) -> Boolean): FRBTree<A, B> {
@@ -386,6 +393,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             if (items.fcontainsKey(tkv.getk())) acc.finsert(tkv) else acc
         }
     }
+
+    override fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
+        fdropAlt(items.asIMBTree()) as FRBTree<A, B>
 
     override fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when(this) {
         is FRBTNil -> when(val t = items.asIMBTree()) {
@@ -1020,9 +1030,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
 
         private fun <A, B: Any> asFKSetImpl(t: FRBTree<A, B>, kType: RestrictedKeyType<A>?): FKSet<A, B>? where A: Any, A: Comparable<A> = when {
-            t.fempty() -> FKSetEmpty.empty()
+            t.fempty() -> kType?.let { emptyIMKSet(it) }
             null == kType -> t.frestrictedKey()?.let { asFKSetImpl(t, it) }
-            t.frestrictedKey() == kType -> ofBody(t)
+            t.frestrictedKey() == kType -> ofBody(t as FRBTNode)
             (kType is IntKeyType) && (t.frestrictedKey()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFIKSBody(t as FRBTree<Int,A>) as FKSet<A, B>)
             (kType is StrKeyType) && (t.frestrictedKey()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (ofFSKSBody(t as FRBTree<String,A>) as FKSet<A, B>)
             else -> null

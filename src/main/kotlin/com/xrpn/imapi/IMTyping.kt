@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FQueue
 import com.xrpn.immutable.TKVEntry
 
@@ -31,6 +32,7 @@ interface IMSetTyping<out A: Any>: IMCollection<A> {
 internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, IMKeyedValue<K,A> where K: Any, K: Comparable<@UnsafeVariance K> {
     // IMKeyed
     override fun asIMCollection(): IMCollection<*> = this
+    override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMKSet<K, A>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMKSet<K,A>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKSet<K,A>
     // IMKeyedValue
@@ -39,6 +41,10 @@ internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, 
     override fun ffilterValue(isMatch: (A) -> Boolean): IMKSet<K,A>
     override fun ffilterValueNot(isMatch: (A) -> Boolean): IMKSet<K,A>
     override fun ffindAnyValue(isMatch: (A) -> Boolean): A?
+    override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
+    override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
+    override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
+    override fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
 }
 
 interface IMMapTyping<out K, out V: Any>: IMCollection<TKVEntry<K,V>>, IMKeyed<K>, IMKeyedValue<K,V> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -50,6 +56,7 @@ interface IMMapTyping<out K, out V: Any>: IMCollection<TKVEntry<K,V>>, IMKeyed<K
     override fun ffilterNot(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // Return all elements that do not match the predicate p
     // IMKeyed
     override fun asIMCollection(): IMCollection<*> = this
+    override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMMap<K,V>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMMap<K,V>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMMap<K,V>
     override fun fpickKey(): K? = fpick()?.getk()  // peekk at one random key
@@ -58,6 +65,11 @@ interface IMMapTyping<out K, out V: Any>: IMCollection<TKVEntry<K,V>>, IMKeyed<K
     override fun ffilterValue(isMatch: (V) -> Boolean): IMMap<K,V>
     override fun ffilterValueNot(isMatch: (V) -> Boolean): IMMap<K,V>
     override fun fpickValue(): V? = fpick()?.getv()
+    override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    override fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+
 }
 
 interface IMBTreeTyping<out A, out B: Any>: IMCollection<TKVEntry<A,B>>, IMKeyed<A>, IMKeyedValue<A,B> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -70,6 +82,7 @@ interface IMBTreeTyping<out A, out B: Any>: IMCollection<TKVEntry<A,B>>, IMKeyed
     override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
     // IMKeyed
     override fun asIMCollection(): IMCollection<*> = this
+    override fun fdropKeys(keys: IMSet<@UnsafeVariance A>): IMBTree<A,B>
     override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A,B>
     override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMBTree<A,B>
     override fun fpickKey(): A? = fpick()?.getk()
@@ -79,6 +92,10 @@ interface IMBTreeTyping<out A, out B: Any>: IMCollection<TKVEntry<A,B>>, IMKeyed
     override fun ffilterValueNot(isMatch: (B) -> Boolean): IMBTree<A,B>
     override fun ffindAnyValue(isMatch: (B) -> Boolean): B?
     override fun fpickValue(): B? = fpick()?.getv()
+    override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    override fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    override fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
+    override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
 }
 
 interface IMStackTyping<out A: Any>: IMCollection<A>, IMOrdered<A> {

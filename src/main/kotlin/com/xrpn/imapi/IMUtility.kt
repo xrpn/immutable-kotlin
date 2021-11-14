@@ -11,14 +11,16 @@ interface IMListUtility<out A: Any> {
 }
 
 interface IMSetUtility<out A: Any> {
-    fun equal(rhs: IMSetNotEmpty<@UnsafeVariance A>): Boolean
+    fun equal(rhs: IMRSetNotEmpty<@UnsafeVariance A>): Boolean
     fun equal(rhs: Set<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMSet<A>
+    fun ner(): IMRSetNotEmpty<A>?
     fun ne(): IMSetNotEmpty<A>?
-    fun rne(): IMRSetNotEmpty<A>?
-    fun rrne(): IMRRSetNotEmpty<A>?
+    fun <K> nex(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> // TODO this makes it possible to lie to the compiler
     fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
+    fun toEmpty(): IMSet<A>
+    fun <B: Any> toEmptyRetyped(): IMSet<B>
 }
 
 internal interface IMKSetUtility<out K, out A: Any>: IMSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {

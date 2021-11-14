@@ -3,7 +3,7 @@ package com.xrpn.immutable.fqueuetest
 import com.xrpn.imapi.IMCollection
 import com.xrpn.imapi.IMQueue
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
@@ -131,9 +131,9 @@ class FQueueIMCollectionTest : FunSpec({
     FQueue.of(*arrayOf<Int>(3,2,1)).fdropAll(intQueueOfTwo) shouldBe intQueueOfOneA
     intQueueOfFour.fdropAll(intSet) shouldBe intQueueOfOneA
     intQueueOfFourFB.fdropAll(intSet) shouldBe intQueueOfOneA
-    intQueueOfFour.fdropAll(emptyIMRSet()) shouldBe intQueueOfFour
-    (intQueueOfFour.fdropAll(emptyIMRSet()) === intQueueOfFour) shouldBe true
-    (intQueueOfFourFB.fdropAll(emptyIMRSet()) === intQueueOfFourFB) shouldBe true
+    intQueueOfFour.fdropAll(emptyIMKSet()) shouldBe intQueueOfFour
+    (intQueueOfFour.fdropAll(emptyIMKSet()) === intQueueOfFour) shouldBe true
+    (intQueueOfFourFB.fdropAll(emptyIMKSet()) === intQueueOfFourFB) shouldBe true
     intQueueOfFourA.fdropAll(intSet) shouldBe intQueueOfOneA
     intQueueOfFourB.fdropAll(intSet) shouldBe intQueueOfOneA
     intQueueOfFour.fdropAll(intQueueOfTwo) shouldBe intQueueOfOneA

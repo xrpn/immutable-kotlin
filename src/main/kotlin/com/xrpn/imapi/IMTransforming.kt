@@ -20,14 +20,14 @@ interface IMSetTransforming<out A: Any> {
     fun <B: Any> fmap(f: (A) -> B): IMSet<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
-interface IMRRSetTransforming<out A: Any> {
+interface IMXSetTransforming<out A: Any> {
     fun <B> fflatMapKK(f: (A) -> IMSet<@UnsafeVariance B>): IMSet<B> where B: Any, B: Comparable<B>  // 	When working with sequences, it works like map followed by flatten
     fun <B> fmapKK(f: (A) -> B): IMSet<B> where B: Any, B: Comparable<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
 internal interface IMKSetTransforming<out K, out A: Any>: IMSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K>
 
-internal interface IMKKSetTransforming<out K>: IMSetTransforming<K>, IMRRSetTransforming<K> where K: Any, K: Comparable<@UnsafeVariance K>
+internal interface IMKKSetTransforming<out K>: IMSetTransforming<K>, IMXSetTransforming<K> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapTransforming<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun <C, D: Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C: Comparable<@UnsafeVariance C>

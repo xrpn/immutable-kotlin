@@ -3,7 +3,7 @@ package com.xrpn.immutable.flisttest
 import com.xrpn.imapi.IMCollection
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
@@ -94,8 +94,8 @@ class FListIMCollectionTest : FunSpec({
     FList.of(*arrayOf<Int>(2,1)).fdropAll(intListOfThree as IMList<Int>) shouldBe FLNil
     FList.of(*arrayOf<Int>(3,2,1)).fdropAll(intListOfTwo) shouldBe FLCons(3, FLNil)
     intListOfFour.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
-    intListOfFour.fdropAll(emptyIMRSet()) shouldBe intListOfFour
-    (intListOfFour.fdropAll(emptyIMRSet()) === intListOfFour) shouldBe true
+    intListOfFour.fdropAll(emptyIMKSet()) shouldBe intListOfFour
+    (intListOfFour.fdropAll(emptyIMKSet()) === intListOfFour) shouldBe true
     intListOfFourA.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
     intListOfFourB.fdropAll(intSet) shouldBe FList.of(*arrayOf<Int>(3))
     intListOfFour.fdropAll(intListOfTwo) shouldBe FList.of(*arrayOf<Int>(3))

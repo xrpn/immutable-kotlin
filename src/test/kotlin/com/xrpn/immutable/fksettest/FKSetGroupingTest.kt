@@ -6,7 +6,6 @@ import com.xrpn.imapi.*
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.asFKSet
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import com.xrpn.immutable.FKSet.Companion.ofs
 import com.xrpn.immutable.FKSet.Companion.toIMISet
@@ -22,36 +21,36 @@ import io.kotest.xrpn.fsset
 
 private val intKKSetOfNone = FKSet.ofi(*emptyArrayOfInt)
 
-private val intKKSetOfOne = FKSet.ofi(1).rrne()!!
-private val strKKSetOfOne = FKSet.ofs("1").rrne()!!
-private val intSSetOfOne = FKSet.ofs(1).rne()!!
-private val strISetOfOne = FKSet.ofi("1").rne()!!
+private val intKKSetOfOne = FKSet.ofi(1).nex<Int>()!!
+private val strKKSetOfOne = FKSet.ofs("1").nex<String>()!!
+private val intSSetOfOne = FKSet.ofs(1).ne()!!
+private val strISetOfOne = FKSet.ofi("1").ne()!!
 
-private val intKKSetOfTwo = FKSet.ofi(1, 2).rrne()!!
-private val strKKSetOfTwo = FKSet.ofs("1", "2").rrne()!!
-private val intSSetOfTwo = FKSet.ofs(1, 2).rne()!!
-private val strISetOfTwo = FKSet.ofi("1", "2").rne()!!
+private val intKKSetOfTwo = FKSet.ofi(1, 2).nex<Int>()!!
+private val strKKSetOfTwo = FKSet.ofs("1", "2").nex<String>()!!
+private val intSSetOfTwo = FKSet.ofs(1, 2).ne()!!
+private val strISetOfTwo = FKSet.ofi("1", "2").ne()!!
 
-private val intKKSetOfThree = FKSet.ofi(1, 2, 3).rrne()!!
-private val strKKSetOfThree = FKSet.ofs("1", "2", "3").rrne()!!
-private val intSSetOfThree = FKSet.ofs(1, 2, 3).rne()!!
-private val strISetOfThree = FKSet.ofi("1", "2", "3").rne()!!
+private val intKKSetOfThree = FKSet.ofi(1, 2, 3).nex<Int>()!!
+private val strKKSetOfThree = FKSet.ofs("1", "2", "3").nex<String>()!!
+private val intSSetOfThree = FKSet.ofs(1, 2, 3).ne()!!
+private val strISetOfThree = FKSet.ofi("1", "2", "3").ne()!!
 
-private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).rrne()!!
-private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").rrne()!!
-private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).rne()!!
-private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").rne()!!
+private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).nex<Int>()!!
+private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").nex<String>()!!
+private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).ne()!!
+private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").ne()!!
 
 
-private val strISetOfFourABCD = FKSet.ofi("a","b","c","d").rne()!!
-private val intKKSetOfFive = FKSet.ofi(1, 2, 3, 4, 5).rrne()!!
-private val intKKSetOfSix = FKSet.ofi(1, 2, 3, 4, 5, 6).rrne()!!
-private val intKKSetOfSeven = FKSet.ofi(1, 2, 3, 4, 5, 6, 7).rrne()!!
-private val intKKSetOfEight = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8).rrne()!!
-private val intKKSetOfNine = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9).rrne()!!
-private val intKKSetOfTen = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).rrne()!!
-private val intKKSetOfEleven = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).rrne()!!
-private val intKKSetOfTwelve = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).rrne()!!
+private val strISetOfFourABCD = FKSet.ofi("a","b","c","d").ne()!!
+private val intKKSetOfFive = FKSet.ofi(1, 2, 3, 4, 5).nex<Int>()!!
+private val intKKSetOfSix = FKSet.ofi(1, 2, 3, 4, 5, 6).nex<Int>()!!
+private val intKKSetOfSeven = FKSet.ofi(1, 2, 3, 4, 5, 6, 7).nex<Int>()!!
+private val intKKSetOfEight = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8).nex<Int>()!!
+private val intKKSetOfNine = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9).nex<Int>()!!
+private val intKKSetOfTen = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).nex<Int>()!!
+private val intKKSetOfEleven = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).nex<Int>()!!
+private val intKKSetOfTwelve = FKSet.ofi(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).nex<Int>()!!
 
 private val oracleC: FKSet<Int, FKSet<Int, Int>> = ofi(ofi(1), ofi(2), ofi(3), ofi(4),
                          ofi(1, 2), ofi(1, 3), ofi(1, 4),
@@ -288,23 +287,23 @@ class FKSetGroupingTest : FunSpec({
 
     test("findexed") {
 
-        intKKSetOfNone.findexed() shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfNone.findexed() shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         val ix4offset1 = strISetOfFourABCD.findexed(1)
         asFKSet<Int,Pair<String, Int>>(ix4offset1).fmap { p -> p.second }.equals(intKKSetOfFour) shouldBe true
 
-        val ix4offset0 = strISetOfFourABCD.findexed(0).rne()!!
+        val ix4offset0 = strISetOfFourABCD.findexed(0).ne()!!
         ix4offset0.fmap { p -> p.second+1 }.equals(intKKSetOfFour) shouldBe true
         ix4offset0.fmap { p -> p.first }.equals(strISetOfFourABCD) shouldBe true
 
-        val ix4offsetDefault = strISetOfFourABCD.findexed().rne()!!
+        val ix4offsetDefault = strISetOfFourABCD.findexed().ne()!!
         ix4offsetDefault.fmap { p -> p.second+1 }.equals(intKKSetOfFour) shouldBe true
         ix4offsetDefault.fmap { p -> p.first }.equals(strISetOfFourABCD) shouldBe true
     }
 
     test("fpartition") {
-        intKKSetOfNone.fpartition {true} shouldBe Pair(emptyIMKSet<Int, Int>(), emptyIMKSet<Int, Int>())
-        intKKSetOfNone.fpartition {false} shouldBe Pair(emptyIMKSet<Int, Int>(), emptyIMKSet<Int, Int>())
+        intKKSetOfNone.fpartition {true} shouldBe Pair(emptyIMKSet<Int, Int>(IntKeyType), emptyIMKSet<Int, Int>(IntKeyType))
+        intKKSetOfNone.fpartition {false} shouldBe Pair(emptyIMKSet<Int, Int>(IntKeyType), emptyIMKSet<Int, Int>(IntKeyType))
 
         val (pt1kki, pf1kki) = intKKSetOfFour.fpartition { it < 3 }
         pt1kki.equals(intKKSetOfTwo) shouldBe true
@@ -319,7 +318,7 @@ class FKSetGroupingTest : FunSpec({
         pf1si.equals(intSSetOfTwo.fmap { it+2 }) shouldBe true
 
         val (pt2si, pf2si) = intSSetOfFour.fpartition { it < 1 }
-        pt2si.equals(emptyIMRSet<Int>()) shouldBe true
+        pt2si.fempty() shouldBe true
         pf2si.equals(intSSetOfFour) shouldBe true
 
         val (pt1is, pf1is) = strISetOfFour.fpartition { it < "3" }
@@ -327,7 +326,7 @@ class FKSetGroupingTest : FunSpec({
         pf1is.equals(strISetOfTwo.fmap { (it[0].code+2).toChar().toString() }) shouldBe true
 
         val (pt2is, pf2is) = strISetOfFour.fpartition { it < "1" }
-        pt2is.equals(emptyIMRSet<Int>()) shouldBe true
+        pt2is.fempty() shouldBe true
         pf2is.equals(strISetOfFour) shouldBe true
 
         val (pt1kks, pf1kks) = strKKSetOfFour.fpartition { it < "3" }
@@ -335,7 +334,7 @@ class FKSetGroupingTest : FunSpec({
         pf1kks.equals(strKKSetOfTwo.fmap { (it[0].code+2).toChar().toString() }) shouldBe true
 
         val (pt2kks, pf2kks) = strKKSetOfFour.fpartition { it < "1" }
-        pt2kks.equals(emptyIMRSet<Int>()) shouldBe true
+        pt2kks.fempty() shouldBe true
         pf2kks.equals(strKKSetOfFour) shouldBe true
     }
 
@@ -345,7 +344,7 @@ class FKSetGroupingTest : FunSpec({
         intKKSetOfNone.fpermutations(0).equals(intKKSetOfNone) shouldBe true
         intKKSetOfNone.fpermutations(1).equals(intKKSetOfNone) shouldBe true
 
-        intKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         val threeByOneKK = intKKSetOfThree.fpermutations(1)
         threeByOneKK.size shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKI = intKKSetOfThree.fpermutations(2)
@@ -354,9 +353,9 @@ class FKSetGroupingTest : FunSpec({
         val threeByThreeKKI = intKKSetOfThree.fpermutations(3)
         threeByThreeKKI.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeKKI.size shouldBe 6 // 3! / (3-3)!
-        intKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
-        intSSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>()
+        intSSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         val threeByOneS = intSSetOfThree.fpermutations(1)
         threeByOneS.size shouldBe 3 // 3! / (3-1)!
         val threeByTwoS = intSSetOfThree.fpermutations(2)
@@ -365,9 +364,9 @@ class FKSetGroupingTest : FunSpec({
         val threeByThreeS = intSSetOfThree.fpermutations(3)
         threeByThreeS.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeS.size shouldBe 6 // 3! / (3-3)!
-        intSSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>()
+        intSSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
-        strKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>()
+        strKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
         val threeByOneKKS = strKKSetOfThree.fpermutations(1)
         threeByOneKKS.size shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKS = strKKSetOfThree.fpermutations(2)
@@ -376,9 +375,9 @@ class FKSetGroupingTest : FunSpec({
         val threeByThreeKKS = strKKSetOfThree.fpermutations(3)
         threeByThreeKKS.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeKKS.size shouldBe 6 // 3! / (3-3)!
-        strKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>()
+        strKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
-        strISetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>()
+        strISetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
         val threeByOneI = strISetOfThree.fpermutations(1)
         threeByOneI.size shouldBe 3 // 3! / (3-1)!
         val threeByTwoI = strISetOfThree.fpermutations(2)
@@ -387,14 +386,14 @@ class FKSetGroupingTest : FunSpec({
         val threeByThreeI = strISetOfThree.fpermutations(3)
         threeByThreeI.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeI.size shouldBe 6 // 3! / (3-3)!
-        strISetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>()
+        strISetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
     }
 
     test("fpermutations") {
 
         val permutationsNow = System.currentTimeMillis()
 
-        intKKSetOfFour.fpermutations(0) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfFour.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         val fourByOne = intKKSetOfFour.fpermutations(1)
         fourByOne.size shouldBe 4 // 4! / (4-1)!
         val fourByTwo = intKKSetOfFour.fpermutations(2)
@@ -404,7 +403,7 @@ class FKSetGroupingTest : FunSpec({
         fourByThree.size shouldBe 24 // 4! / (4-3)!
         val fourByFour = intKKSetOfFour.fpermutations(4)
         fourByFour.size shouldBe 24 // 4! / (4-4)! == 4!
-        intKKSetOfFour.fpermutations(5) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfFour.fpermutations(5) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         val fiveByOne = intKKSetOfFive.fpermutations(1)
         fiveByOne.size shouldBe 5 // 5! / (5-1)!
@@ -417,7 +416,7 @@ class FKSetGroupingTest : FunSpec({
         fiveByfour.size shouldBe 120 // 5! / (5-4)!
         val fiveByfive = intKKSetOfFive.fpermutations(5)
         fiveByfive.size shouldBe 120 // 5! / (5-5)!
-        intKKSetOfFive.fpermutations(6) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfFive.fpermutations(6) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         val sixByOne = intKKSetOfSix.fpermutations(1)
         sixByOne.size shouldBe 6 // 6! / (6-1)!
@@ -431,13 +430,13 @@ class FKSetGroupingTest : FunSpec({
         sixByFive.size shouldBe 720 // 6! / (6-5)!
         val sixBySix = intKKSetOfSix.fpermutations(6)
         sixBySix.size shouldBe 720 // 6! / (6-6)! = 6!
-        intKKSetOfSix.fpermutations(7) shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfSix.fpermutations(7) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         if (verbose) println("permutations in ${System.currentTimeMillis() - permutationsNow}")
     }
 
     test("fpermute") {
-        intKKSetOfNone.fpermute() shouldBe emptyIMKSet<Int, Int>()
+        intKKSetOfNone.fpermute() shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         intKKSetOfOne.fpermute() shouldBe ofi(intKKSetOfOne)
         intKKSetOfTwo.fpermute() shouldBe ofi(FList.of(1,2),FList.of(2, 1))
         intKKSetOfThree.fpermute().size shouldBe 6 // 3!
@@ -445,16 +444,16 @@ class FKSetGroupingTest : FunSpec({
         val fourp = intKKSetOfFour.fpermute()
         fourp.size shouldBe 24 // 3!
         val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfFour).toIMBTree() as FRBTree<Int, Int>)
-        val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMKSet<Int, FList<Int>>()) { s, aryl ->
-            s.fORkeyed(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })), IntKeyType)!!
+        val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
         fourp.toIMISet().equals(p4jt) shouldBe true
 
         val fivep = intKKSetOfFive.fpermute()
         fivep.size shouldBe 120 // 5!
         val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfFive).toIMBTree() as FRBTree<Int, Int>)
-        val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMKSet<Int, FList<Int>>()) { s, aryl ->
-            s.fORkeyed(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })), IntKeyType)!!
+        val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
         fivep.toIMISet().equals(p5jt) shouldBe true
 
@@ -463,8 +462,8 @@ class FKSetGroupingTest : FunSpec({
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
         sixp.size shouldBe 720 // 6!
         val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfSix).toIMBTree() as FRBTree<Int, Int>)
-        val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMKSet<Int, FList<Int>>()) { s, aryl ->
-            s.fORkeyed(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })), IntKeyType)!!
+        val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
+            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
         sixp.toIMISet().equals(p6jt) shouldBe true
 
@@ -474,8 +473,8 @@ class FKSetGroupingTest : FunSpec({
         sevenp.size shouldBe 5040 // 7!
         val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfSeven).toIMBTree() as FRBTree<Int, Int>)
         val p7jt: FKSet<Int, FList<Int>> =
-            JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMKSet<Int, FList<Int>>()) { s, aryl ->
-                s.fORkeyed(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })), IntKeyType)!!
+            JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
+                s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
             }
         sevenp.toIMISet().equals(p7jt) shouldBe true
 
@@ -495,71 +494,70 @@ class FKSetGroupingTest : FunSpec({
     }
 
     test("fpopAndRemainder simple") {
-        val (nilPop, nilRemainder) = emptyIMKSet<Int, Int>().fpopAndRemainder()
+        val (nilPop, nilRemainder) = emptyIMKSet<Int, Int>(IntKeyType).fpopAndRemainder()
         nilPop shouldBe null
-        nilRemainder shouldBe emptyIMKSet<Int, Int>()
+        nilRemainder shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         val (onePop, oneRemainder) = ofi(1).fpopAndRemainder()
         onePop shouldBe 1
-        oneRemainder shouldBe emptyIMKSet()
+        oneRemainder shouldBe emptyIMKSet(IntKeyType)
 
     }
 
     test("fpopAndRemainder ik") {
         // this traverses slideShareTree popping one element at a time, and rebuilding the set with the popped element
-        val resIk = ofFIKSBody(frbSlideShareTree).ffold(Pair(emptyIMKSet(), ofFIKSBody(frbSlideShareTree).fpopAndRemainder())) { acc: Pair<FKSet<Int, Int>, Pair<Int?, FKSet<Int, Int>>>, _ ->
+        val resIk = ofFIKSBody(frbSlideShareTree).ffold(Pair(emptyIMKSet(IntKeyType), ofFIKSBody(frbSlideShareTree).fpopAndRemainder())) { acc: Pair<FKSet<Int, Int>, Pair<Int?, FKSet<Int, Int>>>, _ ->
             val (rebuild: IMKSet<Int, Int>, popAndStub: Pair<Int?, FKSet<Int, Int>>) = acc
             val (pop, shrink) = popAndStub
-            val grow = rebuild.fORkeyed(ofi(pop!!), IntKeyType)!!
+            val grow = rebuild.fOR(ofi(pop!!))
             Pair(grow, shrink.fpopAndRemainder())
         }
         resIk.first.equals(ofFIKSBody(frbSlideShareTree)) shouldBe true
         val (lastPoppedIk, lastRemainderIk) = resIk.second
         lastPoppedIk shouldBe null
-        lastRemainderIk shouldBe FKSet.emptyIMKSet()
+        lastRemainderIk shouldBe emptyIMKSet(IntKeyType)
     }
 
     test("fpopAndRemainder sk") {
         val sstSk: FRBTree<String, Int> = frbSlideShareTree.fmap { tkv -> tkv.getv().toSAEntry() }
         // this traverses slideShareTree popping one element at a time, and rebuilding the set with the popped element
-        val resSk = ofFSKSBody(sstSk).ffold(Pair(emptyIMKSet(), ofFSKSBody(sstSk).fpopAndRemainder())) { acc: Pair<FKSet<String, Int>, Pair<Int?, FKSet<String, Int>>>, _ ->
+        val resSk = ofFSKSBody(sstSk).ffold(Pair(emptyIMKSet(StrKeyType), ofFSKSBody(sstSk).fpopAndRemainder())) { acc: Pair<FKSet<String, Int>, Pair<Int?, FKSet<String, Int>>>, _ ->
             val (rebuild: IMKSet<String, Int>, popAndStub: Pair<Int?, FKSet<String, Int>>) = acc
             val (pop, shrink) = popAndStub
-            val grow = rebuild.fORkeyed(ofi(pop!!), StrKeyType)!!
+            val grow = rebuild.fOR(ofs(pop!!))
             Pair(grow, shrink.fpopAndRemainder())
         }
         resSk.first.equals(ofFSKSBody(sstSk)) shouldBe true
         val (lastPoppedSk, lastRemainderSk) = resSk.second
         lastPoppedSk shouldBe null
         lastRemainderSk shouldBe FKSet.emptyIMKSet()
-
     }
 
     test("fpopAndRemainder properties") {
         checkAll(repeats, Arb.fset(Arb.int(),20..100)) { fii: FKSet<Int, Int> ->
             if (!fii.fempty()) {
                 @Suppress("UNCHECKED_CAST") (fii as IMKSetNotEmpty<Int, Int>)
-                val body = fii.toIMBTree() as FRBTree<Int,Int>
-                val res = ofBody(body).ffold(Pair(emptyIMKSet<Int, Int>(), ofBody(body).fpopAndRemainder())) { acc: Pair<FKSet<Int, Int>, Pair<Int?, FKSet<Int, Int>>>, _ ->
+                val body = fii.toIMBTree() as FRBTNode<Int,Int>
+                val res = ofBody(body)!!.ffold(Pair(emptyIMKSet<Int, Int>(IntKeyType), ofBody(body)!!.fpopAndRemainder())) { acc: Pair<FKSet<Int, Int>, Pair<Int?, FKSet<Int, Int>>>, _ ->
                     val (rebuild: IMKSet<Int, Int>, popAndStub: Pair<Int?, FKSet<Int, Int>>) = acc
                     val (pop, shrink) = popAndStub
-                    val grow = rebuild.fORkeyed(ofi(pop!!), IntKeyType)!!
+                    val grow = rebuild.fOR(ofi(pop!!))
                     Pair(grow, shrink.fpopAndRemainder())
                 }
                 res.first.equals(fii) shouldBe true
                 val (lastPopped, lastRemainder) = res.second
                 lastPopped shouldBe null
-                lastRemainder shouldBe FKSet.emptyIMKSet()
+                lastRemainder shouldBe emptyIMKSet(IntKeyType)
             }
         }
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fsi: FKSet<String, Int> ->
             if (!fsi.fempty()) {
                 @Suppress("UNCHECKED_CAST") (fsi as IMKSetNotEmpty<String, Int>)
                 val body = fsi.toIMBTree() as FRBTree<String, Int>
-                val res = ofBody(body).ffold(Pair(emptyIMKSet<String, Int>(), ofBody(body).fpopAndRemainder())) { acc: Pair<FKSet<String, Int>, Pair<Int?, FKSet<String, Int>>>, _ ->
+                val res = ofBody(body)!!.ffold(Pair(emptyIMKSet<String, Int>(StrKeyType), ofBody(body)!!.fpopAndRemainder())) { acc: Pair<FKSet<String, Int>, Pair<Int?, FKSet<String, Int>>>, _ ->
                     val (rebuild: IMKSet<String, Int>, popAndStub: Pair<Int?, FKSet<String, Int>>) = acc
                     val (pop, shrink) = popAndStub
-                    val grow: FKSet<String, Int> = rebuild.fORkeyed(ofi(pop!!), StrKeyType)!!
+                    val grow: FKSet<String, Int> = rebuild.fOR(ofs(pop!!))
                     Pair(grow, shrink.fpopAndRemainder())
                 }
                 res.first.equals(fsi) shouldBe true

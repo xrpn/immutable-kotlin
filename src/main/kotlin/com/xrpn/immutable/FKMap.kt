@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.ofIntKey
 import com.xrpn.immutable.TKVEntry.Companion.ofk
@@ -140,15 +141,18 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.froot()
     }
 
-    override fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+    override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
         TODO("Not yet implemented")
     }
 
-    override fun fOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+    override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> =
+        of(this.asIMBTree().fdropAlt(items.asIMBTree()))
+
+    override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
         TODO("Not yet implemented")
     }
 
-    override fun fXOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
+    override fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V> {
         TODO("Not yet implemented")
     }
 
@@ -334,8 +338,8 @@ internal class FKMapEmpty<K, V: Any> private constructor (
 
     override fun isEmpty(): Boolean = true
     override val size: Int = 0
-    override val entries: Set<Map.Entry<K, V>> = FKSetEmpty.empty<Int, TKVEntry<K,V>>()
-    override val keys: Set<K> = FKSetEmpty.empty<Int, K>()
+    override val entries: Set<Map.Entry<K, V>> = /* TODO fix the key type, it should be TKVEntry<K,V> */ emptyIMKSet<Int, TKVEntry<K,V>>(IntKeyType)
+    override val keys: Set<K> =  /* TODO fix the key type, it should be K  */ emptyIMKSet<Int, K>(IntKeyType)
     override val values: Collection<V> = FList.emptyIMList()
     override fun containsKey(key: K): Boolean = false
     override fun containsValue(value: V): Boolean = false
@@ -390,9 +394,9 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         item as TKVEntry<K, V>
         val res: IMSet<TKVEntry<K, V>> = when(item.getk()) {
             is String -> remainder
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMRSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) as IMSetNotEmpty<TKVEntry<K, V>> }
             else -> remainder // will use hashCode() as key, beware of collisions
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMRSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) }
+                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) as IMSetNotEmpty<TKVEntry<K, V>> }
         }
         @Suppress("UNCHECKED_CAST") (res as Set<Map.Entry<K, V>>)
     }

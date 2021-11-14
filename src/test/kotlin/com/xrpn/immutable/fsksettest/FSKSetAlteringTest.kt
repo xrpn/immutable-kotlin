@@ -1,21 +1,21 @@
 package com.xrpn.immutable.fsksettest
 
 import com.xrpn.imapi.IMKASetNotEmpty
-import com.xrpn.imapi.IMRRSetNotEmpty
-import com.xrpn.imapi.IMSetNotEmpty
+import com.xrpn.imapi.IMXSetNotEmpty
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 private val intSSetOfNone = FKSet.ofs(*emptyArrayOfInt)
-private val intSSetOfOne = FKSet.ofs(1).rne()!!
-private val intSSetOfTwo = FKSet.ofs(1, 2).rne()!!
-private val intSSetOfThree = FKSet.ofs(1, 2, 3).rne()!!
+private val intSSetOfOne = FKSet.ofs(1).ne()!!
+private val intSSetOfTwo = FKSet.ofs(1, 2).ne()!!
+private val intSSetOfThree = FKSet.ofs(1, 2, 3).ne()!!
 
-private val intKKSetOfOne: IMRRSetNotEmpty<Int> = FKSet.ofk(1).rrne()!!
-private val intKKSetOfTwo: IMRRSetNotEmpty<Int> = FKSet.ofk(1, 2).rrne()!!
+private val intKKSetOfOne: IMXSetNotEmpty<Int> = FKSet.ofk(1).nex()!!
+private val intKKSetOfTwo: IMXSetNotEmpty<Int> = FKSet.ofk(1, 2).nex()!!
 
 class FSKSetAlteringTest : FunSpec({
 
@@ -36,9 +36,12 @@ class FSKSetAlteringTest : FunSpec({
     }
 
     test("faddItem on empty") {
-        val aux1: IMSetNotEmpty<Int> = intSSetOfNone.faddItem(1)
-        aux1.equals(intKKSetOfOne) shouldBe true
-        val aux2: IMSetNotEmpty<Int> = intSSetOfNone.faddItem(1, forceIntKey = false)
-        aux2.equals(intKKSetOfOne) shouldBe true
+        val aux1 = intSSetOfNone.faddItem(1)
+        aux1.equals(intSSetOfOne) shouldBe true
+        (aux1 === intSSetOfOne) shouldBe false
+        aux1.ner() shouldNotBe null
+        aux1.ne() shouldNotBe null
+        aux1.nex<String>() shouldBe null
+
     }
 })

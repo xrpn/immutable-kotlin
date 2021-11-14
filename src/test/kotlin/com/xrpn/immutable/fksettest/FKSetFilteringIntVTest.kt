@@ -14,24 +14,24 @@ import io.kotest.xrpn.fset
 import io.kotest.xrpn.fsset
 
 private val intKKSetOfNone = FKSet.ofi(*emptyArrayOfInt)
-private val intKKSetOfOne = FKSet.ofi(1).rrne()!!
-private val intKKSetOfOne3 = FKSet.ofi(3).rrne()!!
-private val intKKSetOfTwo = FKSet.ofi(1, 2).rrne()!!
-private val intKKSetOfTwoOfst1 = FKSet.ofi(2, 3).rrne()!!
-private val intKKSetOfTwoOfst2 = FKSet.ofi(3, 4).rrne()!!
-private val intKKSetOfThree = FKSet.ofi(1, 2, 3).rrne()!!
-private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).rrne()!!
-private val intKKSetMaverick = FKSet.ofi(113, 97).rrne()!!
+private val intKKSetOfOne = FKSet.ofi(1).nex<Int>()!!
+private val intKKSetOfOne3 = FKSet.ofi(3).nex<Int>()!!
+private val intKKSetOfTwo = FKSet.ofi(1, 2).nex<Int>()!!
+private val intKKSetOfTwoOfst1 = FKSet.ofi(2, 3).nex<Int>()!!
+private val intKKSetOfTwoOfst2 = FKSet.ofi(3, 4).nex<Int>()!!
+private val intKKSetOfThree = FKSet.ofi(1, 2, 3).nex<Int>()!!
+private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).nex<Int>()!!
+private val intKKSetMaverick = FKSet.ofi(113, 97).nex<Int>()!!
 
 private val intSSetOfNone = FKSet.ofs(*emptyArrayOfInt)
-private val intSSetOfOne = FKSet.ofs(1).rne()!!
-private val intSSetOfOne3 = FKSet.ofs(3).rne()!!
-private val intSSetOfTwo = FKSet.ofs(1, 2).rne()!!
-private val intSSetOfTwoOfst1 = FKSet.ofs(2, 3).rne()!!
-private val intSSetOfTwoOfst2 = FKSet.ofs(3, 4).rne()!!
-private val intSSetOfThree = FKSet.ofs(1, 2, 3).rne()!!
-private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).rne()!!
-private val intSSetMaverick = FKSet.ofs(113, 97).rne()!!
+private val intSSetOfOne = FKSet.ofs(1).ne()!!
+private val intSSetOfOne3 = FKSet.ofs(3).ne()!!
+private val intSSetOfTwo = FKSet.ofs(1, 2).ne()!!
+private val intSSetOfTwoOfst1 = FKSet.ofs(2, 3).ne()!!
+private val intSSetOfTwoOfst2 = FKSet.ofs(3, 4).ne()!!
+private val intSSetOfThree = FKSet.ofs(1, 2, 3).ne()!!
+private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).ne()!!
+private val intSSetMaverick = FKSet.ofs(113, 97).ne()!!
 
 class FKSetFilteringIntVTest : FunSpec({
 
@@ -226,7 +226,8 @@ class FKSetFilteringIntVTest : FunSpec({
         intKKSetOfOne.fempty() shouldBe false
         intSSetOfNone.fempty() shouldBe true
         intSSetOfOne.fempty() shouldBe false
-        (intKKSetOfNone === intSSetOfNone) shouldBe true
+        intKKSetOfNone.equals(intSSetOfNone) shouldBe true
+        (intKKSetOfNone === intSSetOfNone) shouldBe false
     }
 
     test("ffilter") {
@@ -361,175 +362,175 @@ class FKSetFilteringIntVTest : FunSpec({
 
     test("fAND") { 
         intKKSetOfNone.fAND(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfNone.fAND(intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfNone and intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
 
-        intKKSetOfOne.fAND(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfOne.fAND(intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
-        intKKSetOfOne.fAND(intKKSetOfThree).equals(intKKSetOfOne) shouldBe true
-        intKKSetOfThree.fAND(intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfOne and intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfOne and intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfOne and intKKSetOfThree).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfThree and intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
 
-        intKKSetOfTwo.fAND(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfTwo.fAND(intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.fAND(intKKSetOfThree).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfThree.fAND(intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo and intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfTwo and intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo and intKKSetOfThree).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfThree and intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
 
-        intKKSetOfThree.fAND(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfThree.fAND(intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
-        FKSet.ofi(2).fAND(intKKSetOfThree).equals(FKSet.ofi(2)) shouldBe true
-        intKKSetOfThree.fAND(FKSet.ofi(2)).equals(FKSet.ofi(2)) shouldBe true
+        (intKKSetOfThree and intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfThree and intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
+        (FKSet.ofi(2) and intKKSetOfThree).equals(FKSet.ofi(2)) shouldBe true
+        (intKKSetOfThree and FKSet.ofi(2)).equals(FKSet.ofi(2)) shouldBe true
 
-        intSSetOfNone.fAND(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfNone.fAND(intSSetOfOne).equals(intSSetOfNone) shouldBe true
+        (intSSetOfNone and intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfNone and intSSetOfOne).equals(intSSetOfNone) shouldBe true
 
-        intSSetOfOne.fAND(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfOne.fAND(intSSetOfOne).equals(intSSetOfOne) shouldBe true
-        intSSetOfOne.fAND(intSSetOfThree).equals(intSSetOfOne) shouldBe true
-        intSSetOfThree.fAND(intSSetOfOne).equals(intSSetOfOne) shouldBe true
+        (intSSetOfOne and intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfOne and intSSetOfOne).equals(intSSetOfOne) shouldBe true
+        (intSSetOfOne and intSSetOfThree).equals(intSSetOfOne) shouldBe true
+        (intSSetOfThree and intSSetOfOne).equals(intSSetOfOne) shouldBe true
 
-        intSSetOfTwo.fAND(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfTwo.fAND(intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.fAND(intSSetOfThree).equals(intSSetOfTwo) shouldBe true
-        intSSetOfThree.fAND(intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo and intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfTwo and intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo and intSSetOfThree).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfThree and intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
 
-        intSSetOfThree.fAND(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfThree.fAND(intSSetOfThree).equals(intSSetOfThree) shouldBe true
-        FKSet.ofi(2).fAND(intSSetOfThree).equals(FKSet.ofi(2)) shouldBe true
-        intSSetOfThree.fAND(FKSet.ofi(2)).equals(FKSet.ofs(2)) shouldBe true
+        (intSSetOfThree and intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfThree and intSSetOfThree).equals(intSSetOfThree) shouldBe true
+        (FKSet.ofi(2) and intSSetOfThree).equals(FKSet.ofi(2)) shouldBe true
+        (intSSetOfThree and FKSet.ofi(2)).equals(FKSet.ofs(2)) shouldBe true
 
         // mixed mode
 
-        intSSetOfThree.fAND(intKKSetOfTwo).equals(intSSetOfTwo) shouldBe true
-        intKKSetOfThree.fAND(intSSetOfTwo).equals(intKKSetOfTwo) shouldBe true
+        (intSSetOfThree and intKKSetOfTwo).equals(intSSetOfTwo) shouldBe true
+        (intKKSetOfThree and intSSetOfTwo).equals(intKKSetOfTwo) shouldBe true
 
     }
 
     test("fNOT") {
         intKKSetOfNone.fNOT(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfNone.fNOT(intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfNone not intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
 
-        intKKSetOfOne.fNOT(intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
-        intKKSetOfOne.fNOT(intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfOne.fNOT(intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfThree.fNOT(intKKSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
+        (intKKSetOfOne not intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfOne not intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfOne not intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfThree not intKKSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
 
-        intKKSetOfTwo.fNOT(intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.fNOT(intKKSetOfTwo).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfTwo.fNOT(intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfThree.fNOT(intKKSetOfTwo).equals(intKKSetOfOne3) shouldBe true
+        (intKKSetOfTwo not intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo not intKKSetOfTwo).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfTwo not intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfThree not intKKSetOfTwo).equals(intKKSetOfOne3) shouldBe true
 
-        intKKSetOfThree.fNOT(intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfThree.fNOT(intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
-        FKSet.ofi(2).fNOT(intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfThree.fNOT(FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
+        (intKKSetOfThree not intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfThree not intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
+        (FKSet.ofi(2) not intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfThree not FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
 
-        intSSetOfNone.fNOT(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfNone.fNOT(intSSetOfOne).equals(intSSetOfNone) shouldBe true
+        (intSSetOfNone not intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfNone not intSSetOfOne).equals(intSSetOfNone) shouldBe true
 
-        intSSetOfOne.fNOT(intSSetOfNone).equals(intSSetOfOne) shouldBe true
-        intSSetOfOne.fNOT(intSSetOfOne).equals(intSSetOfNone) shouldBe true
-        intSSetOfOne.fNOT(intSSetOfThree).equals(intSSetOfNone) shouldBe true
-        intSSetOfThree.fNOT(intSSetOfOne).equals(FKSet.ofs(2,3)) shouldBe true
+        (intSSetOfOne not intSSetOfNone).equals(intSSetOfOne) shouldBe true
+        (intSSetOfOne not intSSetOfOne).equals(intSSetOfNone) shouldBe true
+        (intSSetOfOne not intSSetOfThree).equals(intSSetOfNone) shouldBe true
+        (intSSetOfThree not intSSetOfOne).equals(FKSet.ofs(2,3)) shouldBe true
 
-        intSSetOfTwo.fNOT(intSSetOfNone).equals(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.fNOT(intSSetOfTwo).equals(intSSetOfNone) shouldBe true
-        intSSetOfTwo.fNOT(intSSetOfThree).equals(intSSetOfNone) shouldBe true
-        intSSetOfThree.fNOT(intSSetOfTwo).equals(intSSetOfOne3) shouldBe true
+        (intSSetOfTwo not intSSetOfNone).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo not intSSetOfTwo).equals(intSSetOfNone) shouldBe true
+        (intSSetOfTwo not intSSetOfThree).equals(intSSetOfNone) shouldBe true
+        (intSSetOfThree not intSSetOfTwo).equals(intSSetOfOne3) shouldBe true
 
-        intSSetOfThree.fNOT(intSSetOfNone).equals(intSSetOfThree) shouldBe true
-        intSSetOfThree.fNOT(intSSetOfThree).equals(intSSetOfNone) shouldBe true
-        FKSet.ofs(2).fNOT(intSSetOfThree).equals(intSSetOfNone) shouldBe true
-        intSSetOfThree.fNOT(FKSet.ofi(2)).equals(FKSet.ofs(1,3)) shouldBe true
+        (intSSetOfThree not intSSetOfNone).equals(intSSetOfThree) shouldBe true
+        (intSSetOfThree not intSSetOfThree).equals(intSSetOfNone) shouldBe true
+        (FKSet.ofs(2) not intSSetOfThree).equals(intSSetOfNone) shouldBe true
+        (intSSetOfThree not FKSet.ofi(2)).equals(FKSet.ofs(1,3)) shouldBe true
 
         // mixed mode
 
-        intSSetOfThree.fNOT(intKKSetOfTwo).equals(intSSetOfOne3) shouldBe true
-        intKKSetOfThree.fNOT(intSSetOfTwo).equals(intKKSetOfOne3) shouldBe true
+        (intSSetOfThree not intKKSetOfTwo).equals(intSSetOfOne3) shouldBe true
+        (intKKSetOfThree not intSSetOfTwo).equals(intKKSetOfOne3) shouldBe true
     }
 
     test("fOR") {
         intKKSetOfNone.fOR(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfOne.fOR(intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
-        intKKSetOfNone.fOR(intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfOne or intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfNone or intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
 
-        intKKSetOfTwo.fOR(intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.fOR(intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfNone.fOR(intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.fOR(intKKSetOfTwoOfst1).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfTwoOfst1.fOR(intKKSetOfTwo).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfTwo.fOR(intKKSetOfTwoOfst2).equals(intKKSetOfFour) shouldBe true
-        intKKSetOfTwoOfst2.fOR(intKKSetOfTwo).equals(intKKSetOfFour) shouldBe true
+        (intKKSetOfTwo or intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo or intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfNone or intKKSetOfTwo).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo or intKKSetOfTwoOfst1).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfTwoOfst1 or intKKSetOfTwo).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfTwo or intKKSetOfTwoOfst2).equals(intKKSetOfFour) shouldBe true
+        (intKKSetOfTwoOfst2 or intKKSetOfTwo).equals(intKKSetOfFour) shouldBe true
 
-        intKKSetOfThree.fOR(intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfThree.fOR(intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
-        FKSet.ofi(2).fOR(intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfThree.fOR(FKSet.ofi(2)).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfThree or intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfThree or intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
+        (FKSet.ofi(2) or intKKSetOfThree).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfThree or FKSet.ofi(2)).equals(intKKSetOfThree) shouldBe true
 
-        intSSetOfNone.fOR(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfOne.fOR(intSSetOfNone).equals(intSSetOfOne) shouldBe true
-        intSSetOfNone.fOR(intSSetOfOne).equals(intSSetOfOne) shouldBe true
+        (intSSetOfNone or intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfOne or intSSetOfNone).equals(intSSetOfOne) shouldBe true
+        (intSSetOfNone or intSSetOfOne).equals(intSSetOfOne) shouldBe true
 
-        intSSetOfTwo.fOR(intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.fOR(intSSetOfNone).equals(intSSetOfTwo) shouldBe true
-        intSSetOfNone.fOR(intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.fOR(intSSetOfTwoOfst1).equals(intSSetOfThree) shouldBe true
-        intSSetOfTwoOfst1.fOR(intSSetOfTwo).equals(intSSetOfThree) shouldBe true
-        intSSetOfTwo.fOR(intSSetOfTwoOfst2).equals(intSSetOfFour) shouldBe true
-        intSSetOfTwoOfst2.fOR(intSSetOfTwo).equals(intSSetOfFour) shouldBe true
+        (intSSetOfTwo or intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo or intSSetOfNone).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfNone or intSSetOfTwo).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo or intSSetOfTwoOfst1).equals(intSSetOfThree) shouldBe true
+        (intSSetOfTwoOfst1 or intSSetOfTwo).equals(intSSetOfThree) shouldBe true
+        (intSSetOfTwo or intSSetOfTwoOfst2).equals(intSSetOfFour) shouldBe true
+        (intSSetOfTwoOfst2 or intSSetOfTwo).equals(intSSetOfFour) shouldBe true
 
-        intSSetOfThree.fOR(intSSetOfNone).equals(intSSetOfThree) shouldBe true
-        intSSetOfThree.fOR(intSSetOfThree).equals(intSSetOfThree) shouldBe true
-        FKSet.ofs(2).fOR(intSSetOfThree).equals(intSSetOfThree) shouldBe true
-        intSSetOfThree.fOR(FKSet.ofs(2)).equals(intSSetOfThree) shouldBe true
+        (intSSetOfThree or intSSetOfNone).equals(intSSetOfThree) shouldBe true
+        (intSSetOfThree or intSSetOfThree).equals(intSSetOfThree) shouldBe true
+        (FKSet.ofs(2) or intSSetOfThree).equals(intSSetOfThree) shouldBe true
+        (intSSetOfThree or FKSet.ofs(2)).equals(intSSetOfThree) shouldBe true
 
         // mixed mode
 
-        intSSetOfTwoOfst1.fOR(intKKSetOfTwo).equals(intSSetOfThree) shouldBe true
-        intSSetOfTwo.fOR(intKKSetOfTwoOfst2).equals(intSSetOfFour) shouldBe true
+        (intSSetOfTwoOfst1 or intKKSetOfTwo).equals(intSSetOfThree) shouldBe true
+        (intSSetOfTwo or intKKSetOfTwoOfst2).equals(intSSetOfFour) shouldBe true
 
-        intKKSetOfTwoOfst1.fOR(intSSetOfTwo).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfTwo.fOR(intSSetOfTwoOfst2).equals(intKKSetOfFour) shouldBe true
+        (intKKSetOfTwoOfst1 or intSSetOfTwo).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfTwo or intSSetOfTwoOfst2).equals(intKKSetOfFour) shouldBe true
     }
 
     test("fXOR") {
         intKKSetOfNone.fXOR(intKKSetOfNone).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfNone.fXOR(intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfNone xor intKKSetOfOne).equals(intKKSetOfOne) shouldBe true
 
-        intKKSetOfOne.fXOR(intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
-        intKKSetOfOne.fXOR(intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfOne.fXOR(intKKSetOfThree).equals(FKSet.ofi(2,3)) shouldBe true
-        intKKSetOfThree.fXOR(intKKSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
+        (intKKSetOfOne xor intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
+        (intKKSetOfOne xor intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfOne xor intKKSetOfThree).equals(FKSet.ofi(2,3)) shouldBe true
+        (intKKSetOfThree xor intKKSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
 
-        intKKSetOfTwo.fXOR(intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.fXOR(intKKSetOfTwo).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfTwo.fXOR(intKKSetOfThree).equals(intKKSetOfOne3) shouldBe true
-        intKKSetOfThree.fXOR(intKKSetOfTwo).equals(intKKSetOfOne3) shouldBe true
+        (intKKSetOfTwo xor intKKSetOfNone).equals(intKKSetOfTwo) shouldBe true
+        (intKKSetOfTwo xor intKKSetOfTwo).equals(intKKSetOfNone) shouldBe true
+        (intKKSetOfTwo xor intKKSetOfThree).equals(intKKSetOfOne3) shouldBe true
+        (intKKSetOfThree xor intKKSetOfTwo).equals(intKKSetOfOne3) shouldBe true
 
-        intKKSetOfThree.fXOR(intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
-        intKKSetOfThree.fXOR(intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
-        FKSet.ofi(2).fXOR(intKKSetOfThree).equals(FKSet.ofi(1,3)) shouldBe true
-        intKKSetOfThree.fXOR(FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
+        (intKKSetOfThree xor intKKSetOfNone).equals(intKKSetOfThree) shouldBe true
+        (intKKSetOfThree xor intKKSetOfThree).equals(intKKSetOfNone) shouldBe true
+        (FKSet.ofi(2) xor intKKSetOfThree).equals(FKSet.ofi(1,3)) shouldBe true
+        (intKKSetOfThree xor FKSet.ofi(2)).equals(FKSet.ofi(1,3)) shouldBe true
 
-        intSSetOfNone.fXOR(intSSetOfNone).equals(intSSetOfNone) shouldBe true
-        intSSetOfNone.fXOR(intSSetOfOne).equals(intSSetOfOne) shouldBe true
+        (intSSetOfNone xor intSSetOfNone).equals(intSSetOfNone) shouldBe true
+        (intSSetOfNone xor intSSetOfOne).equals(intSSetOfOne) shouldBe true
 
-        intSSetOfOne.fXOR(intSSetOfNone).equals(intSSetOfOne) shouldBe true
-        intSSetOfOne.fXOR(intSSetOfOne).equals(intSSetOfNone) shouldBe true
-        intSSetOfOne.fXOR(intSSetOfThree).equals(FKSet.ofs(2,3)) shouldBe true
-        intSSetOfThree.fXOR(intSSetOfOne).equals(FKSet.ofs(2,3)) shouldBe true
+        (intSSetOfOne xor intSSetOfNone).equals(intSSetOfOne) shouldBe true
+        (intSSetOfOne xor intSSetOfOne).equals(intSSetOfNone) shouldBe true
+        (intSSetOfOne xor intSSetOfThree).equals(FKSet.ofs(2,3)) shouldBe true
+        (intSSetOfThree xor intSSetOfOne).equals(FKSet.ofs(2,3)) shouldBe true
 
-        intSSetOfTwo.fXOR(intSSetOfNone).equals(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.fXOR(intSSetOfTwo).equals(intSSetOfNone) shouldBe true
-        intSSetOfTwo.fXOR(intSSetOfThree).equals(intSSetOfOne3) shouldBe true
-        intSSetOfThree.fXOR(intSSetOfTwo).equals(intSSetOfOne3) shouldBe true
+        (intSSetOfTwo xor intSSetOfNone).equals(intSSetOfTwo) shouldBe true
+        (intSSetOfTwo xor intSSetOfTwo).equals(intSSetOfNone) shouldBe true
+        (intSSetOfTwo xor intSSetOfThree).equals(intSSetOfOne3) shouldBe true
+        (intSSetOfThree xor intSSetOfTwo).equals(intSSetOfOne3) shouldBe true
 
-        intSSetOfThree.fXOR(intSSetOfNone).equals(intSSetOfThree) shouldBe true
-        intSSetOfThree.fXOR(intSSetOfThree).equals(intSSetOfNone) shouldBe true
-        FKSet.ofs(2).fXOR(intSSetOfThree).equals(FKSet.ofs(1,3)) shouldBe true
-        intSSetOfThree.fXOR(FKSet.ofs(2)).equals(FKSet.ofs(1,3)) shouldBe true
+        (intSSetOfThree xor intSSetOfNone).equals(intSSetOfThree) shouldBe true
+        (intSSetOfThree xor intSSetOfThree).equals(intSSetOfNone) shouldBe true
+        (FKSet.ofs(2) xor intSSetOfThree).equals(FKSet.ofs(1,3)) shouldBe true
+        (intSSetOfThree xor FKSet.ofs(2)).equals(FKSet.ofs(1,3)) shouldBe true
 
         // mixed mode
 
-        intSSetOfTwo.fXOR(intKKSetOfThree).equals(intSSetOfOne3) shouldBe true
-        intKKSetOfTwo.fXOR(intSSetOfThree).equals(intKKSetOfOne3) shouldBe true
+        (intSSetOfTwo xor intKKSetOfThree).equals(intSSetOfOne3) shouldBe true
+        (intKKSetOfTwo xor intSSetOfThree).equals(intKKSetOfOne3) shouldBe true
     }
 })

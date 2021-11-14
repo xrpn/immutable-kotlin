@@ -32,11 +32,6 @@ interface IMSetFiltering<out A: Any>: IMSetTyping<A> {
 
     fun ffind(isMatch: (A) -> Boolean): A? // Return a unique element that matches the predicate p or null
     fun fisSubsetOf(rhs: IMSet<@UnsafeVariance A>): Boolean
-
-    fun fAND(items: IMSet<@UnsafeVariance A>): IMSet<A>
-    fun fNOT(items: IMSet<@UnsafeVariance A>): IMSet<A> = fdropAll(items)
-    fun fOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
-    fun fXOR(items: IMSet<@UnsafeVariance A>): IMSet<A>
 }
 
 internal interface IMKSetFiltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -46,13 +41,7 @@ internal interface IMKSetFiltering<out K, out A: Any> where K: Any, K: Comparabl
 
 interface IMMapFiltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fdrop(key: @UnsafeVariance K): IMMap<K, V>
-    fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMMap<K, V>
     fun fdropkv(key: @UnsafeVariance K, value: @UnsafeVariance V): IMMap<K, V>
-
-    fun fAND(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
-    fun fNOT(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = fdropKeys(items.fkeys())
-    fun fOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
-    fun fXOR(items: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
 }
 
 interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
@@ -77,12 +66,6 @@ interface IMBTreeFiltering<out A, out B: Any> where A: Any, A: Comparable<@Unsaf
     fun frestrictedKey(): RestrictedKeyType<A>?
     fun frightMost(): TKVEntry<A, B>?
     fun froot(): TKVEntry<A, B>?
-
-    fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = fdropAlt(items.asIMBTree())
-    fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-
 }
 
 interface IMStackFiltering<out A: Any> {

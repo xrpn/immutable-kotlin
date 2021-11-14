@@ -7,14 +7,15 @@ import com.xrpn.immutable.FKSet.Companion.ofs
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 private val intKKSetOfNone = ofk(*emptyArrayOfInt)
-private val intKKSetOfOne: IMRRSetNotEmpty<Int> = ofk(1).rrne()!!
-private val intKKSetOfTwo: IMRRSetNotEmpty<Int> = ofk(1, 2).rrne()!!
-private val intKKSetOfThree = ofk(1, 2, 3).rrne()!!
+private val intKKSetOfOne: IMXSetNotEmpty<Int> = ofk(1).nex()!!
+private val intKKSetOfTwo: IMXSetNotEmpty<Int> = ofk(1, 2).nex()!!
+private val intKKSetOfThree = ofk(1, 2, 3).nex<Int>()!!
 
-private val intSSetOfOne: IMRSetNotEmpty<Int> = ofs(1).rne()!!
-private val intSSetOfTwo: IMRSetNotEmpty<Int> = ofs(1, 2).rne()!!
+private val intSSetOfOne: IMSetNotEmpty<Int> = ofs(1).ne()!!
+private val intSSetOfTwo: IMSetNotEmpty<Int> = ofs(1, 2).ne()!!
 
 class FKKSetAlteringTest : FunSpec({
 
@@ -35,9 +36,11 @@ class FKKSetAlteringTest : FunSpec({
     }
 
     test("faddItem on empty") {
-        val aux1: IMSetNotEmpty<Int> = intKKSetOfNone.faddItem(1)
+        val aux1 = intKKSetOfNone.faddItem(1)
         aux1.equals(intKKSetOfOne)  shouldBe true
-        val aux2: IMSetNotEmpty<Int> = intKKSetOfNone.faddItem(1, forceIntKey = false)
-        aux2.equals(intKKSetOfOne)  shouldBe true
+        (aux1 === intKKSetOfOne) shouldBe false
+        aux1.ner() shouldNotBe null
+        aux1.ne() shouldBe null
+        aux1.nex<String>() shouldNotBe null
     }
 })

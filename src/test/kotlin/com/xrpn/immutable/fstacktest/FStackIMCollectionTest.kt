@@ -3,7 +3,7 @@ package com.xrpn.immutable.fstacktest
 import com.xrpn.imapi.IMCollection
 import com.xrpn.imapi.IMStack
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FKSet.Companion.emptyIMRSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
@@ -95,8 +95,8 @@ class FStackIMCollectionTest : FunSpec({
     FStack.of(*arrayOf<Int>(2,1)).fdropAll(intStackOfThree as IMStack<Int>) shouldBe emptyIMStack<Int>()
     FStack.of(*arrayOf<Int>(3,2,1)).fdropAll(intStackOfTwo) shouldBe intStackOfOneA
     intStackOfFour.fdropAll(intSet) shouldBe intStackOfOneA
-    intStackOfFour.fdropAll(emptyIMRSet()) shouldBe intStackOfFour
-    (intStackOfFour.fdropAll(emptyIMRSet()) === intStackOfFour) shouldBe true
+    intStackOfFour.fdropAll(emptyIMKSet()) shouldBe intStackOfFour
+    (intStackOfFour.fdropAll(emptyIMKSet()) === intStackOfFour) shouldBe true
     intStackOfFourA.fdropAll(intSet) shouldBe intStackOfOneA
     intStackOfFourB.fdropAll(intSet) shouldBe intStackOfOneA
     intStackOfFour.fdropAll(intStackOfTwo) shouldBe intStackOfOneA
