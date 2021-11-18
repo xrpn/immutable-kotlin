@@ -1,10 +1,7 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMBTree
 import com.xrpn.imapi.SymKeyType
 import com.xrpn.immutable.TKVEntry.Companion.toKKEntry
-import io.kotest.assertions.fail
-import io.kotest.matchers.shouldBe
 import kotlin.reflect.KClass
 
 internal val emptyArrayOfInt: Array<Int> = arrayOf()
@@ -495,34 +492,3 @@ internal val copaKKSetOf4 = ofBody(knodeRbtOf4)!!
 internal val copaISetOf4 = ofBody(inodeRbtOf4)!!
 internal val copaSSetOf4 = ofBody(snodeRbtOf4)!!
 
-tailrec fun <A: Comparable<A>, B: Any> goDropItemAll(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-    when (acc) {
-        is FLNil -> FLNil
-        is FLCons -> {
-            val delenda = acc.head
-            val deleted: IMBTree<A, B> = t.fdropItemAll(delenda)
-            val oracle = inorder.ffilterNot { it == delenda }
-            val aut = deleted.inorder()
-            when (deleted) {
-                is FBSTNode -> aut shouldBe oracle
-                is FBSTUnique -> fail("empty tree should not be empty")
-            }
-            goDropItemAll(t, acc.tail, inorder)
-        }
-    }
-
-internal tailrec fun <A: Comparable<A>, B: Any> goDropItemTele(t: IMBTree<A, B>, acc: FList<TKVEntry<A, B>>, inorder: FList<TKVEntry<A, B>>): FList<TKVEntry<A, B>> =
-    when (acc) {
-        is FLNil -> FLNil
-        is FLCons -> {
-            val delenda = acc.head
-            val deleted: IMBTree<A, B> = t.fdropItem(delenda)
-            val oracle = inorder.fdropFirst { it == delenda }
-            val aut = deleted.inorder()
-            when (deleted) {
-                is FBSTNode -> aut shouldBe oracle
-                is FBSTUnique -> deleted.size shouldBe 0
-            }
-            goDropItemTele(deleted, acc.tail, oracle)
-        }
-    }

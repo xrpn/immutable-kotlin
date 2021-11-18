@@ -14,7 +14,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import kotlin.random.Random.Default.nextInt
 
 class FBSTreeFilteringTest : FunSpec({
@@ -379,7 +379,7 @@ class FBSTreeFilteringTest : FunSpec({
     }
 
     test("fhasDups") {
-        Arb.fbstree<Int, Int>(Arb.int(0..200)).checkAll(repeats) { fbst ->
+        Arb.fbsItree<Int, Int>(Arb.int(0..200)).checkAll(repeats) { fbst ->
             val ss = fbst.copyToMutableMap().size
             fbst.fhasDups() shouldBe (ss != fbst.size)
         }

@@ -1,9 +1,7 @@
 package com.xrpn.immutable
 
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.*
 import com.xrpn.imapi.IMKSet
-import com.xrpn.imapi.IMKeyedValue
-import com.xrpn.imapi.IMSet
 import java.util.RandomAccess
 import kotlin.reflect.KClass
 
@@ -14,7 +12,7 @@ import kotlin.reflect.KClass
 
 internal typealias UniContainer<V> = UCon<Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,V>
 
-internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E, K, out V: Any>() where K: Any, K: Comparable<K>, A: Collection<V>, B: Map<K,V>, C: IMCollection<V>, D: ArrayList<@UnsafeVariance V> {
+internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E, K, out V: Any>() where K: Any, K: Comparable<K>, A: Collection<V>, B: Map<K,V>, C: IMCommon<V>, D: ArrayList<@UnsafeVariance V> {
 
     /* A UniContainer MUST NOT contain another UniContainer, directly ir indirectly,
        This implies, among the rest, that no container-at-large is allowed to hold
@@ -26,7 +24,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         else -> null
     }
 
-    fun imcoll(): IMCollection<V>? = when (this) {
+    fun imcoll(): IMCommon<V>? = when (this) {
         is UCIMC -> im
         else -> null
     }
@@ -78,6 +76,12 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
             isLikeObs && isStrictInternally()
         }
     }
+    fun isStrict(): Boolean = if (isEmpty()) true else when {
+        isNested()!! -> isStrictlyLike(KeyedTypeSample(kKc()?.let { @Suppress("UNCHECKED_CAST")(it as KClass<Any>) }, @Suppress("UNCHECKED_CAST")(vKc()!! as KClass<Any>))) ?: false
+        isStrictInternally() -> true
+        else -> false
+    }
+
 
     fun <T: Any> getIfIs(containerKc: KClass<T>): T? = when (this) {
         is UCIMSET -> if (imset()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imset()!! as T) else null
@@ -91,15 +95,16 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
 
     companion object {
         fun <K, A: Any> ofIMKSet(c: IMKSet<K, A>): UniContainer<A> where K: Any, K: Comparable<K> = UCIMSET(c).asUC()
-        fun <A: Any> ofIMCollection(c: IMCollection<A>): UniContainer<A> = UCIMC(c).asUC()
+        fun <A: Any> ofIMCollection(c: IMCommon<A>): UniContainer<A> = UCIMC(c).asUC()
         fun <A: Any> ofCollection(c: Collection<A>): UniContainer<A> = UCKC(c).asUC()
         fun <A: Any> ofArray(c: Array<A>): UniContainer<A> = ofArrayList(c.asList() as ArrayList<A>)
         fun <A: Any> ofArrayList(c: ArrayList<A>): UniContainer<A> = UCARYL(c).asUC()
         fun <K, A: Any> ofMap(c: Map<K, A>): UniContainer<A> where K: Any, K: Comparable<K> = UCKMAP(c).asUC()
         fun of(item: Any): UniContainer<*>? = if (!FT.isContainer(item)) null else when (item) {
             is TKVEntry<*,*> -> of(item.getv())
+            is TSDJ<*,*> -> item.left()?.let { of(it) } ?: of(item.right()!!)
             is IMKSet<*, *> -> ofIMKSet(item).asUC()
-            is IMCollection<*> -> ofIMCollection(item).asUC()
+            is IMCommon<*> -> ofIMCollection(item).asUC()
             is ArrayList<*> -> ofArrayList(item).asUC()
             is Collection<*> -> @Suppress("UNCHECKED_CAST") (UCKC(item as Collection<Any>) as UniContainer<*>)
             is Map<*, *> -> @Suppress("UNCHECKED_CAST") (UCKMAP(item as Map<Nothing, Any>) as UniContainer<*>)
@@ -134,7 +139,7 @@ internal data class UCIMSET<K, out V: Any>(val im: IMKSet<K, V>): UCon<Nothing, 
     }
 }
 
-internal data class UCIMC<out V: Any>(val im: IMCollection<V>): UCon<Nothing, Nothing, IMCollection<V>, Nothing, Nothing, Nothing, V>() {
+internal data class UCIMC<out V: Any>(val im: IMCommon<V>): UCon<Nothing, Nothing, IMCommon<V>, Nothing, Nothing, Nothing, V>() {
     init {
         check(im !is IMSet<V>)
     }

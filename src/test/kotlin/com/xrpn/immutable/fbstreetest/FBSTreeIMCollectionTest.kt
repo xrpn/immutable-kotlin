@@ -1,7 +1,7 @@
 package com.xrpn.immutable.fbstreetest
 
 import com.xrpn.imapi.IMBTreeEqual2
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMCommon
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FBSTree.Companion.nul
@@ -13,14 +13,14 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.*
 import io.kotest.property.arbitrary.int
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import io.kotest.xrpn.fbstreeWithDups
 import kotlin.random.Random
 
-private val iiTreeOfNone: IMCollection<TKVEntry<Int,Int>> = nul<Int,Int>()
-private val iiTreeOfTwo: IMCollection<TKVEntry<Int,Int>> = FBSTree.of(1.toIAEntry(), 2.toIAEntry())
-private val siTreeOfTwo: IMCollection<TKVEntry<String, Int>> = FBSTree.of(1.toSAEntry(), 2.toSAEntry())
-private val ixTreeOfTwo: IMCollection<TKVEntry<Int, FKSet<*, Int>>> =
+private val iiTreeOfNone: IMCommon<TKVEntry<Int,Int>> = nul<Int,Int>()
+private val iiTreeOfTwo: IMCommon<TKVEntry<Int,Int>> = FBSTree.of(1.toIAEntry(), 2.toIAEntry())
+private val siTreeOfTwo: IMCommon<TKVEntry<String, Int>> = FBSTree.of(1.toSAEntry(), 2.toSAEntry())
+private val ixTreeOfTwo: IMCommon<TKVEntry<Int, FKSet<*, Int>>> =
   FBSTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
 private val ixxTreeOfTwo: FBSTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
@@ -77,9 +77,9 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("fall") {
     iiTreeOfNone.fall { true } shouldBe true
     iiTreeOfNone.fall { false } shouldBe true
-    Arb.fbstree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
+    Arb.fbsItree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
       val ts = fbst.size
-      val aut = fbst as IMCollection<TKVEntry<Int,Int>>
+      val aut = fbst as IMCommon<TKVEntry<Int,Int>>
       var count: Int = 0
       aut.fall { count+=1; true } shouldBe true
       count shouldBe ts
@@ -98,9 +98,9 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("fany") {
     iiTreeOfNone.fany { true } shouldBe true
     iiTreeOfNone.fany { false } shouldBe true
-    Arb.fbstree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
+    Arb.fbsItree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
       val ts = fbst.size
-      val aut = fbst as IMCollection<TKVEntry<Int,Int>>
+      val aut = fbst as IMCommon<TKVEntry<Int,Int>>
       var count: Int = 0
       aut.fany { count+=1; true } shouldBe true
       count shouldBe 1
@@ -135,10 +135,10 @@ class FBSTreeIMCollectionTest : FunSpec({
 
   test("fcontains (B)") {
     iiTreeOfNone.fcontains(TKVEntry.ofkv(1, 1)) shouldBe false
-    Arb.fbstree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
+    Arb.fbsItree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
       val ts = fbst.size
       val sample = if (1 < ts) fbst.inorder().fdrop(ts / 2).fhead()!! else null
-      val aut = fbst as IMCollection<TKVEntry<Int,Int>>
+      val aut = fbst as IMCommon<TKVEntry<Int,Int>>
       aut.fcontains(TKVEntry.ofkv(0, 0)) shouldBe false
       sample?.let { aut.fcontains(sample) shouldBe true }
     }
@@ -147,11 +147,11 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("fcount") {
     iiTreeOfNone.fcount { true } shouldBe 0
     iiTreeOfNone.fcount { false } shouldBe 0
-    Arb.fbstree(Arb.int(0..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
+    Arb.fbsItree(Arb.int(0..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
       val mm = fbst.copyToMutableMap()
       val ss = mm.size // size without duplicates
       val ds = fbst.size // size with duplicates
-      val aut = fbst as IMCollection<TKVEntry<Int,Int>>
+      val aut = fbst as IMCommon<TKVEntry<Int,Int>>
       var tot = 0
       var totDups = 0
       var nonDistinct = 0
@@ -323,13 +323,13 @@ class FBSTreeIMCollectionTest : FunSpec({
   }
 
   test("fdropItem (tree property)") {
-    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbsItree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemTele(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
 
   test("fdropItemAll (tree property)") {
-    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbstree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
+    checkAll(PropTestConfig(iterations = repeatsLow.first), Arb.fbsItree(Arb.int(),repeatsLow.second..repeatsLow.third)) { fbst ->
       goDropItemAll(fbst, fbst.breadthFirst(), fbst.inorder())
     }
   }
@@ -369,7 +369,7 @@ class FBSTreeIMCollectionTest : FunSpec({
       val svalues = values + values
       val ora1 = values.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
@@ -408,7 +408,7 @@ class FBSTreeIMCollectionTest : FunSpec({
       val svalues = shuffled + shuffled
       val ora1 = shuffled.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
@@ -435,7 +435,7 @@ class FBSTreeIMCollectionTest : FunSpec({
       val svalues = reversed + reversed
       val ora1 = reversed.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FBSTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
@@ -456,7 +456,7 @@ class FBSTreeIMCollectionTest : FunSpec({
   test("ffindAny") {
     iiTreeOfNone.ffindAny { true } shouldBe null
     iiTreeOfNone.ffindAny { false } shouldBe null
-    Arb.fbstree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
+    Arb.fbsItree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { fbst ->
       val ts = fbst.size
       var count: Int = 0
       fbst.ffindAny{ count+=1; it == TKVEntry.ofkv(0, 0) } shouldBe null

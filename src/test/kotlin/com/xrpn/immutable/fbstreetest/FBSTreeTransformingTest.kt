@@ -10,7 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import io.kotest.xrpn.fbstreeWithDups
 
 class FBSTreeTransformingTest : FunSpec({
@@ -37,7 +37,7 @@ class FBSTreeTransformingTest : FunSpec({
     }
 
     test("fflatMap (B)") {
-        checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int()), Arb.fbstree<Int, Int>(Arb.int())) { fbst1, fbst2 ->
+        checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int()), Arb.fbsItree<Int, Int>(Arb.int())) { fbst1, fbst2 ->
 
             var counter = 0
             // there are no dups; this is a (very inefficient) set-union
@@ -100,7 +100,7 @@ class FBSTreeTransformingTest : FunSpec({
 
     test("fmap") {
         (nul<Int, Int>().fmap { 2.toIAEntry() } === FBSTUnique.empty) shouldBe true
-        Arb.fbstree(Arb.int((-50..50))).checkAll(repeats) { fbst ->
+        Arb.fbsItree(Arb.int((-50..50))).checkAll(repeats) { fbst ->
             val sum = fbst.ffoldv(0) {acc, v -> acc+v }
             val aut = fbst.fmap { tkv -> TKVEntry.ofkk(tkv.getk(), tkv.getv() * 13) }
             aut.fhasDups() shouldBe fbst.fhasDups()
@@ -136,7 +136,7 @@ class FBSTreeTransformingTest : FunSpec({
             val aut: IMList<TKVEntry<Int, Int>> = fbst.fmapToList(f)
             aut shouldBe fbst.preorder(reverse = true).fmap(f)
         }
-        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbsItree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<TKVEntry<Int, Int>> = fbst.fmapToList(f)
             aut shouldBe fbst.preorder(reverse = true).fmap(f)
         }
@@ -150,7 +150,7 @@ class FBSTreeTransformingTest : FunSpec({
             val aut: IMList<Int> = fbst.fmapvToList(f)
             aut shouldBe fbst.preorderValues(reverse = true).fmap(f)
         }
-        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbsItree(Arb.int()).checkAll(repeats) { fbst ->
             val aut: IMList<Int> = fbst.fmapvToList(f)
             aut shouldBe fbst.preorderValues(reverse = true).fmap(f)
         }
@@ -164,7 +164,7 @@ class FBSTreeTransformingTest : FunSpec({
             val aut: TKVEntry<Int, Int>? = fbst.freduce(f)
             aut shouldBe fbst.preorder().ffoldLeft(0.toIAEntry(), f)
         }
-        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbsItree(Arb.int()).checkAll(repeats) { fbst ->
             val aut: TKVEntry<Int, Int>? = fbst.freduce(f)
             aut shouldBe fbst.preorder().ffoldLeft(0.toIAEntry(), f)
         }

@@ -407,7 +407,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fdropAll(items: IMCollection<TKVEntry<A, B>>): IMBTree<A, B> {
+    override fun fdropAll(items: IMCommon<TKVEntry<A, B>>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
@@ -451,7 +451,7 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun toIMRSet(kType: RestrictedKeyType<A>?): IMSet<B>? {
+    override fun toIMSet(kType: RestrictedKeyType<A>?): IMSet<B>? {
         TODO("Not yet implemented")
     }
 

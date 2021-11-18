@@ -26,7 +26,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.fcontains(item)
     }
 
-    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): FKMap<K, V> {
+    override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): FKMap<K, V> {
         TODO("Not yet implemented")
     }
 
@@ -198,7 +198,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
-    override fun <C, D : Any> fmap(f: (TKVEntry<K, V>) -> TKVEntry<C, D>): FKMap<C, D> where C: Any, C : Comparable<C> {
+    override fun <C, D: Any> fmap(f: (TKVEntry<K, V>) -> TKVEntry<C, D>): FKMap<C, D> where C: Any, C : Comparable<C> {
         TODO("Not yet implemented")
     }
 
@@ -408,7 +408,7 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         fun assemblekk(): FKSet<@UnsafeVariance K, @UnsafeVariance K> {
             val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
             val seed: FRBTree<K, K> = FRBTree.of(ofk(ei!!.getk()))
-            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMRSet(seed.frestrictedKey())!!
+            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMSet(seed.frestrictedKey())!!
         }
 
         if (null == item) TODO() else {
@@ -422,7 +422,7 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
                     else -> {
                         val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
                         val seed: FRBTree<Int, K> = FRBTree.of(ofIntKey(ei!!.getk()))
-                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMRSet(seed.frestrictedKey())!!
+                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMSet(seed.frestrictedKey())!!
                     }
                 }
             }

@@ -11,7 +11,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fset
+import io.kotest.xrpn.fiset
 import java.util.concurrent.atomic.AtomicInteger
 
 private val intKKOfNone = FKSet.ofi(*emptyArrayOfInt)
@@ -106,7 +106,7 @@ class FSKSetUtilityTest : FunSpec({
         summer.get() shouldBe 0
         counter.set(0)
         summer.set(0)
-        checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val oraSum = fs.ffold(0){ acc, el -> acc + el }
             fs.fforEach(doCount)
             counter.get() shouldBe fs.size
@@ -119,7 +119,7 @@ class FSKSetUtilityTest : FunSpec({
 
     test("toIMBTree") {
         intKKOfNone.toIMBTree() shouldBe FRBTree.emptyIMBTree()
-        checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1 = FKSet.ofi(fbst)
@@ -129,7 +129,7 @@ class FSKSetUtilityTest : FunSpec({
 
     test("toIMSetNonEmpty") {
         intKKOfNone.asIMSetNotEmpty() shouldBe null
-        checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, Int> = FKSet.ofi(fbst)!!
@@ -137,7 +137,7 @@ class FSKSetUtilityTest : FunSpec({
             (fs1.asIMXSetNotEmpty<Int>() === fs1) shouldBe true
             fs1.asIMXSetNotEmpty<Int>()?.equal(fs) shouldBe true
         }
-        checkAll(repeats, Arb.fset(Arb.string(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset(Arb.string(),20..100)) { fs ->
             val frbt: IMBTree<Int, String> = fs.toIMBTree()
             val fbst: FBSTree<Int, String> = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, String> = FKSet.ofi(fbst)!!
@@ -149,7 +149,7 @@ class FSKSetUtilityTest : FunSpec({
 
     test("copy") {
         intKKOfNone.copy().equals(intKKOfNone) shouldBe true
-        checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val fs1 = fs.copy()
             (fs1 === fs) shouldBe false
             fs.strongEqual(fs1) shouldBe true
@@ -158,7 +158,7 @@ class FSKSetUtilityTest : FunSpec({
 
     test("copyToMutableSet") {
         intKKOfNone.copyToMutableSet() shouldBe mutableSetOf()
-        checkAll(repeats, Arb.fset<Int, Int>(Arb.int(),20..100)) { fs ->
+        checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val ms: MutableSet<Int> = fs.copyToMutableSet()
             (fs == ms) shouldBe true
             (ms == fs) shouldBe true

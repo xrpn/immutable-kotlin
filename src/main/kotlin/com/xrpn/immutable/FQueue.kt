@@ -26,7 +26,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fcount(isMatch: (A) -> Boolean): Int =
         this.fqGetFront().fcount(isMatch)+this.fqGetBack().fcount(isMatch)
 
-    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FQueue<A> =
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FQueue<A> =
         if (items.fempty()) this else FQueueBody.of(fqGetFront().fdropAll(items),fqGetBack().fdropAll(items))
 
     override fun fdropItem(item: @UnsafeVariance A): FQueue<A> =
@@ -102,6 +102,13 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
             FQueueBody.of(aux, FLNil)
         }
     }
+
+    // ============ IMMappable
+
+    override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> =
+        FQueueBody.of(fqGetFront().fmap(f),fqGetBack().fmap(f))
+
+    override fun <B: Any> flift2map(item: IMCommon<B>): IMQueue<B> = TODO()
 
     // ============ filtering
 
@@ -184,9 +191,6 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     override fun <B : Any> fdequeueMap(f: (A) -> B): Pair<B?, IMQueue<A>> =
         ffirst()?.let { Pair(f(it), fdiscardFront()) } ?: Pair(null, this)
-
-    override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> =
-        FQueueBody.of(fqGetFront().fmap(f),fqGetBack().fmap(f))
 
     override fun <B : Any> fpeekMap(f: (A) -> B): B? =
         ffirst()?.let { f(it) }

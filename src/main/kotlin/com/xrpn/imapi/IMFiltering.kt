@@ -36,7 +36,7 @@ interface IMSetFiltering<out A: Any>: IMSetTyping<A> {
 
 internal interface IMKSetFiltering<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fkeyType(): RestrictedKeyType<K>  // peek at one random key
-    fun fdropAllEntries(items: IMCollection<TKVEntry<@UnsafeVariance K, @UnsafeVariance A>>): IMKSet<K,A>
+    fun fdropAllEntries(items: IMCommon<TKVEntry<@UnsafeVariance K, @UnsafeVariance A>>): IMKSet<K,A>
 }
 
 interface IMMapFiltering<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {

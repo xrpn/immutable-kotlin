@@ -16,7 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fset
+import io.kotest.xrpn.fiset
 import io.kotest.xrpn.fsset
 
 private val intKKSetOfNone = FKSet.ofi(*emptyArrayOfInt)
@@ -534,7 +534,7 @@ class FKSetGroupingTest : FunSpec({
     }
 
     test("fpopAndRemainder properties") {
-        checkAll(repeats, Arb.fset(Arb.int(),20..100)) { fii: FKSet<Int, Int> ->
+        checkAll(repeats, Arb.fiset(Arb.int(),20..100)) { fii: FKSet<Int, Int> ->
             if (!fii.fempty()) {
                 @Suppress("UNCHECKED_CAST") (fii as IMKSetNotEmpty<Int, Int>)
                 val body = fii.toIMBTree() as FRBTNode<Int,Int>

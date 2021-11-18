@@ -46,8 +46,9 @@ inline fun <reified A> fidentity(a: A): A = a
 internal object FT {
 
     fun <A : Any> isContainer(c: A): Boolean = when (c) {
+        is TSDJ<*,*> -> c.left()?.let { isContainer(it) } ?: isContainer(c.right()!!)
         is TKVEntry<*,*> -> isContainer(c.getv())
-        is IMCollection<*> -> true
+        is IMCommon<*> -> true
         is Collection<*> -> true
         is Map<*, *> -> true
         is Array<*> -> true
@@ -56,7 +57,7 @@ internal object FT {
     }
 
     fun <A : Any> isNested(c: A): Boolean? = when (c) {
-        is IMCollection<*> -> c.fisNested()
+        is IMCommon<*> -> c.fisNested()
         is Collection<*> -> isNestedCollection(c)
         is Map<*, *> -> {
             val aux: Map<Nothing, Any> = @Suppress("UNCHECKED_CAST") (c as Map<Nothing, Any>)
@@ -75,7 +76,7 @@ internal object FT {
 
     internal fun <C : Any> filterNotEmpty(item: UniContainer<C>?): UniContainer<C>? = item?.let {
         if (it.imcoll()?.fempty() == false) {
-            val aux: IMCollection<C> = it.imcoll()!!.ffilterNot { maybe: C -> UCon.of(maybe)?.isEmpty() ?: false }
+            val aux: IMCommon<C> = it.imcoll()!!.ffilterNot { maybe: C -> UCon.of(maybe)?.isEmpty() ?: false }
             UCIMC(aux).asUC()
         } else if (it.kcoll()?.isEmpty() == false) {
             val aux: List<C> = it.kcoll()!!.filterNotNullTo(ArrayList(it.kcoll()!!.size))
@@ -94,7 +95,7 @@ internal object FT {
 
     internal fun <C : Any> filterNotEmptyTerminally(item: UniContainer<C>?): UniContainer<C>? = item?.let {
         if (it.imcoll()?.fempty() == false) {
-            val aux: IMCollection<C> = it.imcoll()!!.ffilterNot { maybe: C ->
+            val aux: IMCommon<C> = it.imcoll()!!.ffilterNot { maybe: C ->
                 UCon.of(maybe)?.let { known ->
                     known.isEmpty() || filterNotEmptyTerminally(known)?.isEmpty() ?: false
                 } ?: false
@@ -158,7 +159,7 @@ internal object FT {
     internal fun <A> strictly(item: A, kc: KClass<*>): Boolean = item?.let {
         val predicate = when (it) {
             is IMKSet<*,*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
-            is IMCollection<*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
+            is IMCommon<*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
             is Collection<*> -> it.isEmpty() || (it.isStrictly(kc) && isStrictCollection(it))
             is Map<*, *> -> it.isEmpty() || (it.isStrictly(kc) && isStrictMap(it))
             is Array<*> -> it.isEmpty() || (it.isStrictly(kc) && isStrictArray(it))

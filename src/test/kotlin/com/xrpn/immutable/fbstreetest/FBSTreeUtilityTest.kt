@@ -13,7 +13,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fbsStree
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -105,7 +105,7 @@ class FBSTreeUtilityTest : FunSpec({
     val summer = AtomicInteger(0)
     val doCount: (TKVEntry<Int, Int>) -> Unit = { counter.incrementAndGet() }
     val doSum: (TKVEntry<Int, Int>) -> Unit = { v -> summer.addAndGet(v.getv()) }
-    checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
+    checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val oraSum = fbst.ffold(0){ acc, el -> acc + el.getv() }
       fbst.fforEach(doCount)
       counter.get() shouldBe fbst.size
@@ -176,14 +176,14 @@ class FBSTreeUtilityTest : FunSpec({
   }
 
   test("toIMSet") {
-    intFBSTreeOfNone.toIMRSet(IntKeyType) shouldBe FKSet.emptyIMKSet()
-    checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
-      val ims1: FKSet<Int, Int> = fbst.toIMRSet(IntKeyType)!!
+    intFBSTreeOfNone.toIMSet(IntKeyType) shouldBe FKSet.emptyIMKSet()
+    checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int(),20..100)) { fbst ->
+      val ims1: FKSet<Int, Int> = fbst.toIMSet(IntKeyType)!!
       (ims1.toIMBTree() === fbst) shouldBe false
       ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
     }
     checkAll(repeats, Arb.fbsStree<Int, Int>(Arb.int(),20..100)) { fbst ->
-      val ims1: FKSet<String, Int> = fbst.toIMRSet(StrKeyType)!!
+      val ims1: FKSet<String, Int> = fbst.toIMSet(StrKeyType)!!
       (ims1.toIMBTree() === fbst) shouldBe false
       ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
     }
@@ -192,7 +192,7 @@ class FBSTreeUtilityTest : FunSpec({
   test("copy") {
     intFBSTreeOfNone.copy() shouldBe intFBSTreeOfNone
     (intFBSTreeOfNone.copy() === intFBSTreeOfNone) shouldBe true
-    checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
+    checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val c1 = fbst.copy()
       (c1 === fbst) shouldBe false
       fbst.equal(c1) shouldBe true
@@ -201,7 +201,7 @@ class FBSTreeUtilityTest : FunSpec({
 
   test("copyToMutableList") {
     intFBSTreeOfNone.copyToMutableMap() shouldBe mutableMapOf()
-    checkAll(repeats, Arb.fbstree<Int, Int>(Arb.int(),20..100)) { fbst ->
+    checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ml: MutableMap<Int, Int> = fbst.copyToMutableMap()
       if (ml.size != fbst.size) /* TODO there are duplicates */ true shouldBe true
       else (fbst.toSet() == ml.entries.map { mentry -> TKVEntry.ofkk(mentry.key, mentry.value) }.toSet()) shouldBe true

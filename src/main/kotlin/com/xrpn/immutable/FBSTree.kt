@@ -72,7 +72,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
         bstFind(this, item) != null
 
-    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = when (items) {
+    override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = when (items) {
         // TODO consider memoization
         is IMBTree -> this.fdropAlt(items) as FBSTree<A, B>
         is IMMap -> this.fdropAlt(items.asIMBTree()) as FBSTree<A, B>
@@ -229,7 +229,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
+    override fun toIMSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = toFKSetImpl(this, kType)
 
     override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> = toFBSTreeImpl(this, kType)
 
@@ -512,7 +512,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         else  unwindStack(FStack.of(this as FBSTNode), z, ::accrueForFold)
     }
 
-    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = when(this) {
+    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FBSTree<C,D> where C: Any, C: Comparable<@UnsafeVariance C> = when(this) {
         is FBSTNodeGeneric -> ffold(nul(true)) { acc, tkv -> acc.finsert(f(tkv)) }
         is FBSTNodeUnique -> ffold(nul(false)) { acc, tkv -> acc.finsert(f(tkv)) }
         is FBSTGeneric -> this
@@ -757,7 +757,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
         }}
 
-        internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FBSTree<A, B>
+        internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCommon<TKVEntry<A,B>>): FBSTree<A, B>
         where A: Any, A: Comparable<A> {
             val (nextItem, collection) = items.fpopAndRemainder()
             return if (null == nextItem) treeStub else bstDeletes(bstDelete(treeStub, nextItem), collection)

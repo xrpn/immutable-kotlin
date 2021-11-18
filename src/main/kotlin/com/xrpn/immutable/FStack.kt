@@ -24,7 +24,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fcount(isMatch: (A) -> Boolean): Int =
         toFList().fcount(isMatch)
 
-    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FStack<A> =
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FStack<A> =
         if (items.fempty()) this else FStackBody.of(toFList().fdropAll(items))
 
     override fun fdropItem(item: @UnsafeVariance A): IMStack<A> =
@@ -69,6 +69,13 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fswaph(): IMStack<A> =
         FStackBody.of(toFList().fswaph())
 
+    // ============ IMMappable
+
+    override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
+        FStackBody.of(toFList().fmap(f))
+
+    override fun <B: Any> flift2map(item: IMCommon<B>): IMStack<B> = TODO()    // IMMapplicable
+
     // ============ filtering
 
     override fun fdropIfTop(item: @UnsafeVariance A): FStack<A> = ftop()?.let {
@@ -91,9 +98,6 @@ sealed class FStack<out A: Any>: IMStack<A> {
     // ============ grouping - NOP
 
     // ============ transforming
-
-    override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
-        FStackBody.of(toFList().fmap(f))
 
     override fun <B : Any> fpopMap(f: (A) -> B): Pair<B?, IMStack<A>> =
         fpop().let { pit ->

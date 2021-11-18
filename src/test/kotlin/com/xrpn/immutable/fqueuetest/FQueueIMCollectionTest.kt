@@ -1,6 +1,6 @@
 package com.xrpn.immutable.fqueuetest
 
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMCommon
 import com.xrpn.imapi.IMQueue
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
@@ -10,28 +10,29 @@ import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intQueueOfNone: IMCollection<Int> = FQueue.of(*emptyArrayOfInt)
-private val intQueueOfOne: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1))
-private val intQueueOfOneYR: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
-private val intQueueOfOneA: IMCollection<Int> = FQueue.of(*arrayOf<Int>(3))
-private val intQueueOfTwo: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2))
-private val intQueueOfTwoYR: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2), readyToDequeue = true)
-private val intQueueOfTwoA: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,3))
+private val intQueueOfNone: IMCommon<Int> = FQueue.of(*emptyArrayOfInt)
+private val intQueueOfOne: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1))
+private val intQueueOfOneYR: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1), readyToDequeue = true)
+private val intQueueOfOneA: IMCommon<Int> = FQueue.of(*arrayOf<Int>(3))
+private val intQueueOfTwo: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2))
+private val intQueueOfTwoYR: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2), readyToDequeue = true)
+private val intQueueOfTwoA: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,3))
+private val intQueueOfTworA: IMCommon<Int> = FQueue.of(*arrayOf<Int>(3,1))
 private val intQueueOfThree2B = FQueueBody.of(FLCons(3, FLNil), FLCons(2,FLCons(1, FLNil)))
 private val intQueueOfThree2F = FQueueBody.of(FLCons(3, FLCons(1, FLNil)), FLCons(2,FLNil))
-private val intQueueOfFour: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2,1,3))
-private val intQueueOfFourFB: IMCollection<Int> = FQueueBody.of(FList.of(*arrayOf<Int>(1)),FList.of(*arrayOf<Int>(3,1,2)))
-private val intQueueOfFourA: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2,2,3))
-private val intQueueOfFourB: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2,3,2))
-private val intQueueOfSix: IMCollection<Int> = FQueue.of(*arrayOf<Int>(1,2,3,3,2,1))
-private val intSet: IMCollection<Int> = FKSet.ofs(1,2)
+private val intQueueOfFour: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2,1,3))
+private val intQueueOfFourFB: IMCommon<Int> = FQueueBody.of(FList.of(*arrayOf<Int>(1)),FList.of(*arrayOf<Int>(3,1,2)))
+private val intQueueOfFourA: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2,2,3))
+private val intQueueOfFourB: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2,3,2))
+private val intQueueOfSix: IMCommon<Int> = FQueue.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSet: IMCommon<Int> = FKSet.ofs(1,2)
 
-private val strQueueOfNone: IMCollection<String> = FQueue.of(*emptyArrayOfStr)
-private val strQueueOfOne: IMCollection<String> = FQueue.of(*arrayOf<String>("1"))
-private val strQueueOfOneYR: IMCollection<String> = FQueue.of(*arrayOf<String>("1"), readyToDequeue = true)
-private val strQueueOfTwo: IMCollection<String> = FQueue.of(*arrayOf<String>("1","2"))
-private val strQueueOfTwoYR: IMCollection<String> = FQueue.of(*arrayOf<String>("1","2"), readyToDequeue = true)
-private val strQueueOfThree: IMCollection<String> = FQueue.of(*arrayOf<String>("1","2","3"))
+private val strQueueOfNone: IMCommon<String> = FQueue.of(*emptyArrayOfStr)
+private val strQueueOfOne: IMCommon<String> = FQueue.of(*arrayOf<String>("1"))
+private val strQueueOfOneYR: IMCommon<String> = FQueue.of(*arrayOf<String>("1"), readyToDequeue = true)
+private val strQueueOfTwo: IMCommon<String> = FQueue.of(*arrayOf<String>("1","2"))
+private val strQueueOfTwoYR: IMCommon<String> = FQueue.of(*arrayOf<String>("1","2"), readyToDequeue = true)
+private val strQueueOfThree: IMCommon<String> = FQueue.of(*arrayOf<String>("1","2","3"))
 
 class FQueueIMCollectionTest : FunSpec({
 
@@ -190,10 +191,17 @@ class FQueueIMCollectionTest : FunSpec({
   test("ffilter") {
     intQueueOfNone.ffilter {0 == it % 2} shouldBe emptyIMQueue<Int>()
     intQueueOfOne.ffilter {0 == it % 2} shouldBe emptyIMQueue<Int>()
-    (intQueueOfOne.ffilter {0 == it % 2} === intQueueOfOne) shouldBe true
+
+    (intQueueOfOne.ffilter {0 == it % 2} === intQueueOfOne) shouldBe false
+    (intQueueOfOne.ffilter {0 == it % 2} === intQueueOfNone) shouldBe true
+    (intQueueOfOne.ffilter {1 == it} === intQueueOfOne) shouldBe true
+
     intQueueOfOneYR.ffilter {0 == it % 2} shouldBe emptyIMQueue<Int>()
     intQueueOfOneYR.ffilter {0 == it % 2} shouldBe emptyIMQueue<Int>()
-    (intQueueOfOneYR.ffilter {0 == it % 2} === intQueueOfOneYR) shouldBe true
+    (intQueueOfOneYR.ffilter {1 == it} === intQueueOfOneYR) shouldBe true
+
+    (intQueueOfOneYR.ffilter {1 == it} === intQueueOfOne) shouldBe false
+
     intQueueOfTwo.ffilter {0 == it % 2} shouldBe FQueue.of(2)
     intQueueOfTwoYR.ffilter {0 == it % 2} shouldBe FQueue.of(2)
     intQueueOfThree2B.ffilter {0 == it % 2} shouldBe FQueue.of(2)
@@ -208,11 +216,9 @@ class FQueueIMCollectionTest : FunSpec({
     intQueueOfOneYR.ffilterNot {0 == it % 2} shouldBe intQueueOfOne
     (intQueueOfOneYR.ffilterNot {0 == it % 2} === intQueueOfOneYR) shouldBe true
     intQueueOfTwo.ffilterNot {0 == it % 2} shouldBe intQueueOfOne
-    (intQueueOfTwo.ffilterNot {0 == it % 2} === intQueueOfOne) shouldBe true
     intQueueOfTwoYR.ffilterNot {0 == it % 2} shouldBe intQueueOfOneYR
-    (intQueueOfTwoYR.ffilterNot {0 == it % 2} === intQueueOfOneYR) shouldBe true
-    intQueueOfThree2B.ffilterNot {0 == it % 2} shouldBe intQueueOfTwoA
-    intQueueOfThree2F.ffilterNot {0 == it % 2} shouldBe intQueueOfTwoA
+    intQueueOfThree2B.ffilterNot {0 == it % 2} shouldBe intQueueOfTworA
+    intQueueOfThree2F.ffilterNot {0 == it % 2} shouldBe intQueueOfTworA
     FQueue.of(*arrayOf<Int>(1,2,3,4)).ffilterNot {0 == it % 2} shouldBe intQueueOfTwoA
   }
 

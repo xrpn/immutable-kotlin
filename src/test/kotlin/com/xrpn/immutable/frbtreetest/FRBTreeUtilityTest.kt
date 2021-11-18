@@ -164,32 +164,32 @@ class FRBTreeUtilityTest  : FunSpec({
     }
 
     test("toIMRSet") {
-        intFRBTreeOfNone.toIMRSet(IntKeyType) shouldBe FKSet.emptyIMKSet()
-        intFRBTreeOfNone.toIMRSet(null) shouldBe FKSet.emptyIMKSet()
+        intFRBTreeOfNone.toIMSet(IntKeyType) shouldBe FKSet.emptyIMKSet()
+        intFRBTreeOfNone.toIMSet(null) shouldBe null // not enough info to infer what kind of empty set
         checkAll(repeats, Arb.frbtree(Arb.int(),20..50)) { frbt ->
-            val ims1: IMKSet<Int, Int> = frbt.toIMRSet(null)!!
+            val ims1: IMKSet<Int, Int> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
         checkAll(repeats, Arb.frbtree(Arb.string(),20..50)) { frbt ->
-            val ims1: IMKSet<Int, String> = frbt.toIMRSet(null)!!
+            val ims1: IMKSet<Int, String> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
         checkAll(repeats, Arb.frbStree(Arb.int(),20..50)) { frbt ->
-            val ims1: IMKSet<String, Int> = frbt.toIMRSet(null)!!
+            val ims1: IMKSet<String, Int> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
         checkAll(repeats, Arb.frbStree(Arb.string(),20..50)) { frbt ->
-            val ims1: IMKSet<String, String> = frbt.toIMRSet(null)!!
+            val ims1: IMKSet<String, String> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
             ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
         }
-        nnodeRbtOf3.toIMRSet(null) shouldBe null
-        knodeRbtOf3.toIMRSet(null)?.fsize() shouldBe 3
-        inodeRbtOf3.toIMRSet(null)?.fsize() shouldBe 3
-        snodeRbtOf3.toIMRSet(null)?.fsize() shouldBe 3
+        nnodeRbtOf3.toIMSet(null) shouldBe null
+        knodeRbtOf3.toIMSet(null)?.fsize() shouldBe 3
+        inodeRbtOf3.toIMSet(null)?.fsize() shouldBe 3
+        snodeRbtOf3.toIMSet(null)?.fsize() shouldBe 3
     }
 
     test("copy") {

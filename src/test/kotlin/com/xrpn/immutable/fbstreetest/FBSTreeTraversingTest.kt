@@ -45,10 +45,9 @@ import com.xrpn.immutable.uEntry
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import io.kotest.xrpn.fbstreeWithDups
 
 class FBSTreeTraversingTest : FunSpec({
@@ -409,7 +408,7 @@ class FBSTreeTraversingTest : FunSpec({
     }
 
     test("values") {
-        Arb.fbstree(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbsItree(Arb.int()).checkAll(repeats) { fbst ->
             val lv = fbst.copyToMutableMap().map { it.value }.sorted()
             fbst.inorderValues() shouldBe lv
         }

@@ -80,7 +80,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): Boolean =
         rbtFind(this, item) != null
 
-    override fun fdropAll(items: IMCollection<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = if (items.fempty()) this else when (items) {
+    override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = if (items.fempty()) this else when (items) {
         // TODO consider memoization
         is IMBTree -> this.fdropAlt(items) as FRBTree<A, B>
         is IMMap ->this.fdropAlt(items.asIMBTree()) as FRBTree<A, B>
@@ -233,7 +233,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean = this.equals(rhs)
 
-    override fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = asFKSetImpl(this, kType)
+    override fun toIMSet(kType: RestrictedKeyType<@UnsafeVariance A>?): FKSet<A, B>? = asFKSetImpl(this, kType)
 
     override fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K> =
         toFRBTreeImpl(this, kType)
@@ -479,8 +479,12 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         return traverse(this, z)
     }
 
-    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D> where C: Any, C: Comparable<@UnsafeVariance C> = // 	Return a new sequence by applying the function f to each element in the List
-        this.ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
+    override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D>
+    where C: Any, C: Comparable<@UnsafeVariance C> = if (fempty()) nul<C,D>() else {
+        val seed = of(f(froot()!!))
+        // worry not, there will be no duplicates by contract
+        ffold(seed) { acc, tkv -> acc.finsert(f(tkv)) }
+    }
 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
         is FRBTNil -> null
@@ -669,9 +673,9 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             }
         }
 
-        internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: IMCollection<TKVEntry<A,B>>): FRBTree<A, B>
+        internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: IMCommon<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A>  {
-            val (nextItem: TKVEntry<A, B>?, collection: IMCollection<TKVEntry<A, B>>) = items.fpopAndRemainder()
+            val (nextItem: TKVEntry<A, B>?, collection: IMCommon<TKVEntry<A, B>>) = items.fpopAndRemainder()
             return if (null == nextItem) treeStub else rbtDeletes(rbtDelete(treeStub, nextItem), collection)
         }
 

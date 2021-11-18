@@ -74,7 +74,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this, 0)
     }
 
-    override fun fdropAll(items: IMCollection<@UnsafeVariance A>): FList <A> = if (items.fempty()) this else when(items) {
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FList <A> = if (items.fempty()) this else when(items) {
         is IMSet<A> -> this.ffoldLeft(emptyIMList()) { acc, element -> if (items.contains(element)) acc else FLCons(element, acc) }
         is IMKeyedValue<*,*> -> this.ffoldLeft(emptyIMList()) { acc, element ->
             element as TKVEntry<*,*>
@@ -173,6 +173,32 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLNil -> FLNil
         is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
     }
+
+    // IMMappable
+
+    override fun <B: Any> fmap(f: (A) -> B): FList<B> {
+
+        tailrec fun go(xs: FList<A>, out: FList<B>): FList<B> =
+            when(xs) {
+                is FLNil -> out
+                is FLCons -> go(xs.tail, FLCons<B>(f(xs.head), out))
+            }
+
+        return go(this, emptyIMList<B>()).freverse()
+    }
+
+    override fun <B : Any> flift2map(
+        item: IMCommon<B>
+    ): IMList<B> = liftToList(item)
+
+    // IMApplicable
+
+    override fun <B: Any, C: IMMappable<B, IMCommon<B>>> fmapply(op: (IMList<A>) -> C): C =
+        op(this)
+
+    override fun <B: Any> flift2maply(
+        item: IMMappable<B, IMCommon<B>>
+    ): IMList<B> = liftToList(item as IMCommon<B>)
 
     // filtering
 
@@ -490,17 +516,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return reversed.ffoldLeft(z, g)
     }
 
-    override fun <B: Any> fmap(f: (A) -> B): FList<B> {
-
-        tailrec fun go(xs: FList<A>, out: FList<B>): FList<B> =
-            when(xs) {
-                is FLNil -> out
-                is FLCons -> go(xs.tail, FLCons<B>(f(xs.head), out))
-            }
-
-        return go(this, emptyIMList<B>()).freverse()
-    }
-
     override fun freduceLeft(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(this, f)
 
     override fun freduceRight(f: (A, acc: A) -> @UnsafeVariance A): A? {
@@ -587,6 +602,23 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             val marks = go(this,res,0)
             Pair(tally, marks)
         }
+    }
+
+    private fun <B: Any> liftToList(item: IMCommon<B>): FList<B> = when(item) {
+        is IMSdj<*, *> -> TODO()
+        is IMList -> item as FList<B>
+        is IMSet -> item.asIMRSetNotEmpty()?.let { it ->
+            it.sxdj().bicmap(
+                { nes: IMSetNotEmpty<B> -> nes.fmapToList { id -> id } },
+                { nes: IMXSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (nes.fmapToList { id -> id } as FList<B>) }
+            ) as FList<B>
+        } ?: emptyIMList()
+        is IMStack -> TODO()
+        is IMQueue -> TODO()
+        is IMBTree<*, *> -> TODO()
+        is IMMap<*, *> -> TODO()
+        is IMHeap<*> -> TODO()
+        else -> throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
     }
 
     companion object: IMListCompanion {
@@ -829,5 +861,4 @@ data class FLCons<out A: Any>(
         //
         fun <A: Any> hashCode(cons: FLCons<A>) = cons.hash
     }
-
 }

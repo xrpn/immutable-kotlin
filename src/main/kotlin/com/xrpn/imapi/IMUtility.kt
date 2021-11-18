@@ -50,7 +50,7 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.froot()) { _, tkv -> f(tkv); tkv }; Unit }
-    fun toIMRSet(kType: RestrictedKeyType<@UnsafeVariance A>?): IMSet<B>?
+    fun toIMSet(kType: RestrictedKeyType<@UnsafeVariance A>?): IMSet<B>?
     fun <K> toIMBTree(kType: RestrictedKeyType<@UnsafeVariance K>): IMBTree<K, B>? where K: Any, K: Comparable<K>
     fun toIMMap(): IMMap<A, B>
     fun copy(): IMBTree<A, B>

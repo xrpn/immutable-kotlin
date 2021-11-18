@@ -1,6 +1,6 @@
 package com.xrpn.immutable.fstacktest
 
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMCommon
 import com.xrpn.imapi.IMStack
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
@@ -10,23 +10,23 @@ import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intStackOfNone: IMCollection<Int> = FStack.of(*emptyArrayOfInt)
-private val intStackOfOne: IMCollection<Int> = FStack.of(*arrayOf<Int>(1))
-private val intStackOfOneA: IMCollection<Int> = FStack.of(*arrayOf<Int>(3))
-private val intStackOfTwo: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2))
-private val intStackOfTwoA: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,3))
-private val intStackOfThree: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2,3))
-private val intStackOfFour: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2,1,3))
-private val intStackOfFourA: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2,2,3))
-private val intStackOfFourB: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2,3,2))
-private val intStackOfSix: IMCollection<Int> = FStack.of(*arrayOf<Int>(1,2,3,3,2,1))
-private val intSet: IMCollection<Int> = FKSet.ofs(1,2)
+private val intStackOfNone: IMCommon<Int> = FStack.of(*emptyArrayOfInt)
+private val intStackOfOne: IMCommon<Int> = FStack.of(*arrayOf<Int>(1))
+private val intStackOfOneA: IMCommon<Int> = FStack.of(*arrayOf<Int>(3))
+private val intStackOfTwo: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2))
+private val intStackOfTwoA: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,3))
+private val intStackOfThree: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2,3))
+private val intStackOfFour: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2,1,3))
+private val intStackOfFourA: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2,2,3))
+private val intStackOfFourB: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2,3,2))
+private val intStackOfSix: IMCommon<Int> = FStack.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSet: IMCommon<Int> = FKSet.ofs(1,2)
 
 
-private val strStackOfNone: IMCollection<String> = FStack.of(*emptyArrayOfStr)
-private val strStackOfOne: IMCollection<String> = FStack.of(*arrayOf<String>("1"))
-private val strStackOfTwo: IMCollection<String> = FStack.of(*arrayOf<String>("1","2"))
-private val strStackOfThree: IMCollection<String> = FStack.of(*arrayOf<String>("1","2","3"))
+private val strStackOfNone: IMCommon<String> = FStack.of(*emptyArrayOfStr)
+private val strStackOfOne: IMCommon<String> = FStack.of(*arrayOf<String>("1"))
+private val strStackOfTwo: IMCommon<String> = FStack.of(*arrayOf<String>("1","2"))
+private val strStackOfThree: IMCommon<String> = FStack.of(*arrayOf<String>("1","2","3"))
 
 class FStackIMCollectionTest : FunSpec({
 

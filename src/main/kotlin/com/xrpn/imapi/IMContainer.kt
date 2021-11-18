@@ -4,25 +4,26 @@ import com.xrpn.immutable.*
 import kotlin.reflect.KClass
 
 enum class IMSC {
-    IMLIST, IMSET, IMMAP, IMTREE, IMSTACK, IMQUEUE, IMENTRY
+    IMLIST, IMSET, IMMAP, IMTREE, IMSTACK, IMQUEUE, IMENTRY, IMTSDJ
 }
 
 interface IMSealed {
     val seal: IMSC
-    fun asIMCollection(): IMCollection<*> = this as IMCollection<*>
+    fun asIMCollection(): IMCommon<*> = this as IMCommon<*>
 }
 
-interface IMCollection<out A: Any>: IMSealed {
+// One or more A
+interface IMCommon<out A: Any>: IMSealed {
     fun fall(predicate: (A) -> Boolean): Boolean = fempty() || fcount(predicate) == fsize()
     fun fany(predicate: (A) -> Boolean): Boolean = fempty() || ffindAny(predicate) != null
     fun fcontains(item: @UnsafeVariance A): Boolean
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
-    fun fdropAll(items: IMCollection<@UnsafeVariance A>): IMCollection<A>
-    fun fdropItem(item: @UnsafeVariance A): IMCollection<A>
-    fun fdropWhen(isMatch: (A) -> Boolean): IMCollection<A>
+    fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMCommon<A>
+    fun fdropItem(item: @UnsafeVariance A): IMCommon<A>
+    fun fdropWhen(isMatch: (A) -> Boolean): IMCommon<A>
     fun fempty(): Boolean = fpick() == null
-    fun ffilter(isMatch: (A) -> Boolean): IMCollection<A> // return all elements that match the predicate p
-    fun ffilterNot(isMatch: (A) -> Boolean): IMCollection<A> // Return all elements that do not match the predicate p
+    fun ffilter(isMatch: (A) -> Boolean): IMCommon<A> // return all elements that match the predicate p
+    fun ffilterNot(isMatch: (A) -> Boolean): IMCommon<A> // Return all elements that do not match the predicate p
     fun ffindAny(isMatch: (A) -> Boolean): A? // Return some element, if any, that matches the predicate p
     fun fisStrict(): Boolean
     fun fnone(predicate: (A) -> Boolean): Boolean = fempty() || ffindAny(predicate) == null
@@ -35,10 +36,12 @@ interface IMCollection<out A: Any>: IMSealed {
             throw RuntimeException("internal error, $it:[${it::class}] unknown nested")
         }
     }
-    fun fpopAndRemainder(): Pair<A?, IMCollection<A>>
+    fun fpopAndRemainder(): Pair<A?, IMCommon<A>>
     fun fsize(): Int
     fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!)
 }
+
+interface IMCommonEmpty<out A: Any>: IMCommon<A>
 
 interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
     fun fcontainsKey(key: @UnsafeVariance K): Boolean
@@ -48,7 +51,7 @@ interface IMKeyed<out K> where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
     fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean?
-    fun asIMCollection(): IMCollection<*> = this as IMCollection<*>
+    fun asIMCollection(): IMCommon<*> = this as IMCommon<*>
 }
 
 interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -95,6 +98,23 @@ interface IMOrdered<out A: Any> {
     fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
 }
 
+interface IMMappable<out S: Any, out U: IMCommon<S>>: IMCommon<S> {
+    fun <T: Any> fmap(f: (S) -> T): IMMappable<T,IMCommon<T>>
+    fun <T: Any> flift2map(item: IMCommon<T>): IMMappable<T, IMCommon<T>>
+}
+
+interface IMKMappable<out K, out V: Any, out U: IMCommon<TKVEntry<K,V>>> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun <L, T: Any> fmap(f: (TKVEntry<K,V>) -> TKVEntry<L,T>): IMKMappable<L,T,IMCommon<TKVEntry<L,T>>> where L: Any, L: Comparable<@UnsafeVariance L>
+}
+
+interface IMMapplicable<out S: Any, out U: IMMappable<S, IMCommon<S>>>: IMCommon<S> {
+    fun <V: Any, W:IMMappable<V, IMCommon<V>>> fmapply(op: (U) -> @UnsafeVariance W): W
+    fun <T: Any> flift2maply(item: IMMappable<T, IMCommon<T>>): IMMapplicable<T,IMMappable<T, IMCommon<T>>>
+}
+
+interface IMSdj<out L, out R>:
+    IMCommon<TSDJ<L,R>>
+
 interface IMList<out A:Any>:
     IMListFiltering<A>,
     IMListGrouping<A>,
@@ -102,10 +122,12 @@ interface IMList<out A:Any>:
     IMListAltering<A>,
     IMListUtility<A>,
     IMListExtras<A>,
-    IMCollection<A>,
+    IMCommon<A>,
     IMFoldable<A>,
     IMReducible<A>,
     IMOrdered<A>,
+    IMMappable<A, IMList<A>>,
+    IMMapplicable<A, IMList<A>>,
     IMListTyping<A> {
     override fun <R> ffold(z: R, f: (acc: R, A) -> R): R = ffoldLeft(z, f)
     override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
@@ -119,9 +141,10 @@ interface IMSet<out A: Any>:
     IMSetTransforming<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
-    IMCollection<A>,
+    IMCommon<A>,
     IMFoldable<A>,
     IMReducible<A>,
+    IMMappable<A, IMSet<Nothing>>,
     IMSetTyping<A> {
     fun asIMSetNotEmpty(): IMSetNotEmpty<A>?
     fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K>
@@ -135,9 +158,9 @@ interface IMRSetNotEmpty<out A: Any>:
     IMSetUtility<A>,
     IMSetExtras<A>,
     IMSetTyping<A>,
-    IMCollection<A> {
+    IMCommon<A> {
     // fun <KK> edj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<KK>> where KK: Any, KK: Comparable<KK>
-    fun edj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<*>>
+    fun sxdj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<*>>
 }
 
 interface IMSetNotEmpty<out A:Any>:
@@ -169,11 +192,12 @@ interface IMMap<out K, out V: Any>:
     IMMapUtility<K, V>,
     IMMapAltering<K, V>,
     IMMapExtras<K, V>,
-    IMCollection<TKVEntry<K,V>>,
+    IMCommon<TKVEntry<K,V>>,
     IMKeyed<K>,
     IMKeyedValue<K, V>,
     IMReducible<V>,
     IMFoldable<TKVEntry<K,V>>,
+    IMKMappable<K, V, IMMap<Nothing,Nothing>>,
     IMMapTyping<K, V>
         where K: Any, K: Comparable<@UnsafeVariance K> {
 
@@ -182,7 +206,7 @@ interface IMMap<out K, out V: Any>:
         asIMBTree().fcount(isMatch)
     override fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
-    override fun asIMCollection(): IMCollection<*> = this
+    override fun asIMCollection(): IMCommon<*> = this
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         if (fempty()) null else null == asIMBTree().ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
     // IMKeyedValue
@@ -208,11 +232,12 @@ interface IMBTree<out A, out B: Any>:
     IMBTreeTransforming<A,B>,
     IMBTreeAltering<A, B>,
     IMBTreeExtras<A, B>,
-    IMCollection<TKVEntry<A,B>>,
+    IMCommon<TKVEntry<A,B>>,
     IMKeyed<A>,
     IMKeyedValue<A, B>,
     IMFoldable<TKVEntry<A,B>>,
     IMReducible<TKVEntry<A,B>>,
+    IMKMappable<A, B, IMBTree<Nothing,Nothing>>,
     IMBTreeTyping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -250,8 +275,9 @@ interface IMStack<out A:Any>:
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMStackUtility<A>,
-    IMCollection<A>,
+    IMCommon<A>,
     IMOrdered<A>,
+    IMMappable<A, IMStack<Nothing>>,
     IMStackTyping<A>
 
 interface IMQueue<out A:Any>:
@@ -260,9 +286,13 @@ interface IMQueue<out A:Any>:
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
     IMQueueUtility<A>,
-    IMCollection<A>,
+    IMCommon<A>,
     IMOrdered<A>,
+    IMMappable<A, IMQueue<Nothing>>,
     IMQueueTyping<A>
+
+interface IMHeap<out A: Any>:
+    IMCommon<A>
 
 // ============ INTERNAL
 
@@ -284,12 +314,6 @@ internal interface IMKSet<out K, out A:Any>:
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
 
-    // IMKeyed
-
-    //    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? = asIMKSetNotEmpty()?.let {
-    //        sample.isLikeKey(it.fpickKey()!!::class) &&  null == it.ffindAny { v -> v.isStrictlyNot(sample.vKc)
-    //    }}
-
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
         this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) }}
  }
@@ -309,7 +333,7 @@ internal interface IMKASetNotEmpty<out K, out A:Any>:
     IMKASetAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
     // override fun edj(): TSDJ<IMSetNotEmpty<A>, IMXSetNotEmpty<K>> = TSDL(this)
-    override fun edj() = TSDL(this)
+    override fun sxdj() = IMSetDJL(this)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>? = this
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = null
 }
@@ -320,7 +344,7 @@ internal interface IMKKSetNotEmpty<out K>:
     IMKKSetTransforming<K>,
     IMKKSetAltering<K>
         where K: Any, K: Comparable<@UnsafeVariance K> {
-    override fun edj() = TSDR(this)
+    override fun sxdj() = IMXSetDJR(this)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, K>? = null
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = this
 }

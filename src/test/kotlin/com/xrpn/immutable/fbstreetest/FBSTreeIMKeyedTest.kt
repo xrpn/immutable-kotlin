@@ -12,7 +12,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import io.kotest.property.checkAll
 import io.kotest.xrpn.frbStree
 
@@ -72,7 +72,7 @@ class FBSTreeIMKeyedTest : FunSpec({
   test("ffilterKey") {
     FBSTree.nul<Int, String>().ffilterKey { true }.fempty() shouldBe true
     FBSTree.nul<Int, String>().ffilterKey { false }.fempty() shouldBe true
-    checkAll(repeatsMid.first, Arb.fbstree(Arb.int(), 5..repeatsMid.second)) { frbII ->
+    checkAll(repeatsMid.first, Arb.fbsItree(Arb.int(), 5..repeatsMid.second)) { frbII ->
       val smallest = frbII.inorder().fhead()!!
       val small = frbII.ffilterKey { k: Int -> k.equals(smallest.getk()) }
       small.froot()?.equals(smallest) shouldBe true
@@ -86,7 +86,7 @@ class FBSTreeIMKeyedTest : FunSpec({
   test("ffilterKeyNot") {
     FBSTree.nul<Int, String>().ffilterKeyNot { true }.fempty() shouldBe true
     FBSTree.nul<Int, String>().ffilterKeyNot { false }.fempty() shouldBe true
-    checkAll(repeatsMid.first, Arb.fbstree(Arb.int(), 5..repeatsMid.second)) { frbII ->
+    checkAll(repeatsMid.first, Arb.fbsItree(Arb.int(), 5..repeatsMid.second)) { frbII ->
       val sorted = frbII.inorder()
       val smallest = sorted.fhead()!!
       val large = frbII.ffilterKeyNot { k: Int -> k.equals(smallest.getk()) }
@@ -171,7 +171,7 @@ class FBSTreeIMKeyedTest : FunSpec({
   test("ffilterValue") {
     FBSTree.nul<Int, String>().ffilterValue { true }.fempty() shouldBe true
     FBSTree.nul<Int, String>().ffilterValue { false }.fempty() shouldBe true
-    checkAll(repeatsMid.first, Arb.fbstree(Arb.string(8,20), 5..repeatsMid.second)) { frbIS ->
+    checkAll(repeatsMid.first, Arb.fbsItree(Arb.string(8,20), 5..repeatsMid.second)) { frbIS ->
       val smallest = frbIS.inorder().fhead()!!
       val small = frbIS.ffilterValue { v: String -> v.equals(smallest.getv()) }
       small.froot()?.equals(smallest) shouldBe true
@@ -185,7 +185,7 @@ class FBSTreeIMKeyedTest : FunSpec({
   test("ffilterValueNot") {
     FBSTree.nul<Int, String>().ffilterValueNot { true }.fempty() shouldBe true
     FBSTree.nul<Int, String>().ffilterValueNot { false }.fempty() shouldBe true
-    checkAll(repeatsMid.first, Arb.fbstree(Arb.string(8,20), 5..repeatsMid.second)) { frbIS ->
+    checkAll(repeatsMid.first, Arb.fbsItree(Arb.string(8,20), 5..repeatsMid.second)) { frbIS ->
       val sorted = frbIS.inorder()
       val smallest = sorted.fhead()!!
       val large = frbIS.ffilterValueNot { v: String -> v.equals(smallest.getv()) }
@@ -202,7 +202,7 @@ class FBSTreeIMKeyedTest : FunSpec({
     FBSTree.nul<Int, String>().ffindAnyValue { true } shouldBe null
     FBSTree.nul<Int, String>().ffindAnyValue { false } shouldBe null
     val maxValueLen = 20
-    checkAll(repeatsMid.first, Arb.fbstree(Arb.string(8, maxValueLen), 5..repeatsMid.second)) { frbIS ->
+    checkAll(repeatsMid.first, Arb.fbsItree(Arb.string(8, maxValueLen), 5..repeatsMid.second)) { frbIS ->
       val impossibleString = "wefvsopeivnsd;kfjvnerpiuvnsd;fkjvnwepiurvhnnd;kasf"
       impossibleString.length shouldBeGreaterThan maxValueLen
       val sorted = frbIS.inorder()

@@ -60,7 +60,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fbstree
+import io.kotest.xrpn.fbsItree
 import kotlin.random.Random.Default.nextInt
 import io.kotest.matchers.types.shouldBeInstanceOf
 
@@ -800,7 +800,7 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.toArray") {
-        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
+        Arb.fbsItree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
             val ary: Array<TKVEntry<Int, Int>> = toArray(fbst)
             fbst shouldBe of(ary.iterator())
             fbst shouldBe of(*ary)

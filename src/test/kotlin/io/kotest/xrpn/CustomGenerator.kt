@@ -1,12 +1,10 @@
 package io.kotest.xrpn
 
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FBSTree.Companion.fbtDeepInvariant
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.set
-import io.kotest.property.arbitrary.take
 
 fun <A: Any, B> Arb.Companion.flist(
     arbB: Arb<B>,
@@ -30,7 +28,7 @@ fun <A: Any, B> Arb.Companion.flistAsKList(
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
 ): Arb<List<A>> where B:A = flist(arbB, range, f)
 
-fun <A: Any, B> Arb.Companion.fset(
+fun <A: Any, B> Arb.Companion.fiset(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
@@ -60,7 +58,7 @@ fun <A: Any, B> Arb.Companion.fsetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = fset(arbB, range, f)
+): Arb<Collection<A>> where B:A = fiset(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.fssetAsCollection(
     arbB: Arb<B>,
@@ -94,7 +92,7 @@ fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
 ): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f)
 
-fun <A: Any, B> Arb.Companion.fbstree(
+fun <A: Any, B> Arb.Companion.fbsItree(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
@@ -137,7 +135,7 @@ fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbstree(arbB, range, f)
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f)
 
 fun <A: Any, B> Arb.Companion.fqueue(
     arbB: Arb<B>,

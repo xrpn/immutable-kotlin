@@ -1,30 +1,29 @@
 package com.xrpn.immutable.flisttest
 
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMCommon
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
-import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val intListOfNone: IMCollection<Int> = FList.of(*emptyArrayOfInt)
-private val intListOfOne: IMCollection<Int> = FList.of(*arrayOf<Int>(1))
-private val intListOfTwo: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2))
-private val intListOfThree: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3))
-private val intListOfFour: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
-private val intListOfFourA: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
-private val intListOfFourB: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
-private val intListOfSix: IMCollection<Int> = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
-private val intSet: IMCollection<Int> = FKSet.ofs(1,2)
+private val intListOfNone: IMCommon<Int> = FList.of(*emptyArrayOfInt)
+private val intListOfOne: IMCommon<Int> = FList.of(*arrayOf<Int>(1))
+private val intListOfTwo: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2))
+private val intListOfThree: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFour: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2,1,3))
+private val intListOfFourA: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2,2,3))
+private val intListOfFourB: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2,3,2))
+private val intListOfSix: IMCommon<Int> = FList.of(*arrayOf<Int>(1,2,3,3,2,1))
+private val intSet: IMCommon<Int> = FKSet.ofs(1,2)
 
 
-private val strListOfNone: IMCollection<String> = FList.of(*emptyArrayOfStr)
-private val strListOfOne: IMCollection<String> = FList.of(*arrayOf<String>("1"))
-private val strListOfTwo: IMCollection<String> = FList.of(*arrayOf<String>("1","2"))
-private val strListOfThree: IMCollection<String> = FList.of(*arrayOf<String>("1","2","3"))
+private val strListOfNone: IMCommon<String> = FList.of(*emptyArrayOfStr)
+private val strListOfOne: IMCommon<String> = FList.of(*arrayOf<String>("1"))
+private val strListOfTwo: IMCommon<String> = FList.of(*arrayOf<String>("1","2"))
+private val strListOfThree: IMCommon<String> = FList.of(*arrayOf<String>("1","2","3"))
 
 class FListIMCollectionTest : FunSpec({
 

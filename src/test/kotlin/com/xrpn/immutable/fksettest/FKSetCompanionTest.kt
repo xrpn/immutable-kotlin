@@ -20,7 +20,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
-import io.kotest.xrpn.fset
+import io.kotest.xrpn.fiset
 
 private val intKKSetOfNone: FKSet<Int, Int> = FKSet.ofk(*emptyArrayOfInt)
 private val intKKSetOfOne = FKSet.ofk(1)
@@ -645,7 +645,7 @@ class FKSetCompanionTest : FunSpec({
     }
 
     test("co.toArray"){
-        Arb.fset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
+        Arb.fiset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
             val ary: Array<Int> = FKSet.toArray(fs)
             fs.strongEqual(FKSet.ofi(ary.iterator())) shouldBe true
             fs.strongEqual(FKSet.ofi(*ary)) shouldBe true

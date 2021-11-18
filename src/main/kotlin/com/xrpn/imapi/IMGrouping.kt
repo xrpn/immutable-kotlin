@@ -3,7 +3,7 @@ package com.xrpn.imapi
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 
-interface IMListGrouping<out A: Any>: IMCollection<A> {
+interface IMListGrouping<out A: Any>: IMCommon<A> {
 
     fun ffindFirst(isMatch: (A) -> Boolean): Triple< /* before */ IMList<A>, A?, /* after */ IMList<A>> // Split the list at first match
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMList<A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
@@ -21,7 +21,7 @@ interface IMListGrouping<out A: Any>: IMCollection<A> {
     fun fzipWithIndex(startIndex: Int): IMList<Pair<A, Int>> // A sublist of elements from startIndex contained in a tuple along with its 0-based index
 }
 
-interface IMSetGrouping<out A: Any>: IMCollection<A> {
+interface IMSetGrouping<out A: Any>: IMCommon<A> {
     fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance B>): IMSet<Pair<A, B>> // cartesian product
     fun fcombinations(maxSize: Int): IMSet<IMSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
@@ -37,7 +37,7 @@ interface IMSetGrouping<out A: Any>: IMCollection<A> {
 
 internal interface IMKSetGrouping<out K, out A: Any>: IMSetGrouping<A> where K: Any, K: Comparable<@UnsafeVariance K>
 
-interface IMMapGrouping<out K, out V: Any>: IMCollection<TKVEntry<K, V>> where K: Any, K: Comparable<@UnsafeVariance K> {
+interface IMMapGrouping<out K, out V: Any>: IMCommon<TKVEntry<K, V>> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fentries(): IMSet<TKVEntry<K,V>>
     fun fkeys(): IMSet<K>
     fun <R: Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>?
@@ -50,13 +50,13 @@ interface IMMapGrouping<out K, out V: Any>: IMCollection<TKVEntry<K, V>> where K
     override fun fpopAndRemainder(): Pair<TKVEntry<K, V>?, IMMap<K, V>>
 }
 
-interface IMBTreeGrouping<out A, out B: Any>: IMCollection<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
+interface IMBTreeGrouping<out A, out B: Any>: IMCommon<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
     fun <C> fgroupBy(f: (TKVEntry<A, B>) -> C): IMMap<C, IMBTree<A, B>> where C: Any, C: Comparable<C>//	A map of collections created by the function f
     fun fpartition(isMatch: (TKVEntry<A, B>) -> Boolean): Pair</* true */ IMBTree<A, B>, /* false */ IMBTree<A, B>> // Two collections created by the predicate p
     fun fmaxDepth(): Int
     fun fminDepth(): Int
 }
 
-interface IMStackGrouping<out A: Any>: IMCollection<A>
+interface IMStackGrouping<out A: Any>: IMCommon<A>
 
-interface IMQueueGrouping<out A: Any>: IMCollection<A>
+interface IMQueueGrouping<out A: Any>: IMCommon<A>

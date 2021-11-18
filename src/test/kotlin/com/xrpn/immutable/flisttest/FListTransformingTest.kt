@@ -113,9 +113,9 @@ class FListTransformingTest : FunSpec({
   }
 
   test("fmap") {
-    intListOfNone.fmap { it + 1} shouldBe FLNil
-    intListOfOne.fmap { it + 1} shouldBe FLCons(2,FLNil)
-    intListOfTwo.fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLNil))
+    (intListOfNone as FList).fmap { it + 1} shouldBe FLNil
+    (intListOfOne as FList).fmap { it + 1} shouldBe FLCons(2,FLNil)
+    (intListOfTwo as FList).fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLNil))
   }
 
   test("freduceLeft") {

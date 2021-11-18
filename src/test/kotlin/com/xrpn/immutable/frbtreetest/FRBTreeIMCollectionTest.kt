@@ -1,7 +1,7 @@
 package com.xrpn.immutable.frbtreetest
 
 import com.xrpn.imapi.IMBTreeUtility
-import com.xrpn.imapi.IMCollection
+import com.xrpn.imapi.IMCommon
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FRBTree.Companion.nul
@@ -18,10 +18,10 @@ import io.kotest.property.checkAll
 import io.kotest.xrpn.frbtree
 import kotlin.random.Random
 
-private val iiTreeOfNone: IMCollection<TKVEntry<Int,Int>> = FRBTree.nul<Int,Int>()
-private val iiTreeOfTwo: IMCollection<TKVEntry<Int,Int>> = FRBTree.of(1.toIAEntry(), 2.toIAEntry())
-private val siTreeOfTwo: IMCollection<TKVEntry<String, Int>> = FRBTree.of(1.toSAEntry(), 2.toSAEntry())
-private val ixTreeOfTwo: IMCollection<TKVEntry<Int, FKSet<*, Int>>> =
+private val iiTreeOfNone: IMCommon<TKVEntry<Int,Int>> = FRBTree.nul<Int,Int>()
+private val iiTreeOfTwo: IMCommon<TKVEntry<Int,Int>> = FRBTree.of(1.toIAEntry(), 2.toIAEntry())
+private val siTreeOfTwo: IMCommon<TKVEntry<String, Int>> = FRBTree.of(1.toSAEntry(), 2.toSAEntry())
+private val ixTreeOfTwo: IMCommon<TKVEntry<Int, FKSet<*, Int>>> =
   FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
 private val ixxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
@@ -79,7 +79,7 @@ class FRBTreeIMCollectionTest : FunSpec({
     iiTreeOfNone.fall { false } shouldBe true
     Arb.frbtree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
       val ts = frbt.size
-      val aut = frbt as IMCollection<TKVEntry<Int,Int>>
+      val aut = frbt as IMCommon<TKVEntry<Int,Int>>
       var count: Int = 0
       aut.fall { count+=1; true } shouldBe true
       count shouldBe ts
@@ -100,7 +100,7 @@ class FRBTreeIMCollectionTest : FunSpec({
     iiTreeOfNone.fany { false } shouldBe true
     Arb.frbtree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
       val ts = frbt.size
-      val aut = frbt as IMCollection<TKVEntry<Int,Int>>
+      val aut = frbt as IMCommon<TKVEntry<Int,Int>>
       var count: Int = 0
       aut.fany { count+=1; true } shouldBe true
       count shouldBe 1
@@ -121,7 +121,7 @@ class FRBTreeIMCollectionTest : FunSpec({
     Arb.frbtree(Arb.int(1..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
       val ts = frbt.size
       val sample = if (1 < ts) frbt.inorder().fdrop(ts / 2).fhead()!! else null
-      val aut = frbt as IMCollection<TKVEntry<Int,Int>>
+      val aut = frbt as IMCommon<TKVEntry<Int,Int>>
       aut.fcontains(TKVEntry.ofkv(0, 0)) shouldBe false
       sample?.let { aut.fcontains(sample) shouldBe true }
     }
@@ -134,7 +134,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val mm = frbt.copyToMutableMap()
       val ss = mm.size // size without duplicates
       val ds = frbt.size // size with duplicates
-      val aut = frbt as IMCollection<TKVEntry<Int,Int>>
+      val aut = frbt as IMCommon<TKVEntry<Int,Int>>
       var tot = 0
       var totDups = 0
       var nonDistinct = 0
@@ -374,7 +374,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val svalues = values + values
       val ora1 = values.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
@@ -413,7 +413,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val svalues = shuffled + shuffled
       val ora1 = shuffled.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
@@ -440,7 +440,7 @@ class FRBTreeIMCollectionTest : FunSpec({
       val svalues = reversed + reversed
       val ora1 = reversed.size
       svalues.size shouldBe (ora1 * 2)
-      val tree: IMCollection<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
+      val tree: IMCommon<TKVEntry<Int,Int>> = FRBTree.of(svalues.iterator())
       tree.fsize() shouldBe ora1
 
       val sAll1 = tree.ffilter(pickIfLess(ora1))
