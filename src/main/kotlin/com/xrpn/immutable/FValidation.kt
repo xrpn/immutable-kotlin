@@ -14,11 +14,11 @@ data class FValidation<T: Any, E: Any> (
 
     companion object {
 
-        fun <E: Any, T: Any, TS: IMMappable<T, IMCommon<T>>> failAllOrPass(
+        fun <E: Any, T: Any> failAllOrPass(
             fail: (e: E?) -> E
         ): ((T) -> TSDJ<E, T>) ->
-            (IMMapplicable<T, TS>) ->
-            IMMappable<TSDJ<E, T>, IMCommon<TSDJ<E, T>>> = { criterium ->
+            (IMMapplicable<T, IMMappable<T, IMCommon<T>>>) ->
+            IMMapplicable<TSDJ<E, T>, IMMappable<TSDJ<E, T>, IMCommon<TSDJ<E, T>>>> = { criterium ->
                 { subject ->
                     subject.fmapply(FValidation(criterium, fail)::applicanda)
                 }

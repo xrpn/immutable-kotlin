@@ -1,8 +1,6 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.IMLogging
 import com.xrpn.immutable.TKVEntry
-import java.util.logging.Logger
 
 // TODO remove in time
 private fun checkf(res: Boolean, lhs: Any, rhs: Any): Boolean {

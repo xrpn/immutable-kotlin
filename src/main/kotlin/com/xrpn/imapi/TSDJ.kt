@@ -34,18 +34,23 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMSdj<A,B> {
         else -> null
     }
 
-    fun <C> bicmap(fl: (A) -> C, fr: (B) -> C): C = when (this) {
+    fun <C> bireduce(fl: (A) -> C, fr: (B) -> C): C = when (this) {
         is TSDL -> fl(left()!!)
         is TSDR -> fr(right()!!)
     }
 
     fun <C:Any, D:Any> bimap(fl: (A) -> C, fr: (B) -> D): TSDJ<C,D> = when (this) {
-        is TSDL -> when (val aux = fl(left()!!)) {
+        is Invalid -> when (val aux = fl(left()!!)) {
             is String -> @Suppress("UNCHECKED_CAST") (ErrSTrap(aux) as TSDL<C>)
             is ErrExReport -> @Suppress("UNCHECKED_CAST") (ErrRTrap(aux) as TSDL<C>)
             else -> @Suppress("UNCHECKED_CAST") (ErrATrap(aux) as TSDL<C>)
         }
-        is TSDR -> TSDJPass(fr(right()!!))
+        is Valid -> TSDJValid(fr(right()!!))
+        is TSDL -> when(l) {
+            is IMSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (TSDJValid(fl(l)) as TSDR<D>)
+            else -> @Suppress("UNCHECKED_CAST") (TSDJInvalid(l) as TSDL<C>)
+        }
+        is TSDR -> TSDJValid(fr(r))
     }
 
     val strictness: Boolean by lazy { if (!FT.isContainer(this)) true else this.toUCon()!!.isStrict() }
@@ -67,6 +72,9 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMSdj<A,B> {
 abstract class TSDL<out A>(open val l: A): TSDJ<A, Nothing>()
 abstract class TSDR<out B>(open val r: B): TSDJ<Nothing, B>()
 
+abstract class Invalid<out A>(override val l: A): TSDL<A>(l)
+abstract class Valid<out B>(override val r: B): TSDR<B>(r)
+
 data class ErrExReport(val errMsg:String, val ex:Exception?) {
     private var verbose: AtomicBoolean = AtomicBoolean(false)
     fun longMsg(): ErrExReport { verbose.set(true); return this }
@@ -79,10 +87,11 @@ data class ErrExReport(val errMsg:String, val ex:Exception?) {
     override fun toString(): String = ex?.let { "$errMsg :: ${it.message}${if(verbose.get()) exDetails() else ' '}" } ?: errMsg
 }
 
-data class ErrATrap(override val l: Any): TSDL<Any>(l)
-data class ErrSTrap(override val l: String): TSDL<String>(l)
-data class ErrRTrap(override val l: ErrExReport): TSDL<ErrExReport>(l)
-data class TSDJPass<out A>(override val r: A): TSDR<A>(r)
+data class TSDJInvalid<out A>(override val l: A): Invalid<A>(l)
+data class ErrATrap(override val l: Any): Invalid<Any>(l)
+data class ErrSTrap(override val l: String): Invalid<String>(l)
+data class ErrRTrap(override val l: ErrExReport): Invalid<ErrExReport>(l)
+data class TSDJValid<out A>(override val r: A): Valid<A>(r)
 
 data class IMSetDJL<out A: Any>(override val l: IMSetNotEmpty<A>): TSDL<IMSetNotEmpty<A>>(l)
 data class IMXSetDJR<out A>(override val r: IMXSetNotEmpty<A>): TSDR<IMXSetNotEmpty<A>>(r) where A: Any, A:Comparable<@UnsafeVariance A>

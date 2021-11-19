@@ -108,7 +108,10 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> =
         FQueueBody.of(fqGetFront().fmap(f),fqGetBack().fmap(f))
 
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMQueue<B> = TODO()
+    // ============ IMMapplicable
+
+    override fun <T : Any> fmapply(op: (IMQueue<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
+        flift2maply(op(this))!!
 
     // ============ filtering
 

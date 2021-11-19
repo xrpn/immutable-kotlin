@@ -24,9 +24,48 @@ interface IMListTyping<out A: Any>:
     override fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMList<B>    // IMMapplicable
-    // IMMapplicable
-    override fun <B: Any> flift2maply(item: IMMappable<B, IMCommon<B>>): IMList<B>
+}
+
+interface IMStackTyping<out A: Any>:
+    IMCommon<A>,
+    IMOrdered<A>,
+    IMMappable<A, IMStack<Nothing>> {
+    // IMCollection
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMStack<A>
+    override fun fdropItem(item:  @UnsafeVariance A): IMStack<A>
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMStack<A> = this.ffilterNot(isMatch)
+    override fun ffilter(isMatch: (A) -> Boolean): IMStack<A> // return all elements that match the predicate p
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMStack<A> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<A?, IMStack<A>>
+    // IMOrdered
+    override fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
+    override fun freverse(): IMStack<A>
+    override fun frotr(): IMStack<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    override fun frotl(): IMStack<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    override fun fswaph(): IMStack<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
+    // IMMappable
+    override fun <B: Any> fmap(f: (A) -> B): IMStack<B> // 	Return a new sequence by applying the function f to each element in the List
+}
+
+interface IMQueueTyping<out A: Any>:
+    IMCommon<A>,
+    IMOrdered<A>,
+    IMMappable<A, IMQueue<Nothing>>  {
+    // IMCollection
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FQueue<A>
+    override fun fdropItem(item: @UnsafeVariance A): FQueue<A>
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMQueue<A> = this.ffilterNot(isMatch)
+    override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
+    override fun fpopAndRemainder(): Pair<A?, IMQueue<A>>
+    // IMOrdered
+    override fun fdrop(n: Int): IMQueue<A> // Return all elements after the first n elements
+    override fun freverse(): IMQueue<A>
+    override fun frotr(): IMQueue<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
+    override fun frotl(): IMQueue<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
+    override fun fswaph(): IMQueue<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
+    // IMMappable
+    override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
 interface IMSetTyping<out A: Any>:
@@ -40,7 +79,6 @@ interface IMSetTyping<out A: Any>:
     override fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // Return all elements that do not match the predicate p
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMSet<B>
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMSet<B>    // IMMapplicable
 }
 
 internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, IMKeyedValue<K,A> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -122,48 +160,4 @@ interface IMBTreeTyping<out A, out B: Any>:
     override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     //IMKMappable
     override fun <C, D: Any> fmap(f: (TKVEntry<A,B>) -> TKVEntry<C,D>): IMBTree<C,D> where C: Any, C: Comparable<@UnsafeVariance C>
-}
-
-interface IMStackTyping<out A: Any>:
-    IMCommon<A>,
-    IMOrdered<A>,
-    IMMappable<A, IMStack<Nothing>> {
-    // IMCollection
-    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMStack<A>
-    override fun fdropItem(item:  @UnsafeVariance A): IMStack<A>
-    override fun fdropWhen(isMatch: (A) -> Boolean): IMStack<A> = this.ffilterNot(isMatch)
-    override fun ffilter(isMatch: (A) -> Boolean): IMStack<A> // return all elements that match the predicate p
-    override fun ffilterNot(isMatch: (A) -> Boolean): IMStack<A> // Return all elements that do not match the predicate p
-    override fun fpopAndRemainder(): Pair<A?, IMStack<A>>
-    // IMOrdered
-    override fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
-    override fun freverse(): IMStack<A>
-    override fun frotr(): IMStack<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
-    override fun frotl(): IMStack<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
-    override fun fswaph(): IMStack<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
-    // IMMappable
-    override fun <B: Any> fmap(f: (A) -> B): IMStack<B> // 	Return a new sequence by applying the function f to each element in the List
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMStack<B>    // IMMapplicable
-}
-
-interface IMQueueTyping<out A: Any>:
-    IMCommon<A>,
-    IMOrdered<A>,
-    IMMappable<A, IMQueue<Nothing>>  {
-    // IMCollection
-    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FQueue<A>
-    override fun fdropItem(item: @UnsafeVariance A): FQueue<A>
-    override fun fdropWhen(isMatch: (A) -> Boolean): IMQueue<A> = this.ffilterNot(isMatch)
-    override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
-    override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
-    override fun fpopAndRemainder(): Pair<A?, IMQueue<A>>
-    // IMOrdered
-    override fun fdrop(n: Int): IMQueue<A> // Return all elements after the first n elements
-    override fun freverse(): IMQueue<A>
-    override fun frotr(): IMQueue<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
-    override fun frotl(): IMQueue<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
-    override fun fswaph(): IMQueue<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
-    // IMMappable
-    override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> // 	Return a new sequence by applying the function f to each element in the List
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMQueue<B>    // IMMapplicable
 }

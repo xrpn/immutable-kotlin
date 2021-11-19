@@ -104,7 +104,7 @@ class FStackCompanionTest : FunSpec({
     }
 
     test("co.ofMap iterator") {
-        (strStackOfNone === FStack.ofMap(emptyArrayOfInt.iterator(), ::fidentity)) shouldBe true
+        (strStackOfNone === FStack.ofMap(emptyArrayOfInt.iterator()){ it }) shouldBe true
         strStackOfOne shouldBe FStack.ofMap(arrayOf(0).iterator()) { a -> (a+'A'.code).toChar().toString() }
         strStackOfTwo shouldBe FStack.ofMap(arrayOf(0, 1).iterator()) { a -> (a+'A'.code).toChar().toString() }
         strStackOfThree shouldBe FStack.ofMap(arrayOf(0, 1, 2).iterator()) { a -> (a+'A'.code).toChar().toString() }

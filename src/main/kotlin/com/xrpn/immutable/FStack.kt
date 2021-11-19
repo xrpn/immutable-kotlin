@@ -74,7 +74,10 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
         FStackBody.of(toFList().fmap(f))
 
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMStack<B> = TODO()    // IMMapplicable
+    // ============ IMMapplicable
+
+    override fun <T : Any> fmapply(op: (IMStack<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
+        flift2maply(op(this))!!
 
     // ============ filtering
 

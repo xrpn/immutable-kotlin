@@ -187,18 +187,10 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this, emptyIMList<B>()).freverse()
     }
 
-    override fun <B : Any> flift2map(
-        item: IMCommon<B>
-    ): IMList<B> = liftToList(item)
-
     // IMApplicable
 
-    override fun <B: Any, C: IMMappable<B, IMCommon<B>>> fmapply(op: (IMList<A>) -> C): C =
-        op(this)
-
-    override fun <B: Any> flift2maply(
-        item: IMMappable<B, IMCommon<B>>
-    ): IMList<B> = liftToList(item as IMCommon<B>)
+    override fun <B: Any> fmapply(op: (IMList<A>) -> IMMappable<B, IMCommon<B>>): IMMapplicable<B, IMMappable<B, IMCommon<B>>> =
+        flift2maply(op(this))!!
 
     // filtering
 
@@ -602,23 +594,6 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             val marks = go(this,res,0)
             Pair(tally, marks)
         }
-    }
-
-    private fun <B: Any> liftToList(item: IMCommon<B>): FList<B> = when(item) {
-        is IMSdj<*, *> -> TODO()
-        is IMList -> item as FList<B>
-        is IMSet -> item.asIMRSetNotEmpty()?.let { it ->
-            it.sxdj().bicmap(
-                { nes: IMSetNotEmpty<B> -> nes.fmapToList { id -> id } },
-                { nes: IMXSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (nes.fmapToList { id -> id } as FList<B>) }
-            ) as FList<B>
-        } ?: emptyIMList()
-        is IMStack -> TODO()
-        is IMQueue -> TODO()
-        is IMBTree<*, *> -> TODO()
-        is IMMap<*, *> -> TODO()
-        is IMHeap<*> -> TODO()
-        else -> throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
     }
 
     companion object: IMListCompanion {

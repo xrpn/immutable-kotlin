@@ -1,6 +1,7 @@
 package com.xrpn.immutable.fbstreetest
 
 import com.xrpn.imapi.IMKeyedValue
+import com.xrpn.imapi.KeyedTypeSample
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKMap.Companion.emptyIMMap
 import com.xrpn.immutable.TKVEntry.Companion.intKeyOf

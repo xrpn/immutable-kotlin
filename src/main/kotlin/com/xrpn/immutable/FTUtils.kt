@@ -12,37 +12,6 @@ import java.util.logging.Logger
 import java.util.logging.Logger.getLogger
 import kotlin.reflect.KClass
 
-private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!::class == b?.let{ it::class } } ?: false
-private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
-private fun <A: Any, B> isLikeSameType(a: KClass<A>, b: B): Boolean = a == b?.let{ it::class }
-private fun <A: Any, B: KClass<Any>> isLikeSameTypeLike(a: KClass<A>, b: B): Boolean = a == b
-
-fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
-    is KClass<*> -> when(b) {
-        is KClass<*> -> isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
-        else -> isLikeSameType(this, b)
-    }
-    else -> when(b) {
-        is KClass<*> -> isSameTypeLike(this, b)
-        else -> isSameType(this, b)
-    }
-}
-
-fun <A, B> A.isStrictlyNot(b: B): Boolean = when(this) {
-    is KClass<*> -> when(b) {
-        is KClass<*> -> !isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
-        else -> !isLikeSameType(this, b)
-    }
-    else -> when(b) {
-        is KClass<*> -> {
-            val foo = !isSameTypeLike(this, b)
-            foo }
-        else -> !isSameType(this, b)
-    }
-}
-
-inline fun <reified A> fidentity(a: A): A = a
-
 internal object FT {
 
     fun <A : Any> isContainer(c: A): Boolean = when (c) {
@@ -238,36 +207,6 @@ internal object FT {
 
 }
 
-interface IMLogging<out A>  {
-    val logger: A
-    fun emitUnconditionally(msg: String)
-    fun emitUnconditionally(e: Exception)
-}
-
-data class IMSimpleLogging(val forClass: KClass<*>): IMLogging<Logger> {
-    override fun emitUnconditionally(msg: String) = if(logger.isLoggable(Level.SEVERE)) logger.severe(msg) else System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = if(logger.isLoggable(Level.SEVERE)) logger.log(Level.SEVERE, "emitUnconditionally", e) else e.printStackTrace(System.err)
-    override val logger: Logger by lazy { getEngine() }
-    private fun getEngine(): Logger = getLogger(forClass.qualifiedName ?: "<local or anonymous>")
-}
-
-data class IMKLogging(val forClass: KClass<*>): IMLogging<KLogger> {
-    override fun emitUnconditionally(msg: String) = if(logger.isErrorEnabled) logger.error(msg) else System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = if(logger.isErrorEnabled) logger.error("emitUnconditionally", e) else e.printStackTrace(System.err)
-    override val logger: KLogger by lazy { getEngine() }
-    private fun getEngine(): KLogger = KotlinLogging.logger(forClass.qualifiedName ?: "<local or anonymous>")
-}
-
-data class IMSystemErrLogging(val forClass: KClass<*>): IMLogging<PrintStream> {
-    override fun emitUnconditionally(msg: String) = System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = e.printStackTrace(System.err)
-    override val logger: PrintStream by lazy { getEngine() }
-    private fun getEngine(): PrintStream {
-        System.err.println("LOGGING FOR ${forClass.qualifiedName ?: "<local or anonymous>"} WILL GO TO STANDARD ERROR STREAM")
-        return System.err
-    }
-}
-
 fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))
 fun <A, B, C, D> Pair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): Pair<C, D> = Pair(f(this.first), g(this.second))
 fun <A: Any> Pair<A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLNil))
@@ -300,18 +239,6 @@ class SingleInit<T: Any>() {
     fun equal(rhs: SingleInit<T>) = inner == rhs.inner
     override fun toString() =
         "${this::class.simpleName}(${inner?.let{ it.toString() } ?: '?'.toString() })"
-}
-
-data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) {
-    fun hasKey(): Boolean = null != kKc
-    fun isSymRkc(): Boolean = hasKey() && kKc == vKc
-    fun isIntRkc(): Boolean = hasKey() && kKc == Int::class
-    fun isStrRkc(): Boolean = hasKey() && kKc == String::class
-    fun isLikeIfLooselyKey(kClass: KClass<*>?, vClass: KClass<*>): Boolean =( !hasKey() || kKc == kClass ) && vKc == vClass
-    fun isLike(kClass: KClass<*>?, vClass: KClass<*>): Boolean = kKc == kClass && vKc == vClass
-    fun <KK: KClass<*>?, VV: KClass<*>> isStrictly(other: KeyedTypeSample<KK, VV>): Boolean = (kKc == other.kKc && vKc == other.vKc)
-    fun isLikeKey(kClass: KClass<*>?): Boolean = kKc == kClass
-    fun isLikeValue(vClass: KClass<*>): Boolean = vKc == vClass
 }
 
 fun <C: Comparator<C>> toComparable(c: C): Comparable<C> = object : Comparable<C>  {

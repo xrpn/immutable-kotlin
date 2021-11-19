@@ -200,7 +200,10 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         }
     }
 
-    override fun <B: Any> flift2map(item: IMCommon<B>): IMSet<B> = TODO()    // IMMapplicable
+    // ============ IMMapplicable
+
+    override fun <T : Any> fmapply(op: (IMSet<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
+        flift2maply(op(this))!!
 
     // utility
 

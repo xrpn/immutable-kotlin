@@ -106,7 +106,7 @@ class FListCompanionTest : FunSpec({
   }
 
   test("co.ofMap iterator") {
-    strListOfNone shouldBe FList.ofMap(emptyArrayOfInt.iterator(), ::fidentity)
+    strListOfNone shouldBe FList.ofMap(emptyArrayOfInt.iterator()) { it }
     strListOfOne shouldBe FList.ofMap(arrayOf(0).iterator()) { a -> (a+'a'.code).toChar().toString() }
     strListOfTwo shouldBe FList.ofMap(arrayOf(0, 1).iterator()) { a -> (a+'a'.code).toChar().toString() }
     strListOfThree shouldBe FList.ofMap(arrayOf(0, 1, 2).iterator()) { a -> (a+'a'.code).toChar().toString() }

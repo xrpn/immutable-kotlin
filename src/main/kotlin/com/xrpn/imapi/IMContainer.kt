@@ -1,6 +1,9 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.*
+import com.xrpn.immutable.FT
+import com.xrpn.immutable.toUCon
+import com.xrpn.immutable.FList
+import com.xrpn.immutable.TKVEntry
 import kotlin.reflect.KClass
 
 enum class IMSC {
@@ -100,7 +103,8 @@ interface IMOrdered<out A: Any> {
 
 interface IMMappable<out S: Any, out U: IMCommon<S>>: IMCommon<S> {
     fun <T: Any> fmap(f: (S) -> T): IMMappable<T,IMCommon<T>>
-    fun <T: Any> flift2map(item: IMCommon<T>): IMMappable<T, IMCommon<T>>
+    fun <T: Any> flift2map(item: IMCommon<T>): IMMappable<T, IMCommon<T>>? =
+        IM.liftToIMMappable(item)
 }
 
 interface IMKMappable<out K, out V: Any, out U: IMCommon<TKVEntry<K,V>>> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -108,8 +112,11 @@ interface IMKMappable<out K, out V: Any, out U: IMCommon<TKVEntry<K,V>>> where K
 }
 
 interface IMMapplicable<out S: Any, out U: IMMappable<S, IMCommon<S>>>: IMCommon<S> {
-    fun <V: Any, W:IMMappable<V, IMCommon<V>>> fmapply(op: (U) -> @UnsafeVariance W): W
-    fun <T: Any> flift2maply(item: IMMappable<T, IMCommon<T>>): IMMapplicable<T,IMMappable<T, IMCommon<T>>>
+    fun asIMMappable(): IMMappable<S, IMCommon<S>> = (@Suppress("UNCHECKED_CAST") (this as IMMappable<S, IMCommon<S>>))
+    fun <T: Any> fapmap(f: (S) -> T): IMMappable<T,IMCommon<T>> = asIMMappable().fmap(f)
+    fun <T: Any> fmapply(op: (U) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>>
+    fun <T: Any> flift2maply(item: IMMappable<T, IMCommon<T>>): IMMapplicable<T,IMMappable<T, IMCommon<T>>>? =
+        IM.liftToIMMapplicable(item)
 }
 
 interface IMSdj<out L, out R>:
@@ -133,6 +140,34 @@ interface IMList<out A:Any>:
     override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
 }
 
+interface IMStack<out A:Any>:
+    IMStackFiltering<A>,
+    IMStackGrouping<A>,
+    IMStackTransforming<A>,
+    IMStackAltering<A>,
+    IMStackUtility<A>,
+    IMCommon<A>,
+    IMOrdered<A>,
+    IMMappable<A, IMStack<Nothing>>,
+    IMMapplicable<A, IMStack<A>>,
+    IMStackTyping<A>
+
+interface IMQueue<out A:Any>:
+    IMQueueFiltering<A>,
+    IMQueueGrouping<A>,
+    IMQueueTransforming<A>,
+    IMQueueAltering<A>,
+    IMQueueUtility<A>,
+    IMCommon<A>,
+    IMOrdered<A>,
+    IMMappable<A, IMQueue<Nothing>>,
+    IMMapplicable<A, IMQueue<A>>,
+    IMQueueTyping<A>
+
+interface IMHeap<out A: Any>:
+    IMCommon<A>,
+    IMMappable<A, IMCommon<A>>,
+    IMMapplicable<A, IMHeap<A>>
 
 interface IMSet<out A: Any>:
     IMRSetAltering<A>,
@@ -145,6 +180,7 @@ interface IMSet<out A: Any>:
     IMFoldable<A>,
     IMReducible<A>,
     IMMappable<A, IMSet<Nothing>>,
+    IMMapplicable<A, IMSet<A>>,
     IMSetTyping<A> {
     fun asIMSetNotEmpty(): IMSetNotEmpty<A>?
     fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K>
@@ -269,30 +305,6 @@ interface IMBTree<out A, out B: Any>:
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
 }
 
-interface IMStack<out A:Any>:
-    IMStackFiltering<A>,
-    IMStackGrouping<A>,
-    IMStackTransforming<A>,
-    IMStackAltering<A>,
-    IMStackUtility<A>,
-    IMCommon<A>,
-    IMOrdered<A>,
-    IMMappable<A, IMStack<Nothing>>,
-    IMStackTyping<A>
-
-interface IMQueue<out A:Any>:
-    IMQueueFiltering<A>,
-    IMQueueGrouping<A>,
-    IMQueueTransforming<A>,
-    IMQueueAltering<A>,
-    IMQueueUtility<A>,
-    IMCommon<A>,
-    IMOrdered<A>,
-    IMMappable<A, IMQueue<Nothing>>,
-    IMQueueTyping<A>
-
-interface IMHeap<out A: Any>:
-    IMCommon<A>
 
 // ============ INTERNAL
 

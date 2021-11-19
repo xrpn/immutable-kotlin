@@ -1,12 +1,5 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.isStrictly
-
-/*
-
-
- */
-
 interface IMListExtras<out A: Any> {
     operator fun plus(rhs: IMList<@UnsafeVariance A>): IMList<A>
     operator fun minus(rhs: IMList<@UnsafeVariance A>): IMList<A>
