@@ -65,7 +65,7 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         of a Binary Search Tree.
      */
 
-    // =========== imcollection
+    // =========== imcommon
 
     override val seal = IMSC.IMTREE
 
@@ -140,6 +140,14 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     override fun fisStrict(): Boolean = strictness
 
     override fun fpick(): TKVEntry<A,B>? = froot()
+
+    override fun fpopAndRemainder(): Pair<TKVEntry<A,B>?, FBSTree<A, B>> {
+        val pop: TKVEntry<A,B>? = this.fpeek()
+        // computing the remainder can be very expensive; if traversing
+        // the full tree, .inorder() or .forEach() may be cheaper
+        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: emptyFBSTreeKernel
+        return Pair(pop, remainder)
+    }
 
     override fun fsize(): Int = size
 
@@ -425,14 +433,6 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             else Pair(acc.first, bstInsert(acc.second, current, allowDups = true))
 
         return ffold(Pair(nul(isAcceptDuplicates()), nul(isAcceptDuplicates())), ::f4fpartition)
-    }
-
-    override fun fpopAndRemainder(): Pair<TKVEntry<A,B>?, FBSTree<A, B>> {
-        val pop: TKVEntry<A,B>? = this.fpeek()
-        // computing the remainder can be very expensive; if traversing
-        // the full tree, .inorder() or .forEach() may be cheaper
-        val remainder: FBSTree<A, B> = pop?.let { this.fdropItem(it) } ?: emptyFBSTreeKernel
-        return Pair(pop, remainder)
     }
 
     // returns the maximum path length from the root of a tree to any node.

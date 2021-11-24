@@ -1,7 +1,6 @@
 package com.xrpn.immutable.fbstreetest
 
 import com.xrpn.imapi.IMBTree
-import com.xrpn.imapi.IMKMappable
 import com.xrpn.immutable.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -20,14 +19,14 @@ class FBSTreeLawsTest: FunSpec({
     test("fbstree (no dups) functor law") {
         checkAll(repeats.first, Arb.fbsItree(Arb.int(),repeats.second..repeats.third)) { fs: IMBTree<Int,Int> ->
             imbtreeFunctorKLaw.identityLaw(fs) shouldBe true
-            imbtreeFunctorKLaw.associativeLaw(fs, mapIInt2IString, mapIString2IDouble, mapIDouble2ILong) shouldBe true
+            imbtreeFunctorKLaw.associativeLaw(fs, mapIInt2IString, mapIString2StrangeIDouble, mapIDouble2StrangeILong) shouldBe true
         }
     }
 
     test("fbstree (dups) functor law") {
         checkAll(repeats.first, Arb.fbstreeWithDups(Arb.int(),repeats.second..repeats.third)) { fs: IMBTree<Int,Int> ->
             imbtreeFunctorKLaw.identityLaw(fs) shouldBe true
-            imbtreeFunctorKLaw.associativeLaw(fs, mapIInt2IString, mapIString2IDouble, mapIDouble2ILong) shouldBe true
+            imbtreeFunctorKLaw.associativeLaw(fs, mapIInt2IString, mapIString2StrangeIDouble, mapIDouble2StrangeILong) shouldBe true
         }
     }
 

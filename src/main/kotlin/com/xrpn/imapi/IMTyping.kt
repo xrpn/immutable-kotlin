@@ -1,15 +1,13 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FQueue
 import com.xrpn.immutable.TKVEntry
 
 interface IMListTyping<out A: Any>:
     IMCommon<A>,
-    IMFoldable<A>,
     IMOrdered<A>,
-    IMMappable<A, IMList<A>>,
-    IMMapplicable<A, IMList<A>> {
-    // IMCollection
+    IMMapOp<A, IMList<A>>,
+    IMMappOp<A, IMList<A>> {
+    // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMList<A>
     override fun fdropItem(item: @UnsafeVariance A): IMList<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMList<A> = this.ffilterNot(isMatch)
@@ -29,8 +27,8 @@ interface IMListTyping<out A: Any>:
 interface IMStackTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
-    IMMappable<A, IMStack<Nothing>> {
-    // IMCollection
+    IMMapOp<A, IMStack<Nothing>> {
+    // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMStack<A>
     override fun fdropItem(item:  @UnsafeVariance A): IMStack<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMStack<A> = this.ffilterNot(isMatch)
@@ -50,10 +48,10 @@ interface IMStackTyping<out A: Any>:
 interface IMQueueTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
-    IMMappable<A, IMQueue<Nothing>>  {
-    // IMCollection
-    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FQueue<A>
-    override fun fdropItem(item: @UnsafeVariance A): FQueue<A>
+    IMMapOp<A, IMQueue<Nothing>>  {
+    // IMCommon
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMQueue<A>
+    override fun fdropItem(item: @UnsafeVariance A): IMQueue<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMQueue<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
@@ -70,8 +68,8 @@ interface IMQueueTyping<out A: Any>:
 
 interface IMSetTyping<out A: Any>:
     IMCommon<A>,
-    IMMappable<A, IMSet<Nothing>> {
-    // IMCollection
+    IMMapOp<A, IMSet<Nothing>> {
+    // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMSet<A>
     override fun fdropItem(item: @UnsafeVariance A): IMSet<A>
     override fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A> = this.ffilterNot(isMatch)
@@ -81,9 +79,21 @@ interface IMSetTyping<out A: Any>:
     override fun <B: Any> fmap(f: (A) -> B): IMSet<B>
 }
 
+interface IMHeapTyping<out A: Any>:
+    IMCommon<A>,
+    IMMapOp<A, IMHeap<Nothing>> {
+    // IMCommon
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMHeap<A>
+    override fun fdropItem(item: @UnsafeVariance A): IMHeap<A>
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMHeap<A> = this.ffilterNot(isMatch)
+    override fun ffilter(isMatch: (A) -> Boolean): IMHeap<A> // return all elements that match the predicate p
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMHeap<A> // Return all elements that do not match the predicate p
+    // IMMappable
+    override fun <B: Any> fmap(f: (A) -> B): IMHeap<B>
+}
+
 internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, IMKeyedValue<K,A> where K: Any, K: Comparable<@UnsafeVariance K> {
     // IMKeyed
-    override fun asIMCollection(): IMCommon<*> = this
     override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMKSet<K, A>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMKSet<K,A>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKSet<K,A>
@@ -104,14 +114,13 @@ interface IMMapTyping<out K, out V: Any>:
     IMKeyed<K>, IMKeyedValue<K,V>,
     IMKMappable<K, V, IMMap<Nothing,Nothing>>
         where K: Any, K: Comparable<@UnsafeVariance K> {
-    // IMCollection
+    // IMCommon
     override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): IMMap<K, V>
     override fun fdropItem(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
     override fun fdropWhen(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // Return all elements that do not match the predicate p
     // IMKeyed
-    override fun asIMCollection(): IMCommon<*> = this
     override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMMap<K,V>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMMap<K,V>
     override fun ffilterKeyNot(isMatch: (K) -> Boolean): IMMap<K,V>
@@ -135,7 +144,7 @@ interface IMBTreeTyping<out A, out B: Any>:
     IMKeyedValue<A,B>,
     IMKMappable<A, B, IMBTree<Nothing,Nothing>>
         where A: Any, A: Comparable<@UnsafeVariance A> {
-    // IMCollection
+    // IMCommon
     override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): IMBTree<A,B>
     override fun fdropItem(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     override fun fdropWhen(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A,B> = this.ffilterNot(isMatch)
@@ -143,7 +152,6 @@ interface IMBTreeTyping<out A, out B: Any>:
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A,B> // Return all elements that do not match the predicate p
     override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
     // IMKeyed
-    override fun asIMCollection(): IMCommon<*> = this
     override fun fdropKeys(keys: IMSet<@UnsafeVariance A>): IMBTree<A,B>
     override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A,B>
     override fun ffilterKeyNot(isMatch: (A) -> Boolean): IMBTree<A,B>

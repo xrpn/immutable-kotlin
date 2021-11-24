@@ -57,7 +57,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         out (on most reasonable general purpose computers) of stack frames.
      */
 
-    // imcollection
+    // imcommon
 
     override val seal: IMSC = IMSC.IMLIST
 
@@ -189,8 +189,8 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // IMApplicable
 
-    override fun <B: Any> fmapply(op: (IMList<A>) -> IMMappable<B, IMCommon<B>>): IMMapplicable<B, IMMappable<B, IMCommon<B>>> =
-        flift2maply(op(this))!!
+    override fun <T : Any> fappro(op: (IMList<A>) -> FMap<T>): FMapp<T> =
+        IMMappOp.flift2mapp(op(this))!!
 
     // filtering
 

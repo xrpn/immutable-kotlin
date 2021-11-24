@@ -95,7 +95,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
 
     companion object {
         fun <K, A: Any> ofIMKSet(c: IMKSet<K, A>): UniContainer<A> where K: Any, K: Comparable<K> = UCIMSET(c).asUC()
-        fun <A: Any> ofIMCollection(c: IMCommon<A>): UniContainer<A> = UCIMC(c).asUC()
+        fun <A: Any> ofIMCommon(c: IMCommon<A>): UniContainer<A> = UCIMC(c).asUC()
         fun <A: Any> ofCollection(c: Collection<A>): UniContainer<A> = UCKC(c).asUC()
         fun <A: Any> ofArray(c: Array<A>): UniContainer<A> = ofArrayList(c.asList() as ArrayList<A>)
         fun <A: Any> ofArrayList(c: ArrayList<A>): UniContainer<A> = UCARYL(c).asUC()
@@ -104,7 +104,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
             is TKVEntry<*,*> -> of(item.getv())
             is TSDJ<*,*> -> item.left()?.let { of(it) } ?: of(item.right()!!)
             is IMKSet<*, *> -> ofIMKSet(item).asUC()
-            is IMCommon<*> -> ofIMCollection(item).asUC()
+            is IMCommon<*> -> ofIMCommon(item).asUC()
             is ArrayList<*> -> ofArrayList(item).asUC()
             is Collection<*> -> @Suppress("UNCHECKED_CAST") (UCKC(item as Collection<Any>) as UniContainer<*>)
             is Map<*, *> -> @Suppress("UNCHECKED_CAST") (UCKMAP(item as Map<Nothing, Any>) as UniContainer<*>)

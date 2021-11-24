@@ -18,7 +18,7 @@ class FStackLawsTest: FunSpec({
     test("fstack functor law") {
         checkAll(repeats.first, Arb.fstack(Arb.int(),repeats.second..repeats.third)) { fs: IMStack<Int> ->
             fstackFunctorLaw.identityLaw(fs) shouldBe true
-            fstackFunctorLaw.associativeLaw(fs, mapInt2String, mapString2Double, mapDouble2Long) shouldBe true
+            fstackFunctorLaw.associativeLaw(fs, mapInt2String_I, mapString2StrangeDouble, mapDouble2StrangeLong) shouldBe true
         }
     }
 

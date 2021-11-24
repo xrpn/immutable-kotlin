@@ -80,7 +80,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     override fun iterator(): Iterator<A> = FKSetIterator(this)
 
-    // imcollection
+    // imcommon
 
     override val seal: IMSC = IMSC.IMSET
 
@@ -89,10 +89,8 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         else -> body.fcontainsKey(toKey(item))
     }
 
-    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FKSet<K,A> = if (items.fempty() || this.fempty()) this else {
-        @Suppress("UNCHECKED_CAST") (items as IMFoldable<A>)
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FKSet<K,A> = if (items.fempty() || this.fempty()) this else
         items.ffold(this) { acc, a -> if (acc.fcontains(a)) acc.fdropItem(a) else acc }
-    }
 
     override fun fdropItem(item: @UnsafeVariance A): FKSet<K, A> = when (this) {
         is FKSetEmpty -> this
@@ -112,6 +110,14 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     override fun fisStrict(): Boolean = strictness
 
     override fun fpick(): A? = body.froot()?.getv()
+
+    override fun fpopAndRemainder(): Pair<A?, FKSet<K, A>> {
+        val pop: A? = toIMBTree().fpick()?.getv()
+        val remainder: FKSet<K, A> = pop?.let { fdropItem(it) } ?: this
+        return Pair(pop, remainder)
+    }
+
+    override fun fsize(): Int = size
 
     fun fpickNested(): Any? = body.froot()?.let { rt -> rt.toUCon()?.pick() }
 
@@ -202,8 +208,8 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fmapply(op: (IMSet<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
-        flift2maply(op(this))!!
+    override fun <T : Any> fappro(op: (IMSet<A>) -> FMap<T>): FMapp<T> =
+        IMMappOp.flift2mapp(op(this))!!
 
     // utility
 
@@ -619,14 +625,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     }
 
     override fun fpermute(): Collection<FList<A>> = permutedFIKSet
-
-    override fun fpopAndRemainder(): Pair<A?, FKSet<K, A>> {
-        val pop: A? = toIMBTree().fpick()?.getv()
-        val remainder: FKSet<K, A> = pop?.let { fdropItem(it) } ?: this
-        return Pair(pop, remainder)
-    }
-
-    override fun fsize(): Int = size
 
     // transforming
 

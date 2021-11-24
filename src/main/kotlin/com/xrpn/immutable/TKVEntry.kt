@@ -1,22 +1,11 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.*
+import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import kotlin.reflect.KClass
 
 val emptyTkv = object : IMCommonEmpty<TKVEntry<Nothing,Nothing>> {
     override val seal: IMSC = IMSC.IMENTRY
-    override fun fcount(isMatch: (TKVEntry<Nothing, Nothing>) -> Boolean): Int = 0
-    override fun fcontains(item: TKVEntry<Nothing, Nothing>): Boolean = false
-    override fun fdropAll(items: IMCommon<TKVEntry<Nothing, Nothing>>): IMCommon<TKVEntry<Nothing, Nothing>> = this
-    override fun fdropItem(item: TKVEntry<Nothing, Nothing>): IMCommon<TKVEntry<Nothing, Nothing>> = this
-    override fun fdropWhen(isMatch: (TKVEntry<Nothing, Nothing>) -> Boolean): IMCommon<TKVEntry<Nothing, Nothing>> = this
-    override fun ffilter(isMatch: (TKVEntry<Nothing, Nothing>) -> Boolean): IMCommon<TKVEntry<Nothing, Nothing>> = this
-    override fun ffilterNot(isMatch: (TKVEntry<Nothing, Nothing>) -> Boolean): IMCommon<TKVEntry<Nothing, Nothing>> = this
-    override fun ffindAny(isMatch: (TKVEntry<Nothing, Nothing>) -> Boolean): TKVEntry<Nothing, Nothing>? = null
-    override fun fisStrict(): Boolean = true
-    override fun fpick(): Nothing? = null
-    override fun fsize(): Int = 0
-    override fun fpopAndRemainder(): Pair<TKVEntry<Nothing, Nothing>?, IMCommon<TKVEntry<Nothing, Nothing>>> = Pair(null, this)
 }
 
 internal fun <A, B:Any> TKVEntry<A, B>.fitKeyOnly(key: A): FBTFIT where A: Any, A: Comparable<A> = fitKeyToEntry(key,this)
@@ -196,7 +185,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
     override val value: B
         get() = v
 
-    // IMCollection
+    // IMCommon
 
     override val seal: IMSC = IMSC.IMENTRY
     override fun fcontains(item: TKVEntry<A, B>): Boolean = this == item
@@ -207,6 +196,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): IMCommon<TKVEntry<A, B>> = if (isMatch(this)) this else emptyTkv
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMCommon<TKVEntry<A, B>> = if (!isMatch(this)) this else emptyTkv
     override fun ffindAny(isMatch: (TKVEntry<A, B>) -> Boolean): TKVEntry<A, B>? = if (isMatch(this)) this else null
+    override fun <R> ffold(z: R, f: (acc: R, TKVEntry<A, B>) -> R): R = f(z, this)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): TKVEntry<A, B>? = this
     override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMCommon<TKVEntry<A, B>>> = Pair(this, emptyTkv)

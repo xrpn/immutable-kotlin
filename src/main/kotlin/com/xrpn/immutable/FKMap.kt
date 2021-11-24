@@ -17,7 +17,7 @@ import kotlin.reflect.KClass
 
 sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
 
-    // imcollection
+    // imcommon
 
     override val seal: IMSC = IMSC.IMMAP
 

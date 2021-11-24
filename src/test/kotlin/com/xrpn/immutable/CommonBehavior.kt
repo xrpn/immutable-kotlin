@@ -40,12 +40,12 @@ internal tailrec fun <A: Comparable<A>, B: Any> goDropItemTele(t: IMBTree<A, B>,
 inline infix fun <B, C, A> ((B) -> C).kompose(crossinline f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
 
 interface FunctorLaw  {
-    fun <T: Any, V: Any> isMappableEqual(lhs: IMMappable<V,IMCommon<V>>, rhs: IMMappable<T,IMCommon<T>>): Boolean =
+    fun <T: Any, V: Any> isMappableEqual(lhs: IMMapOp<V,IMCommon<V>>, rhs: IMMapOp<T,IMCommon<T>>): Boolean =
         rhs.equals(lhs)
     fun <T> idOp(v: T) = v
-    fun <V: Any> identityLaw(mappable: IMMappable<V,IMCommon<V>>): Boolean = isMappableEqual(mappable, mappable.fmap(::idOp))
-    fun <S: Any, T: Any, V: Any, W: Any> associativeLaw(mappable: IMMappable<V,IMCommon<V>>, f1: (V) -> S, f2: (S) -> T, f3: (T) -> W): Boolean =
-        isMappableEqual(mappable.fmap(f2 kompose f1).fmap(f3), mappable.fmap(f1).fmap(f3 kompose f2))
+    fun <V: Any> identityLaw(mapOp: IMMapOp<V,IMCommon<V>>): Boolean = isMappableEqual(mapOp, mapOp.fmap(::idOp))
+    fun <S: Any, T: Any, V: Any, W: Any> associativeLaw(mapOp: IMMapOp<V,IMCommon<V>>, f1: (V) -> S, f2: (S) -> T, f3: (T) -> W): Boolean =
+        isMappableEqual(mapOp.fmap(f2 kompose f1).fmap(f3), mapOp.fmap(f1).fmap(f3 kompose f2))
 }
 
 val flistFunctorLaw = object: FunctorLaw {}
@@ -79,94 +79,95 @@ val immapFunctorKLaw = object: FunctorKLaw {}
 
 interface ApplicativeLaw  {
     fun <T: Any, V: Any> isMapplicativeEqual(
-        lhs: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        rhs: IMMapplicable<T, IMMappable<T, IMCommon<T>>>
+        lhs: FMapp<V>,
+        rhs: FMapp<T>
     ): Boolean = rhs.equals(lhs)
-    fun <T> idOp(v: T) = v
+
+    fun <T: Any, U: FMap<T>> idOp(v: U): FMap<T> {
+        val aux = @Suppress("UNCHECKED_CAST") (v as FMap<T>)
+        return aux
+    }
+
     /*
         if we lift the identity function and then apply it then the Mapplicative should be unchanged
      */
-    fun <V: Any,W: Any> identityLaw(
-        mapplicative: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        value: IMMappable<W, IMCommon<W>>
+    fun <V: Any> identityLaw(
+        value: FMap<V>
     ): Boolean {
-        val ref: IMMapplicable<W, IMMappable<W, IMCommon<W>>>? = mapplicative.flift2maply(value)
-        return ref?.fmapply(::idOp)?.equals(ref) ?: false
+        val ref: FMapp<V>? = IMMappOp.flift2mapp(value)
+        return ref?.fappro(::idOp)?.equals(ref) ?: false
     }
     /*
         if we apply a function to a value inside or outside the context of an Applicative, the result should be the same.
     */
-    fun <V: Any,W: Any,X: Any> homomorphismLaw(
-        mapplicative: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        value: IMMappable<W, IMCommon<W>>,
-        op: (IMMappable<W, IMCommon<W>>) -> IMMappable<X, IMCommon<X>>
+    fun <V: Any,W: Any> homomorphismLaw(
+        value: FMap<V>,
+        op: (FMap<V>) -> FMap<W>
     ): Boolean {
         // lift and apply
-        val aux1: IMMapplicable<W, IMMappable<W, IMCommon<W>>> = mapplicative.flift2maply(value)!!
-        val aut: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = aux1.fmapply(op)
-        // apply and lift
-        val aux2: IMMappable<X, IMCommon<X>> = op(value)
-        val ref: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = mapplicative.flift2maply(aux2)!!
+        val aux1: FMapp<V> = IMMappOp.flift2mapp(value)!!
+        val aut: FMapp<W> = aux1.fappro(op)
+        // op and lift
+        val aux2: FMap<W> = op(value)
+        val ref: FMapp<W> = IMMappOp.flift2mapp(aux2)!!
         return isMapplicativeEqual(aut, ref)
     }
     /*
         lifting to Mapplicable is a left identity, as well as a right identity
      */
     fun <V: Any,W: Any,X: Any> liftSymmetryLaw(
-        mapplicative: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        value: IMMappable<W, IMCommon<W>>,
-        aplyOp: (IMMappable<W, IMCommon<W>>) -> IMMappable<X, IMCommon<X>>
+        value: FMap<V>,
+        walue: FMap<W>,
+        aplyOp: (FMap<W>) -> FMap<X>
     ): Boolean {
-        val aux1: IMMapplicable<W, IMMappable<W, IMCommon<W>>> = mapplicative.flift2maply(value)!!
-        val aut: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = aux1.fmapply(aplyOp)
-        val aux2: (IMMappable<W, IMCommon<W>>) -> IMMapplicable<X, IMMappable<X, IMCommon<X>>> = { vv: IMMappable<W, IMCommon<W>> -> mapplicative.flift2maply(aplyOp(vv))!! }
-        val ref: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = aux2(value)
+        val aux1: FMapp<W> = IMMappOp.flift2mapp(walue)!!
+        val aut: FMapp<X> = aux1.fappro(aplyOp)
+        val aux2: (FMap<W>) -> FMapp<X> = { vv: FMap<W> -> IMMappOp.flift2mapp(aplyOp(vv))!! }
+        val ref: FMapp<X> = aux2(walue)
         return isMapplicativeEqual(aut, ref)
     }
     /*
         applicative supports map operation
      */
     fun <V: Any,W: Any> functorialLaw(
-        mapplicative: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        value: IMMappable<V, IMCommon<V>>,
+        value: FMapp<V>,
         mapOp: (V) -> W
     ): Boolean {
-        val ref: IMMapplicable<W, IMMappable<W, IMCommon<W>>> = mapplicative.flift2maply(mapplicative.fapmap(mapOp))!!
-        val fMapOp: ((V) -> W) -> IMMapplicable<W, IMMappable<W, IMCommon<W>>> = { f -> mapplicative.flift2maply(value.fmap(f))!! }
-        val aut: IMMapplicable<W, IMMappable<W, IMCommon<W>>> = fMapOp(mapOp)
+        val ref: FMapp<W> =  IMMappOp.flift2mapp(value)!!.fmapp(mapOp)
+        val aut: FMapp<W> = IMMappOp.flift2mapp(value.fmapp(mapOp))!!
         return isMapplicativeEqual(aut, ref)
     }
 
     fun <V: Any,W: Any,X: Any> compositionLaw(
-        mapplicativew: IMMapplicable<W, IMMappable<W, IMCommon<W>>>,
-        aplyOpW2X: (IMMappable<W, IMCommon<W>>) -> IMMappable<X, IMCommon<X>>
-        mapplicativev: IMMapplicable<V, IMMappable<V, IMCommon<V>>>,
-        aplyOpV2W: (IMMappable<V, IMCommon<V>>) -> IMMappable<W, IMCommon<W>>,
+        walue: FMap<W>,
+        aplyW2X: (FMap<W>) -> FMap<X>,
+        value: FMap<V>,
+        aplyV2W: (FMap<V>) -> FMap<W>,
     ): Boolean  {
-        val ref: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = mapplicativev.fmapply(aplyOpV2W).fmapply(aplyOpW2X)
-        fun <T: Any> aplyOpV2T(f:(V) -> T): ((V) -> T) -> IMMappable<T, IMCommon<T>> = { f:(V) -> T -> mapplicativev.fapmap(f) }
-        fun <T: Any> aplyOpX2T(f:(W) -> T): ((W) -> T) -> IMMappable<T, IMCommon<T>> = { f:(W) -> T -> mapplicativew.fapmap(f) }
-//        val ref: IMMapplicable<X, IMMappable<X, IMCommon<X>>> = mapplicativev.fmapply(mapplicativew.flift2maply(mapplicativev.asIMMappable().flift2map(mapOpV2W)).fmapply(aplyOpW2X)
+        val ref: FMapp<X> = IMMappOp.flift2mapp(value)!!.fappro(aplyV2W).fappro(aplyW2X)
+        fun v2w(): (V) -> W = TODO()
+        fun w2x(): (W) -> X = TODO()
         fun fff(wx: (W) -> X, vw: (V) -> W): (V) -> X = wx kompose vw
+        val aut: FMapp<X> = IMMappOp.flift2mapp(value)!!.fmapp(fff(w2x(),v2w()))
+        return isMapplicativeEqual(aut, ref)
     }
 
 }
 
-val mapInt2String: (Int) -> String = { x -> x.toString()  }
-val mapString2Double: (String) -> Double = { x -> Double.fromBits(x.hashCode().toLong()) }
-val mapDouble2Long: (Double) -> Long = { x -> x.toBits() }
+val mapInt2String_I: (Int) -> String = { x -> "${x}_I" }
+val mapString2StrangeDouble: (String) -> Double = { x -> Double.fromBits(x.hashCode().toLong()) }
+val mapDouble2StrangeLong: (Double) -> Long = { x -> x.toBits() }
 
 val mapIInt2IString: (TKVEntry<Int,Int>) -> TKVEntry<Int,String> = { x -> x.getv().toString().toIAEntry() }
-val mapIString2IDouble: (TKVEntry<Int,String>) -> TKVEntry<Int,Double> = { x -> Double.fromBits(x.getv().hashCode().toLong()).toIAEntry() }
-val mapIDouble2ILong: (TKVEntry<Int,Double>) -> TKVEntry<Int,Long> = { x -> x.getv().toBits().toIAEntry() }
+val mapIString2StrangeIDouble: (TKVEntry<Int,String>) -> TKVEntry<Int,Double> = { x -> Double.fromBits(x.getv().hashCode().toLong()).toIAEntry() }
+val mapIDouble2StrangeILong: (TKVEntry<Int,Double>) -> TKVEntry<Int,Long> = { x -> x.getv().toBits().toIAEntry() }
 
-
-
-val mapInt2Int: (Int) -> Int = { x -> x.toString().hashCode() }
-val mapInt2Double: (Int) -> Double = { x -> Double.fromBits(x.toString().hashCode().toLong()) }
-val mapString2Long: (String) -> Long = { x -> x.hashCode().toLong() }
-val mapLong2Double: (Long) -> Double = { x -> Double.fromBits(x) }
+val mapLong2String_L: (Long) -> String = { x -> "${x}_L" }
+val mapInt2DifferingInt: (Int) -> Int = { x -> x.toString().hashCode() }
+val mapInt2StrangeDouble: (Int) -> Double = { x -> Double.fromBits(x.toString().hashCode().toLong()) }
+val mapString2HashLong: (String) -> Long = { x -> x.hashCode().toLong() }
+val mapString2StrangeInt: (String) -> Int = { x -> x.hashCode() / 2 }
+val mapLong2StrangeDouble: (Long) -> Double = { x -> Double.fromBits(x) }
 val mapDouble2String: (Double) -> String = { x -> x.toString() }
-val mapString2String: (String) -> String = { x -> x.hashCode().toString() }
-val mapLong2String: (Long) -> String = { x -> x.toString() }
+val mapString2DifferingString: (String) -> String = { x -> x.hashCode().toString() }
 

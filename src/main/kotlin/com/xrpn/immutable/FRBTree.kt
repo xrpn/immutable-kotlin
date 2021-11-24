@@ -73,7 +73,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
         That paper retrieved from https://www.cs.princeton.edu/~rs/talks/LLRB/LLRB.pdf on Dec, 2020
      */
 
-    // =========== imcollection
+    // =========== imcommon
 
     override val seal = IMSC.IMTREE
 
@@ -389,7 +389,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
         is FRBTNil -> this
-        is FRBTNode -> if (items.asIMCollection().fempty()) emptyIMBTree() else ffold(nul()) { acc, tkv ->
+        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) emptyIMBTree() else ffold(nul()) { acc, tkv ->
             if (items.fcontainsKey(tkv.getk())) acc.finsert(tkv) else acc
         }
     }
@@ -403,7 +403,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
             is FBSTree -> t.toFRBTree()
             else -> throw RuntimeException("internal error")
         }
-        is FRBTNode -> if (items.asIMCollection().fempty()) this else finsertt(items.asIMBTree()) as FRBTree
+        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else finsertt(items.asIMBTree()) as FRBTree
     }
 
     override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
@@ -414,7 +414,7 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
                 is FBSTree -> t.toFRBTree()
                 else -> throw RuntimeException("internal error")
             }
-            is FRBTNode -> if (items.asIMCollection().fempty()) this else {
+            is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else {
                 val bothHave = fAND(t)
                 val thisOnly = fNOT(bothHave)
                 val itemsOnly = t.fNOT(bothHave)

@@ -16,7 +16,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     fun iterator(): FQueueIterator<A> = FQueueIterator(this)
 
-    // imcollection
+    // imcommon
 
     override val seal: IMSC = IMSC.IMQUEUE
 
@@ -49,6 +49,9 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     override fun ffindAny(isMatch: (A) -> Boolean): A? =
         fqGetBack().ffindAny(isMatch) ?: fqGetFront().ffindAny(isMatch)
+
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R =
+        TODO("Not yet implemented")
 
     override fun fisStrict(): Boolean =
         fqGetBack().fisStrict() && fqGetFront().fisStrict()
@@ -110,8 +113,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fmapply(op: (IMQueue<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
-        flift2maply(op(this))!!
+    override fun <T: Any> fappro(op: (IMQueue<A>) -> FMap<T>): FMapp<T> =
+        IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering
 
@@ -494,6 +497,5 @@ internal class FQueueBody<out A: Any> private constructor(
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }
-
 }
 

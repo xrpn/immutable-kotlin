@@ -1,26 +1,12 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FT
-import com.xrpn.immutable.toUCon
+import com.xrpn.immutable.*
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 val emptyTsdj = object : IMCommonEmpty<TSDJ<Nothing, Nothing>> {
     override val seal: IMSC = IMSC.IMTSDJ
-    override fun fcount(isMatch: (TSDJ<Nothing, Nothing>) -> Boolean): Int = 0
-    override fun fcontains(item: TSDJ<Nothing, Nothing>): Boolean = false
-    override fun fdropAll(items: IMCommon<TSDJ<Nothing, Nothing>>): IMCommon<TSDJ<Nothing, Nothing>> = this
-    override fun fdropItem(item: TSDJ<Nothing, Nothing>): IMCommon<TSDJ<Nothing, Nothing>> = this
-    override fun fdropWhen(isMatch: (TSDJ<Nothing, Nothing>) -> Boolean): IMCommon<TSDJ<Nothing, Nothing>> = this
-    override fun ffilter(isMatch: (TSDJ<Nothing, Nothing>) -> Boolean): IMCommon<TSDJ<Nothing, Nothing>> = this
-    override fun ffilterNot(isMatch: (TSDJ<Nothing, Nothing>) -> Boolean): IMCommon<TSDJ<Nothing, Nothing>> = this
-    override fun ffindAny(isMatch: (TSDJ<Nothing, Nothing>) -> Boolean): TSDJ<Nothing, Nothing>? = null
-    override fun fisStrict(): Boolean = true
-    override fun fpick(): Nothing? = null
-    override fun fsize(): Int = 0
-    override fun fpopAndRemainder(): Pair<TSDJ<Nothing, Nothing>?, IMCommon<TSDJ<Nothing, Nothing>>> = Pair(null, this)
 }
 
 sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMSdj<A,B> {
@@ -63,10 +49,21 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMSdj<A,B> {
     override fun ffilter(isMatch: (TSDJ<A, B>) -> Boolean): IMCommon<TSDJ<A, B>> = if (isMatch(this)) this else emptyTsdj
     override fun ffilterNot(isMatch: (TSDJ<A, B>) -> Boolean): IMCommon<TSDJ<A, B>> = if (isMatch(this)) emptyTsdj else this
     override fun ffindAny(isMatch: (TSDJ<A, B>) -> Boolean): TSDJ<A, B>? = if (isMatch(this)) this else null
+    override fun <R> ffold(z: R, f: (acc: R, TSDJ<A,B>) -> R): R = f(z,this)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): TSDJ<A, B>? = this
     override fun fpopAndRemainder(): Pair<TSDJ<A, B>?, IMCommon<TSDJ<A, B>>> = Pair(this, emptyTsdj)
     override fun fsize(): Int = 1
+
+    override fun <T: Any> fmap(f: (TSDJ<A,B>) -> T): FMap<T> = when(val tValue = f(this)) {
+        is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as FMap<T>)
+        else -> DMW.of(tValue)
+    }
+
+    override fun <T : Any> fappro(op: (FMap<TSDJ<A, B>>) -> FMap<T>): FMapp<T> {
+        val arg = op(this)
+        return IMMappOp.flift2mapp(arg) ?: DAW.of(arg)
+    }
 }
 
 abstract class TSDL<out A>(open val l: A): TSDJ<A, Nothing>()

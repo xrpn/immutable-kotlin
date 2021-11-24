@@ -49,9 +49,16 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
     fun isLikeValue(vClass: KClass<*>): Boolean = vKc == vClass
 }
 
-internal object IM {
+fun <T: Any> IMCommon<T>?.toIMMapplicable(): FMapp<T>? =
+    this?.let { IMMappOp.flift2mapp(it) }
 
-    fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMappable<B, IMCommon<B>>? = when(item) {
+object IM {
+
+    fun <S: Any, T: Any> fmapOfCommon(
+        u: FMap<S>,
+    ): (IMCommon<(S) -> T>) -> FMap<T> = { g: IMCommon<(S) -> T> -> u.fmap(g.fpick()!!) }
+
+    fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMapOp<B, IMCommon<B>>? = when(item) {
         is IMList -> item
         is IMSet -> item.asIMRSetNotEmpty()?.let { it -> it.sxdj().bireduce(
             { id -> id },
@@ -62,24 +69,26 @@ internal object IM {
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
         is IMHeap -> item
-        else -> if (!(IMMappable::class.isInstance(item))) null
+        is IMDisw<B, IMCommon<B>> -> DMW.of(item)
+        is IMDimw<B, IMCommon<B>> -> item
+        is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMapOp<B, IMCommon<B>>)
+        else -> if (!(IMMapOp::class.isInstance(item))) null
                 else throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
 
     }
 
-    fun <B: Any> liftToIMMapplicable(item: IMCommon<B>): IMMapplicable<B, IMMappable<B, IMCommon<B>>>? = when(item) {
+    fun <A: Any> liftToIMMapplicable(item: IMMapOp<A, IMCommon<A>>): IMMappOp<A, IMMapOp<A, IMCommon<A>>>? = when(item) {
         is IMList -> item
-        is IMSet -> item.asIMRSetNotEmpty()?.let { it -> it.sxdj().bireduce(
-            { id -> id },
-            { id -> @Suppress("UNCHECKED_CAST") (id as IMSet<B>) })
-        } ?: item
+        is IMSet -> item
         is IMStack -> item
         is IMQueue -> item
+        is IMHeap -> item
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
-        is IMHeap -> item
-        else -> if (!(IMMapplicable::class.isInstance(item))) null
-                else throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
+        is IMDimw<A, IMCommon<A>> -> DAW.of(item)
+        is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMappOp<A, IMMapOp<A, IMCommon<A>>>)
+        else -> if (!(IMMappOp::class.isInstance(item))) null
+                else throw RuntimeException("internal error, unknown IMMappable:'${item::class}'")
     }
 }
 

@@ -13,7 +13,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     fun iterator(): FStackIterator<A> = FStackIterator(this)
 
-    // imcollection
+    // imcommon
 
     override val seal: IMSC = IMSC.IMSTACK
 
@@ -40,6 +40,9 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     override fun ffindAny(isMatch: (A) -> Boolean): A? =
         toFList().ffindAny(isMatch)
+
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R =
+        TODO("Not yet implemented")
 
     override fun fisStrict(): Boolean =
         toFList().fisStrict()
@@ -76,8 +79,8 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fmapply(op: (IMStack<A>) -> IMMappable<T, IMCommon<T>>): IMMapplicable<T, IMMappable<T, IMCommon<T>>> =
-        flift2maply(op(this))!!
+    override fun <T : Any> fappro(op: (IMStack<A>) -> FMap<T>): FMapp<T> =
+        IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering
 

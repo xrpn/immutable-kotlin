@@ -2,9 +2,9 @@ package com.xrpn.immutable.fksettest
 
 import com.xrpn.imapi.IMSet
 import com.xrpn.immutable.fksetFunctorLaw
-import com.xrpn.immutable.mapDouble2Long
-import com.xrpn.immutable.mapInt2String
-import com.xrpn.immutable.mapString2Double
+import com.xrpn.immutable.mapDouble2StrangeLong
+import com.xrpn.immutable.mapInt2String_I
+import com.xrpn.immutable.mapString2StrangeDouble
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -21,7 +21,7 @@ class FKSetLawsTest: FunSpec({
     test("fqueue functor law") {
         checkAll(repeats.first, Arb.fiset(Arb.int(),repeats.second..repeats.third)) { fs: IMSet<Int> ->
             fksetFunctorLaw.identityLaw(fs) shouldBe true
-            fksetFunctorLaw.associativeLaw(fs, mapInt2String, mapString2Double, mapDouble2Long) shouldBe true
+            fksetFunctorLaw.associativeLaw(fs, mapInt2String_I, mapString2StrangeDouble, mapDouble2StrangeLong) shouldBe true
         }
     }
 
