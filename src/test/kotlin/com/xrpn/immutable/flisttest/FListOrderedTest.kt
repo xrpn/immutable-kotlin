@@ -14,7 +14,9 @@ import io.kotest.xrpn.flist
 
 private val intListOfNone: IMOrdered<Int> = FList.of(*emptyArrayOfInt)
 private val intListOfOne: IMOrdered<Int> = FList.of(*arrayOf<Int>(1))
+private val intListOfOneB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2))
 private val intListOfTwo: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2))
+private val intListOfTwoB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2,3))
 private val intListOfThree: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2,3))
 
 class FListOrderedTest : FunSpec({
@@ -55,9 +57,16 @@ class FListOrderedTest : FunSpec({
 
   test("fdrop negative") {
     intListOfNone.fdrop(-1) shouldBe FLNil
-    intListOfOne.fdrop(-1) shouldBe FLNil
-    intListOfTwo.fdrop(-1) shouldBe FLNil
-    intListOfThree.fdrop(-1) shouldBe FLNil
+    intListOfOne.fdrop(-1) shouldBe intListOfOne
+    intListOfTwo.fdrop(-1) shouldBe intListOfTwo
+    intListOfThree.fdrop(-1) shouldBe intListOfThree
+  }
+
+  test("fnext") {
+    intListOfNone.fnext() shouldBe Pair(null, FLNil)
+    intListOfOne.fnext() shouldBe Pair(1, FLNil)
+    intListOfTwo.fnext() shouldBe Pair(1, intListOfOneB)
+    intListOfThree.fnext() shouldBe Pair(1, intListOfTwoB)
   }
 
   test("freverse") {
@@ -136,6 +145,20 @@ class FListOrderedTest : FunSpec({
       }
       go(fl)
     }
+  }
+
+  test("fzip") {
+    (intListOfNone.fzip(intListOfNone) === intListOfNone) shouldBe true
+    (intListOfNone.fzip(intListOfOne) === intListOfNone) shouldBe true
+    (intListOfOne.fzip(intListOfNone) === intListOfNone) shouldBe true
+    intListOfOne.fzip(intListOfOne) shouldBe FLCons(Pair(1,1), FLNil)
+    intListOfOne.fzip(intListOfTwo) shouldBe FLCons(Pair(1,1), FLNil)
+    (intListOfTwo.fzip(intListOfNone) === intListOfNone) shouldBe true
+    intListOfTwo.fzip(intListOfOne) shouldBe FLCons(Pair(1,1), FLNil)
+    intListOfTwo.fzip(intListOfTwo) shouldBe FLCons(Pair(1,1), FLCons(Pair(2,2), FLNil))
+    intListOfTwo.fzip(intListOfTwoB) shouldBe FLCons(Pair(1,2), FLCons(Pair(2,3), FLNil))
+    intListOfTwoB.fzip(intListOfTwo) shouldBe FLCons(Pair(2,1), FLCons(Pair(3,2), FLNil))
+    intListOfTwoB.fzip(intListOfThree) shouldBe FLCons(Pair(2,1), FLCons(Pair(3,2), FLNil))
   }
 
 })

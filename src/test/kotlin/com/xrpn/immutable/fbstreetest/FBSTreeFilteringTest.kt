@@ -474,4 +474,22 @@ class FBSTreeFilteringTest : FunSpec({
             of(FList.of(ary.iterator()).fmap { TKVEntry.ofIntKey(it) }).froot() shouldBe TKVEntry.ofIntKey(ary[0])
         }
     }
+
+
+    test("fAND") {
+        TODO()
+    }
+
+    test("fNOT") {
+        TODO()
+    }
+
+    test("fOR") {
+        TODO()
+    }
+
+    test("fXOR") {
+        TODO()
+    }
+
 })

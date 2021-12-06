@@ -3,7 +3,6 @@ package com.xrpn.immutable.fqueuetest
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.emptyArrayOfInt
-import com.xrpn.immutable.fstacktest.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -202,12 +201,12 @@ class FQueueTest : FunSpec({
     intQueueOfOne1YR.equal(intQueueOfNoneNR) shouldBe false
     intQueueOfOne1YR.equal(emptyIMQueue<Int>()) shouldBe false
     intQueueOfOne1YR.fqStrongEqual(intQueueOfOne1NR) shouldBe false
-    intQueueOfOne1YR.fqStructuralEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1YR.fqSemanticEqual(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1YR.equal(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1YR.equal(intQueueOfTwoNR) shouldBe false
     intQueueOfTwoYR.equal(intQueueOfOne1NR) shouldBe false
     intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoNR) shouldBe false
-    intQueueOfTwoYR.fqStructuralEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfTwoYR.fqSemanticEqual(intQueueOfTwoNR) shouldBe true
     intQueueOfTwoYR.equal(intQueueOfTwoNR) shouldBe true
   }
 
@@ -218,12 +217,12 @@ class FQueueTest : FunSpec({
     intQueueOfOne1NR.equal(intQueueOfNoneYR) shouldBe false
     emptyIMQueue<Int>().equal(intQueueOfOne1YR) shouldBe false
     intQueueOfOne1NR.fqStrongEqual(intQueueOfOne1YR) shouldBe false
-    intQueueOfOne1NR.fqStructuralEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1NR.fqSemanticEqual(intQueueOfOne1YR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfOne1YR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfTwoYR) shouldBe false
     intQueueOfTwoNR.equal(intQueueOfOne1YR) shouldBe false
     intQueueOfTwoNR.fqStrongEqual(intQueueOfTwoYR) shouldBe false
-    intQueueOfTwoNR.fqStructuralEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoNR.fqSemanticEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfTwoNR.equal(intQueueOfTwoYR) shouldBe true
   }
 

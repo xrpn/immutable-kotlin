@@ -1,10 +1,9 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.*
-import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import kotlin.reflect.KClass
 
-val emptyTkv = object : IMCommonEmpty<TKVEntry<Nothing,Nothing>> {
+val emptyTkv: IMCommonEmpty<TKVEntry<Nothing,Nothing>> = object: IMCommonEmpty<TKVEntry<Nothing,Nothing>>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
     override val seal: IMSC = IMSC.IMENTRY
 }
 

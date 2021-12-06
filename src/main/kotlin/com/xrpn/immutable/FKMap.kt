@@ -208,10 +208,8 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     // altering
 
-    override fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): FKMap<K,V> = when (this) {
-        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofkv(key, value)) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.ofkv(key, value)) as FRBTNode)
-    }
+    override fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): FKMap<K,V> =
+        fadd(TKVEntry.ofkv(key, value))
 
     override fun fputPair(p: Pair<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
         is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofp(p)) as FRBTNode<K, V>)
@@ -234,6 +232,11 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
             else -> throw RuntimeException("unknown map: ${m::class}")
         }
         is FKMapNotEmpty -> fputTree(m.toIMBTree())
+    }
+
+    override fun fadd(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V>  = when (this) {
+        is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(item) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(item) as FRBTNode)
     }
 
     // utility
@@ -320,6 +323,7 @@ internal class FKMapEmpty<K, V: Any> private constructor (
         other == null -> false
         other is IMMap<*, *> -> false
         other is Map<*,*> -> other.isEmpty()
+        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
     val hash: Int by lazy { this::class.simpleName.hashCode() }

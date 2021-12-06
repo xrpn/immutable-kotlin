@@ -57,8 +57,14 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     // ============ IMOrdered
 
-    override fun fdrop(n: Int): FStack<A> =
-        if (0 < n) FStackBody.of(toFList().fdrop(n)) else this
+    override fun fdrop(n: Int): FStack<A> = when {
+        0 < n -> FStackBody.of(toFList().fdrop(n))
+        n <= 0 -> this
+        else -> throw RuntimeException("internal error")
+    }
+
+    override fun fnext(): Pair<A?, IMStack<A>> =
+        fpop()
 
     override fun freverse(): FStack<A> =
         FStackBody.of(toFList().freverse())
@@ -72,6 +78,14 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fswaph(): IMStack<A> =
         FStackBody.of(toFList().fswaph())
 
+    override fun <B : Any> fzip(items: IMOrdered<B>): IMStack<Pair<A, B>> {
+        val (itn, _) = items.fnext()
+        return itn?.let {
+            if (fempty()) FStackBody.empty
+            else FStackBody.of(toFList().fzip(items))
+        } ?: FStackBody.empty
+    }
+
     // ============ IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
@@ -79,7 +93,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fappro(op: (IMStack<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMStack<A>) -> FMap<T>): FMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering
@@ -184,7 +198,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
 internal class FStackBody<out A: Any> private constructor (
     val body: FList<A>
 ): FStack<A>() {
-    override fun equals(other: Any?): Boolean = when {
+    override fun equals(other: Any?): Boolean = if (fempty()) emptyEquals(other) else when {
         this === other -> true
         other == null -> false
         other is FStackBody<*> -> when {
@@ -196,9 +210,7 @@ internal class FStackBody<out A: Any> private constructor (
         else -> false
     }
 
-    override fun hashCode(): Int {
-        return body.hashCode()
-    }
+    override fun hashCode(): Int = if (fempty()) emptyHashCode else body.hashCode()
 
     val show: String by lazy {
         if (fempty()) FStack::class.simpleName+"(*)"
@@ -211,10 +223,13 @@ internal class FStackBody<out A: Any> private constructor (
 
     companion object {
         val empty: FStackBody<Nothing> = FStackBody(FLNil)
+        private val emptyEquality = object { val proxy = IMCommonEmpty.Companion.IMCommonEmptyEquality() } // this gives me a distinct hashCode
+        private val emptyEquals: (Any?) -> Boolean = { other -> emptyEquality.proxy.equals(other) }
+        private val emptyHashCode: Int by lazy {  emptyEquality.proxy.hashCode() }
+
         internal fun <A: Any> of(body: FList<A>? = FLNil): FStack<A> {
             return if (body is FLNil) emptyIMStack() else body?.let { FStackBody(body) } ?: empty
         }
         fun <A: Any> hashCode(s: FStackBody<A>) = s.hashCode()
     }
-
 }

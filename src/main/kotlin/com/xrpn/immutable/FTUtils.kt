@@ -14,6 +14,8 @@ import kotlin.reflect.KClass
 
 internal object FT {
 
+    infix fun <B, C, A> ((B) -> C).kompose(f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
+
     fun <A : Any> isContainer(c: A): Boolean = when (c) {
         is TSDJ<*,*> -> c.left()?.let { isContainer(it) } ?: isContainer(c.right()!!)
         is TKVEntry<*,*> -> isContainer(c.getv())
@@ -217,6 +219,14 @@ fun <A, B> Pair<A, B>.fne() = this.first?.let { it } ?: this.second!!
 fun <A, B> Triple<A, A, A>.tmap1(f: (A) -> B): Triple<B, B, B> = Triple(f(this.first), f(this.second), f(this.third))
 fun <A, B, C, D, E, F> Triple<A, B, C>.tmap3(f: (A) -> D, g: (B) -> E, h: (C) -> F): Triple<D, E, F> = Triple(f(this.first), g(this.second), h(this.third))
 fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLCons(this.third, FLNil)))
+
+fun interface EqualsProxy {
+    override fun equals(other: Any?): Boolean
+}
+
+fun interface HashCodeProxy {
+    override fun hashCode(): Int
+}
 
 internal enum class FBTFIT {
     LEFT, RIGHT, EQ

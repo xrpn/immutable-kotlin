@@ -289,8 +289,8 @@ class FKSetGroupingTest : FunSpec({
 
         intKKSetOfNone.findexed() shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
-        val ix4offset1 = strISetOfFourABCD.findexed(1)
-        asFKSet<Int,Pair<String, Int>>(ix4offset1).fmap { p -> p.second }.equals(intKKSetOfFour) shouldBe true
+        val ix4offset1: IMSet<Pair<String, Int>> = strISetOfFourABCD.findexed(1)
+        ix4offset1.fmap { p -> p.second }.equals(intKKSetOfFour) shouldBe true
 
         val ix4offset0 = strISetOfFourABCD.findexed(0).ne()!!
         ix4offset0.fmap { p -> p.second+1 }.equals(intKKSetOfFour) shouldBe true

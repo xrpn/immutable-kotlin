@@ -148,9 +148,15 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
 
         return when {
-            n < 0 || size <= n -> FLNil
+            size <= n -> FLNil
+            n < 0 -> this
             else -> dropNext(1, this)
         }
+    }
+
+    override fun fnext(): Pair<A?, FList<A>> = when(this) {
+        is FLNil -> Pair(null, FLNil)
+        is FLCons -> Pair(this.head, this.tail)
     }
 
     override fun freverse(): FList<A> = fhead()?.let {
@@ -174,6 +180,20 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         is FLCons -> if (1 == this.size) this else FLCons(this.tail.fhead()!!, FLCons(this.head, this.tail.ftail()))
     }
 
+    override fun <B : Any> fzip(items: IMOrdered<B>): FList<Pair<A, B>> {
+
+        tailrec fun go(xs: FList<A>, items: IMOrdered<B>, acc: FList<Pair<A,B>>): FList<Pair<A,B>> {
+            val (xsn, xsns) = xs.fnext()
+            val (itn, itns) = items.fnext()
+            return when {
+                xsn == null || itn == null -> acc
+                else -> go(xsns, itns, acc.fprepend(Pair(xsn,itn)))
+            }
+        }
+
+        return go(this, items, emptyIMList()).freverse()
+    }
+
     // IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): FList<B> {
@@ -189,7 +209,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // IMApplicable
 
-    override fun <T : Any> fappro(op: (IMList<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMList<A>) -> FMap<T>): FMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // filtering
@@ -501,12 +521,16 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         return go(this, z, f)
     }
 
-    override fun <B> ffoldRight(z: B, f: (A, acc: B) -> B): B {
+    override fun <B> ffoldRight(z: B, f: (A, acc: B) -> B): B =
+        ffoldSimple(true, z, f)
+
+    override fun <B> ffoldSimple(maintainOrder: Boolean, z: B, f: (A, acc: B) -> B): B {
 
         val g: (B, A) -> B = { b, a -> f(a, b)}
-        val reversed = this.freverse()
-        return reversed.ffoldLeft(z, g)
+        val simple = if (maintainOrder) this.freverse() else this
+        return simple.ffoldLeft(z, g)
     }
+
 
     override fun freduceLeft(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(this, f)
 
@@ -759,6 +783,7 @@ object FLNil: FList<Nothing>() {
         other == null -> false
         other is IMList<*> -> other.fempty()
         other is List<*> -> other.isEmpty()
+        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
 }
@@ -776,6 +801,11 @@ data class FLCons<out A: Any>(
             other.fempty() -> false
             fhead()!!.isStrictlyNot(other.fhead()!!) -> false
             else -> @Suppress("UNCHECKED_CAST") IMListEqual2(this, other as IMList<A>)
+        }
+        other is IMDiaw<*,*> -> when {
+            other.fempty() -> false
+            fsize() != other.fsize() -> false
+            else -> TODO()
         }
         other is List<*> -> when {
             other.isEmpty() -> false

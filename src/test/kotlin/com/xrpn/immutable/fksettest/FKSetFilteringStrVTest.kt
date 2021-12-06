@@ -507,7 +507,7 @@ class FKSetFilteringStrVTest : FunSpec({
 
         (strKKSetOfThree xor strKKSetOfNone).equals(strKKSetOfThree) shouldBe true
         (strKKSetOfThree xor strKKSetOfThree).equals(strKKSetOfNone) shouldBe true
-        (FKSet.ofs("2") or strKKSetOfThree).equals(FKSet.ofs("1", "3")) shouldBe true
+        (FKSet.ofs("2") xor strKKSetOfThree).equals(FKSet.ofs("1", "3")) shouldBe true
         (strKKSetOfThree xor FKSet.ofs("2")).equals(FKSet.ofs("1","3")) shouldBe true
 
         (strISetOfNone xor strISetOfNone).equals(strISetOfNone) shouldBe true
@@ -525,7 +525,7 @@ class FKSetFilteringStrVTest : FunSpec({
 
         (strISetOfThree xor strISetOfNone).equals(strISetOfThree) shouldBe true
         (strISetOfThree xor strISetOfThree).equals(strISetOfNone) shouldBe true
-        (FKSet.ofs("2") or strISetOfThree).equals(FKSet.ofs("1","3")) shouldBe true
+        (FKSet.ofs("2") xor strISetOfThree).equals(FKSet.ofs("1","3")) shouldBe true
         (strISetOfThree xor FKSet.ofs("2")).equals(FKSet.ofi("1","3")) shouldBe true
 
         // mixed mode

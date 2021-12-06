@@ -107,7 +107,8 @@ class FBSTreeTransformingTest : FunSpec({
             val sum13 = aut.ffoldv(0) {acc, v -> acc+v }
             (sum * 13) shouldBe sum13
         }
-        fail("revise fmap for fbsTree")
+        TODO()
+//        fail("revise fmap for fbsTree")
 //        nul<Int, Int>().fmap { 2.toIAEntry() } shouldBe FBSTNil
 //        Arb.fbstree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
 //            val sum = fbst.ffoldv(0) {acc, v -> acc+v }

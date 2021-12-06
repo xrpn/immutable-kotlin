@@ -6,6 +6,7 @@ import com.xrpn.hash.DigestHash.lChecksumHashCodeReverse
 import com.xrpn.hash.MrMr64
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FQueueBody.Companion.empty
 
 sealed class FQueue<out A: Any> : IMQueue<A> {
@@ -66,13 +67,20 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ IMOrdered
 
-    override fun fdrop(n: Int): FQueue<A> {
+    override fun fdrop(n: Int): FQueue<A> = when {
+        0 < n -> {
 
-        tailrec fun deplete(q: FQueue<A>, n: Int): FQueue<A> =
-            if (n == 0) q else deplete(fqDequeue(q).second, n - 1)
+            tailrec fun deplete(q: FQueue<A>, n: Int): FQueue<A> =
+                if (n == 0) q else deplete(fqDequeue(q).second, n - 1)
 
-        return if (n <= 0) this else deplete(this, n)
+            deplete(this, n)
+        }
+        n <= 0 -> this
+        else -> throw RuntimeException("internal error")
     }
+
+    override fun fnext(): Pair<A?, IMQueue<A>> =
+        fdequeue()
 
     override fun freverse(): FQueue<A> =
         FQueueBody.of(fqGetBack(), fqGetFront())
@@ -106,6 +114,14 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         }
     }
 
+    override fun <B : Any> fzip(items: IMOrdered<B>): IMQueue<Pair<A, B>> {
+        val (itn, _) = items.fnext()
+        return itn?.let {
+            if (fempty()) empty
+            else FQueueBody.of(toFList().fzip(items),emptyIMList())
+        } ?: empty
+    }
+
     // ============ IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> =
@@ -113,7 +129,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ IMMapplicable
 
-    override fun <T: Any> fappro(op: (IMQueue<A>) -> FMap<T>): FMapp<T> =
+    override fun <T: Any> fapp(op: (IMQueue<A>) -> FMap<T>): FMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering
@@ -225,10 +241,14 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ utility
 
-    override fun equal(rhs: IMQueue<@UnsafeVariance A>): Boolean = when {
+    override fun equal(rhs: IMQueue<@UnsafeVariance A>, strong: Boolean): Boolean = when {
         this === rhs -> true
         !fqSameSize(rhs) -> false
-        rhs is FQueueBody -> fqStructuralEqual(rhs) || IMListEqual2(toFList(), rhs.toIMList())
+        rhs is FQueueBody -> {
+            val structural = fqStrongEqual(rhs)
+            val cheaperSemantic: Boolean by lazy { fqSemanticEqual(rhs) }
+            structural || (!strong && ( cheaperSemantic || IMListEqual2(toFList(), rhs.toIMList()) ))
+        }
         else -> false
     }
 
@@ -304,7 +324,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         return res
     }
 
-    internal fun fqStructuralEqual(rhs: IMQueue<@UnsafeVariance A>): Boolean = when {
+    internal fun fqSemanticEqual(rhs: IMQueue<@UnsafeVariance A>): Boolean = when {
         rhs is FQueueBody -> when {
             fqStrongEqual(rhs) -> true
             else -> {
@@ -428,7 +448,7 @@ internal class FQueueBody<out A: Any> private constructor(
     val back: FList<A>   // the ordering is so, that "head" is the last one enqueued -- Last In
 ) : FQueue<A>() {
 
-    override fun equals(other: Any?): Boolean = when {
+    override fun equals(other: Any?): Boolean = if (fempty()) emptyEquals(other) else when {
         this === other -> true
         other == null -> false
         other is FQueueBody<*> -> {
@@ -476,7 +496,9 @@ internal class FQueueBody<out A: Any> private constructor(
 
     companion object {
         val empty = FQueueBody(FLNil, FLNil)
-        private val emptyHashCode: Int by lazy { empty.toString().hashCode() }
+        private val emptyEquality = object { val proxy = IMCommonEmpty.Companion.IMCommonEmptyEquality() } // this gives me a distinct hashCode
+        private val emptyEquals: (Any?) -> Boolean = { other -> emptyEquality.proxy.equals(other) }
+        private val emptyHashCode: Int by lazy {  emptyEquality.proxy.hashCode() }
 
         fun <A: Any> of(
             front: IMList<A>,
@@ -485,15 +507,16 @@ internal class FQueueBody<out A: Any> private constructor(
             front is FLNil -> when (back) {
                 is FLNil -> emptyIMQueue()
                 is FLCons -> FQueueBody(front, back)
-                else -> throw RuntimeException()
+                else -> throw RuntimeException("internal error")
             }
             front is FLCons -> when (back) {
                 is FLNil -> FQueueBody(front, back)
                 is FLCons -> FQueueBody(front, back)
-                else -> throw RuntimeException()
+                else -> throw RuntimeException("internal error")
             }
-            else -> throw RuntimeException()
+            else -> throw RuntimeException("internal error")
         }
+
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }

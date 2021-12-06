@@ -101,7 +101,7 @@ interface IMStackUtility<out A: Any> {
 }
 
 interface IMQueueUtility<out A: Any> {
-    fun equal(rhs: IMQueue<@UnsafeVariance A>): Boolean
+    fun equal(rhs: IMQueue<@UnsafeVariance A>, strong: Boolean = false): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMQueue<A>
     fun toIMList(): IMList<A>

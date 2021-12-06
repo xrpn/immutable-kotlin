@@ -3,6 +3,7 @@ package com.xrpn.immutable.fqueuetest
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.emptyArrayOfInt
+import com.xrpn.immutable.fstacktest.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -45,12 +46,12 @@ class FQueueFilteringTest : FunSpec({
     (intQueueOfOne1NR.fdiscardFront() === FQueue.emptyIMQueue<Int>()) shouldBe true
     intQueueOfTwoNR.fdiscardFront().fqStrongEqual(intQueueOfOne2NR) shouldBe false
     intQueueOfTwoNR.fdiscardFront().fqStrongEqual(intQueueOfOne2YR) shouldBe true
-    intQueueOfTwoNR.fdiscardFront().fqStructuralEqual(intQueueOfOne2NR) shouldBe true
-    intQueueOfTwoNR.fdiscardFront().fqStructuralEqual(intQueueOfOne2YR) shouldBe true
+    intQueueOfTwoNR.fdiscardFront().fqSemanticEqual(intQueueOfOne2NR) shouldBe true
+    intQueueOfTwoNR.fdiscardFront().fqSemanticEqual(intQueueOfOne2YR) shouldBe true
     intQueueOfThreeNR.fdiscardFront().fqStrongEqual(intQueueOfTwoNR) shouldBe false
     intQueueOfThreeNR.fdiscardFront().fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfThreeNR.fdiscardFront().fqStructuralEqual(intQueueOfTwoNR) shouldBe true
-    intQueueOfThreeNR.fdiscardFront().fqStructuralEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfThreeNR.fdiscardFront().fqSemanticEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfThreeNR.fdiscardFront().fqSemanticEqual(intQueueOfTwoYR) shouldBe true
   }
 
   test("discardFront (ready)") {
@@ -58,10 +59,10 @@ class FQueueFilteringTest : FunSpec({
     (intQueueOfOne1YR.fdiscardFront() === FQueue.emptyIMQueue<Int>()) shouldBe true
     intQueueOfTwoYR.fdiscardFront().fqStrongEqual(intQueueOfOne2YR) shouldBe true
     intQueueOfTwoYR.fdiscardFront().fqStrongEqual(intQueueOfOne2NR) shouldBe false
-    intQueueOfTwoYR.fdiscardFront().fqStructuralEqual(intQueueOfOne2NR) shouldBe true
+    intQueueOfTwoYR.fdiscardFront().fqSemanticEqual(intQueueOfOne2NR) shouldBe true
     intQueueOfThreeYR.fdiscardFront().fqStrongEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfThreeYR.fdiscardFront().fqStrongEqual(intQueueOfTwoNR) shouldBe false
-    intQueueOfThreeYR.fdiscardFront().fqStructuralEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfThreeYR.fdiscardFront().fqSemanticEqual(intQueueOfTwoNR) shouldBe true
   }
 
   test("fdropFrontWhile (not ready)"){
@@ -190,12 +191,12 @@ class FQueueFilteringTest : FunSpec({
     (intQueueOfOne1NR.fdiscardBack() === emptyIMQueue<Int>()) shouldBe true
     intQueueOfTwoNR.fdiscardBack().fqStrongEqual(intQueueOfOne1NR) shouldBe true
     intQueueOfTwoNR.fdiscardBack().fqStrongEqual(intQueueOfOne1YR) shouldBe false
-    intQueueOfTwoNR.fdiscardBack().fqStructuralEqual(intQueueOfOne1NR) shouldBe true
-    intQueueOfTwoNR.fdiscardBack().fqStructuralEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfTwoNR.fdiscardBack().fqSemanticEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfTwoNR.fdiscardBack().fqSemanticEqual(intQueueOfOne1YR) shouldBe true
     intQueueOfThreeNR.fdiscardBack().fqStrongEqual(intQueueOfTwo31NR) shouldBe true
     intQueueOfThreeNR.fdiscardBack().fqStrongEqual(intQueueOfTwo31YR) shouldBe false
-    intQueueOfThreeNR.fdiscardBack().fqStructuralEqual(intQueueOfTwo31NR) shouldBe true
-    intQueueOfThreeNR.fdiscardBack().fqStructuralEqual(intQueueOfTwo31YR) shouldBe true
+    intQueueOfThreeNR.fdiscardBack().fqSemanticEqual(intQueueOfTwo31NR) shouldBe true
+    intQueueOfThreeNR.fdiscardBack().fqSemanticEqual(intQueueOfTwo31YR) shouldBe true
   }
 
   test("fdiscardBack (ready)"){
@@ -203,12 +204,12 @@ class FQueueFilteringTest : FunSpec({
     (intQueueOfOne1YR.fdiscardBack() === emptyIMQueue<Int>()) shouldBe true
     intQueueOfTwoYR.fdiscardBack().fqStrongEqual(intQueueOfOne1NR) shouldBe true
     intQueueOfTwoYR.fdiscardBack().fqStrongEqual(intQueueOfOne1YR) shouldBe false
-    intQueueOfTwoYR.fdiscardBack().fqStructuralEqual(intQueueOfOne1NR) shouldBe true
-    intQueueOfTwoYR.fdiscardBack().fqStructuralEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfTwoYR.fdiscardBack().fqSemanticEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfTwoYR.fdiscardBack().fqSemanticEqual(intQueueOfOne1YR) shouldBe true
     intQueueOfThreeYR.fdiscardBack().fqStrongEqual(intQueueOfTwo31NR) shouldBe true
     intQueueOfThreeYR.fdiscardBack().fqStrongEqual(intQueueOfTwo31YR) shouldBe false
-    intQueueOfThreeYR.fdiscardBack().fqStructuralEqual(intQueueOfTwo31NR) shouldBe true
-    intQueueOfThreeYR.fdiscardBack().fqStructuralEqual(intQueueOfTwo31YR) shouldBe true
+    intQueueOfThreeYR.fdiscardBack().fqSemanticEqual(intQueueOfTwo31NR) shouldBe true
+    intQueueOfThreeYR.fdiscardBack().fqSemanticEqual(intQueueOfTwo31YR) shouldBe true
   }
 
   test("fdropBack (not ready)"){
@@ -242,12 +243,12 @@ class FQueueFilteringTest : FunSpec({
   test("fdropBack"){
     intQueueOfThree2F.fdropBack(1).fqStrongEqual(intQueueOfTwo31NR) shouldBe false
     intQueueOfThree2F.fdropBack(1).fqStrongEqual(intQueueOfTwo31YR) shouldBe true
-    intQueueOfThree2F.fdropBack(1).fqStructuralEqual(intQueueOfTwo31NR) shouldBe true
+    intQueueOfThree2F.fdropBack(1).fqSemanticEqual(intQueueOfTwo31NR) shouldBe true
     intQueueOfThree2F.fdropBack(2).fqStrongEqual(intQueueOfOne3NR) shouldBe true
     (intQueueOfThree2F.fdropBack(3) === emptyIMQueue<Int>()) shouldBe true
     intQueueOfThree2B.fdropBack(1).fqStrongEqual(intQueueOfTwoBF) shouldBe true
-    intQueueOfThree2B.fdropBack(1).fqStructuralEqual(intQueueOfTwo31YR) shouldBe false
-    intQueueOfThree2B.fdropBack(1).fqStructuralEqual(intQueueOfTwo31YR) shouldBe false
+    intQueueOfThree2B.fdropBack(1).fqSemanticEqual(intQueueOfTwo31YR) shouldBe false
+    intQueueOfThree2B.fdropBack(1).fqSemanticEqual(intQueueOfTwo31YR) shouldBe false
     intQueueOfThree2B.fdropBack(1).equal(intQueueOfTwo31YR) shouldBe true
     intQueueOfThree2B.fdropBack(1).equal(intQueueOfTwo31NR) shouldBe true
     intQueueOfThree2B.fdropBack(2).fqStrongEqual(intQueueOfOne3YR) shouldBe true
@@ -427,5 +428,36 @@ class FQueueFilteringTest : FunSpec({
     intQueueOfTwoNR.ffirstOrThrow() shouldBe 1
     intQueueOfThreeNR.ffirstOrThrow() shouldBe 3
   }
+
+  test("fdrop") {
+    (intQueueOfNoneYR.fdrop(-1) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfNoneYR.fdrop(0) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfNoneYR.fdrop(1) === intQueueOfNoneYR) shouldBe true
+
+    (intQueueOfOne1NR.fdrop(-1) === intQueueOfOne1NR) shouldBe true
+    (intQueueOfOne1NR.fdrop(0) === intQueueOfOne1NR) shouldBe true
+    (intQueueOfOne1NR.fdrop(1) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfOne1NR.fdrop(2) === intQueueOfNoneNR) shouldBe true
+
+    (intQueueOfOne1YR.fdrop(-1) === intQueueOfOne1YR) shouldBe true
+    (intQueueOfOne1YR.fdrop(0) === intQueueOfOne1YR) shouldBe true
+    (intQueueOfOne1YR.fdrop(1) === intQueueOfNoneNR) shouldBe true
+    (intQueueOfOne1YR.fdrop(2) === intQueueOfNoneYR) shouldBe true
+
+    (intQueueOfThree2B.fdrop(-1) === intQueueOfThree2B) shouldBe true
+    (intQueueOfThree2B.fdrop(0) === intQueueOfThree2B) shouldBe true
+    intQueueOfThree2B.fdrop(1) shouldBe intQueueOfTwoYR
+    intQueueOfThree2B.fdrop(2) shouldBe intQueueOfOne2YR
+    (intQueueOfThree2B.fdrop(3) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfThree2B.fdrop(4) === intQueueOfNoneYR) shouldBe true
+
+    (intQueueOfThree2F.fdrop(-1) === intQueueOfThree2F) shouldBe true
+    (intQueueOfThree2F.fdrop(0) === intQueueOfThree2F) shouldBe true
+    intQueueOfThree2F.fdrop(1) shouldBe intQueueOfTwoYR
+    intQueueOfThree2F.fdrop(2) shouldBe intQueueOfOne2YR
+    (intQueueOfThree2F.fdrop(3) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfThree2F.fdrop(4) === intQueueOfNoneYR) shouldBe true
+  }
+
 
 })

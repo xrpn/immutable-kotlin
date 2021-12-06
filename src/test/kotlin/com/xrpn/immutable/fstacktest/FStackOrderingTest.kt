@@ -1,9 +1,9 @@
 package com.xrpn.immutable.fstacktest
 
+import com.xrpn.imapi.IMOrdered
 import com.xrpn.imapi.IMStack
-import com.xrpn.immutable.FStack
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
-import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -17,10 +17,14 @@ private val itemB = "B"
 private val itemC = "C"
 private val strStackOfNone = FStack.of(*emptyArrayOfStr)
 private val strStackOfOneA = FStack.of(*arrayOf<String>(itemA))
+private val strStackOfOneB = FStack.of(*arrayOf<String>(itemB))
 private val strStackOfTwoAB = FStack.of(*arrayOf<String>(itemA, itemB))
 private val strStackOfTwoBA = FStack.of(*arrayOf<String>(itemB, itemA))
+private val strStackOfTwoBC = FStack.of(*arrayOf<String>(itemB, itemC))
 private val strStackOfThree = FStack.of(*arrayOf<String>(itemA, itemB, itemC))
 private val strStackOfThreer = FStack.of(*arrayOf<String>(itemC, itemB, itemA))
+private val intListOfThree: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,3,2))
+
 
 
 class FStackOrderingTest : FunSpec({
@@ -41,6 +45,36 @@ class FStackOrderingTest : FunSpec({
   val repeats = Triple(5, 3, 10)
 
   beforeTest {}
+
+
+  test("fdrop 0") {
+    (strStackOfNone.fdrop(0) === strStackOfNone) shouldBe true
+    (strStackOfOneA.fdrop(0) === strStackOfOneA) shouldBe true
+    (strStackOfTwoAB.fdrop(0) === strStackOfTwoAB) shouldBe true
+    (strStackOfThree.fdrop(0) === strStackOfThree) shouldBe true
+  }
+
+  test("fdrop 1") {
+    strStackOfNone.fdrop(1) shouldBe strStackOfNone
+    strStackOfOneA.fdrop(1) shouldBe strStackOfNone
+    strStackOfTwoBA.fdrop(1) shouldBe strStackOfOneA
+    strStackOfThree.fdrop(1) shouldBe strStackOfTwoBC
+  }
+
+  test("fdrop negative") {
+    (strStackOfNone.fdrop(-1) === strStackOfNone) shouldBe true
+    (strStackOfOneA.fdrop(-1) === strStackOfOneA) shouldBe true
+    (strStackOfTwoAB.fdrop(-1) === strStackOfTwoAB) shouldBe true
+    (strStackOfThree.fdrop(-1) === strStackOfThree) shouldBe true
+  }
+
+  test("fnext") {
+    strStackOfNone.fnext() shouldBe Pair(null, strStackOfNone)
+    strStackOfOneA.fnext() shouldBe Pair(itemA, strStackOfNone)
+    strStackOfTwoAB.fnext() shouldBe Pair(itemA, strStackOfOneB)
+    strStackOfTwoBA.fnext() shouldBe Pair(itemB, strStackOfOneA)
+    strStackOfThree.fnext() shouldBe Pair(itemA, strStackOfTwoBC)
+  }
 
   test("freverse") {
     (strStackOfNone.freverse() === emptyIMStack<Int>()) shouldBe true
@@ -130,5 +164,21 @@ class FStackOrderingTest : FunSpec({
       go(fl)
     }
   }
+
+  test("fzip") {
+    (strStackOfNone.fzip(strStackOfNone) === strStackOfNone) shouldBe true
+    (strStackOfNone.fzip(strStackOfOneA) === strStackOfNone) shouldBe true
+    (strStackOfOneA.fzip(strStackOfNone) === strStackOfNone) shouldBe true
+    strStackOfOneB.fzip(strStackOfOneA) shouldBe FStack.of(Pair(itemB, itemA))
+    strStackOfOneB.fzip(strStackOfTwoAB) shouldBe FStack.of(Pair(itemB, itemA))
+    (strStackOfTwoAB.fzip(strStackOfNone) === strStackOfNone) shouldBe true
+    strStackOfTwoAB.fzip(strStackOfOneB) shouldBe FStack.of(Pair(itemA, itemB))
+    strStackOfTwoAB.fzip(strStackOfTwoAB) shouldBe FStack.of(Pair(itemA, itemA), Pair(itemB, itemB))
+    strStackOfTwoAB.fzip(strStackOfTwoBA) shouldBe FStack.of(Pair(itemA, itemB), Pair(itemB, itemA))
+    strStackOfTwoBA.fzip(strStackOfTwoAB) shouldBe FStack.of(Pair(itemB, itemA), Pair(itemA, itemB))
+    strStackOfThree.fzip(strStackOfThree) shouldBe FStack.of(Pair(itemA, itemA), Pair(itemB, itemB), Pair(itemC, itemC))
+    strStackOfThree.fzip(intListOfThree) shouldBe FStack.of(Pair(itemA, 1), Pair(itemB, 3), Pair(itemC, 2))
+  }
+
 
 })

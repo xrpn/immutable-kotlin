@@ -1177,6 +1177,7 @@ internal abstract class FBSTNil(): FBSTree<Nothing, Nothing>() {
         other is FBSTGeneric -> true
         other is FBSTUnique -> true
         other is IMBTree<*, *> -> other.fempty()
+        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
 }

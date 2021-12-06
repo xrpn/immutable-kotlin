@@ -20,19 +20,6 @@ class FListTransformingTest : FunSpec({
 
   beforeTest {}
 
-  test("fflatMap") {
-    intListOfNone.fflatMap {it -> FLCons(it, FLNil) } shouldBe FLNil
-    intListOfOne.fflatMap {it -> FLCons(it, FLNil)} shouldBe FLCons(1,FLNil)
-    fun arrayBuilderConst(arg: Int) = Array<Int>(arg) { _ -> arg }
-    intListOfTwo.fflatMap {FList.of(*arrayBuilderConst(it))} shouldBe FLCons(1,FLCons(2,FLCons(2,FLNil)))
-    fun arrayBuilderIncrement(arg: Int) = Array<Int>(arg) { i -> arg + i }
-    intListOfTwo.fflatMap {FList.of(*arrayBuilderIncrement(it))} shouldBe FLCons(1,FLCons(2,FLCons(3,FLNil)))
-    intListOfThree.fflatMap {FList.of(*arrayBuilderIncrement(it))} shouldBe
-            FLCons(1,FLCons(2,FLCons(3,FLCons(3,FLCons(4,FLCons(5,FLNil))))))
-    intListOfThree.fflatMap { i -> FList.of(i, i) } shouldBe
-            FLCons(1,FLCons(1,FLCons(2,FLCons(2,FLCons(3,FLCons(3,FLNil))))))
-  }
-
   test("foldLeft sum") {
 
     val s = { acc: Int, b: Int -> acc + b}
@@ -110,12 +97,6 @@ class FListTransformingTest : FunSpec({
     FList.of(*arrayOf<Int>(2,1)).ffoldRight(1, ss)  shouldBe 2
     FList.of(*arrayOf<Int>(3,2,1)).ffoldRight(1, ss)  shouldBe 6
     FList.of(*arrayOf<Int>(3,2,1,0)).ffoldRight(1, ss) shouldBe 0
-  }
-
-  test("fmap") {
-    (intListOfNone as FList).fmap { it + 1} shouldBe FLNil
-    (intListOfOne as FList).fmap { it + 1} shouldBe FLCons(2,FLNil)
-    (intListOfTwo as FList).fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLNil))
   }
 
   test("freduceLeft") {

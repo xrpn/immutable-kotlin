@@ -6,6 +6,7 @@ import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.emptyArrayOfInt
+import com.xrpn.immutable.fstacktest.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
@@ -254,4 +255,23 @@ class FListFilteringTest : FunSpec({
     FList.of(*arrayOf<Int>(3,2,1)).ftakeWhile { it > 1 }  shouldBe FLCons(3,FLCons(2,FLNil))
     FList.of(*arrayOf<Int>(3,2,1,0)).ftakeWhile { it != 1 } shouldBe FLCons(3,FLCons(2,FLNil))
   }
+
+  test("fdrop") {
+    intListOfNone.fdrop(-1) shouldBe intListOfNone
+    intListOfNone.fdrop(0) shouldBe intListOfNone
+    intListOfNone.fdrop(1) shouldBe intListOfNone
+
+    intListOfOne.fdrop(-1) shouldBe intListOfOne
+    intListOfOne.fdrop(0) shouldBe intListOfOne
+    intListOfOne.fdrop(1) shouldBe intListOfNone
+    intListOfOne.fdrop(2) shouldBe intListOfNone
+
+    intListOfThree.fdrop(-1) shouldBe intListOfThree
+    intListOfThree.fdrop(0) shouldBe intListOfThree
+    intListOfThree.fdrop(1) shouldBe FList.of(*arrayOf<Int>(2,3))
+    intListOfThree.fdrop(2) shouldBe FLCons(3, FLNil)
+    intListOfThree.fdrop(3) shouldBe intListOfNone
+    intListOfThree.fdrop(4) shouldBe intListOfNone
+  }
+
 })

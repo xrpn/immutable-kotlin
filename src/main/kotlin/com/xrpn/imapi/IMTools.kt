@@ -52,7 +52,19 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
 fun <T: Any> IMCommon<T>?.toIMMapplicable(): FMapp<T>? =
     this?.let { IMMappOp.flift2mapp(it) }
 
+inline infix fun <B, C, A> ((B) -> C).fKompose(crossinline f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
+
+//infix fun <B : Any, C : Any, A : Any> (FMapp<A>).fmappKompose(fmapp: FMapp<B>): ((FMap<A>) -> FMap<B>) -> FMapp<C> {
+//    fun foo (arg1: ((FMap<B>) -> FMap<C>) -> FMapp<C>, arg2: ((FMap<A>) -> FMap<B>) -> FMapp<B>): ((FMap<A>) -> FMap<B>) -> FMapp<C> = { op: (FMap<A>) -> FMap<B> ->
+//        fmapp.fapp(this.fapp(op).asFMap())
+//    }
+//    return foo(fmapp::fapp, this::fapp)
+//}
+
 object IM {
+
+    fun <A: Any, B: Any> maybe2(a: A?, b: B?): Pair<A,B>? = a?.let { b?.let { Pair(a,b) } }
+    fun <A, B, C> maybe3(a: A, b: B, c: C): Triple<A,B,C>? = a?.let { b?.let {  c?.let { Triple(a,b,c) } } }
 
     fun <S: Any, T: Any> fmapOfCommon(
         u: FMap<S>,
@@ -69,7 +81,7 @@ object IM {
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
         is IMHeap -> item
-        is IMDisw<B, IMCommon<B>> -> DMW.of(item)
+        is IMDisw<B, IMCommon<B>> -> DWFMap.of(item)
         is IMDimw<B, IMCommon<B>> -> item
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMapOp<B, IMCommon<B>>)
         else -> if (!(IMMapOp::class.isInstance(item))) null
@@ -85,7 +97,8 @@ object IM {
         is IMHeap -> item
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
-        is IMDimw<A, IMCommon<A>> -> DAW.of(item)
+        is IMDimw<A, IMCommon<A>> -> DWFMapp.of(item)
+        is IMDiaw<A, IMCommon<A>> -> item
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMappOp<A, IMMapOp<A, IMCommon<A>>>)
         else -> if (!(IMMappOp::class.isInstance(item))) null
                 else throw RuntimeException("internal error, unknown IMMappable:'${item::class}'")

@@ -407,18 +407,20 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     }
 
     override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
-        val t = items.asIMBTree()
+        val t: IMBTree<A, B> = items.asIMBTree()
         return when(this) {
             is FRBTNil -> when(t) {
                 is FRBTree -> t
                 is FBSTree -> t.toFRBTree()
                 else -> throw RuntimeException("internal error")
             }
-            is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else {
-                val bothHave = fAND(t)
-                val thisOnly = fNOT(bothHave)
-                val itemsOnly = t.fNOT(bothHave)
-                thisOnly.finsertt(itemsOnly) as FRBTree
+            is FRBTNode -> if (t.fempty()) this else {
+                fun f(container: IMBTree<A,B>): (acc: FRBTree<A, B>, item: TKVEntry<A,B>) -> FRBTree<A, B> = { acc, item ->
+                    if (container.fcontains(item)) acc
+                    else acc.finsert(item)
+                }
+                val partial = t.ffold(nul(), f(this))
+                ffold(partial, f(t))
             }
         }
     }
@@ -480,10 +482,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
     }
 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D>
-    where C: Any, C: Comparable<@UnsafeVariance C> = if (fempty()) nul<C,D>() else {
-        val seed = of(f(froot()!!))
-        // worry not, there will be no duplicates by contract
-        ffold(seed) { acc, tkv -> acc.finsert(f(tkv)) }
+    where C: Any, C: Comparable<@UnsafeVariance C> = if (fempty()) nul() else {
+        ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
     }
 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
@@ -1077,6 +1077,7 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
         this === other -> true
         other == null -> false
         other is IMBTree<*, *> -> other.fempty()
+        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
 }

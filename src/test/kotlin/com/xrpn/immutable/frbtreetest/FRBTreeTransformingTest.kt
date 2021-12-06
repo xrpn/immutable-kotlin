@@ -66,7 +66,8 @@ class FRBTreeTransformingTest : FunSpec({
 //    }
 
     test("fmap") {
-        fail("revise fmap for fbsTree")
+        TODO()
+//        fail("revise fmap for fbsTree")
 //        (nul<Int, Int>().fmap { 2.toIAEntry() } === FRBTNil) shouldBe true
 //        Arb.frbtree<Int, Int>(Arb.int()).checkAll(repeats) { fbst ->
 //            val sum = fbst.ffoldv(0) {acc, v -> acc+v }

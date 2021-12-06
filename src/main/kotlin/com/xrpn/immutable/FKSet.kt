@@ -208,7 +208,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fappro(op: (IMSet<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMSet<A>) -> FMap<T>): FMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // utility
@@ -1089,6 +1089,7 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
         other == null -> false
         other is IMKSet<*,*> -> other.fempty()
         other is Set<*> -> other.isEmpty()
+        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
     override val hash: Int by lazy { show.hashCode() }

@@ -444,4 +444,21 @@ class FRBTreeFilteringTest : FunSpec({
         val itemAry = Array(1) { TKVEntry.ofIntKey(nextInt()) }
         of(itemAry.iterator()).froot() shouldBe itemAry[0]
     }
+
+    test("fAND") {
+        TODO()
+    }
+
+    test("fNOT") {
+        TODO()
+    }
+
+    test("fOR") {
+        TODO()
+    }
+
+    test("fXOR") {
+        TODO()
+    }
+
 })

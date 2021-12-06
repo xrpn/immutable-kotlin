@@ -92,3 +92,13 @@ interface IMQueueFiltering<out A: Any> {
     fun ffirstOrThrow(): A // the top element
     fun fpeek(): A? = ffirst()
 }
+
+interface IMDjFiltering<out L, out R> {
+    fun left(): L?
+    fun right(): R?
+    fun isLeft(): Boolean
+    fun isRight(): Boolean
+    fun <C> bireduce(fl: (L) -> C, fr: (R) -> C): C
+    fun <C: Any, D: Any> bimap(fl: (L) -> C, fr: (R) -> D): IMDj<C, D>
+
+}
