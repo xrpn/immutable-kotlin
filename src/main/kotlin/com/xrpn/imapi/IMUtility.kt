@@ -19,7 +19,6 @@ interface IMSetUtility<out A: Any> {
     fun ne(): IMSetNotEmpty<A>?
     fun <K> nex(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> // TODO this makes it possible to lie to the compiler
     fun copyToMutableSet(): MutableSet<@UnsafeVariance A>
-    fun toEmpty(): IMSet<A>
     fun <B: Any> toEmptyRetyped(): IMSet<B>
 }
 

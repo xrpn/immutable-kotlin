@@ -15,6 +15,7 @@ interface IMListTyping<out A: Any>:
     override fun ffilter(isMatch: (A) -> Boolean): IMList<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMList<A> // Return all elements that do not match the predicate p
     override fun fpopAndRemainder(): Pair<A?, IMList<A>>
+    override fun toEmpty(): IMList<A>
     // IMOrdered
     override fun fdrop(n: Int): IMList<A> // Return all elements after the first n elements
     override fun fnext(): Pair<A?, IMList<A>>
@@ -39,6 +40,7 @@ interface IMStackTyping<out A: Any>:
     override fun ffilter(isMatch: (A) -> Boolean): IMStack<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMStack<A> // Return all elements that do not match the predicate p
     override fun fpopAndRemainder(): Pair<A?, IMStack<A>>
+    override fun toEmpty(): IMStack<A>
     // IMOrdered
     override fun fdrop(n: Int): IMStack<A> // Return all elements after the first n elements
     override fun fnext(): Pair<A?, IMStack<A>>
@@ -63,6 +65,7 @@ interface IMQueueTyping<out A: Any>:
     override fun ffilter(isMatch: (A) -> Boolean): IMQueue<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMQueue<A> // Return all elements that do not match the predicate p
     override fun fpopAndRemainder(): Pair<A?, IMQueue<A>>
+    override fun toEmpty(): IMQueue<A>
     // IMOrdered
     override fun fdrop(n: Int): IMQueue<A> // Return all elements after the first n elements
     override fun fnext(): Pair<A?, IMQueue<A>>
@@ -85,6 +88,7 @@ interface IMSetTyping<out A: Any>:
     override fun fdropWhen(isMatch: (A) -> Boolean): IMSet<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMSet<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMSet<A> // Return all elements that do not match the predicate p
+    override fun toEmpty(): IMSet<A>
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMSet<B>
 }
@@ -99,6 +103,7 @@ interface IMHeapTyping<out A: Any>:
     override fun fdropWhen(isMatch: (A) -> Boolean): IMHeap<A> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (A) -> Boolean): IMHeap<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMHeap<A> // Return all elements that do not match the predicate p
+    override fun toEmpty(): IMHeap<A>
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMHeap<B>
 }
@@ -132,6 +137,7 @@ interface IMMapTyping<out K, out V: Any>:
     override fun fdropWhen(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> = this.ffilterNot(isMatch)
     override fun ffilter(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (TKVEntry<K, V>) -> Boolean): IMMap<K, V> // Return all elements that do not match the predicate p
+    override fun toEmpty(): IMMap<K,V>
     // IMKeyed
     override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMMap<K,V>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMMap<K,V>
@@ -164,6 +170,7 @@ interface IMBTreeTyping<out A, out B: Any>:
     override fun ffilter(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (TKVEntry<A, B>) -> Boolean): IMBTree<A, B> // Return all elements that do not match the predicate p
     override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMBTree<A, B>>
+    override fun toEmpty(): IMBTree<A,B>
     // IMKeyed
     override fun fdropKeys(keys: IMSet<@UnsafeVariance A>): IMBTree<A, B>
     override fun ffilterKey(isMatch: (A) -> Boolean): IMBTree<A, B>

@@ -11,10 +11,16 @@ import io.kotest.xrpn.flist
 
 private val intListOfNone = FList.of(*emptyArrayOfInt)
 private val longListOfNone = FList.of(*emptyArrayOfLong)
+private val strListOfNone = FList.of(*emptyArrayOfStr)
+private val boolListOfNone = FList.of(*arrayOf<Boolean>())
 private val intListOfOne = FList.of(*arrayOf<Int>(1))
+private val longListOfOne = FList.of(*arrayOf<Long>(10L))
 private val strListOfOne = FList.of(*arrayOf<String>("A"))
 private val boolListOfOne = FList.of(*arrayOf<Boolean>(true))
 private val intListOfTwo = FList.of(*arrayOf<Int>(1,2))
+private val longListOfTwo = FList.of(*arrayOf<Long>(10L, 20L))
+private val strListOfTwo = FList.of(*arrayOf<String>("A", "B"))
+private val boolListOfTwo = FList.of(*arrayOf<Boolean>(true, true))
 private val intListOfThree = FList.of(*arrayOf<Int>(1,2,3))
 
 class FListLawsTest: FunSpec({
@@ -49,22 +55,6 @@ class FListLawsTest: FunSpec({
         flistApplicativeLaw.compositionLaw(intListOfNone, fmapInt2String_I, longListOfNone, fmapLong2StrangeInt ) shouldBe true
     }
 
-    test("flist applicative composition") {
-
-//        val calc: (Int) -> ( (String) -> ( (Boolean) -> Double ) ) = { i: Int -> { s: String -> { b: Boolean ->  5.0 }}}
-//        val appCalc: FMapp<(Int) -> (String) -> (Boolean) -> Double> = IMMappOp.flift2mapp(calc)!!
-//        val foo: FMapp<Long> = intListOfOne.appKompose<String, FMap<String>, Boolean>(strListOfOne::fapp).appKompose<Boolean, FMap<Boolean>, Long>(boolListOfOne::fapp)
-//        val bar: FMapp<Long> = intListOfOne.fmapply<String,Boolean>(strListOfOne).fmapply(boolListOfOne)
-//        val baz: FMapp<FMapp<Boolean>> = intListOfOne.fmApply(strListOfOne).fmApply(boolListOfOne)
-//        // bar.fapp { it: IMMapOp<Long, IMCommon<Long>> ->  }
-//        // baz.fapp { it: FMap<FMapp<Boolean>> -> TODO() }
-//
-//                // il1: IMList<Int> -> {  strListOfOne.fapp { sl1: IMList<String> -> boolListOfOne.fapp { bl1 -> appCalc.fapp { it: IMMapOp<(Int) -> (String) -> (Boolean) -> Double, IMCommon<(Int) -> (String) -> (Boolean) -> Double>> ->  } } }}}
-//
-//        foo.fempty() shouldBe false
-
-//        IMCartesian.flift2kart(intListOfOne)
-    }
-
+    test("flist cartesian law") {}
 
 })

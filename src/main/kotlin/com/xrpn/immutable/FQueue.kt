@@ -65,6 +65,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun fsize(): Int =
         fqGetFront().size + fqGetBack().size
 
+    override fun toEmpty(): IMQueue<A> = empty
+
     // ============ IMOrdered
 
     override fun fdrop(n: Int): FQueue<A> = when {
@@ -129,7 +131,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ IMMapplicable
 
-    override fun <T: Any> fapp(op: (IMQueue<A>) -> FMap<T>): FMapp<T> =
+    override fun <T: Any> fapp(op: (IMQueue<A>) -> ITMap<T>): ITMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering

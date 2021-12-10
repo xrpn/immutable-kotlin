@@ -68,6 +68,7 @@ interface IMCommon<out A: Any>: IMSealed {
     }
     fun fpopAndRemainder(): Pair<A?, IMCommon<A>>
     fun fsize(): Int
+    fun toEmpty(): IMCommon<A>
 
     companion object {
         //fun <T: Any, S: Any> from(t: T): IMCommon<S>? = t.asIMUniCo()?.asIMCommon()
@@ -94,10 +95,6 @@ interface IMCommon<out A: Any>: IMSealed {
     }
 }
 
-interface IMWritable<out A: Any> {
-    fun fadd(item: @UnsafeVariance A): IMWritable<A>
-}
-
 interface IMCommonEmpty<out A: Any>: IMCommon<A> {
     override fun fcount(isMatch: (A) -> Boolean): Int = 0
     override fun fcontains(item: @UnsafeVariance A): Boolean = false
@@ -112,6 +109,7 @@ interface IMCommonEmpty<out A: Any>: IMCommon<A> {
     override fun fpick(): Nothing? = null
     override fun fpopAndRemainder(): Pair<A?, IMCommon<A>> = Pair(null, this)
     override fun fsize(): Int = 0
+    override fun toEmpty(): IMCommon<A> = this
     companion object {
         fun equal(other: IMCommon<*>): Boolean = other.fempty()
         internal open class IMCommonEmptyEquality: EqualsProxy, HashCodeProxy {
@@ -156,11 +154,15 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
 }
 
+interface IMWritable<out A: Any> {
+    fun fadd(item: @UnsafeVariance A): IMWritable<A>
+}
+
 interface IMReducible<out A: Any>: IMUniversalCommon {
     fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A?
 }
 
-interface IMOrdered<out A: Any>: IMUniversalCommon {
+interface IMOrdered<out A: Any>: IMCommon<A> {
     fun fdrop(n: Int): IMOrdered<A> // Return all elements after the first n elements
     fun fnext(): Pair<A?, IMOrdered<A>>
     fun freverse(): IMOrdered<A>
@@ -170,7 +172,7 @@ interface IMOrdered<out A: Any>: IMUniversalCommon {
     fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Pair<A,B>>
 }
 
-interface IMOrderedEmpty<out A: Any>: IMOrdered<A> {
+interface IMOrderedEmpty<out A: Any>: IMCommonEmpty<A>, IMOrdered<A> {
     override fun fdrop(n: Int): IMOrdered<A> = this
     override fun fnext(): Pair<A?, IMOrdered<A>> = Pair(null,this)
     override fun freverse(): IMOrdered<A> = this
@@ -179,21 +181,81 @@ interface IMOrderedEmpty<out A: Any>: IMOrdered<A> {
     override fun fswaph(): IMOrdered<A> = this
 }
 
-typealias FMap<S> = IMMapOp<S, IMCommon<S>>
+typealias ITKart<S, T> = IMCartesian<S, ITMap<S>, T, Pair<S,T>>
+
+interface IMCartesian<out S: Any, out U: ITMap<S>, out T: Any, out W:Pair<S,T>> {
+
+    infix fun mpro(t: ITMap<@UnsafeVariance T>): ITMap<W>?
+    infix fun opro(t: IMOrdered<@UnsafeVariance T>): ITMap<W>?
+
+    companion object {
+        fun <S: Any, T: Any, W:Pair<S,T>> asZMap(k: ITMap<W>?): ITZMap<S,T>? = FCartesian.asZMap(k)
+        fun <S: Any, T: Any> flift2kart(item: IMOrdered<S>): ITKart<S,T> = FCartesian.of(item)
+    }
+}
+
+typealias ITZMap<S,T> = IMZipMap<S,T,Pair<S,T>>
+
+interface IMZipMap<out S: Any, out T: Any, out W: Pair<S,T>> {
+
+    fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X>
+    fun <X: Any> fzippMap(f: (S, T) -> X): ITMap<X> {
+        val pf: (S) -> (T) -> X = { s: S -> { t: T -> f(s, t) } }
+        return fzipMap(pf)
+    }
+    fun <X: Any> fkartMap(f: (S) -> (T) -> X ): ITMap<ITMap<X>>
+    fun <X: Any> fkartpMap(f: (S, T) -> X ): ITMap<ITMap<X>> {
+        val pf: (S) -> (T) -> X = { s: S -> { t: T -> f(s, t) } }
+        return fkartMap(pf)
+    }
+    fun asMap(): ITMap<W>
+    fun asIMOrdered(): IMOrdered<W>
+}
+
+typealias ITMap<S> = IMMapOp<S, IMCommon<S>>
 
 interface IMMapOp<out S: Any, out U: IMCommon<S>>: IMCommon<S> {
 
-    fun <T: Any> fmap(f: (S) -> T): FMap<T>
+    fun <T: Any> fmap(f: (S) -> T): ITMap<T>
+
+    infix fun <T: Any, V: ITMap<T>, W: Pair<@UnsafeVariance S,T>> with(tmap: V): ITMap<W> = when {
+        this.fempty() -> @Suppress("UNCHECKED_CAST") (this.toEmpty() as ITMap<W>)
+        tmap.fempty() -> @Suppress("UNCHECKED_CAST") (tmap.toEmpty() as ITMap<W>)
+        this is ZipWrapMarker -> { // S is at least a Pair<*,*>
+            (@Suppress("UNCHECKED_CAST") (this as ITMap<Pair<Any,Any>>))
+            val zm: ITZMap<Any, Any> = FCartesian.asZMap(this)!!
+            zipMaps(zm.asMap(), tmap)
+        }
+        this !is IMOrdered<*> && tmap !is IMOrdered<*> -> throw RuntimeException("internal error")
+        tmap !is IMOrdered<*> -> toEmptyZipMap(this)
+        this !is IMOrdered<*> -> toEmptyZipMap(tmap)
+        else -> zipMaps(this, tmap)
+    }
+
 
     companion object {
 
 //        fun <T: Any> equal(rhs: FMap<T>, lhs: FMap<T>): Boolean = TODO()
 
-        fun <T: Any> flift2map(item: IMCommon<T>): FMap<T>? = IM.liftToIMMappable(item)
-        fun <T: Any> flift2map(item: T): FMap<T> {
+        fun <T: Any> flift2map(item: IMCommon<T>): ITMap<T>? = IM.liftToIMMappable(item)
+        fun <T: Any> flift2map(item: T): ITMap<T> {
             check(item !is IMCommon<*>)
             return DWFMap.of(item)
         }
+        fun <S: Any, T: Any, X: Any> ITMap<Pair<S,T>>.f2map(f: (S, T) -> X): ITMap<X> =
+            this.fmap { f(it.first, it.second) }
+        fun <S: Any, T: Any, X: Any> ITMap<Pair<S,T>>.f2Cmap(f: (S) -> (T) -> X): ITMap<X> =
+            this.fmap { it.partial2map(f) }
+        fun <S: Any, T: Any, U: Any, X: Any> ITMap<Pair<Pair<S,T>,U>>.f3map(f: (S, T, U) -> X): ITMap<X> =
+            this.fmap { f(it.first.first, it.first.second, it.second) }
+        fun <S: Any, T: Any, U: Any, X: Any> ITMap<Pair<Pair<S,T>,U>>.f3Cmap(f: (S) -> (T) -> (U) -> X): ITMap<X> =
+            if (this.fempty()) DWFMap.empty()
+            else this.fmap {  it.partial3map(f) }
+        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<Pair<Pair<Pair<S,T>,U>,V>>.f4map(f: (S, T, U, V) -> X): ITMap<X> =
+            this.fmap { f(it.first.first.first, it.first.first.second, it.first.second, it.second) }
+        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<Pair<Pair<Pair<S,T>,U>,V>>.f4Cmap(f: (S) -> (T) -> (U) -> (V) -> X): ITMap<X> =
+            this.fmap { it.partial4map(f) }
+        // TODO: more?
     }
 }
 
@@ -201,32 +263,35 @@ interface IMKMappable<out K, out V: Any, out U: IMCommon<TKVEntry<K,V>>> where K
     fun <L, T: Any> fmap(f: (TKVEntry<K,V>) -> TKVEntry<L,T>): IMKMappable<L,T,IMCommon<TKVEntry<L,T>>> where L: Any, L: Comparable<@UnsafeVariance L>
 }
 
-typealias FMapp<S> = IMMappOp<S, IMMapOp<S, IMCommon<S>>>
+typealias ITMapp<S> = IMMappOp<S, IMMapOp<S, IMCommon<S>>>
 
-interface IMMappOp<out S: Any, out U: FMap<S>>: IMCommon<S> {
+interface IMMappOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
 
-    fun asFMap(): FMap<S> = (@Suppress("UNCHECKED_CAST") (this as FMap<S>))
+    fun asFMap(): ITMap<S> = (@Suppress("UNCHECKED_CAST") (this as ITMap<S>))
 
-    fun <T: Any> fmapp(f: (S) -> T): FMapp<T> =
+    // maintains the container of 'this'
+    fun <T: Any> fmapp(f: (S) -> T): ITMapp<T> =
         flift2mapp(asFMap().fmap(f))!!
-// {
-//        fun fLifted(u: FMapp<S>): (IMCommon<(S) -> T>) -> FMap<T> = { g: IMCommon<(S) -> T> ->
-//            check(1 == g.fsize())
-//            u.asFMap().fmap(g.fpick()!!)
-//        }
-//        return flift2mapp(IMCommon.fliftToCommon(f))!!.fapp(fLifted(this))
-//  }
 
-    fun <T: Any> fapp(op: (U) -> FMap<T>): FMapp<T>
+    // drops the container of 'this' and replaces with generic container
+    fun <T: Any> fmappx(f: (S) -> T): ITMapp<T> {
+        fun fLifted(u: ITMapp<S>): (IMCommon<(S) -> T>) -> ITMap<T> = { g: IMCommon<(S) -> T> ->
+            check(1 == g.fsize())
+            u.asFMap().fmap(g.fpick()!!)
+        }
+        return flift2mapp(DWCommon.of(f))!!.fapp(fLifted(this))
+      }
 
-    fun <T: Any, V: FMap<T>> fmaprod(f: (U) -> V): FMap<Pair<U,V>> {
-        fun fLifted(u: FMapp<S>): ((FMap<S>) -> FMap<T>) -> Pair<FMap<S>,FMap<T>> = { g: (FMap<S>) -> FMap<T> ->
-            val aux: FMap<T> = u.fapp(g).asFMap()
+    fun <T: Any> fapp(op: (U) -> ITMap<T>): ITMapp<T>
+
+    fun <T: Any, V: ITMap<T>> fmaprod(f: (U) -> V): ITMap<Pair<U,V>> {
+        fun fLifted(u: ITMapp<S>): ((ITMap<S>) -> ITMap<T>) -> Pair<ITMap<S>,ITMap<T>> = { g: (ITMap<S>) -> ITMap<T> ->
+            val aux: ITMap<T> = u.fapp(g).asFMap()
             Pair(u.asFMap(), aux)
         }
-        val fmapp: FMapp<S> = flift2mapp(this)!!
-        val faux: ((U) -> V) -> FMap<Pair<U,V>> = { _: (U) -> V ->
-            val aux = @Suppress("UNCHECKED_CAST") (fLifted(fmapp) as ((U) -> V) -> FMap<Pair<U,V>>)
+        val fmapp: ITMapp<S> = flift2mapp(this)!!
+        val faux: ((U) -> V) -> ITMap<Pair<U,V>> = { _: (U) -> V ->
+            val aux = @Suppress("UNCHECKED_CAST") (fLifted(fmapp) as ((U) -> V) -> ITMap<Pair<U,V>>)
             IMMapOp.flift2map(aux(f))!!
         }
         return faux(f)
@@ -252,36 +317,65 @@ interface IMMappOp<out S: Any, out U: FMap<S>>: IMCommon<S> {
         return impl.traverse<R,E>(op)
     }
 
-    infix fun <B: Any, C> fmapprod(bk: FMapp<B>): FMapp<C> where C: Pair<@UnsafeVariance S, B> = if (fempty() || bk.fempty()) flift2mapp(DWFMap.empty())!! else TODO()
-
-    infix fun  <T: Any> fmApply(fmapp: FMapp<T>): FMapp<FMapp<T>> = TODO()
+//    infix fun <T: Any, V: FMapp<T>, W: Pair<@UnsafeVariance S,T>> kmapp(tmapp: V): FMapp<W> =
+//        if (fempty() || tmapp.fempty()) DWFMapp.empty() else when(this) {
+//            is IMZipMap<*,*> -> {
+//                val bbb = this
+//                print(bbb)
+//                this.fapp
+//                TODO()
+//            }
+//            !is IMOrdered<*> -> DWFMapp.empty()
+//            else -> {
+//                @Suppress("UNCHECKED_CAST") (this as IMOrdered<S>)
+//                val fkart: FMap<Pair<S, T>>? = IMCartesian.flift2kart<S, T>(this).mpro(tmap)
+//                fkart?.let { @Suppress("UNCHECKED_CAST") (it as FMap<W>) } ?: DWFMap.empty()
+//                TODO()
+//            }
+//        }
 
     companion object {
         // fun <T: Any> equal(rhs: FMapp<T>, lhs: FMapp<T>): Boolean = TODO()
 
-        fun <T: Any> flift2mapp(item: FMap<T>) = IM.liftToIMMapplicable(item)
-        fun <T: Any> flift2mapp(item: IMCommon<T>): FMapp<T>? = IMMapOp.flift2map(item)?.let { mappable -> flift2mapp(mappable) }
-        fun <T: Any> flift2mapp(item: T): FMapp<T>? {
+        fun <T: Any> flift2mapp(item: ITMap<T>) = IM.liftToIMMapplicable(item)
+        fun <T: Any> flift2mapp(item: IMCommon<T>): ITMapp<T>? = IMMapOp.flift2map(item)?.let { mappable -> flift2mapp(mappable) }
+        fun <T: Any> flift2mapp(item: T): ITMapp<T>? {
             check(item !is IMCommon<*>)
             return IMMapOp.flift2map(item).let { mapOp: IMMapOp<T, IMCommon<T>> -> flift2mapp(mapOp) }
+        }
+        /*
+         infix fun <S: Any, T: Any, W: Any> FMap<S>.kmap(tmap: FMap<T>): ((S) -> T) -> W = { s2t: (S) ->T -> { t2w: (T) -> W ->
+            @Suppress("UNCHECKED_CAST") (this as IMOrdered<S>)
+            val aux: FMap<Pair<S, T>>? = IMCartesian.flift2kart<S,T>(this).mpro(tmap)
+            val foo = aux.fmap<W> { it: Pair<S, T> -> }
+            TODO()
+
+        }}
+        */
+        infix fun <A: Any, B: Any, C: Any> ITMapp<A>.kmapp(bk: ITMapp<B>): ITMapp<C> = if (fempty() || bk.fempty()) flift2mapp(DWFMap.empty())!! else {
+            @Suppress("UNCHECKED_CAST") (this as IMOrdered<A>)
+            IMCartesian.flift2kart<A,B>(this).mpro(bk.asFMap())
+            TODO()
         }
     }
 }
 
-typealias FKart<S, T> = IMCartesian<S, FMap<S>, T, Pair<S,T>>
-
-interface IMCartesian<out S: Any, out U: FMap<S>, out T: Any, out W:Pair<S,T>> {
+/*
+interface IMCartesian<out S: Any, out U: FMap<S>, out T: Any, out V: FMap<T>, out W:Pair<U,V>> {
 
     infix fun mpro(t: FMap<@UnsafeVariance T>): FMap<W>?
     infix fun opro(t: IMOrdered<@UnsafeVariance T>): FMap<W>?
 
     companion object {
         fun <S: Any, T: Any> flift2kart(item: IMOrdered<S>): FKart<S,T> = FCartesian.of(item)
+
     }
 }
 
+ */
+
 // simple disjunction
-interface IMDj<out L, out R>: IMCommon<IMDj<L,R>>,
+interface IMDj<out L, out R>: IMOrdered<IMDj<L,R>>,
     IMDjFiltering<L, R> {
     companion object {
         fun <A, B, L:Any, R: Any> bifold(djs: IMCommon<IMDj<A,B>>, acc:Pair<IMList<L>, IMList<R>>? = null): ((A) -> L, (B) -> R) -> Pair<IMList<L>, IMList<R>> = { fl: (A) -> L, fr: (B) -> R ->
@@ -295,23 +389,32 @@ interface IMDj<out L, out R>: IMCommon<IMDj<L,R>>,
 
 // higher kind disjunction
 interface IMSdj<out L, out R>: IMDj<L,R>,
-    FMap<IMDj<L,R>>,
-    FMapp<IMDj<L,R>> {
+    ITMap<IMDj<L,R>>,
+    ITMapp<IMDj<L,R>> {
 }
+
+typealias ITDsw<A> = IMDisw<A, IMCommon<A>>
 
 // Di-sposable x wrappers
 interface IMDisw<out A: Any, out B: IMCommon<A>>:
     IMCommon<A>,
-    IMOrdered<A>
+    IMOrdered<A>,
+    IMWritable<A>
+
+typealias ITDmw<A> = IMDimw<A, IMCommon<A>>
 
 interface IMDimw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDimw<A,B>>,
-    IMOrdered<A>
+    IMOrdered<A>,
+    IMWritable<A>
+
+typealias ITDaw<A> = IMDiaw<A, IMCommon<A>>
 
 interface IMDiaw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDiaw<A,B>>,
-    IMMappOp<A, FMap<A>>,
-    IMOrdered<A>
+    IMMappOp<A, ITMap<A>>,
+    IMOrdered<A>,
+    IMWritable<A>
 
 // collections
 
@@ -320,6 +423,7 @@ interface IMList<out A:Any>: IMCommon<A>,
     IMListGrouping<A>,
     IMListTransforming<A>,
     IMListAltering<A>,
+    IMWritable<A>,
     IMListUtility<A>,
     IMListExtras<A>,
     IMReducible<A>,
@@ -336,6 +440,7 @@ interface IMStack<out A:Any>: IMCommon<A>,
     IMStackGrouping<A>,
     IMStackTransforming<A>,
     IMStackAltering<A>,
+    IMWritable<A>,
     IMStackUtility<A>,
     IMOrdered<A>,
     IMMapOp<A, IMStack<Nothing>>,
@@ -347,6 +452,7 @@ interface IMQueue<out A:Any>: IMCommon<A>,
     IMQueueGrouping<A>,
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
+    IMWritable<A>,
     IMQueueUtility<A>,
     IMOrdered<A>,
     IMMapOp<A, IMQueue<Nothing>>,
@@ -355,6 +461,7 @@ interface IMQueue<out A:Any>: IMCommon<A>,
 
 interface IMSet<out A: Any>: IMCommon<A>,
     IMRSetAltering<A>,
+    IMWritable<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
     IMSetTransforming<A>,
@@ -381,6 +488,7 @@ interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
     IMMapTransforming<K, V>,
     IMMapUtility<K, V>,
     IMMapAltering<K, V>,
+    IMWritable<TKVEntry<K,V>>,
     IMMapExtras<K, V>,
     IMKeyed<K>,
     IMKeyedValue<K, V>,
@@ -418,6 +526,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     IMBTreeGrouping<A, B>,
     IMBTreeTransforming<A,B>,
     IMBTreeAltering<A, B>,
+    IMWritable<TKVEntry<A,B>>,
     IMBTreeExtras<A, B>,
     IMKeyed<A>,
     IMKeyedValue<A, B>,
@@ -459,6 +568,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
 
 interface IMRSetNotEmpty<out A: Any>: IMCommon<A>,
     IMRSetAltering<A>,
+    IMWritable<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
     IMSetUtility<A>,
@@ -470,6 +580,7 @@ interface IMRSetNotEmpty<out A: Any>: IMCommon<A>,
 
 interface IMSetNotEmpty<out A:Any>: IMSet<A>, IMRSetNotEmpty<A>,
     IMSetAltering<A>,
+    IMWritable<A>,
     IMSetTransforming<A> {
     override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = this
     override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = null
@@ -478,6 +589,7 @@ interface IMSetNotEmpty<out A:Any>: IMSet<A>, IMRSetNotEmpty<A>,
 
 interface IMXSetNotEmpty<out A>: IMSet<A>, IMRSetNotEmpty<A>,
     IMXSetAltering<A>,
+    IMWritable<A>,
     IMXSetTransforming<A>
         where A: Any, A: Comparable<@UnsafeVariance A> {
     override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null

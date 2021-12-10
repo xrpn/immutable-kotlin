@@ -156,6 +156,8 @@ sealed class FRBTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fsize(): Int = size
 
+    override fun toEmpty(): FRBTree<A,B> = emptyIMBTree()
+
     // =========== imkeyed
 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =

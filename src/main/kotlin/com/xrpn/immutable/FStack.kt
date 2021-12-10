@@ -55,6 +55,8 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fsize(): Int =
         toFList().size
 
+    override fun toEmpty(): IMStack<A> = FStackBody.empty
+
     // ============ IMOrdered
 
     override fun fdrop(n: Int): FStack<A> = when {
@@ -93,7 +95,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fapp(op: (IMStack<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMStack<A>) -> ITMap<T>): ITMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // ============ filtering

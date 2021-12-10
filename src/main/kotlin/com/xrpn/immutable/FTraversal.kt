@@ -4,12 +4,12 @@ import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 
 interface MappTraversal<T: Any, S: Any, D: Any> {
-    fun traversal(candidates: FMapp<T>): IMSdj<IMList<D>, IMList<S>>
-    fun grossTraversal(candidates: FMapp<T>): Pair<IMList<D>, IMList<S>>
+    fun traversal(candidates: ITMapp<T>): IMSdj<IMList<D>, IMList<S>>
+    fun grossTraversal(candidates: ITMapp<T>): Pair<IMList<D>, IMList<S>>
     fun refine(allPairs: Pair<IMList<D>, IMList<S>>): IMSdj<IMList<D>, IMList<S>>
 }
 
-interface IM_Traversal<out V: Any, out U: FMapp<V>, out D: Any> {
+interface IM_Traversal<out V: Any, out U: ITMapp<V>, out D: Any> {
     fun <E: Any, S: Any> traverse(
         operation: (V) -> TSDJ<E, @UnsafeVariance V>,
         fail: (E?) -> @UnsafeVariance D,
@@ -19,7 +19,7 @@ interface IM_Traversal<out V: Any, out U: FMapp<V>, out D: Any> {
 
 internal data class TraversalImpl<T: Any, ER: Any> (
     val fail: (T?) -> ER,
-    val candidate: FMapp<T>
+    val candidate: ITMapp<T>
 ) {
 
     private fun <R: Any, E: Any> gross(
@@ -77,7 +77,7 @@ data class FMultiMappTraversal<T: Any, R: Any, E: Any, TR: Any, ER: Any> (
         )
     }
 
-    private fun accumulate(src: FMap<T>): Pair<IMList<ER>, IMList<TR>> {
+    private fun accumulate(src: ITMap<T>): Pair<IMList<ER>, IMList<TR>> {
 
         fun f4fold(lrAcc: Pair<IMList<ER>, IMList<TR>>, item: T): Pair<IMList<ER>, IMList<TR>> {
             val aux: IMList<IMSdj<ER, TR>> = run(item)
@@ -95,12 +95,12 @@ data class FMultiMappTraversal<T: Any, R: Any, E: Any, TR: Any, ER: Any> (
         return if (fail.fempty()) TSDJValid(pass.freverse()) else /* errors are in reverse order */ TSDJInvalid(fail)
     }
 
-    private fun collect(src: FMap<T>): IMSdj<IMList<ER>, IMList<TR>> =
+    private fun collect(src: ITMap<T>): IMSdj<IMList<ER>, IMList<TR>> =
         refine(accumulate(src))
 
-    private fun process(candidates: FMapp<T>): IMSdj<IMList<ER>, IMList<TR>> = candidates.fapp(::collect) as IMSdj<IMList<ER>, IMList<TR>>
+    private fun process(candidates: ITMapp<T>): IMSdj<IMList<ER>, IMList<TR>> = candidates.fapp(::collect) as IMSdj<IMList<ER>, IMList<TR>>
 
-    override fun traversal(candidates: FMapp<T>): IMSdj<IMList<ER>, IMList<TR>> =
+    override fun traversal(candidates: ITMapp<T>): IMSdj<IMList<ER>, IMList<TR>> =
         if (candidates.fempty()) IMMappOp.flift2mapp(TSDJValid(emptyIMList<TR>())) as TSDJ<IMList<ER>, IMList<TR>>
         else {
             val fmappOut: IMSdj<IMList<ER>, IMList<TR>> = process(candidates)
@@ -108,7 +108,7 @@ data class FMultiMappTraversal<T: Any, R: Any, E: Any, TR: Any, ER: Any> (
             fmappOut
         }
 
-    override fun grossTraversal(candidates: FMapp<T>): Pair<IMList<ER>, IMList<TR>> =
+    override fun grossTraversal(candidates: ITMapp<T>): Pair<IMList<ER>, IMList<TR>> =
         if (candidates.fempty()) Pair(emptyIMList(), emptyIMList())
         else accumulate(candidates.asFMap())
 

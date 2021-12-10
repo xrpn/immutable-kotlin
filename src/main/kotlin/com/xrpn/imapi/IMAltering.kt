@@ -7,7 +7,7 @@ interface IMListAltering<out A: Any>: IMWritable<A> {
     fun fappendAll(elements: IMList<@UnsafeVariance A>): IMList<A>
     fun fprepend(item: @UnsafeVariance A): IMList<A>
     fun fprependAll(elements: IMList<@UnsafeVariance A>): IMList<A>
-    override fun fadd(item: @UnsafeVariance A): IMList<A> = fprepend(item)
+    override fun fadd(item: @UnsafeVariance A): IMList<A> = fappend(item)
 }
 
 interface IMRSetAltering<out A: Any>: IMWritable<A> {

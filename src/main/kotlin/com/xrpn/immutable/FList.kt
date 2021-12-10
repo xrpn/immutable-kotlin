@@ -138,6 +138,9 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     override fun fsize(): Int = size
 
+    override fun toEmpty(): FList<A> =
+        emptyIMList()
+
     // IMOrdered
 
     override fun fdrop(n: Int): FList<A> {
@@ -209,7 +212,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
 
     // IMApplicable
 
-    override fun <T : Any> fapp(op: (IMList<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMList<A>) -> ITMap<T>): ITMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // filtering

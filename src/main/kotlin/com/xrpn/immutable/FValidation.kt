@@ -4,10 +4,10 @@ import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 
 interface MappValidation<T: Any, E: Any> {
-    fun validation(candidates: FMapp<T>): IMSdj<IMList<E>, IMList<T>>
+    fun validation(candidates: ITMapp<T>): IMSdj<IMList<E>, IMList<T>>
 }
 
-interface IM_Validation<V: Any, U: FMapp<V>, D: Any>: IM_Traversal<V,U,D> {
+interface IM_Validation<V: Any, U: ITMapp<V>, D: Any>: IM_Traversal<V,U,D> {
     fun <E: Any> validate (
         criterium: (V) -> TSDJ<E,V>,
         fail: (E?) -> D
@@ -28,7 +28,7 @@ data class FMultiMappValidation<T: Any, E: Any> (
         resAcc.fprepend(test(candidate).bimap(fail) { id -> id } as IMSdj<E, T>)
     }
 
-    private fun accumulate(src: FMap<T>): IMSdj<IMList<E>, IMList<T>> {
+    private fun accumulate(src: ITMap<T>): IMSdj<IMList<E>, IMList<T>> {
 
         fun f4innerFold(lrAcc: Pair<IMList<E>, IMList<T>>, disj: IMSdj<E, T>): Pair<IMList<E>, IMList<T>> {
             val (lAcc, rAcc) = lrAcc
@@ -44,9 +44,9 @@ data class FMultiMappValidation<T: Any, E: Any> (
         return if (fail.fempty()) TSDJValid(pass) else TSDJInvalid(fail)
     }
 
-    fun process(candidates: FMapp<T>): IMSdj<IMList<E>, IMList<T>> = candidates.fapp(::accumulate) as IMSdj<IMList<E>, IMList<T>>
+    fun process(candidates: ITMapp<T>): IMSdj<IMList<E>, IMList<T>> = candidates.fapp(::accumulate) as IMSdj<IMList<E>, IMList<T>>
 
-    override fun validation(candidates: FMapp<T>): IMSdj<IMList<E>, IMList<T>> {
+    override fun validation(candidates: ITMapp<T>): IMSdj<IMList<E>, IMList<T>> {
         val fmapp = process(candidates)
         check(1 == fmapp.fsize())
         return fmapp

@@ -58,6 +58,8 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     override fun fsize(): Int = size
 
+    override fun toEmpty(): IMMap<K, V> = FKMap.emptyIMMap()
+
     // imkeyed
 
     override fun asIMBTree(): IMBTree<K,V> =  when (this) {

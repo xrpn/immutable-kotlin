@@ -119,6 +119,13 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     override fun fsize(): Int = size
 
+    override fun toEmpty(): FKSet<K,A> = when (this) {
+        is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (FIKSetEmpty.empty<A>() as FKSet<K,A>)
+        is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (FSKSetEmpty.empty<A>() as FKSet<K,A>)
+        is FKKSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (FKKSetEmpty.empty<K>() as FKSet<K,A>)
+        else -> this
+    }
+
     fun fpickNested(): Any? = body.froot()?.let { rt -> rt.toUCon()?.pick() }
 
     // imkeyed
@@ -208,7 +215,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fapp(op: (IMSet<A>) -> FMap<T>): FMapp<T> =
+    override fun <T : Any> fapp(op: (IMSet<A>) -> ITMap<T>): ITMapp<T> =
         IMMappOp.flift2mapp(op(this))!!
 
     // utility
@@ -274,13 +281,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     override fun copyToMutableSet(): MutableSet<@UnsafeVariance A> = when (this) {
         is FKSetEmpty -> mutableSetOf()
         else -> body.ffold(mutableSetOf()) { acc, tkv -> acc.add(tkv.getv()); acc }
-    }
-
-    override fun toEmpty(): FKSet<K,A> = when (this) {
-        is FIKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (FIKSetEmpty.empty<A>() as FKSet<K,A>)
-        is FSKSetNotEmpty -> @Suppress("UNCHECKED_CAST") (FSKSetEmpty.empty<A>() as FKSet<K,A>)
-        is FKKSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (FKKSetEmpty.empty<K>() as FKSet<K,A>)
-        else -> this
     }
 
     override fun <B: Any> toEmptyRetyped(): FKSet<K,B> = when (this) {

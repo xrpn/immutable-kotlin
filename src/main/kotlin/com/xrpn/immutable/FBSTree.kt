@@ -151,6 +151,12 @@ sealed class FBSTree<out A, out B: Any>: Collection<TKVEntry<A, B>>, IMBTree<A, 
 
     override fun fsize(): Int = size
 
+    override fun toEmpty(): FBSTree<A,B> = when(this) {
+        is FBSTNodeGeneric, is FBSTGeneric -> FBSTGeneric.empty
+        is FBSTNodeUnique, is FBSTUnique -> FBSTUnique.empty
+        else -> throw RuntimeException("internal error, unknown ${this::class}")
+    }
+
     // =========== imkeyed
 
     override fun fcontainsKey(key: @UnsafeVariance A): Boolean =

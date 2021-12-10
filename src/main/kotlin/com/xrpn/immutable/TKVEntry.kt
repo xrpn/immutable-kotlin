@@ -200,6 +200,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
     override fun fpick(): TKVEntry<A, B>? = this
     override fun fpopAndRemainder(): Pair<TKVEntry<A, B>?, IMCommon<TKVEntry<A, B>>> = Pair(this, emptyTkv)
     override fun fsize(): Int = 1
+    override fun toEmpty(): IMCommon<TKVEntry<A,B>> = emptyTkv
 
     companion object {
         const val CANNOT_COMPARE = "incompatible comparators"

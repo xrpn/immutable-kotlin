@@ -49,7 +49,7 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
     fun isLikeValue(vClass: KClass<*>): Boolean = vKc == vClass
 }
 
-fun <T: Any> IMCommon<T>?.toIMMapplicable(): FMapp<T>? =
+fun <T: Any> IMCommon<T>?.toIMMapplicable(): ITMapp<T>? =
     this?.let { IMMappOp.flift2mapp(it) }
 
 inline infix fun <B, C, A> ((B) -> C).fKompose(crossinline f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
@@ -67,8 +67,8 @@ object IM {
     fun <A, B, C> maybe3(a: A, b: B, c: C): Triple<A,B,C>? = a?.let { b?.let {  c?.let { Triple(a,b,c) } } }
 
     fun <S: Any, T: Any> fmapOfCommon(
-        u: FMap<S>,
-    ): (IMCommon<(S) -> T>) -> FMap<T> = { g: IMCommon<(S) -> T> -> u.fmap(g.fpick()!!) }
+        u: ITMap<S>,
+    ): (IMCommon<(S) -> T>) -> ITMap<T> = { g: IMCommon<(S) -> T> -> u.fmap(g.fpick()!!) }
 
     fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMapOp<B, IMCommon<B>>? = when(item) {
         is IMList -> item
@@ -84,6 +84,7 @@ object IM {
         is IMDisw<B, IMCommon<B>> -> DWFMap.of(item)
         is IMDimw<B, IMCommon<B>> -> item
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMapOp<B, IMCommon<B>>)
+        is IMZipMap<*,*,*> -> @Suppress("UNCHECKED_CAST") (item.asMap() as IMMapOp<B, IMCommon<B>>)
         else -> if (!(IMMapOp::class.isInstance(item))) null
                 else throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
 

@@ -211,6 +211,10 @@ internal object FT {
 
 fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))
 fun <A, B, C, D> Pair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): Pair<C, D> = Pair(f(this.first), g(this.second))
+fun <A, B, C> Pair<A, B>.partial2map(f: (A) -> (B) -> C): C = f(this.first)(this.second)
+fun <A, B, C, D> Pair<Pair<A, B>, C>.partial3map(f: (A) -> (B) -> (C) -> D): D = f(this.first.first)(this.first.second)(this.second)
+fun <A, B, C, D, E> Pair<Pair<Pair<A, B>, C>, D>.partial4map(f: (A) -> (B) -> (C) -> (D) -> E): E = f(this.first.first.first)(this.first.first.second)(this.first.second)(this.second)
+
 fun <A: Any> Pair<A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLNil))
 fun <K, A: Any> Pair<K, A>.toTKVEntry(): TKVEntry<K, A> where K: Any, K: Comparable<K> = TKVEntry.ofkv(this.first, this.second)
 fun <K, A: Any> Pair<K, A>.toTKVEntry(cc: Comparator<K>): TKVEntry<K, A> where K: Any, K: Comparable<K> = TKVEntry.ofkvc(this.first, this.second, cc)

@@ -5,15 +5,19 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.atomic.AtomicBoolean
 
-val emptyTsdj: IMDj<Nothing, Nothing> =
-    object: IMDj<Nothing, Nothing>, IMCommonEmpty<IMDj<Nothing, Nothing>>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
+private interface EmptyIMDj<out L: Any, out R: Any>: IMOrderedEmpty<IMDj<L,R>>, IMDj<L,R>  {
+    override fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
+}
+
+private val emptyIMDj: EmptyIMDj<Any, Any> =
+    object: EmptyIMDj<Any, Any>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
     override val seal: IMSC = IMSC.IMTSDJ
         override fun left(): Nothing? = null
         override fun right(): Nothing? = null
         override fun isLeft(): Boolean = false
         override fun isRight(): Boolean = false
-        override fun <C> bireduce(fl: (Nothing) -> C, fr: (Nothing) -> C): Nothing = TODO()
-        override fun <C: Any, D: Any> bimap(fl: (Nothing) -> C, fr: (Nothing) -> D): IMDj<C, D> = this
+        override fun <C> bireduce(fl: (Any) -> C, fr: (Any) -> C): Nothing = TODO("internal error")
+        override fun <C: Any, D: Any> bimap(fl: (Any) -> C, fr: (Any) -> D): IMDj<C, D> = TODO("internal error")
     }
 
 sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, IMSdj<A,B> {
@@ -52,30 +56,53 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
         is TSDR -> TSDJValid(fr(r))
     }
 
+    // IMCommon
+    
     val strictness: Boolean by lazy { if (!FT.isContainer(this)) true else this.toUCon()!!.isStrict() }
     override val seal: IMSC = IMSC.IMTSDJ
     override fun fcontains(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): Boolean = item == this
     override fun fcount(isMatch: (IMDj<A, B>) -> Boolean): Int = if (isMatch(this)) 1 else 0
-    override fun fdropAll(items: IMCommon<IMDj<@UnsafeVariance A, @UnsafeVariance B>>): IMDj<A, B> = if (items.fcontains((this))) emptyTsdj else this
-    override fun fdropItem(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): IMDj<A, B> = if (this.equals(item)) emptyTsdj else this
+    override fun fdropAll(items: IMCommon<IMDj<@UnsafeVariance A, @UnsafeVariance B>>): IMDj<A, B> = if (items.fcontains((this))) empty() else this
+    override fun fdropItem(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): IMDj<A, B> = if (this.equals(item)) empty() else this
     override fun fdropWhen(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B> = ffilterNot(isMatch)
-    override fun ffilter(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B> = if (isMatch(this)) this else emptyTsdj
-    override fun ffilterNot(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B> = if (isMatch(this)) emptyTsdj else this
+    override fun ffilter(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B> = if (isMatch(this)) this else empty()
+    override fun ffilterNot(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B> = if (isMatch(this)) empty() else this
     override fun ffindAny(isMatch: (IMDj<A, B>) -> Boolean): IMDj<A, B>? = if (isMatch(this)) this else null
     override fun <R> ffold(z: R, f: (acc: R, IMDj<A,B>) -> R): R = f(z,this)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): IMDj<A, B>? = this
-    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMCommon<IMDj<A, B>>> = Pair(this, emptyTsdj)
+    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMCommon<IMDj<A, B>>> = Pair(this, empty())
     override fun fsize(): Int = 1
+    override fun toEmpty(): IMCommon<IMDj<A, B>> = empty()
+    
+    // IMOrdered
 
-    override fun <T: Any> fmap(f: (IMDj<A,B>) -> T): FMap<T> = when(val tValue = f(this)) {
-        is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as FMap<T>)
+    override fun fdrop(n: Int): IMOrdered<IMDj<A, B>> = if ( n < 1) this else empty()
+    override fun fnext(): Pair<IMDj<A, B>?, IMOrdered<IMDj<A, B>>> = Pair(this, empty())
+    override fun freverse(): IMOrdered<IMDj<A, B>> = this
+    override fun frotl(): IMOrdered<IMDj<A, B>> = this
+    override fun frotr(): IMOrdered<IMDj<A, B>> = this
+    override fun fswaph(): IMOrdered<IMDj<A, B>> = this
+    override fun <C: Any> fzip(items: IMOrdered<C>): IMOrdered<Pair<IMDj<A, B>, C>> =
+        if (items.fempty()) @Suppress("UNCHECKED_CAST") (items.toEmpty() as IMOrdered<Pair<IMDj<A, B>, C>>)
+        else DWCommon.of(Pair(this,items.fnext().first!!))
+
+    // IMMapOp
+
+    override fun <T: Any> fmap(f: (IMDj<A,B>) -> T): ITMap<T> = when(val tValue = f(this)) {
+        is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as ITMap<T>)
         else -> DWFMap.of(tValue)
     }
 
-    override fun <T : Any> fapp(op: (FMap<IMDj<A, B>>) -> FMap<T>): FMapp<T> {
+    // IMMappOp
+
+    override fun <T : Any> fapp(op: (ITMap<IMDj<A, B>>) -> ITMap<T>): ITMapp<T> {
         val arg = op(this)
         return IMMappOp.flift2mapp(arg) ?: DWFMapp.of(arg)
+    }
+
+    companion object {
+        fun <L: Any, R: Any> empty(): IMDj<L,R> = @Suppress("UNCHECKED_CAST") (emptyIMDj as IMDj<L,R>)
     }
 }
 
