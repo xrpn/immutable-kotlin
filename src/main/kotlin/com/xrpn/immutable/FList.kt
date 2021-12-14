@@ -157,9 +157,9 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
     }
 
-    override fun fnext(): Pair<A?, FList<A>> = when(this) {
-        is FLNil -> Pair(null, FLNil)
-        is FLCons -> Pair(this.head, this.tail)
+    override fun fnext(): A? = when(this) {
+        is FLNil -> null
+        is FLCons -> head
     }
 
     override fun freverse(): FList<A> = fhead()?.let {
@@ -186,11 +186,11 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
     override fun <B : Any> fzip(items: IMOrdered<B>): FList<Pair<A, B>> {
 
         tailrec fun go(xs: FList<A>, items: IMOrdered<B>, acc: FList<Pair<A,B>>): FList<Pair<A,B>> {
-            val (xsn, xsns) = xs.fnext()
-            val (itn, itns) = items.fnext()
+            val xsn = xs.fhead()
+            val itn = items.fnext()
             return when {
                 xsn == null || itn == null -> acc
-                else -> go(xsns, itns, acc.fprepend(Pair(xsn,itn)))
+                else -> go(xs.ftail(), items.fpopAndRemainder().second, acc.fprepend(Pair(xsn,itn)))
             }
         }
 
@@ -785,8 +785,12 @@ object FLNil: FList<Nothing>() {
         this === other -> true
         other == null -> false
         other is IMList<*> -> other.fempty()
-        other is List<*> -> other.isEmpty()
-        other is IMCommon<*> -> IMCommonEmpty.equal(other)
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when {
+        rhs is List<*> -> rhs.isEmpty()
+        rhs is IMCommon<*> -> IMCommonEmpty.equal(rhs)
         else -> false
     }
 }
@@ -805,16 +809,20 @@ data class FLCons<out A: Any>(
             fhead()!!.isStrictlyNot(other.fhead()!!) -> false
             else -> @Suppress("UNCHECKED_CAST") IMListEqual2(this, other as IMList<A>)
         }
-        other is IMDiaw<*,*> -> when {
-            other.fempty() -> false
-            fsize() != other.fsize() -> false
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is IMDiaw<*,*> -> when {
+            rhs.fempty() -> false
+            fsize() != rhs.fsize() -> false
             else -> TODO()
         }
-        other is List<*> -> when {
-            other.isEmpty() -> false
-            fhead()!!.isStrictlyNot(other.first()!!) -> false
-            fsize() != other.size -> false
-            else -> other.equals(this)
+        is List<*> -> when {
+            rhs.isEmpty() -> false
+            fhead()!!.isStrictlyNot(rhs.first()!!) -> false
+            fsize() != rhs.size -> false
+            else -> rhs.equals(this)
         }
         else -> false
     }

@@ -1182,8 +1182,13 @@ internal abstract class FBSTNil(): FBSTree<Nothing, Nothing>() {
         other == null -> false
         other is FBSTGeneric -> true
         other is FBSTUnique -> true
-        other is IMBTree<*, *> -> other.fempty()
-        other is IMCommon<*> -> IMCommonEmpty.equal(other)
+        other is FBSTree<*, *> -> other.fempty()
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is IMBTree<*, *> -> rhs.fempty()
+        is IMCommon<*> -> IMCommonEmpty.equal(rhs)
         else -> false
     }
 }
@@ -1200,7 +1205,9 @@ internal class FBSTUnique private constructor(private val krn:FBSTree<Nothing, N
     }
 }
 
-private object emptyFBSTreeKernel: FBSTree<Nothing, Nothing>()
+private object emptyFBSTreeKernel: FBSTree<Nothing, Nothing>() {
+    override fun softEqual(rhs: Any?): Boolean = TODO("internal error")
+}
 
 internal abstract class FBSTNode<out A, out B: Any> protected constructor (
     val entry: TKVEntry<A, B>,
@@ -1271,10 +1278,14 @@ internal abstract class FBSTNode<out A, out B: Any> protected constructor (
             entry.strictlyNot(other.entry.untype()) -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as FBSTNode<A, B>)
         }
-        other is IMBTree<*, *> -> when {
-            other.fempty() -> false
-            entry.strictlyNot(other.froot()!!.untype()) -> false
-            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A, B>)
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is IMBTree<*, *> -> when {
+            rhs.fempty() -> false
+            entry.strictlyNot(rhs.froot()!!.untype()) -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, rhs as IMBTree<A, B>)
         }
         else -> false
     }

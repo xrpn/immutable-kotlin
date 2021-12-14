@@ -54,10 +54,15 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         fksetNe === other -> true
         other == null -> false
         other is IMKSetNotEmpty<*,*> -> imkSetNotEmptyIMEquality(fksetNe, other)
-        other is Set<*> -> if ( other.isEmpty() || other.any { null == it } ) false else imkSetNotEmptyEquality(fksetNe, @Suppress("UNCHECKED_CAST") (other as Set<Any>))
         else -> false
     }} ?: throw RuntimeException("internal error, ${this::class} (size:${this.fsize()}) must not be empty")
-    
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is Set<*> -> if ( rhs.isEmpty() || rhs.any { null == it } ) false
+                     else imkSetNotEmptyEquality(asIMKSetNotEmpty()!!, @Suppress("UNCHECKED_CAST") (rhs as Set<Any>))
+        else -> false
+    }
+
     open val hash: Int by lazy {
         check(null != this.asIMKSetNotEmpty())
         // hash of a FRBTree depends on the content AND on the shape of the tree;
@@ -1088,10 +1093,15 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
     override fun equals(other: Any?): Boolean = when {
         other == null -> false
         other is IMKSet<*,*> -> other.fempty()
-        other is Set<*> -> other.isEmpty()
-        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is Set<*> -> rhs.isEmpty()
+        is IMCommon<*> -> IMCommonEmpty.equal(rhs)
+        else -> false
+    }
+
     override val hash: Int by lazy { show.hashCode() }
     override fun hashCode(): Int = hash
     val show: String by lazy { "FKSet(*)" }

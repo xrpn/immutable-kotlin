@@ -1078,8 +1078,13 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
-        other is IMBTree<*, *> -> other.fempty()
-        other is IMCommon<*> -> IMCommonEmpty.equal(other)
+        other is FRBTree<*, *> -> other.fempty()
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is IMBTree<*, *> -> rhs.fempty()
+        is IMCommon<*> -> IMCommonEmpty.equal(rhs)
         else -> false
     }
 }
@@ -1130,6 +1135,15 @@ internal open class FRBTNode<A, B: Any> protected constructor (
             other.fempty() -> false
             entry.strictlyNot(other.froot()!!.untype()) -> false
             else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, other as IMBTree<A,B>)
+        }
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is IMBTree<*, *> -> when {
+            rhs.fempty() -> false
+            entry.strictlyNot(rhs.froot()!!.untype()) -> false
+            else -> @Suppress("UNCHECKED_CAST") IMBTreeEqual2 (this, rhs as IMBTree<A,B>)
         }
         else -> false
     }

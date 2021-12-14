@@ -111,7 +111,7 @@ sealed class FStream<out A: Any> {
     }
 
     fun takeWhile_b(p: (A) -> Boolean): FStream<A> =
-        unfold(this, {stream -> stream.head()?.let { if (p(it)) Pair(it, stream.tail()) else null } })
+        unfold(this) { stream -> stream.head()?.let { if (p(it)) Pair(it, stream.tail()) else null } }
 
     fun findFirst(isMatch: (A) -> Boolean): Triple</* before */ FStream<A>, A?, /* after */ FStream<A>> {
 
@@ -120,7 +120,7 @@ sealed class FStream<out A: Any> {
             pos: FStream<A>,
             acc: IMStack<() -> A>): Triple<FStream<A>, A?, FStream<A>> =
             when (pos) {
-                is FSNil -> Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
+                is FSNil -> TODO() // Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
                 is FSCons -> when {
                     match(pos.head()) -> Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
                     else -> traverseToMatch(match, pos.tail(), acc.fpush(pos.head))

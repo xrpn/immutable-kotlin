@@ -165,6 +165,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
         }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs)
 
     override fun getk(): A = k
     override fun getkKc(): KClass<out A> = kClass

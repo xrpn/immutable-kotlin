@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 /* This, alas, is a form of boxing.  The API must be strictly limited to whatever contract is
  * supported by all boxed entities.  For instance, <boxed>.first() is NOT ok since ordering has meaning
- * for a list or a stack or a queue or a heap, but not for a set or a tree or a map; <boxed>.count()
+ * for a list or a stack or a queue, but not for a set or a tree; <boxed>.count()
  * is ok since all containers can count how many items they contain. Were it always that simple... */
 
 internal typealias UniContainer<V> = UCon<Nothing,Nothing,Nothing,Nothing,Nothing,Nothing,V>
@@ -26,6 +26,11 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
 
     fun imcoll(): IMCommon<V>? = when (this) {
         is UCIMC -> im
+        else -> null
+    }
+
+    fun imorcoll(): IMOrdered<V>? = when (this) {
+        is UCIMOC -> im
         else -> null
     }
 
@@ -85,6 +90,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
 
     fun <T: Any> getIfIs(containerKc: KClass<T>): T? = when (this) {
         is UCIMSET -> if (imset()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imset()!! as T) else null
+        is UCIMOC -> if (imorcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imorcoll()!! as T) else null
         is UCIMC -> if (imcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (imcoll()!! as T) else null
         is UCKC -> if (kcoll()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (kcoll()!! as T) else null
         is UCKMAP -> if (kmap()!!.isStrictly(containerKc)) @Suppress("UNCHECKED_CAST") (kmap()!! as T) else null
@@ -95,6 +101,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
 
     companion object {
         fun <K, A: Any> ofIMKSet(c: IMKSet<K, A>): UniContainer<A> where K: Any, K: Comparable<K> = UCIMSET(c).asUC()
+        fun <A: Any> ofIMOrdered(c: IMOrdered<A>): UniContainer<A> = UCIMOC(c).asUC()
         fun <A: Any> ofIMCommon(c: IMCommon<A>): UniContainer<A> = UCIMC(c).asUC()
         fun <A: Any> ofCollection(c: Collection<A>): UniContainer<A> = UCKC(c).asUC()
         fun <A: Any> ofArray(c: Array<A>): UniContainer<A> = ofArrayList(c.asList() as ArrayList<A>)
@@ -103,7 +110,11 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
         fun of(item: Any): UniContainer<*>? = if (!FT.isContainer(item)) null else when (item) {
             is TKVEntry<*,*> -> of(item.getv())
             is TSDJ<*,*> -> item.left()?.let { of(it) } ?: of(item.right()!!)
+            is DWCommon<*> -> TODO()
+            is DWFMap<*,*> -> TODO()
+            is DWFMapp<*,*> -> TODO()
             is IMKSet<*, *> -> ofIMKSet(item).asUC()
+            is IMOrdered<*> -> ofIMOrdered(item).asUC()
             is IMCommon<*> -> ofIMCommon(item).asUC()
             is ArrayList<*> -> ofArrayList(item).asUC()
             is Collection<*> -> @Suppress("UNCHECKED_CAST") (UCKC(item as Collection<Any>) as UniContainer<*>)
@@ -143,6 +154,23 @@ internal data class UCIMC<out V: Any>(val im: IMCommon<V>): UCon<Nothing, Nothin
     init {
         check(im !is IMSet<V>)
     }
+    override fun asUC(): UniContainer<V> = @Suppress("UNCHECKED_CAST") (this as UniContainer<V>)
+    override fun count(isMatch: (V) -> Boolean): Int = im.fcount(isMatch)
+    override fun isEmpty(): Boolean = im.fempty()
+    override fun isNested(): Boolean? = if (im.fempty()) null else FT.isNested(im)
+    override fun isStrictInternally(): Boolean = im.fempty() || im.fisStrict()
+    override fun length(): Int = im.fsize()
+    override fun pick(): V? = im.fpick()
+    override fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean {
+        check(!isEmpty())
+        return when (im) {
+            is IMKeyedValue<*, *> ->im.fisStrictlyLike(sample)!!
+            else -> (!sample.hasKey()) && sample.isLikeValue(im.fpickNotEmpty()!!::class)
+        }
+    }
+}
+
+internal data class UCIMOC<out V: Any>(val im: IMOrdered<V>): UCon<Nothing, Nothing, IMOrdered<V>, Nothing, Nothing, Nothing, V>() {
     override fun asUC(): UniContainer<V> = @Suppress("UNCHECKED_CAST") (this as UniContainer<V>)
     override fun count(isMatch: (V) -> Boolean): Int = im.fcount(isMatch)
     override fun isEmpty(): Boolean = im.fempty()

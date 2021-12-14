@@ -2,30 +2,33 @@ package com.xrpn.imapi
 
 import com.xrpn.immutable.FList.Companion.emptyIMList
 
-internal interface ZipWrapMarker
+/* A ZipMap factory */
+class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVariance S, @UnsafeVariance T>> private constructor (private val u: U): IMCartesian<S, U, T, W> {
 
-class FCartesian<out S: Any, out U: ITMap<S>, out T: Any> private constructor (private val u: U): IMCartesian<S, U, T, Pair<@UnsafeVariance S, @UnsafeVariance T>> {
-
-    override fun mpro(t: ITMap<@UnsafeVariance T>): ITMap<Pair<S, T>>? = when {
-        u.fempty() || t.fempty() -> DWFMap.empty()
+    override fun mpro(t: ITMap<@UnsafeVariance T>): ITMap<W>? = when {
+        u.fempty() || t.fempty() -> emptyZipMap()
         else -> when (val tc = t.asIMCommon<T>()) {
             null -> null
             is IMOrdered<*> -> try {
                 @Suppress("UNCHECKED_CAST") (tc as IMOrdered<T>)
                 ZipWrap(u, tc)
             } catch (ex: ClassCastException) {
-                IMSystemErrLogging(this::class)
-                    .emitUnconditionally(
-                        "fail with  ${ex::class.simpleName}(${ex.message}) for ${t::class} as $t"
-                    )
+                IMSystemErrLogging(this::class).emitUnconditionally(
+                "fail with  ${ex::class.simpleName}(${ex.message}) for ${t::class} as $t"
+                )
                 null
-            }
-            else -> null
+           }
+           is IMZipWrap<*,*> -> {
+               (@Suppress("UNCHECKED_CAST") (t as ITMap<IMZPair<S,T>>))
+               val zm = asZMap(t)!!
+               ZipWrap(u, zm.asIMOrdered())
+           }
+           else -> null
         }
     }
 
-    override fun opro(t: IMOrdered<@UnsafeVariance T>): ITMap<Pair<S, T>>? = when {
-        u.fempty() || t is IMOrderedEmpty<*> -> DWFMap.empty()
+    override fun opro(t: IMOrdered<@UnsafeVariance T>): ITMap<W>? = when {
+        u.fempty() || t is IMOrderedEmpty<*> ->  emptyZipMap()
         else -> {
             val tmap = t.asIMCommon<T>()?.let { IMMapOp.flift2map(it) }
             tmap?.let { mpro(it) }
@@ -34,7 +37,7 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any> private constructor (p
 
 
     companion object {
-        fun <S : Any, T : Any> of(item: IMOrdered<S>): IMCartesian<S, ITMap<S>, T, Pair<S, T>> = when (item) {
+        fun <S : Any, T : Any> of(item: IMOrdered<S>): IMCartesian<S, ITMap<S>, T, IMZPair<S, T>> = when (item) {
 //            is IMCommon<*> -> {
 //                val tmap = (@Suppress("UNCHECKED_CAST") (IMMapOp.flift2map(item) as ITMap<S>?))!!
 //                FCartesian(tmap)
@@ -50,164 +53,297 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any> private constructor (p
             }
         }
 
-        fun <S : Any, T : Any, W : Pair<S, T>> asZMap(k: ITMap<W>?): ITZMap<S, T>? = when {
+        fun <S: Any, T: Any, W: IMZPair<S,T>> emptyZipMap(): ITMap<W> =
+            (@Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<W>))
+
+        fun <S: Any, T: Any> emptyZMap(): ITZMap<S,T> = defaultEmptyZipMap
+
+        fun <S: Any, T: Any, W: IMZPair<S, T>> asZMap(k: ITMap<W>?): ITZMap<S, T>? = when {
             k == null -> null
-            k is ZipWrap<*, *, *, W> -> {
+            k is ZipWrap<*, *, *, W> -> try {
                 fun placateWarn(a: Any): ZipWrap<S, ITMap<S>, T, W> =
                     @Suppress("UNCHECKED_CAST") (a as ZipWrap<S, ITMap<S>, T, W>)
-                ZipWrap.toZMap(placateWarn(k))
+                val res = ZipWrap.toZMap(placateWarn(k))
+                res
+            } catch (ex: ClassCastException) {
+                IMSystemErrLogging(this::class).emitUnconditionally("fail with  ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+                null
             }
+            k.equals(defaultEmptyZipMap) ->
+                defaultEmptyZipMap
+            k.equals(defaultEmptyZipMap.empty) ->
+                defaultEmptyZipMap
             else -> null
         }
     }
 }
 
-fun <S: Any, T: Any, W: Pair<S,T>> zipMaps(lead: ITMap<S>, after: ITMap<T>): ITMap<W> {
+private fun <S: Any, T: Any, X: Any> stepUnwind(l: ITMap<S>, zp: ITMap<IMZPair<T,X>>): ITMap<IMZPair<IMZPair<S,T>, X>> {
+    val ffm: ITMap<T> = zp.fmap { it._1() }
+    val ssm: ITMap<X> = zp.fmap { it._2() }
+    val aux: ITMap<IMZPair<S, T>> = zipMaps(l, ffm)
+    val res: ITMap<IMZPair<IMZPair<S, T>, X>> = zipMaps(aux,ssm)
+    return res
+}
+
+
+private fun <S: Any, T: Any, X: Any, W: IMZPair<IMZPair<S,T>, X>> zipMapWrap(
+    leader: ITMap<S>,
+    follower: ZipWrap<T,ITMap<T>,X,IMZPair<T,X>>
+): ITMap<W> {
+
+    val flw = if (follower.scndMap.fpick() is /* X */ IMZPair<*, *>) {
+        @Suppress("UNCHECKED_CAST") (follower.scndMap as ITMap<IMZPair<*, *>>)
+        //                                         v     v      formerly X
+        val newFollower: ITMap<IMZPair<IMZPair<T, Any>, Any>> = stepUnwind(follower.frstMap, follower.scndMap)
+        newFollower
+    } else follower
+    flw as ZipWrap<*,*,*,*>
+    val unw = if (flw.frstMap.fpick() is IMZPair<*, *>) {
+        @Suppress("UNCHECKED_CAST") (flw.frstMap as ITMap<IMZPair<*, *>>)
+        val unwound: ITMap<IMZPair<IMZPair<S, Any>, Any>> = stepUnwind(leader, flw.frstMap)
+        zipMaps(unwound, flw.scndMap)
+    } else stepUnwind(leader, flw)
+
+    return (@Suppress("UNCHECKED_CAST") (unw as ITMap<W>))
+}
+
+
+fun <S: Any, T: Any, W: IMZPair<S,T>> zipMaps(leader: ITMap<S>, follower: ITMap<T>): ITMap<W> {
+    check(!(leader.fempty() || follower.fempty()))
+
     val nameless = object : ITZMap<S, T> {
         val zm: ITZMap<S, T>? by lazy {
-            val proxyLead: IMOrdered<S> = when(lead) {
-                is ZipWrapMarker -> {
-                    (@Suppress("UNCHECKED_CAST") (lead as ITMap<Pair<Any,Any>>))
-                    val aux = FCartesian.asZMap(lead)!!.asIMOrdered()
-                    @Suppress("UNCHECKED_CAST") (aux as IMOrdered<S>)
+
+            val newLeader = if (leader is ZipWrap<*, *, *, *>) {
+
+                if (leader.scndMap.fpick() is IMZPair<*, *>) {
+                    @Suppress("UNCHECKED_CAST") (leader.scndMap as ITMap<IMZPair<*, *>>)
+                    stepUnwind(leader.frstMap, leader.scndMap)
+                } else leader
+
+            } else leader
+
+            val fkart: ITMap<IMZPair<S,T>>? = when {
+
+                follower is ZipWrap<*, *, *, *> -> zipMapWrap(newLeader, follower)
+                else -> {
+                    val proxyLead: IMOrdered<S> = when(newLeader) {
+                        is ZipWrap<*, *, *, *> -> @Suppress("UNCHECKED_CAST") (ZipWrap.toZMap(newLeader).asIMOrdered() as IMOrdered<S>)
+                        else -> @Suppress("UNCHECKED_CAST") (newLeader as IMOrdered<S>)
+                    }
+                    IMCartesian.flift2kart<S, T>(proxyLead).mpro(follower)
                 }
-                else -> @Suppress("UNCHECKED_CAST") (lead as IMOrdered<S>)
             }
-            val fkart: ITMap<Pair<S, T>>? = IMCartesian.flift2kart<S, T>(proxyLead).mpro(after)
             IMCartesian.asZMap(fkart)
         }
 
-        override fun asMap(): ITMap<Pair<S, T>> = zm?.asMap() ?: DWFMap.empty()
-        override fun asIMOrdered(): IMOrdered<Pair<S, T>> = zm?.asIMOrdered() ?: DWFMap.empty()
-        override fun <X : Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = zm?.fzipMap(f) ?: DWFMap.empty()
-        override fun <X : Any> fkartMap(f: (S) -> (T) -> X): ITMap<ITMap<X>> = zm?.fkartMap(f) ?: DWFMap.empty()
+        private val em = FCartesian.emptyZipMap<S,T, IMZPair<S,T>>()
+        private val ezm = FCartesian.emptyZMap<S,T>()
+        override fun asMap(): ITMap<IMZPair<S, T>> = zm?.asMap() ?: em
+        override fun asIMOrdered(): IMOrdered<IMZPair<S, T>> = zm?.asIMOrdered() ?: ezm.asIMOrdered()
+        override fun <X : Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = zm?.fzipMap(f) ?: ezm.fzipMap(f)
+        override fun <X : Any> fkartMap(f: (S) -> (T) -> X): ITMap<ITMap<X>> = zm?.fkartMap(f) ?: ezm.fkartMap(f)
+        override fun asZMap(): ITZMap<S, T> = this
     }.asMap()
     return (@Suppress("UNCHECKED_CAST") (nameless as ITMap<W>))
 }
 
-internal fun <S: Any, T: Any, W: Pair<S,T>> toEmptyZipMap(seed: ITMap<Any>): ITMap<W> {
-    check(seed is IMOrdered<*>)
-    val empty = seed.toEmpty()
-    val nameless = object : ITZMap<S,T> {
-        override fun asMap(): ITMap<Pair<S,T>> = @Suppress("UNCHECKED_CAST") (empty as ITMap<W>)
-        override fun asIMOrdered(): IMOrdered<Pair<S,T>> = @Suppress("UNCHECKED_CAST") (empty as IMOrdered<Pair<S,T>>)
-        override fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = @Suppress("UNCHECKED_CAST") (empty as ITMap<X>)
-        override fun <X: Any> fkartMap(f: (S) -> (T) -> X ): ITMap<ITMap<X>> = @Suppress("UNCHECKED_CAST") (empty as ITMap<ITMap<X>>)
-    }.asMap()
-    return (@Suppress("UNCHECKED_CAST") (nameless as ITMap<W>))
+private interface EmptyZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: IMZPair<S,T>>: IMMapOp<W, IMCommonEmpty<W>>, IMOrderedEmpty<W>
+
+private val _emptyZipWrap = object : EmptyZipWrap<Nothing, ITMap<Nothing>, Nothing, IMZPair<Nothing,Nothing>> {
+    override val seal: IMSC = IMSC.IMKART
+    override fun <B : Any> fzip(items: IMOrdered<B>): IMOrdered<Pair<IMZPair<Nothing, Nothing>, B>> =
+        @Suppress("UNCHECKED_CAST") (this as IMOrdered<Pair<IMZPair<Nothing, Nothing>, B>>)
+    override fun <T : Any> fmap(f: (IMZPair<Nothing, Nothing>) -> T): ITMap<T> =
+        @Suppress("UNCHECKED_CAST") (this as ITMap<T>)
+    val show = "${ZipWrap::class.simpleName}'@'(*)"
 }
 
-private data class ZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: Pair<S,T>>(val s: U, val t: IMOrdered<T>): ITMap<W>, ZipWrapMarker {
+private val defaultEmptyZipMap = object : ITZMap<Nothing,Nothing> {
+    val empty = _emptyZipWrap
+    val show = _emptyZipWrap.show
+    val hash = show.hashCode()
+    override fun asMap(): ITMap<IMZPair<Nothing,Nothing>> = empty
+    override fun asIMOrdered(): IMOrdered<IMZPair<Nothing,Nothing>> = empty
+    override fun <X: Any> fzipMap(f: (Nothing) -> (Nothing) -> X): ITMap<Nothing> =
+        @Suppress("UNCHECKED_CAST") (empty as ITMap<Nothing>)
+    override fun <X: Any> fkartMap(f: (Nothing) -> (Nothing) -> X): ITMap<ITMap<Nothing>> =
+        @Suppress("UNCHECKED_CAST") (empty as ITMap<Nothing>)
+    override fun equals(other: Any?): Boolean = other?.equals(this) ?: false
+    override fun hashCode(): Int = hash
+    override fun toString(): String = show
+    override fun asZMap(): ITZMap<Nothing, Nothing> = this
+}
+
+internal data class ZW<out A: Any, out B: Any>(val ff: A, val ss: B): IMZPair<A,B> {
+    override fun _1(): A = ff
+    override fun _2(): B = ss
+    override fun toPair(): Pair<A,B> = Pair(ff,ss)
+
+    companion object {
+        fun <A: Any, B: Any> of(p: Pair<A,B>): ZW<A,B> = ZW(p.first, p.second)
+    }
+}
+
+private data class ZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: IMZPair<S,T>>(val frstMap: U, val scndOrd: IMOrdered<T>): ITMap<W>, IMZipWrap<S,T> {
 
     init {
-        check(s is IMOrdered<*>)
-        check(t is ITMap<*>)
+        check(frstMap is IMOrdered<*>)
+        check(scndOrd is ITMap<*>)
     }
 
-    val tmap: ITMap<T> = IMMapOp.flift2map(@Suppress("UNCHECKED_CAST") (t as IMCommon<T>))!!
-    val sorder = @Suppress("UNCHECKED_CAST") (s as IMOrdered<S>)
-    val product: IMOrdered<Pair<S, T>> by lazy { sorder.fzip(t) }
-    val pcomm: IMCommon<Pair<S, T>> by lazy { product.asIMCommon<Pair<S, T>>()!! }
+    val scndMap: ITMap<T> = IMMapOp.flift2map(scndOrd)!!
+    val frstOrd = @Suppress("UNCHECKED_CAST") (frstMap as IMOrdered<S>)
+    private val product: IMOrdered<Pair<S, T>> by lazy { frstOrd.fzip(scndOrd) }
+    val iproduct: IMOrdered<ZW<S, T>> by lazy {
+        val aux: ITMap<ZW<S, T>> = IMMapOp.flift2map(product)!!.fmap { ZW(it.first, it.second) }
+        @Suppress("UNCHECKED_CAST") ((if (aux.fempty()) defaultEmptyZipMap.asMap() else aux) as IMOrdered<ZW<S, T>>)
+    }
 
-    private fun w2p(f: (W) -> Boolean): (Pair<S,T>) -> Boolean = { p: Pair<S,T> ->
+    private fun w2zwf(f: (W) -> Boolean): (ZW<S,T>) -> Boolean = { p: ZW<S,T> ->
         @Suppress("UNCHECKED_CAST") (p as W)
         f(p)
     }
 
-    private fun cp2cw(cp: IMCommon<Pair<S,T>>): IMCommon<W> {
-        @Suppress("UNCHECKED_CAST") (cp as IMCommon<W>)
-        return cp
-    }
+    private fun czw2cw(cp: IMCommon<ZW<S,T>>): ITMap<W> =
+        @Suppress("UNCHECKED_CAST") ((if (cp.fempty()) defaultEmptyZipMap.asMap() else cp) as ITMap<W>)
 
-    private fun p2w(p: Pair<S,T>?): W? = p?.let {
+    private fun zw2w(p: ZW<S,T>?): W? = p?.let {
         @Suppress("UNCHECKED_CAST") (p as W)
         return p
     }
 
-    private fun <X: Any> fop2cry (f:(W) -> X): (S) -> (T) -> X = { s: S -> { t:T -> f(p2w(Pair(s,t))!!) } }
+    private fun cw2czw(cp: IMCommon<W>): ITMap<ZW<S,T>> =
+        @Suppress("UNCHECKED_CAST") ((if (cp.fempty()) defaultEmptyZipMap.asMap() else cp) as ITMap<ZW<S,T>>)
 
-    private fun crRecast(g: ((Pair<S,T>) -> Boolean) -> IMCommon<Pair<S,T>>): ((W) -> Boolean) -> IMCommon<W> = { h: (W) -> Boolean -> cp2cw(g(w2p(h))) }
+    private fun w2zw(w: W?): ZW<S,T>? = w?.let {
+        @Suppress("UNCHECKED_CAST") (w as ZW<S,T>)
+        return w
+    }
 
-    private fun rRecast(g: ((Pair<S,T>) -> Boolean) -> Pair<S,T>?): ((W) -> Boolean) -> W? = { h: (W) -> Boolean -> p2w(g(w2p(h))) }
+    private fun <X: Any> fop2cry (f:(W) -> X): (S) -> (T) -> X = { s: S -> { t:T -> f(zw2w(ZW(s,t))!!) } }
+
+    private fun crRecast(g: ((ZW<S,T>) -> Boolean) -> IMCommon<ZW<S,T>>): ((W) -> Boolean) -> ITMap<W> = { h: (W) -> Boolean -> czw2cw(g(w2zwf(h))) }
+
+    private fun rRecast(g: ((ZW<S,T>) -> Boolean) -> ZW<S,T>?): ((W) -> Boolean) -> W? = { h: (W) -> Boolean -> zw2w(g(w2zwf(h))) }
 
     override val seal: IMSC = IMSC.IMKART
 
     override fun fcontains(item: @UnsafeVariance W): Boolean =
-        pcomm.fcontains(item)
+        iproduct.fcontains(w2zw(item)!!)
 
     override fun fcount(isMatch: (W) -> Boolean): Int =
-        pcomm.fcount(w2p(isMatch))
+        iproduct.fcount(w2zwf(isMatch))
 
-    override fun fdropAll(items: IMCommon<@UnsafeVariance W>): IMCommon<W> =
-        cp2cw(pcomm.fdropAll(items))
+    override fun fdropAll(items: IMCommon<@UnsafeVariance W>): ITMap<W> =
+        czw2cw(iproduct.fdropAll(cw2czw(items)))
 
-    override fun fdropItem(item: @UnsafeVariance W): IMCommon<W> =
-        cp2cw(pcomm.fdropItem(item))
+    override fun fdropItem(item: @UnsafeVariance W): ITMap<W> =
+        czw2cw(iproduct.fdropItem(w2zw(item)!!))
 
-    override fun fdropWhen(isMatch: (W) -> Boolean): IMCommon<W> =
-        crRecast(pcomm::fdropWhen)(isMatch)
+    override fun fdropWhen(isMatch: (W) -> Boolean): ITMap<W> =
+        crRecast(iproduct::fdropWhen)(isMatch).run {
+            if (fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<W>) else this
+        }
 
-    override fun ffilter(isMatch: (W) -> Boolean): IMCommon<W> =
-        crRecast(pcomm::ffilter)(isMatch)
+    override fun ffilter(isMatch: (W) -> Boolean): ITMap<W> =
+        crRecast(iproduct::ffilter)(isMatch).run {
+            if (fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<W>) else this
+        }
 
-    override fun ffilterNot(isMatch: (W) -> Boolean): IMCommon<W> =
-        crRecast(pcomm::ffilterNot)(isMatch)
+    override fun ffilterNot(isMatch: (W) -> Boolean): ITMap<W> =
+        crRecast(iproduct::ffilterNot)(isMatch).run {
+            if (fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<W>) else this
+        }
 
     override fun ffindAny(isMatch: (W) -> Boolean): W? =
-        rRecast(pcomm::ffindAny)(isMatch)
+        rRecast(iproduct::ffindAny)(isMatch)
 
     override fun <R> ffold(z: R, f: (acc: R, W) -> R): R {
-        val ff: (R) -> (Pair<S,T>) -> R  = { acc: R -> { st: Pair<S,T> -> f(acc, p2w(st)!! ) } }
-        return pcomm.ffold(z) { acc, st: Pair<S, T> -> ff(acc)(st) }
+        val ff: (R) -> (ZW<S,T>) -> R  = { acc: R -> { st: ZW<S,T> -> f(acc, zw2w(st)!!) } }
+        return iproduct.ffold(z) { acc, st: ZW<S, T> -> ff(acc)(st) }
     }
 
     override fun fisStrict(): Boolean =
-        pcomm.fisStrict()
+        iproduct.fisStrict()
 
     override fun fpick(): W? =
-        p2w(pcomm.fpick())
+        zw2w(iproduct.fpick())
 
     override fun fpopAndRemainder(): Pair<W?, IMCommon<W>> {
-        val (p, ps) = pcomm.fpopAndRemainder()
-        return Pair(p2w(p), cp2cw(ps))
+        val (p, ps) = iproduct.fpopAndRemainder()
+        return Pair(zw2w(p), czw2cw(ps))
     }
 
     override fun fsize(): Int =
-        pcomm.fsize()
+        iproduct.fsize()
 
     override fun <X: Any> fmap(f: (W) -> X): ITMap<X> =
         zmap.fzipMap(fop2cry(f))
 
-    override fun equals(other: Any?): Boolean =
-        if (this === other) true else product.equals(other)
+    override fun equals(other: Any?): Boolean = when {
+        other is IMZipWrap<*,*> -> zmap.equals(other)
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean =
+        equals(rhs) || zmap.softEqual(rhs)
 
     override fun hashCode(): Int =
-        pcomm.hashCode()
+        zmap.hashCode()
+
+    override fun toString(): String =
+        zmap.toString()
 
     override fun toEmpty(): IMCommon<W> =
-        DWFMap.empty()
+        czw2cw(iproduct.toEmpty())
+
+    override fun asZMap(): ITZMap<S,T> = zmap
 
     private val zmap: ITZMap<S,T> = object : ITZMap<S,T> {
         override fun asMap(): ITMap<W> = this@ZipWrap
-        override fun asIMOrdered(): IMOrdered<Pair<S, T>> = product
-        override fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = when (val maybeAcc = pcomm.toEmpty() ) {
-            is IMWritable<*> -> {
-                val racc = @Suppress("UNCHECKED_CAST") (maybeAcc as IMWritable<X>)
-                val res = @Suppress("UNCHECKED_CAST") (pcomm.ffold(racc) { acc, st -> acc.fadd(f(st.first)(st.second)) } as ITMap<X>)
-                res
+        override fun asZMap(): ITZMap<S, T> = this
+        override fun asIMOrdered(): IMOrdered<ZW<S, T>> =
+            if (asMap().fempty()) TODO()
+            else iproduct
+
+        override fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = when (val maybeAcc = iproduct.toEmpty() ) {
+                is IMWritable<*> -> {
+                    val racc = @Suppress("UNCHECKED_CAST") (maybeAcc as IMWritable<X>)
+                    val res = @Suppress("UNCHECKED_CAST") (iproduct.ffold(racc) { acc, st -> acc.fadd(f(st.ff)(st.ss)) } as ITMap<X>)
+                    if (res.fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<X>) else res
+                }
+                else -> {
+                    val res = iproduct.ffold(emptyIMList<X>()) { acc, st -> acc.fprepend(f(st.ff)(st.ss)) }
+                    if (res.fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<X>) else res.freverse()
+                }
             }
-            else -> {
-                val res = pcomm.ffold(emptyIMList<X>()) { acc, st -> acc.fprepend(f(st.first)(st.second)) }
-                res.freverse()
-            }
-        }
+
         override fun <X: Any> fkartMap(f: (S) -> (T) -> X ): ITMap<ITMap<X>> =
-            s.fmap { sval -> f(sval) }.fmap { t2x -> tmap.fmap(t2x) }
+            frstMap.fmap { sval -> f(sval) }.fmap { t2x -> scndMap.fmap(t2x) }.run {
+                if (fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<ITMap<X>>) else this
+            }
+
+        override fun equals(other: Any?): Boolean = when {
+                this === other -> true
+                other is ZipWrap<*, *, *, *> -> if (asMap().fempty()) other.fempty() else iproduct.equals(other.iproduct)
+                else -> false
+            }
+
+        val hash = iproduct.hashCode()
+        override fun hashCode(): Int = hash
+
+        val show: String by lazy {
+            val aux = iproduct.toString()
+            "${this@ZipWrap::class.simpleName}${aux.dropWhile{ it != '@' }}"
+        }
+        override fun toString(): String = show
 
     }
 
     companion object {
-        fun <S: Any, T: Any> toZMap(zr: ZipWrap<S, ITMap<S>, T, Pair<S,T>>): ITZMap<S, T> = zr.zmap
+        fun <S: Any, T: Any> toZMap(zr: ZipWrap<S, ITMap<S>, T, IMZPair<S,T>>): ITZMap<S, T> = zr.zmap
     }
 
 }
@@ -248,8 +384,6 @@ class FCartesian<out S: Any, out U: FMap<S>, out T: Any, out V: FMap<T>> private
         }
     }
 }
-
-*/
 
 private data class MapWrap<out S: Any, out U: ITMap<S>, out T: Any, V: ITMap<T>, out W: Pair<U,V>>(val uOfS: U, val t: IMOrdered<T>): ITMap<W> {
 
@@ -346,3 +480,4 @@ private data class MapWrap<out S: Any, out U: ITMap<S>, out T: Any, V: ITMap<T>,
     fun asIMOrdered(): IMOrdered<W> = DWCommon.of(w)
 
 }
+*/

@@ -4,14 +4,15 @@ import com.xrpn.bridge.FStackIterator
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
+import java.util.*
 
-sealed class FStack<out A: Any>: IMStack<A> {
+sealed class FStack<out A: Any>: IMStack<A>, Iterable<A> {
 
     val size: Int by lazy { toFList().size }
 
     fun isEmpty(): Boolean = toFList().isEmpty()
 
-    fun iterator(): FStackIterator<A> = FStackIterator(this)
+    override fun iterator(): FStackIterator<A> = FStackIterator(this)
 
     // imcommon
 
@@ -60,13 +61,14 @@ sealed class FStack<out A: Any>: IMStack<A> {
     // ============ IMOrdered
 
     override fun fdrop(n: Int): FStack<A> = when {
-        0 < n -> FStackBody.of(toFList().fdrop(n))
         n <= 0 -> this
+        fsize() < n -> emptyIMStack()
+        0 < n -> FStackBody.of(toFList().fdrop(n))
         else -> throw RuntimeException("internal error")
     }
 
-    override fun fnext(): Pair<A?, IMStack<A>> =
-        fpop()
+    override fun fnext(): A? =
+        ftop()
 
     override fun freverse(): FStack<A> =
         FStackBody.of(toFList().freverse())
@@ -80,13 +82,9 @@ sealed class FStack<out A: Any>: IMStack<A> {
     override fun fswaph(): IMStack<A> =
         FStackBody.of(toFList().fswaph())
 
-    override fun <B : Any> fzip(items: IMOrdered<B>): IMStack<Pair<A, B>> {
-        val (itn, _) = items.fnext()
-        return itn?.let {
-            if (fempty()) FStackBody.empty
-            else FStackBody.of(toFList().fzip(items))
-        } ?: FStackBody.empty
-    }
+    override fun <B : Any> fzip(items: IMOrdered<B>): IMStack<Pair<A, B>> =
+        if (fempty()) FStackBody.empty
+        else items.fnext()?.let { FStackBody.of(toFList().fzip(items)) } ?: FStackBody.empty
 
     // ============ IMMappable
 
@@ -208,6 +206,17 @@ internal class FStackBody<out A: Any> private constructor (
             fempty() || other.fempty() -> false
             ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)
             else -> false
+        }
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is Stack<*> -> when {
+            fempty() -> rhs.isEmpty()
+            rhs.isEmpty() -> fempty()
+            fsize() != rhs.size -> false
+            fpick()!!.isStrictly(rhs.peek()!!) -> false
+            else -> rhs.equals(this)
         }
         else -> false
     }

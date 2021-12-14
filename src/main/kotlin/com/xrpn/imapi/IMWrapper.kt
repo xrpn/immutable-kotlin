@@ -20,34 +20,31 @@ internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> const
     override val seal: IMSC = IMSC.IMDIW
     override fun fcontains(item: @UnsafeVariance A): Boolean = item == a
     override fun fcount(isMatch: (A) -> Boolean): Int = if (isMatch(this.a)) 1 else 0
-    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMCommon<A> = if (items.fcontains((this.a))) empty() else this
-    override fun fdropItem(item: @UnsafeVariance A): IMCommon<A> = if (this.equals(item)) empty() else this
-    override fun fdropWhen(isMatch: (A) -> Boolean): IMCommon<A> = ffilterNot(isMatch)
-    override fun ffilter(isMatch: (A) -> Boolean): IMCommon<A> = if (isMatch(this.a)) this else empty()
-    override fun ffilterNot(isMatch: (A) -> Boolean): IMCommon<A> = if (isMatch(this.a)) empty() else this
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A> = if (items.fcontains((this.a))) empty() else this
+    override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A> = if (this.equals(item)) empty() else this
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMOrdered<A> = ffilterNot(isMatch)
+    override fun ffilter(isMatch: (A) -> Boolean): IMOrdered<A> = if (isMatch(this.a)) this else empty()
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMOrdered<A> = if (isMatch(this.a)) empty() else this
     override fun ffindAny(isMatch: (A) -> Boolean): A? = if (isMatch(this.a)) this.a else null
     override fun <R> ffold(z: R, f: (acc: R, A) -> R): R = f(z,a)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): A = this.a
-    override fun fpopAndRemainder(): Pair<A?, IMCommon<A>> = Pair(a, empty())
+    override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(a, empty())
     override fun fsize(): Int = 1
     override fun toEmpty(): ITDsw<A> = empty()
 
     // IMOrdered
 
     override fun fdrop(n: Int): IMOrdered<A> = if (0==n) this else empty()
-    override fun fnext(): Pair<A?, IMOrdered<A>> = Pair(a, empty())
+    override fun fnext(): A = a
     override fun freverse(): IMOrdered<A> = this
     override fun frotl(): IMOrdered<A> = this
     override fun frotr(): IMOrdered<A> = this
     override fun fswaph(): IMOrdered<A> = this
     override fun <B: Any> fzip(items: IMOrdered<B>): IMDisw<Pair<A, B>, IMCommon<Pair<A, B>>> {
-        val (itn: B?, itns: IMOrdered<B>) = items.fnext()
-        val aux: IMCommon<Any>? by lazy { itns.asIMCommon() }
-        return when {
-            null == itn -> empty()
-            null == aux -> empty()
-            1 != aux!!.fsize() -> empty()
+        val itn: B? = items.fnext()
+        return when (itn) {
+            null -> empty()
             else -> of(Pair(a,itn))
         }
     }
@@ -65,6 +62,10 @@ internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> const
         }
         fun <A: Any> empty(): ITDsw<A> = @Suppress("UNCHECKED_CAST") (emptyDiw as IMDisw<A, IMCommonEmpty<A>>)
     }
+
+    // equals() = TODO()
+    // hashcode() = TODO()
+    override fun softEqual(rhs: Any?): Boolean = TODO()
 }
 
 private interface EmptyDmw<out A: Any, out B: IMCommonEmpty<A>>: IMOrderedEmpty<A>, IMDimw<A, IMCommonEmpty<A>> {
@@ -82,34 +83,38 @@ internal data class /* Discardable Wrapper, FMap */ DWFMap<out A: Any, out B: IM
     ): IMOrdered<A> by (@Suppress("UNCHECKED_CAST") (b as IMOrdered<A>)), IMDimw<A, IMCommon<A>> {
 
     override val seal: IMSC = IMSC.IMDMW
-    override fun fpopAndRemainder(): Pair<A?, IMCommon<A>> = Pair(this.a, empty())
+    override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(a, empty())
     override fun toEmpty(): ITDmw<A> = empty()
     override fun fadd(item: @UnsafeVariance A): ITDmw<A> =
-        of(a) as ITDmw<A>
+        of(a)
 
     override fun <T : Any> fmap(f: (A) -> T): IMMapOp<T, IMCommon<T>>
         = of(f(this.a))
 
     override fun <B: Any> fzip(items: IMOrdered<B>): IMDimw<Pair<A, B>, IMCommon<Pair<A, B>>> {
-        val (itn: B?, itns: IMOrdered<B>) = items.fnext()
-        val aux: IMCommon<Any>? by lazy { itns.asIMCommon() }
-        return when {
-            null == itn -> empty()
-            null == aux -> empty()
-            1 != aux!!.fsize() -> empty()
-            else -> of(Pair(a,itn)) as IMDimw<Pair<A, B>, IMCommon<Pair<A, B>>>
+        val itn: B? = items.fnext()
+        return when (itn) {
+            null -> empty()
+            else -> of(Pair(a,itn))
         }
     }
 
     companion object {
-        fun <A: Any> of(a: ITMap<A>): IMMapOp<A, IMCommon<A>> = a
-        fun <A: Any> of(a: IMDisw<A, IMCommon<A>>): IMMapOp<A, IMCommon<A>> {
-            check (a !is IMMapOp<*,*>)
-            return DWFMap((a as DWCommon<A>).a, a)
+        fun <A: Any> of(a: ITMap<A>): ITMap<A> = a
+        fun <A: Any> of(a: IMDisw<A, IMCommon<A>>): IMDimw<A, IMCommon<A>> {
+            check(a !is IMMapOp<*,*>)
+            return if (a.fempty()) empty() else {
+                (@Suppress("UNCHECKED_CAST") (a as DWCommon<A>))
+                DWFMap(a.a, DWCommon.of(a.a))
+            }
         }
-        fun <A: Any> of(a: A): IMMapOp<A, IMCommon<A>> {
-            check (a !is IMMapOp<*,*>)
-            check (a !is IMDisw<*,*>)
+        fun <A: Any> of(a: IMCommon<A>): ITMap<A> = when {
+            a is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (a as ITMap<A>)
+            a.fempty() -> empty()
+            else -> IMMapOp.flift2map(a) ?: if (1 == a.fsize()) DWFMap(a.fpick()!!, a) else empty()
+        }
+        fun <A: Any> of(a: A): IMDimw<A, IMCommon<A>> {
+            check((a !is IMMapOp<*,*>) && (a !is IMCommon<*>))
             return DWFMap(a, DWCommon.of(a))
         }
         fun <A: Any> empty(): IMDimw<A, IMCommonEmpty<A>> = @Suppress("UNCHECKED_CAST") (emptyDmw as IMDimw<A, IMCommonEmpty<A>>)
@@ -128,15 +133,14 @@ private val emptyDaw: EmptyDaw<Any, EmptyDmw<Any,IMCommonEmpty<Any>>> = object: 
     override fun fadd(item: Any): IMWritable<Nothing> = TODO("internal error")
 }
 
-internal data class /* Discardable Wrapper, FMapp */ DWFMapp<out A: Any, out B: IMDimw<A, IMCommon<A>>> constructor (
+internal data class /* Discardable Wrapper, FMapp */ DWFMapp<out A: Any, out B: IMDiaw<A, IMCommon<A>>> constructor (
     val a: A, val b: ITMap<A>
 ): IMOrdered<A> by (@Suppress("UNCHECKED_CAST") (b as IMOrdered<A>)), IMDiaw<A,ITMap<A>>  {
 
     override val seal: IMSC = IMSC.IMDAW
-    override fun fpopAndRemainder(): Pair<A?, IMCommon<A>> = Pair(this.a, empty())
+    override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(this.a, empty())
     override fun toEmpty(): ITDaw<A> = empty()
-    override fun fadd(item: @UnsafeVariance A): ITDaw<A> =
-        of(a) as ITDaw<A>
+    override fun fadd(item: @UnsafeVariance A): ITDaw<A> = of(a)
 
     override fun <T: Any> fmap(f: (A) -> T): ITMap<T> = b.fmap(f)
 
@@ -150,32 +154,48 @@ internal data class /* Discardable Wrapper, FMapp */ DWFMapp<out A: Any, out B: 
     }
 
     override fun <B: Any> fzip(items: IMOrdered<B>): IMDiaw<Pair<A, B>, IMCommon<Pair<A, B>>> {
-        val (itn: B?, itns: IMOrdered<B>) = items.fnext()
-        val aux: IMCommon<Any>? by lazy { itns.asIMCommon() }
-        return when {
+
+        return when (val itn: B? = items.fnext()) {
             null == itn -> empty()
-            null == aux -> empty()
-            1 != aux!!.fsize() -> empty()
-            else -> of(Pair(a, itn)) as IMDiaw<Pair<A, B>, IMCommon<Pair<A, B>>>
+            else -> {
+                val res = of(Pair(a, itn))
+                @Suppress("UNCHECKED_CAST") (res as IMDiaw<Pair<A, B>, IMCommon<Pair<A, B>>>)
+            }
         }
     }
 
     companion object {
         fun <A: Any> of(a: ITMapp<A>): ITMapp<A> = a
-        fun <A: Any> of(a: IMDimw<A, IMCommon<A>>): ITMapp<A> {
+        fun <A: Any> of(a: IMDimw<A, IMCommon<A>>): IMDiaw<A, IMCommon<A>> {
             check(a !is IMMappOp<*,*>)
-            (@Suppress("UNCHECKED_CAST")(a as DWFMap<A,IMCommon<A>>))
-            return DWFMapp(a.a, a)
+            return if (a.fempty()) empty() else {
+                (@Suppress("UNCHECKED_CAST") (a as DWFMap<A, IMCommon<A>>))
+                DWFMapp(a.a, a)
+            }
         }
-        fun <A: Any> of(a: ITMap<A>): ITMapp<A> {
-            check(a !is IMMappOp<*,*>)
-            return when {
+        fun <A: Any> of(a: ITMap<A>): ITMapp<A> = when {
+            a is IMMappOp<*,*> -> @Suppress("UNCHECKED_CAST") (a as ITMapp<A>)
             a.fempty() -> empty()
-            1 == a.fsize() -> DWFMapp(a.fpick()!!, a)
-            else -> IMMappOp.flift2mapp(a) ?: empty()
-        }}
-        fun <A: Any> of(a: A): ITMapp<A> {
+            else -> IMMappOp.flift2mapp(a) ?: if (1 == a.fsize()) DWFMapp(a.fpick()!!, a) else empty()
+        }
+        fun <A: Any> of(a: IMDisw<A, IMCommon<A>>): IMDiaw<A, IMCommon<A>> {
             check((a !is IMMappOp<*,*>) && (a !is IMMapOp<*,*>))
+            return if (a.fempty()) empty() else {
+                (@Suppress("UNCHECKED_CAST") (a as DWFMap<A, IMCommon<A>>))
+                DWFMapp(a.a, DWFMap.of(a.a))
+            }
+        }
+        fun <A: Any> of(a: IMCommon<A>): ITMapp<A> = when {
+            a is IMMappOp<*,*> -> @Suppress("UNCHECKED_CAST") (a as ITMapp<A>)
+            a is IMMapOp<*,*> -> {
+                @Suppress("UNCHECKED_CAST") (a as ITMap<A>)
+                IMMappOp.flift2mapp(a) ?: if (1 == a.fsize()) DWFMapp(a.fpick()!!, a) else empty()
+            }
+            a.fempty() -> empty()
+            else -> IMMappOp.flift2mapp(a) ?: if (1 == a.fsize()) DWFMapp(a.fpick()!!, DWFMap.of(a)) else empty()
+        }
+        fun <A: Any> of(a: A): IMDiaw<A, IMCommon<A>> {
+            check((a !is IMMappOp<*,*>) && (a !is IMMapOp<*,*>) && (a !is IMCommon<*>))
             return DWFMapp(a, DWFMap.of(a))
         }
         fun <A: Any> empty(): IMDiaw<A, IMCommonEmpty<A>> = @Suppress("UNCHECKED_CAST") (emptyDaw as IMDiaw<A, IMCommonEmpty<A>>)

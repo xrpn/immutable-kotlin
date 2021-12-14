@@ -71,21 +71,21 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
     override fun <R> ffold(z: R, f: (acc: R, IMDj<A,B>) -> R): R = f(z,this)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): IMDj<A, B>? = this
-    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMCommon<IMDj<A, B>>> = Pair(this, empty())
+    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMOrdered<IMDj<A, B>>> = Pair(this, empty())
     override fun fsize(): Int = 1
     override fun toEmpty(): IMCommon<IMDj<A, B>> = empty()
     
     // IMOrdered
 
     override fun fdrop(n: Int): IMOrdered<IMDj<A, B>> = if ( n < 1) this else empty()
-    override fun fnext(): Pair<IMDj<A, B>?, IMOrdered<IMDj<A, B>>> = Pair(this, empty())
+    override fun fnext(): IMDj<A, B> = this
     override fun freverse(): IMOrdered<IMDj<A, B>> = this
     override fun frotl(): IMOrdered<IMDj<A, B>> = this
     override fun frotr(): IMOrdered<IMDj<A, B>> = this
     override fun fswaph(): IMOrdered<IMDj<A, B>> = this
     override fun <C: Any> fzip(items: IMOrdered<C>): IMOrdered<Pair<IMDj<A, B>, C>> =
         if (items.fempty()) @Suppress("UNCHECKED_CAST") (items.toEmpty() as IMOrdered<Pair<IMDj<A, B>, C>>)
-        else DWCommon.of(Pair(this,items.fnext().first!!))
+        else DWCommon.of(Pair(this,items.fnext()!!))
 
     // IMMapOp
 
@@ -100,6 +100,25 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
         val arg = op(this)
         return IMMappOp.flift2mapp(arg) ?: DWFMapp.of(arg)
     }
+
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other !is TSDJ<*, *> -> false
+        hashCode() == other.hashCode() -> true
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is TSDJ<*,*> -> when {
+            isLeft() -> rhs.isLeft()
+            isRight() -> rhs.isRight()
+            else -> false
+        }
+        else -> false
+    }
+
+    override fun hashCode(): Int =
+        left()?.hashCode() ?: right()!!.hashCode()
 
     companion object {
         fun <L: Any, R: Any> empty(): IMDj<L,R> = @Suppress("UNCHECKED_CAST") (emptyIMDj as IMDj<L,R>)

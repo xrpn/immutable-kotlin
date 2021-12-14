@@ -8,14 +8,15 @@ import com.xrpn.imapi.*
 import com.xrpn.imapi.IMListEqual2
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FQueueBody.Companion.empty
+import java.util.*
 
-sealed class FQueue<out A: Any> : IMQueue<A> {
+sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
 
     fun isEmpty(): Boolean = this === empty
 
     val size: Int by lazy { this.fsize() }
 
-    fun iterator(): FQueueIterator<A> = FQueueIterator(this)
+    override fun iterator(): FQueueIterator<A> = FQueueIterator(this)
 
     // imcommon
 
@@ -70,6 +71,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     // ============ IMOrdered
 
     override fun fdrop(n: Int): FQueue<A> = when {
+        n <= 0 -> this
+        fsize() <= n -> empty
         0 < n -> {
 
             tailrec fun deplete(q: FQueue<A>, n: Int): FQueue<A> =
@@ -77,12 +80,11 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
             deplete(this, n)
         }
-        n <= 0 -> this
         else -> throw RuntimeException("internal error")
     }
 
-    override fun fnext(): Pair<A?, IMQueue<A>> =
-        fdequeue()
+    override fun fnext(): A? =
+        ffirst()
 
     override fun freverse(): FQueue<A> =
         FQueueBody.of(fqGetBack(), fqGetFront())
@@ -116,13 +118,9 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         }
     }
 
-    override fun <B : Any> fzip(items: IMOrdered<B>): IMQueue<Pair<A, B>> {
-        val (itn, _) = items.fnext()
-        return itn?.let {
-            if (fempty()) empty
-            else FQueueBody.of(toFList().fzip(items),emptyIMList())
-        } ?: empty
-    }
+    override fun <B : Any> fzip(items: IMOrdered<B>): IMQueue<Pair<A, B>> =
+        if (fempty()) empty
+        else items.fnext()?.let { FQueueBody.of(toFList().fzip(items),emptyIMList()) } ?: empty
 
     // ============ IMMappable
 
@@ -464,6 +462,17 @@ internal class FQueueBody<out A: Any> private constructor(
         else -> false
     }
 
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is Queue<*> -> when {
+            fempty() -> rhs.isEmpty()
+            rhs.isEmpty() -> fempty()
+            fsize() != rhs.size -> false
+            fpick()!!.isStrictlyNot(rhs.peek()!!) -> false
+            else -> rhs.equals(this)
+        }
+        else -> false
+    }
+
     val hash: Int by lazy {
         // must be consistent with equals()
         if (fempty()) emptyHashCode else {
@@ -522,5 +531,6 @@ internal class FQueueBody<out A: Any> private constructor(
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }
+
 }
 

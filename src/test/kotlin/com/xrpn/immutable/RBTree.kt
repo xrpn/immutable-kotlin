@@ -537,6 +537,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     override fun toEmpty(): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
+
+    override fun softEqual(rhs: Any?): Boolean {
+        TODO("Not yet implemented")
+    }
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

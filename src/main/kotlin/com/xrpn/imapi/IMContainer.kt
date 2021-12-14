@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.imapi.FCartesian.Companion.emptyZipMap
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FT
 import com.xrpn.immutable.toUCon
@@ -31,12 +32,18 @@ fun <T: Any> Any.asIMCommon(): IMCommon<T>? = try {
 
 interface IMUniversalCommon
 
-interface IMSealed: IMUniversalCommon {
+interface IMSealed<out A:IMUniversalCommon>: IMUniversalCommon {
     val seal: IMSC
+    fun softEqual(rhs: Any?): Boolean
+
+    companion object {
+        fun softEqual(rhs: Any): Boolean = rhs.asIMUniCo()?.let { it is IMSealed<*> } == true
+    }
+
 }
 
 // One or more A
-interface IMCommon<out A: Any>: IMSealed {
+interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
     fun fall(predicate: (A) -> Boolean): Boolean = fempty() || fcount(predicate) == fsize()
     fun fany(predicate: (A) -> Boolean): Boolean = fempty() || ffindAny(predicate) != null
     fun fcontains(item: @UnsafeVariance A): Boolean
@@ -110,6 +117,12 @@ interface IMCommonEmpty<out A: Any>: IMCommon<A> {
     override fun fpopAndRemainder(): Pair<A?, IMCommon<A>> = Pair(null, this)
     override fun fsize(): Int = 0
     override fun toEmpty(): IMCommon<A> = this
+    override fun softEqual(rhs: Any?): Boolean = this === rhs || when (rhs) {
+        is IMCommon<*> -> equal(rhs)
+        is Collection<*> -> rhs.isEmpty()
+        else -> false
+    }
+
     companion object {
         fun equal(other: IMCommon<*>): Boolean = other.fempty()
         internal open class IMCommonEmptyEquality: EqualsProxy, HashCodeProxy {
@@ -164,39 +177,100 @@ interface IMReducible<out A: Any>: IMUniversalCommon {
 
 interface IMOrdered<out A: Any>: IMCommon<A> {
     fun fdrop(n: Int): IMOrdered<A> // Return all elements after the first n elements
-    fun fnext(): Pair<A?, IMOrdered<A>>
+    fun fnext(): A?
     fun freverse(): IMOrdered<A>
     fun frotl(): IMOrdered<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
     fun frotr(): IMOrdered<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Pair<A,B>>
+    // return value retyped
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A>
+    override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A>
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMOrdered<A>
+    override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>>
+    override fun ffilter(isMatch: (A) -> Boolean): IMOrdered<A> // return all elements that match the predicate p
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMOrdered<A> // Return all elements that do not match the predicate p
+
+    companion object {
+
+        tailrec fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
+            lhs.fempty() -> true
+            !(lhs.fnext()!!.equals(rhs.fnext())) -> false
+            else -> pairwiseEquals(lhs.fdrop(1), rhs.fdrop(1))
+        }
+
+        fun <A: Any> equal(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
+            lhs.fempty() -> rhs.fempty()
+            lhs.fsize() != rhs.fsize() -> false
+            else -> pairwiseEquals(lhs,rhs)
+        }
+
+        fun <A: Any> softEqual(lhs: IMOrdered<A>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
+            is IMOrdered<*> -> equal(lhs, rhs)
+            is IMCommon<*> -> when {
+                lhs.fempty() -> rhs.fempty()
+                lhs.fsize() != rhs.fsize() -> false
+                else -> false
+            }
+            else -> false
+        }
+
+    }
 }
 
 interface IMOrderedEmpty<out A: Any>: IMCommonEmpty<A>, IMOrdered<A> {
     override fun fdrop(n: Int): IMOrdered<A> = this
-    override fun fnext(): Pair<A?, IMOrdered<A>> = Pair(null,this)
+    override fun fnext(): A? = null
     override fun freverse(): IMOrdered<A> = this
     override fun frotl(): IMOrdered<A> = this
     override fun frotr(): IMOrdered<A> = this
     override fun fswaph(): IMOrdered<A> = this
+    override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A> = this
+    override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A> = this
+    override fun fdropWhen(isMatch: (A) -> Boolean): IMOrdered<A> = this
+    override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(null, this)
+    override fun ffilter(isMatch: (A) -> Boolean): IMOrdered<A> = this // return all elements that match the predicate p
+    override fun ffilterNot(isMatch: (A) -> Boolean): IMOrdered<A> = this // Return all elements that do not match the predicate p
 }
 
-typealias ITKart<S, T> = IMCartesian<S, ITMap<S>, T, Pair<S,T>>
+typealias ITKart<S, T> = IMCartesian<S, ITMap<S>, T, IMZPair<S,T>>
 
-interface IMCartesian<out S: Any, out U: ITMap<S>, out T: Any, out W:Pair<S,T>> {
+interface IMCartesian<out S: Any, out U: ITMap<S>, out T: Any, out W:IMZPair<S,T>> {
 
     infix fun mpro(t: ITMap<@UnsafeVariance T>): ITMap<W>?
     infix fun opro(t: IMOrdered<@UnsafeVariance T>): ITMap<W>?
 
     companion object {
-        fun <S: Any, T: Any, W:Pair<S,T>> asZMap(k: ITMap<W>?): ITZMap<S,T>? = FCartesian.asZMap(k)
+        fun <S: Any, T: Any, W:IMZPair<S,T>> asZMap(k: ITMap<W>?): ITZMap<S,T>? = try {
+            k?.let { try {
+                FCartesian.asZMap(it as ITMap<IMZPair<S, T>>) as ITZMap<S, T>
+            } catch (ex: NullPointerException) {
+                IMSystemErrLogging(this::class).emitUnconditionally("fail with  ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+                null
+            }}
+        } catch (ex: ClassCastException) {
+            IMSystemErrLogging(this::class).emitUnconditionally("fail with ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+            null
+        }
         fun <S: Any, T: Any> flift2kart(item: IMOrdered<S>): ITKart<S,T> = FCartesian.of(item)
     }
 }
 
-typealias ITZMap<S,T> = IMZipMap<S,T,Pair<S,T>>
+interface IMZPair<out A: Any, out B: Any> {
+    fun _1():A
+    fun _2():B
+    fun toPair(): Pair<A,B>
+    fun equal(rhs: Pair<@UnsafeVariance A, @UnsafeVariance B>) = (_1().equals(rhs.first) && _2().equals(rhs.second))
+    fun equal(rhs: IMZPair<@UnsafeVariance A, @UnsafeVariance B>) = (_1().equals(rhs._1()) && _2().equals(rhs._2()))
+}
 
-interface IMZipMap<out S: Any, out T: Any, out W: Pair<S,T>> {
+typealias ITZMap<S,T> = IMZipMap<S,T,IMZPair<S,T>>
+
+interface IMZipWrap<out S: Any, out T: Any> {
+    fun asZMap(): ITZMap<S,T>
+}
+
+interface IMZipMap<out S: Any, out T: Any, out W: IMZPair<S,T>>: IMZipWrap<S,T> {
 
     fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X>
     fun <X: Any> fzippMap(f: (S, T) -> X): ITMap<X> {
@@ -210,52 +284,95 @@ interface IMZipMap<out S: Any, out T: Any, out W: Pair<S,T>> {
     }
     fun asMap(): ITMap<W>
     fun asIMOrdered(): IMOrdered<W>
+    fun equal(rhs: ITZMap<@UnsafeVariance S, @UnsafeVariance T>): Boolean = equals(rhs)
+    fun softEqual(rhs: Any?): Boolean = equals(rhs) || softEqual(this, rhs)
+
+    companion object {
+        fun <S: Any, T: Any, X: Any> ITMap<IMZPair<S,T>>.fmap2p(f: (S, T) -> X): ITMap<X> =
+            IMCartesian.asZMap(this)!!.fzippMap(f)
+        fun <S: Any, T: Any, X: Any> ITMap<IMZPair<S,T>>.fmap2(f: (S) -> (T) -> X): ITMap<X> =
+            IMCartesian.asZMap(this)!!.fzipMap(f)
+        fun <S: Any, T: Any, U: Any, X: Any> ITMap<IMZPair<IMZPair<S,T>,U>>.fmap3p(f: (S, T, U) -> X): ITMap<X> =
+            this.fmap { f(it._1()._1(), it._1()._2(), it._2()) }
+        fun <S: Any, T: Any, U: Any, X: Any> ITMap<IMZPair<IMZPair<S,T>,U>>.fmap3(f: (S) -> (T) -> (U) -> X): ITMap<X> =
+            this.fmap {  it.partial3map(f) }
+        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<IMZPair<IMZPair<IMZPair<S,T>,U>,V>>.fmap4p(f: (S, T, U, V) -> X): ITMap<X> =
+            this.fmap { f(it._1()._1()._1(), it._1()._1()._2(), it._1()._2(), it._2()) }
+        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<IMZPair<IMZPair<IMZPair<S,T>,U>,V>>.fmap4(f: (S) -> (T) -> (U) -> (V) -> X): ITMap<X> =
+            this.fmap { it.partial4map(f) }
+        // TODO: more?
+
+        fun <S: Any, T: Any> softEqual(lhs: ITZMap<S,T>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
+            is IMOrdered<*> -> when {
+                lhs.asMap().fempty() -> rhs.fempty()
+                rhs.fempty() -> lhs.asMap().fempty()
+                rhs.fsize() != lhs.asMap().fsize() -> false
+                rhs.fpick() is Pair<*,*> -> {
+
+                    @Suppress("UNCHECKED_CAST") (rhs as IMOrdered<Pair<Any,Any>>)
+
+                    tailrec fun goPairwise(lhs: IMOrdered<IMZPair<Any,Any>>, rhs: IMOrdered<Pair<Any,Any>>): Boolean = when {
+                        lhs.fempty() -> true
+                        !(lhs.fnext()!!.equal(rhs.fnext()!!)) -> false
+                        else -> goPairwise(lhs.fdrop(1), rhs.fdrop(1))
+                    }
+
+                    goPairwise(lhs.asIMOrdered(),rhs)
+
+                }
+                rhs.fpick() is IMZPair<*,*> -> IMOrdered.equal(lhs.asIMOrdered(), rhs)
+                else -> false
+            }
+            is IMCommon<*> -> lhs.asMap().fempty() && rhs.fempty()
+            else -> false
+        }
+    }
 }
 
+
+// ITMappable, really.  ITMap for brevity
 typealias ITMap<S> = IMMapOp<S, IMCommon<S>>
 
 interface IMMapOp<out S: Any, out U: IMCommon<S>>: IMCommon<S> {
 
     fun <T: Any> fmap(f: (S) -> T): ITMap<T>
 
-    infix fun <T: Any, V: ITMap<T>, W: Pair<@UnsafeVariance S,T>> with(tmap: V): ITMap<W> = when {
+    infix fun <T: Any, V: ITMap<T>, W: IMZPair<@UnsafeVariance S,T>> mapWith(tmap: V): ITMap<W> = when {
         this.fempty() -> @Suppress("UNCHECKED_CAST") (this.toEmpty() as ITMap<W>)
         tmap.fempty() -> @Suppress("UNCHECKED_CAST") (tmap.toEmpty() as ITMap<W>)
-        this is ZipWrapMarker -> { // S is at least a Pair<*,*>
-            (@Suppress("UNCHECKED_CAST") (this as ITMap<Pair<Any,Any>>))
+        this is IMZipWrap<*,*> -> { // S is at least a Pair<*,*>
+            (@Suppress("UNCHECKED_CAST") (this as ITMap<IMZPair<Any,Any>>))
             val zm: ITZMap<Any, Any> = FCartesian.asZMap(this)!!
             zipMaps(zm.asMap(), tmap)
         }
+        tmap is IMZipWrap<*,*> -> { // T is at least a Pair<*,*>
+            (@Suppress("UNCHECKED_CAST") (tmap as ITMap<IMZPair<Any,Any>>))
+            val zm: ITZMap<Any, Any> = FCartesian.asZMap(tmap)!!
+            zipMaps(this, zm.asMap())
+        }
         this !is IMOrdered<*> && tmap !is IMOrdered<*> -> throw RuntimeException("internal error")
-        tmap !is IMOrdered<*> -> toEmptyZipMap(this)
-        this !is IMOrdered<*> -> toEmptyZipMap(tmap)
+        tmap !is IMOrdered<*> -> emptyZipMap()
+        this !is IMOrdered<*> -> emptyZipMap()
         else -> zipMaps(this, tmap)
     }
 
 
     companion object {
 
-//        fun <T: Any> equal(rhs: FMap<T>, lhs: FMap<T>): Boolean = TODO()
+        fun <T: Any> softEqual(lhs: ITMap<T>, rhs: Any?): Boolean = lhs.equals(rhs) || when (lhs) {
+            is ITZMap<*,*> -> IMZipMap.softEqual(lhs, rhs)
+            is IMOrdered<*> -> when (rhs) {
+                is IMOrdered<*> -> IMOrdered.equal(lhs,rhs)
+                else -> TODO()
+            }
+            else -> TODO()
+        }
 
         fun <T: Any> flift2map(item: IMCommon<T>): ITMap<T>? = IM.liftToIMMappable(item)
         fun <T: Any> flift2map(item: T): ITMap<T> {
             check(item !is IMCommon<*>)
             return DWFMap.of(item)
         }
-        fun <S: Any, T: Any, X: Any> ITMap<Pair<S,T>>.f2map(f: (S, T) -> X): ITMap<X> =
-            this.fmap { f(it.first, it.second) }
-        fun <S: Any, T: Any, X: Any> ITMap<Pair<S,T>>.f2Cmap(f: (S) -> (T) -> X): ITMap<X> =
-            this.fmap { it.partial2map(f) }
-        fun <S: Any, T: Any, U: Any, X: Any> ITMap<Pair<Pair<S,T>,U>>.f3map(f: (S, T, U) -> X): ITMap<X> =
-            this.fmap { f(it.first.first, it.first.second, it.second) }
-        fun <S: Any, T: Any, U: Any, X: Any> ITMap<Pair<Pair<S,T>,U>>.f3Cmap(f: (S) -> (T) -> (U) -> X): ITMap<X> =
-            if (this.fempty()) DWFMap.empty()
-            else this.fmap {  it.partial3map(f) }
-        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<Pair<Pair<Pair<S,T>,U>,V>>.f4map(f: (S, T, U, V) -> X): ITMap<X> =
-            this.fmap { f(it.first.first.first, it.first.first.second, it.first.second, it.second) }
-        fun <S: Any, T: Any, U: Any, V: Any, X: Any> ITMap<Pair<Pair<Pair<S,T>,U>,V>>.f4Cmap(f: (S) -> (T) -> (U) -> (V) -> X): ITMap<X> =
-            this.fmap { it.partial4map(f) }
-        // TODO: more?
     }
 }
 
@@ -395,7 +512,8 @@ interface IMSdj<out L, out R>: IMDj<L,R>,
 
 typealias ITDsw<A> = IMDisw<A, IMCommon<A>>
 
-// Di-sposable x wrappers
+// Di-sposable wrappers
+
 interface IMDisw<out A: Any, out B: IMCommon<A>>:
     IMCommon<A>,
     IMOrdered<A>,
@@ -418,7 +536,7 @@ interface IMDiaw<out A: Any, out B: IMCommon<A>>:
 
 // collections
 
-interface IMList<out A:Any>: IMCommon<A>,
+interface IMList<out A:Any>: IMOrdered<A>,
     IMListFiltering<A>,
     IMListGrouping<A>,
     IMListTransforming<A>,
@@ -427,7 +545,6 @@ interface IMList<out A:Any>: IMCommon<A>,
     IMListUtility<A>,
     IMListExtras<A>,
     IMReducible<A>,
-    IMOrdered<A>,
     IMMapOp<A, IMList<A>>,
     IMMappOp<A, IMList<A>>,
     IMListTyping<A> {
@@ -435,26 +552,24 @@ interface IMList<out A:Any>: IMCommon<A>,
     override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
 }
 
-interface IMStack<out A:Any>: IMCommon<A>,
+interface IMStack<out A:Any>: IMOrdered<A>,
     IMStackFiltering<A>,
     IMStackGrouping<A>,
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMWritable<A>,
     IMStackUtility<A>,
-    IMOrdered<A>,
     IMMapOp<A, IMStack<Nothing>>,
     IMMappOp<A, IMStack<A>>,
     IMStackTyping<A>
 
-interface IMQueue<out A:Any>: IMCommon<A>,
+interface IMQueue<out A:Any>: IMOrdered<A>,
     IMQueueFiltering<A>,
     IMQueueGrouping<A>,
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
     IMWritable<A>,
     IMQueueUtility<A>,
-    IMOrdered<A>,
     IMMapOp<A, IMQueue<Nothing>>,
     IMMappOp<A, IMQueue<A>>,
     IMQueueTyping<A>

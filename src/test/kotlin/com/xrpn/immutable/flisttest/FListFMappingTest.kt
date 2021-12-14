@@ -1,12 +1,12 @@
 package com.xrpn.immutable.flisttest
 
 import com.xrpn.imapi.*
-import com.xrpn.imapi.IMMapOp.Companion.f2Cmap
-import com.xrpn.imapi.IMMapOp.Companion.f2map
-import com.xrpn.imapi.IMMapOp.Companion.f3Cmap
-import com.xrpn.imapi.IMMapOp.Companion.f3map
-import com.xrpn.imapi.IMMapOp.Companion.f4Cmap
-import com.xrpn.imapi.IMMapOp.Companion.f4map
+import com.xrpn.imapi.IMZipMap.Companion.fmap2
+import com.xrpn.imapi.IMZipMap.Companion.fmap2p
+import com.xrpn.imapi.IMZipMap.Companion.fmap3
+import com.xrpn.imapi.IMZipMap.Companion.fmap3p
+import com.xrpn.imapi.IMZipMap.Companion.fmap4
+import com.xrpn.imapi.IMZipMap.Companion.fmap4p
 import com.xrpn.immutable.*
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.emptyArrayOfLong
@@ -174,61 +174,59 @@ class FListFMappingTest : FunSpec({
     val calc3: (String, Int, Long) -> Double = { _: String, _: Int, l: Long  ->  seed+l.toDouble() }
     val calc2: (String, Int) -> Double = { _: String, i: Int ->  seed+i.toDouble() }
 
-    val aut2C: ITMap<Double> = (strListOfTwo with intListOfTwo).f2Cmap(calc2C)
+    val aut2C: ITMap<Double> = (strListOfTwo mapWith intListOfTwo).fmap2(calc2C)
     aut2C.fsize() shouldBe 2
     aut2C.fmap { it }.fany { it == seed+1.0 } shouldBe true
     aut2C.fmap { it }.fany { it == seed+2.0 } shouldBe true
-    val aut2: ITMap<Double> = (strListOfTwo with intListOfTwo).f2map(calc2)
+    val aut2: ITMap<Double> = (strListOfTwo mapWith intListOfTwo).fmap2p(calc2)
     aut2.fsize() shouldBe 2
     aut2C.fmap { it }.fany { it == seed+1.0 } shouldBe true
     aut2C.fmap { it }.fany { it == seed+2.0 } shouldBe true
 
-    val aut3C: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfTwo).f3Cmap(calc3C)
+    val aut3C: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfTwo).fmap3(calc3C)
     aut3C.fsize() shouldBe 2
     aut3C.fmap { it }.fany { it == seed+10.0 } shouldBe true
     aut3C.fmap { it }.fany { it == seed+20.0 } shouldBe true
-    val aut3: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfTwo).f3map(calc3)
+    val aut3: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfTwo).fmap3p(calc3)
     aut3.fsize() shouldBe 2
     aut3.fmap { it }.fany { it == seed+10.0 } shouldBe true
     aut3.fmap { it }.fany { it == seed+20.0 } shouldBe true
 
-    val aut4C: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfTwo with boolListOfTwo).f4Cmap(calc4C)
+    val aut4C: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfTwo).fmap4(calc4C)
     aut4C.fsize() shouldBe 2
     aut4C.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4C.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
-    val aut4: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfTwo with boolListOfTwo).f4map(calc4)
+    val aut4: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfTwo).fmap4p(calc4)
     aut4.fsize() shouldBe 2
     aut4.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
 
-    val aut4Cx: ITMap<Double> = (strListOfTwo with intListOfThree with longListOfTwo with boolListOfTwo).f4Cmap(calc4C)
+    val aut4Cx: ITMap<Double> = (strListOfTwo mapWith intListOfThree mapWith longListOfTwo mapWith boolListOfTwo).fmap4(calc4C)
     aut4Cx.fsize() shouldBe 2
     aut4Cx.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4Cx.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
-    val aut4x: ITMap<Double> = (strListOfThree with intListOfTwo with longListOfTwo with boolListOfTwo).f4map(calc4)
+    val aut4x: ITMap<Double> = (strListOfThree mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfTwo).fmap4p(calc4)
     aut4x.fsize() shouldBe 2
     aut4x.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4x.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
-    val aut4Cy: ITMap<Double> = (strListOfTwo with intListOfThree with longListOfThree with boolListOfTwo).f4Cmap(calc4C)
+    val aut4Cy: ITMap<Double> = (strListOfTwo mapWith intListOfThree mapWith longListOfThree mapWith boolListOfTwo).fmap4(calc4C)
     aut4Cy.fsize() shouldBe 2
     aut4Cy.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4Cy.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
-    val aut4y: ITMap<Double> = (strListOfThree with intListOfTwo with longListOfTwo with boolListOfThree).f4map(calc4)
+    val aut4y: ITMap<Double> = (strListOfThree mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfThree).fmap4p(calc4)
     aut4y.fsize() shouldBe 2
     aut4y.fmap { it }.fany { it == seed+11.0+strItem1[0].code.toDouble()+(if(boolItem1) 1.0 else -1.0) } shouldBe true
     aut4y.fmap { it }.fany { it == seed+22.0+strItem2[0].code.toDouble()+(if(boolItem2) 1.0 else -1.0) } shouldBe true
 
-    val aut4Ca: ITMap<Double> = (strListOfNone with intListOfTwo with longListOfTwo with boolListOfTwo).f4Cmap(calc4C)
+    val aut4Ca: ITMap<Double> = (strListOfNone mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfTwo).fmap4(calc4C)
     aut4Ca.fsize() shouldBe 0
-    val aut4Cb: ITMap<Double> = (strListOfTwo with intListOfNone with longListOfTwo with boolListOfTwo).f4Cmap(calc4C)
+    val aut4Cb: ITMap<Double> = (strListOfTwo mapWith intListOfNone mapWith longListOfTwo mapWith boolListOfTwo).fmap4(calc4C)
     aut4Cb.fsize() shouldBe 0
-    val aut4Cc: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfNone with boolListOfTwo).f4Cmap(calc4C)
+    val aut4Cc: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfNone mapWith boolListOfTwo).fmap4(calc4C)
     aut4Cc.fsize() shouldBe 0
-    val aut4Cd: ITMap<Double> = (strListOfTwo with intListOfTwo with longListOfTwo with boolListOfNone).f4Cmap(calc4C)
+    val aut4Cd: ITMap<Double> = (strListOfTwo mapWith intListOfTwo mapWith longListOfTwo mapWith boolListOfNone).fmap4(calc4C)
     aut4Cd.fsize() shouldBe 0
-    val aut4a: ITMap<Double> = (strListOfNone with intListOfNone with longListOfNone with boolListOfNone).f4map(calc4)
+    val aut4a: ITMap<Double> = (strListOfNone mapWith intListOfNone mapWith longListOfNone mapWith boolListOfNone).fmap4p(calc4)
     aut4a.fsize() shouldBe 0
   }
-
-
 })

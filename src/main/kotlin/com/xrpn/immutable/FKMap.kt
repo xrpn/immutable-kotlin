@@ -323,11 +323,17 @@ internal class FKMapEmpty<K, V: Any> private constructor (
     override fun equals(other: Any?): Boolean = when {
         singletonEmpty === other -> true
         other == null -> false
+        other is FKMapEmpty<*,*> -> true
         other is IMMap<*, *> -> false
-        other is Map<*,*> -> other.isEmpty()
-        other is IMCommon<*> -> IMCommonEmpty.equal(other)
         else -> false
     }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
+        is Map<*,*> -> rhs.isEmpty()
+        is IMCommon<*> -> IMCommonEmpty.equal(rhs)
+        else -> false
+    }
+
     val hash: Int by lazy { this::class.simpleName.hashCode() }
     override fun hashCode(): Int = hash
     val show: String by lazy { FKMap::class.simpleName + "(*->*)" }
@@ -363,15 +369,20 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
         other == null -> false
         other is IMMap<*, *> -> when {
             other.fempty() -> false
+            other.fsize() != fsize() -> false
             fpick()!!.strictlyNot(other.fpick()!!.untype()) -> false
             else ->  @Suppress("UNCHECKED_CAST") IMMapEqual2(this, other as IMMap<K, V>)
         }
-        other is Map<*, *> -> if (other.isEmpty()) false else {
-            val nnSample = (@Suppress("UNCHECKED_CAST") (other.entries.first() as Map.Entry<Any, Any>))
+        else -> false
+    }
+
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when(rhs) {
+        is Map<*, *> -> if (rhs.isEmpty() || (fsize() != rhs.size)) false else {
+            val nnSample = (@Suppress("UNCHECKED_CAST") (rhs.entries.first() as Map.Entry<Any, Any>))
             when {
-                this.fpick()!!.getkKc() != nnSample.key::class -> false
-                this.fpick()!!.getvKc() != nnSample.value::class -> false
-                else ->  other.equals(this)
+                this.fpick()!!.getkKc().isStrictlyNot(nnSample.key) -> false
+                this.fpick()!!.getvKc().isStrictlyNot(nnSample.value) -> false
+                else -> rhs.equals(this)
             }
         }
         else -> false

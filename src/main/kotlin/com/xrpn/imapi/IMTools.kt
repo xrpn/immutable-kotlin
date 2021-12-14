@@ -1,5 +1,8 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FLCons
+import com.xrpn.immutable.FLNil
+import com.xrpn.immutable.TKVEntry
 import mu.KLogger
 import mu.KotlinLogging
 import java.io.PrintStream
@@ -12,6 +15,28 @@ private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!
 private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
 private fun <A: Any, B> isLikeSameType(a: KClass<A>, b: B): Boolean = a == b?.let{ it::class }
 private fun <A: Any, B: KClass<Any>> isLikeSameTypeLike(a: KClass<A>, b: B): Boolean = a == b
+
+fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))
+fun <A, B, C, D> Pair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): Pair<C, D> = Pair(f(this.first), g(this.second))
+fun <A, B, C> Pair<A, B>.partial2map(f: (A) -> (B) -> C): C = f(this.first)(this.second)
+fun <A, B, C, D> Pair<Pair<A, B>, C>.partial3map(f: (A) -> (B) -> (C) -> D): D = f(this.first.first)(this.first.second)(this.second)
+fun <A, B, C, D, E> Pair<Pair<Pair<A, B>, C>, D>.partial4map(f: (A) -> (B) -> (C) -> (D) -> E): E = f(this.first.first.first)(this.first.first.second)(this.first.second)(this.second)
+
+fun <A: Any, B: Any> IMZPair<A, A>.pmap1(f: (A) -> B): IMZPair<B, B> = ZW(f(this._1()), f(this._2()))
+fun <A: Any, B: Any, C: Any, D: Any> IMZPair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): IMZPair<C, D> = ZW(f(this._1()), g(this._2()))
+fun <A: Any, B: Any, C: Any> IMZPair<A, B>.partial2map(f: (A) -> (B) -> C): C = f(this._1())(this._2())
+fun <A: Any, B: Any, C: Any, D: Any> IMZPair<IMZPair<A, B>, C>.partial3map(f: (A) -> (B) -> (C) -> D): D = f(this._1()._1())(this._1()._2())(this._2())
+fun <A: Any, B: Any, C: Any, D: Any, E: Any> IMZPair<IMZPair<IMZPair<A, B>, C>, D>.partial4map(f: (A) -> (B) -> (C) -> (D) -> E): E = f(this._1()._1()._1())(this._1()._1()._2())(this._1()._2())(this._2())
+
+fun <A: Any> Pair<A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLNil))
+fun <K, A: Any> Pair<K, A>.toTKVEntry(): TKVEntry<K, A> where K: Any, K: Comparable<K> = TKVEntry.ofkv(this.first, this.second)
+fun <K, A: Any> Pair<K, A>.toTKVEntry(cc: Comparator<K>): TKVEntry<K, A> where K: Any, K: Comparable<K> = TKVEntry.ofkvc(this.first, this.second, cc)
+fun <A, B> Pair<A, B>.fne() = this.first?.let { it } ?: this.second!!
+
+fun <A, B> Triple<A, A, A>.tmap1(f: (A) -> B): Triple<B, B, B> = Triple(f(this.first), f(this.second), f(this.third))
+fun <A, B, C, D, E, F> Triple<A, B, C>.tmap3(f: (A) -> D, g: (B) -> E, h: (C) -> F): Triple<D, E, F> = Triple(f(this.first), g(this.second), h(this.third))
+fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second, FLCons(this.third, FLNil)))
+
 
 fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
     is KClass<*> -> when(b) {
