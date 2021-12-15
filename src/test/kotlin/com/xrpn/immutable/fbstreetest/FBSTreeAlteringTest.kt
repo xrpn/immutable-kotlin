@@ -403,7 +403,7 @@ class FBSTreeAlteringTest : FunSpec({
 
     test("finserts, finsertt, finsertsDup (B)") {
         Arb.flist<Int, Int>(Arb.int(-25, 25)).checkAll(repeats) { fl ->
-            val tab = ofvs(fl.iterator())
+            val tab = ofvs(fl.asList().iterator())
             val flkv: FList<TKVEntry<String, Int>> = fl.fmap { it.toSAEntry() }
             val l = flkv.copyToMutableList()
             val s = l.toSet()

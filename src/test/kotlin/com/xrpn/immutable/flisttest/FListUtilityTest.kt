@@ -7,6 +7,7 @@ import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
@@ -115,9 +116,10 @@ class FListUtilityTest : FunSpec({
 
   test("copyToMutableList") {
     intListOfNone.copyToMutableList() shouldBe mutableListOf()
-    checkAll(repeats, Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
+    checkAll(PropTestConfig(seed = 3346345145909274544, iterations = repeats), Arb.flist<Int, Int>(Arb.int(),20..100)) { fl ->
       val ml: MutableList<Int> = fl.copyToMutableList()
-      (fl == ml) shouldBe true
+      (fl.equals(ml)) shouldBe false
+      (fl.softEqual(ml)) shouldBe true
       (ml == fl) shouldBe true
     }
   }

@@ -12,7 +12,7 @@ class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val r
 
     // not thread safe
     override fun hasNext(): Boolean = synchronized(current) {
-        ! current.isEmpty()
+        ! current.fempty()
     }
 
     // not thread safe
@@ -26,11 +26,11 @@ class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val r
     }
 
     fun resetIfEmpty():Boolean = synchronized(current) {
-        if (current.isEmpty()) doReset() else false
+        if (current.fempty()) doReset() else false
     }
 
     fun nullableNext(): A? = synchronized(current) {
-        if (current.isEmpty()) null else getNext()
+        if (current.fempty()) null else getNext()
     }
 
     private fun getNext(): A {

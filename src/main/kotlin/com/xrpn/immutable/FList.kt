@@ -11,46 +11,54 @@ import java.util.ArrayList
 import java.util.zip.CRC32C
 import kotlin.reflect.KClass
 
-sealed class FList<out A: Any>: List<A>, IMList<A> {
+sealed class FList<out A: Any>: IMList<A> {
 
-    // from Collection<A>
+    val size: Int by lazy { if (this is FLNil) 0 else this.ffoldLeft(0) { b, _ -> b + 1 } }
+    
+    private val klist: List<A> = object : List<A> {
 
-    override val size: Int by lazy { if (this is FLNil) 0 else this.ffoldLeft(0) { b, _ -> b + 1 } }
+        // from Collection<A>
 
-    override fun isEmpty(): Boolean = this is FLNil
+        override val size: Int by lazy { this@FList.size }
 
-    override operator fun contains(element: @UnsafeVariance A): Boolean = !ffilter { it == element }.isEmpty()
+        override fun isEmpty(): Boolean = this@FList is FLNil
 
-    override fun iterator(): Iterator<A> = FListIteratorFwd(this)
+        override operator fun contains(element: @UnsafeVariance A): Boolean = !ffilter { it == element }.fempty()
 
-    override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
-        elements.forEach { if (!contains(it)) return false }
-        return true
-    }
+        override fun iterator(): Iterator<A> = FListIteratorFwd(this@FList)
 
-    // from List <A>
-
-    override fun get(index: Int): A = atWantedIxPosition(index, this.size,this, 0) ?: throw IndexOutOfBoundsException("index $index")
-
-    override fun indexOf(element: @UnsafeVariance A): Int {
-        val res: Triple<FList<A>, A?, FList<A>> = ffindFirst { it == element }
-        return res.second?.let { res.first.size } ?: NOT_FOUND
-    }
-
-    override fun lastIndexOf(element: @UnsafeVariance A): Int =
-        when (val rix = this.freverse().indexOf(element)) {
-            NOT_FOUND -> rix
-            else -> size - rix - 1
+        override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
+            elements.forEach { if (!contains(it)) return false }
+            return true
         }
 
-    override fun listIterator(): ListIterator<A> = FListIteratorBidi(this)
+        // from List <A>
 
-    override fun listIterator(index: Int): ListIterator<A> = when {
-        index < 0 || size < index -> throw IndexOutOfBoundsException()
-        else -> FListIteratorBidi(this, index)
+        override fun get(index: Int): A = atWantedIxPosition(index, this@FList.size,this@FList, 0) ?: throw IndexOutOfBoundsException("index $index")
+
+        override fun indexOf(element: @UnsafeVariance A): Int {
+            val res: Triple<FList<A>, A?, FList<A>> = ffindFirst { it == element }
+            return res.second?.let { res.first.size } ?: NOT_FOUND
+        }
+
+        override fun lastIndexOf(element: @UnsafeVariance A): Int =
+            when (val rix = this@FList.freverse().klist.indexOf(element)) {
+                NOT_FOUND -> rix
+                else -> size - rix - 1
+            }
+
+        override fun listIterator(): ListIterator<A> = FListIteratorBidi(this@FList)
+
+        override fun listIterator(index: Int): ListIterator<A> = when {
+            index < 0 || size < index -> throw IndexOutOfBoundsException()
+            else -> FListIteratorBidi(this@FList, index)
+        }
+
+        override fun subList(fromIndex: Int, toIndex: Int): /* [fromIndex, toIndex) */ List<A> = fslice(fromIndex, toIndex).klist
+
     }
 
-    override fun subList(fromIndex: Int, toIndex: Int): /* [fromIndex, toIndex) */ List<A> = fslice(fromIndex, toIndex)
+    fun asList(): List<A> = klist
 
     /*
         Stack-safe implementation.  May run out of heap memory, will not run
@@ -283,7 +291,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
             null -> acc
             else -> {
                 val newAcc = if (currentIx < 0 || size <= currentIx) acc
-                else FLCons(get(currentIx), acc)
+                else FLCons(klist.get(currentIx), acc)
                 go(ixs.ftail(), newAcc)
             }
         }
@@ -675,7 +683,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         // ==========
 
         override fun <A: Any> Collection<A>.toIMList(): IMList<A> = when(this) {
-            is FList -> this
+            is FList<*> -> TODO()
             is FKSet<*, A> -> this.copyToFList()
             is List -> of(this)
             else -> of(this.iterator())
@@ -698,7 +706,7 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
 
         internal inline fun <reified A: Any, reified B: FList<A>> firstNotEmpty(l: FList<A>): FList<A>? {
-            val iter = l.iterator() as FListIteratorFwd<A>
+            val iter = l.klist.iterator() as FListIteratorFwd<A>
             for ( el in iter) when (el) {
                 is FLCons<*> -> if (el is B && !el.fempty()) return el
                 else -> continue
@@ -707,8 +715,8 @@ sealed class FList<out A: Any>: List<A>, IMList<A> {
         }
 
         internal inline fun <reified A: Any, reified B: FList<A>> fflatten(rhs: FList<B>): FList<A> =
-            if (isNested(rhs) && !rhs.isEmpty()) fappendLists(rhs, FLNil)
-            else if (!rhs.isEmpty() && rhs.fhead()!! is A) rhs as B
+            if (isNested(rhs) && !rhs.fempty()) fappendLists(rhs, FLNil)
+            else if (!rhs.fempty() && rhs.fhead()!! is A) rhs as B
             else FLNil
 
         internal fun <A: Any> fappendNested(rhs: FList<FList<A>>): FList<A> {

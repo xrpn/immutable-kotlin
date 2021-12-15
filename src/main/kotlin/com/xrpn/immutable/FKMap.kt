@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FRBTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.ofIntKey
 import com.xrpn.immutable.TKVEntry.Companion.ofk
@@ -15,11 +16,13 @@ import kotlin.reflect.KClass
 //   W   W    I  P
 //
 
-sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
+sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
 
     // imcommon
 
     override val seal: IMSC = IMSC.IMMAP
+
+    abstract fun asMap(): Map <@UnsafeVariance K, V>
 
     override fun fcontains(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): Boolean  = when (this) {
         is FKMapEmpty -> false
@@ -56,13 +59,16 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         is FKMapNotEmpty -> body.fcount(isMatch)
     }
 
-    override fun fsize(): Int = size
+    override fun fsize(): Int = when (this) {
+        is FKMapEmpty -> 0
+        is FKMapNotEmpty -> body.size
+    }
 
-    override fun toEmpty(): IMMap<K, V> = FKMap.emptyIMMap()
+    override fun toEmpty(): IMMap<K, V> = emptyIMMap()
 
     // imkeyed
 
-    override fun asIMBTree(): IMBTree<K,V> =  when (this) {
+    override fun asIMBTree(): IMBTree<K,V> = when (this) {
         is FKMapEmpty -> FRBTree.emptyIMBTree()
         is FKMapNotEmpty -> body
     }
@@ -101,7 +107,10 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     override operator fun contains(k: @UnsafeVariance K): Boolean = fcontainsKey(k)
     override operator fun set(k: @UnsafeVariance K, v: @UnsafeVariance V): FKMap<K, V> = fputkv(k, v)
-
+    override operator fun get(key: @UnsafeVariance K): V? = when (this) {
+        is FKMapEmpty -> null
+        is FKMapNotEmpty -> this.body.get(key)
+    }
     // filtering
 
     override fun fcontainsKey(key: @UnsafeVariance K): Boolean = when (this) {
@@ -160,9 +169,24 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
 
     // grouping
 
-    override fun fentries(): IMSet<TKVEntry<K,V>> = (@Suppress("UNCHECKED_CAST") (entries as IMSet<TKVEntry<K, V>>))
+    val fkmapEntries: IMSet<TKVEntry<K, V>> by lazy { when(this) {
+        is FKMapEmpty -> emptyIMKSet<TKVEntry<K, V>>()
+        is FKMapNotEmpty -> {
+            val newBody: FRBTree<Int, TKVEntry<K, V>> = this.body.ffold(nul()) { acc, tkv -> acc.finsert( ofIntKey(tkv) ) }
+            ofBody(newBody)!!
+        }
+    }}
+    override fun fentries(): IMSet<TKVEntry<K,V>> = fkmapEntries
 
-    override fun fkeys(): IMSet<K> = (@Suppress("UNCHECKED_CAST") (keys as IMSet<K>))
+    val fkmapKeys: IMSet<K> by lazy { when(this) {
+        is FKMapEmpty -> emptyIMKSet()
+        is FKMapNotEmpty -> {
+            val newBody = this.body.ffold(nul<K,K>()) { acc, tkv -> acc.finsert( ofk(tkv.getk()) ) }
+            newBody as FRBTNode<K,K>
+            ofFKKSBody(newBody)
+        }
+    }}
+    override fun fkeys(): IMSet<K> = fkmapKeys
 
     override fun <R : Comparable<R>> maxBy(f: (V) -> R): TKVEntry<K, V>? {
         TODO("Not yet implemented")
@@ -180,7 +204,11 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
         TODO("Not yet implemented")
     }
 
-    override fun fvalues(): FList<V> = values as FList<V>
+    val fkmapValues: FList<V> by lazy {  when(this) {
+        is FKMapEmpty -> emptyIMList<V>()
+        is FKMapNotEmpty -> this.body.fmapvToList { it } as FList<V>
+    }}
+    override fun fvalues(): FList<V> = fkmapValues
 
     // transforming
 
@@ -311,12 +339,12 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V>, Map <@UnsafeVariance K, V> w
     }
 }
 
-internal class FKMapEmpty<K, V: Any> private constructor (
-    val body: FRBTree<K, V>
+private class FKMapEmpty<K, V: Any> private constructor (
+//    val body: FRBTree<K, V>
 ): FKMap<K, V>() where K: Any, K: Comparable<@UnsafeVariance K> {
 
     // placate the compiler
-    fun donotuse() = print(body)
+    //fun donotuse() = print(body)
 
     // ========== Any
 
@@ -342,20 +370,25 @@ internal class FKMapEmpty<K, V: Any> private constructor (
     // ========== FKMap
 
     companion object {
-        private val singletonEmpty = FKMapEmpty(FRBTNil)
+        private val singletonEmpty = FKMapEmpty<Nothing,Nothing>() //FKMapEmpty(FRBTNil)
         internal fun <K, V: Any> empty(): FKMap<K, V> where K: Any, K: Comparable<@UnsafeVariance K> = singletonEmpty
     }
 
     // ========== Map
 
-    override fun isEmpty(): Boolean = true
-    override val size: Int = 0
-    override val entries: Set<Map.Entry<K, V>> = /* TODO fix the key type, it should be TKVEntry<K,V> */ emptyIMKSet<Int, TKVEntry<K,V>>(IntKeyType)
-    override val keys: Set<K> =  /* TODO fix the key type, it should be K  */ emptyIMKSet<Int, K>(IntKeyType)
-    override val values: Collection<V> = FList.emptyIMList()
-    override fun containsKey(key: K): Boolean = false
-    override fun containsValue(value: V): Boolean = false
-    override operator fun get(key: K): V? = null
+    private val kmap: Map <@UnsafeVariance K, V> = object : Map <@UnsafeVariance K, V> {
+        override fun isEmpty(): Boolean = true
+        override val size: Int = 0
+        override val entries: Set<Map.Entry<K, V>> = /* TODO fix the key type, it should be TKVEntry<K,V> */ emptyIMKSet<Int, TKVEntry<K,V>>(IntKeyType)
+        override val keys: Set<K> =  /* TODO fix the key type, it should be K  */ emptyIMKSet<Int, K>(IntKeyType)
+        override val values: Collection<V> = TODO() // FList.emptyIMList()
+        override fun containsKey(key: K): Boolean = false
+        override fun containsValue(value: V): Boolean = false
+        override operator fun get(key: K): V? = null
+    }
+
+    override fun asMap(): Map <@UnsafeVariance K, V> = kmap
+
 }
 
 internal class FKMapNotEmpty<out K, out V: Any> private constructor (
@@ -404,59 +437,27 @@ internal class FKMapNotEmpty<out K, out V: Any> private constructor (
 
     // ========== Map
 
-    override fun isEmpty(): Boolean = false
-    override val size: Int by lazy { body.size }
-    override val entries: Set<Map.Entry<K, V>> by lazy {
-        val (item: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
-        item as TKVEntry<K, V>
-        val res: IMSet<TKVEntry<K, V>> = when(item.getk()) {
-            is String -> remainder
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofs(item) as IMSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) as IMSetNotEmpty<TKVEntry<K, V>> }
-            else -> remainder // will use hashCode() as key, beware of collisions
-                .ffold(@Suppress("UNCHECKED_CAST") (FKSet.ofi(item) as IMSetNotEmpty<TKVEntry<K, V>>)) { acc, tkv -> acc.faddItem(tkv) as IMSetNotEmpty<TKVEntry<K, V>> }
+    private val kmap: Map <@UnsafeVariance K, V> = object : Map <@UnsafeVariance K, V> {
+        override fun isEmpty(): Boolean = false
+        override val size: Int by lazy { body.size }
+        override val entries: Set<Map.Entry<K, V>> by lazy {
+            if (fkmapEntries.fempty()) emptySet() else @Suppress("UNCHECKED_CAST") (fkmapEntries as FKSet<Int, TKVEntry<K, V>>)
         }
-        @Suppress("UNCHECKED_CAST") (res as Set<Map.Entry<K, V>>)
+        override val keys: Set<K> by lazy {
+            if (fkmapKeys.fempty()) emptySet() else @Suppress("UNCHECKED_CAST") (fkmapKeys as FKSet<K, K>)
+        }
+        override val values: Collection<V> by lazy {
+            if (fkmapValues.fempty()) emptyList() else fkmapValues.asList()
+        }
+        override fun containsKey(key: @UnsafeVariance K): Boolean = body.fcontainsKey(key)
+        override fun containsValue(value: @UnsafeVariance V): Boolean = body.fcontainsValue(value)
+        override operator fun get(key: @UnsafeVariance K): V? = body.ffindValueOfKey(key)
     }
 
-    override val keys: Set<K> by lazy {
-
-        val item: TKVEntry<K, V>? = body.froot()
-
-        fun assemblekk(): FKSet<@UnsafeVariance K, @UnsafeVariance K> {
-            val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
-            val seed: FRBTree<K, K> = FRBTree.of(ofk(ei!!.getk()))
-            return remainder.ffold(seed) { acc, tkv -> acc.finsert(ofk(tkv.getk())) }.toIMSet(seed.frestrictedKey())!!
-        }
-
-        if (null == item) TODO() else {
-            val res: IMSet<K> = when (item) {
-                is RTKVEntry -> when (item.getrk()) {
-                    is DeratedCustomKeyType -> throw RuntimeException("internal error")
-                    else -> assemblekk()
-                }
-                else -> when (item.getk()) {
-                    is String, is Int -> assemblekk()
-                    else -> {
-                        val (ei: TKVEntry<K, V>?, remainder: FRBTree<K, V>) = body.fpopAndRemainder()
-                        val seed: FRBTree<Int, K> = FRBTree.of(ofIntKey(ei!!.getk()))
-                        remainder.ffold(seed) { acc, tkv -> acc.finsert(ofIntKey(tkv.getk())) }.toIMSet(seed.frestrictedKey())!!
-                    }
-                }
-            }
-            @Suppress("UNCHECKED_CAST") (res as Set<K>)
-        }
-    }
-    override val values: Collection<V> by lazy { body.fmapvToList { it } as FList<V> }
-    override fun containsKey(key: @UnsafeVariance K): Boolean = body.fcontainsKey(key)
-    override fun containsValue(value: @UnsafeVariance V): Boolean = body.fcontainsValue(value)
-    override operator fun get(key: @UnsafeVariance K): V? = body.ffindValueOfKey(key)
+    override fun asMap(): Map <@UnsafeVariance K, V> = kmap
 
     companion object {
         internal fun <K, V: Any> of(b: FRBTNode<K, V>): FKMap<K, V> where K: Any, K: Comparable<K> = FKMapNotEmpty(b)
-    }
-
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? {
-        TODO("Not yet implemented")
     }
 }
 

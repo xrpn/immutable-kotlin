@@ -169,22 +169,22 @@ class FRBTreeUtilityTest  : FunSpec({
         checkAll(repeats, Arb.frbtree(Arb.int(),20..50)) { frbt ->
             val ims1: IMKSet<Int, Int> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
-            ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+            ims1.equals(ofBody(frbt)) shouldBe true
         }
         checkAll(repeats, Arb.frbtree(Arb.string(),20..50)) { frbt ->
             val ims1: IMKSet<Int, String> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
-            ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+            ims1.equals(ofBody(frbt)) shouldBe true
         }
         checkAll(repeats, Arb.frbStree(Arb.int(),20..50)) { frbt ->
             val ims1: IMKSet<String, Int> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
-            ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+            ims1.equals(ofBody(frbt)) shouldBe true
         }
         checkAll(repeats, Arb.frbStree(Arb.string(),20..50)) { frbt ->
             val ims1: IMKSet<String, String> = frbt.toIMSet(null)!!
             (ims1.toIMBTree() === frbt) shouldBe true
-            ims1.equals(frbt.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+            ims1.equals(ofBody(frbt)) shouldBe true
         }
         nnodeRbtOf3.toIMSet(null) shouldBe null
         knodeRbtOf3.toIMSet(null)?.fsize() shouldBe 3

@@ -107,7 +107,7 @@ class FStackOrderingTest : FunSpec({
       tailrec fun go(ff: FStack<Int>): Unit = if (ff.isEmpty()) Unit else {
         val (top, shortStack) = ff.fpop()
         top?.let {
-          if (ff.toFList().last() != it) {
+          if (ff.toFList().asList().last() != it) {
             val aut: IMStack<Int> = ff.frotl()
             aut.toIMList().flast() shouldBe it
             aut.ftop() shouldBe shortStack.ftop()

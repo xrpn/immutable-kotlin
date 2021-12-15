@@ -24,8 +24,8 @@ class FListGroupingPropertyTest : FunSpec({
 
   test("fcount") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
-      fl.fcount(matchLessThan(ora)) shouldBe fl.count(matchLessThan(ora))
+      val ora = middle(fl.asList())
+      fl.fcount(matchLessThan(ora)) shouldBe fl.asList().count(matchLessThan(ora))
     }
   }
 
@@ -35,7 +35,7 @@ class FListGroupingPropertyTest : FunSpec({
       val maybeIx = kotlin.random.Random.Default.nextInt(fl.size) + (fl.size / 2)
       val maybeOra = fl.fgetOrNull(maybeIx)
       // no matching functionality
-      fl.ffindFirst(matchEqualNullable(maybeOra)) shouldBe Triple(fl.take(maybeIx), maybeOra, fl.drop(maybeIx+1))
+      fl.ffindFirst(matchEqualNullable(maybeOra)) shouldBe Triple(fl.asList().take(maybeIx), maybeOra, fl.asList().drop(maybeIx+1))
     }
   }
 
@@ -46,14 +46,14 @@ class FListGroupingPropertyTest : FunSpec({
 
   test("findexed") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.findexed() shouldBe fl.zip(0..fl.size)
+      fl.findexed() shouldBe fl.asList().zip(0..fl.size)
     }
   }
 
   test("findexed offset") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..10)) {
-        fl.findexed(n) shouldBe fl.zip(n..(fl.size+n))
+        fl.findexed(n) shouldBe fl.asList().zip(n..(fl.size+n))
       }
     }
   }
@@ -61,8 +61,8 @@ class FListGroupingPropertyTest : FunSpec({
   test("fpartition") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
-      val item = fl.get(ix)
-      fl.fpartition(matchLessThan(item)) shouldBe fl.partition(matchLessThan(item))
+      val item = fl.asList().get(ix)
+      fl.fpartition(matchLessThan(item)) shouldBe fl.asList().partition(matchLessThan(item))
     }
   }
 
@@ -70,7 +70,7 @@ class FListGroupingPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix1 = kotlin.random.Random.Default.nextInt(fl.size) + 1
       val ix2 = kotlin.random.Random.Default.nextInt(fl.size) + 1
-      fl.fslidingWindow(ix1, ix2) shouldBe fl.windowed(ix1, ix2, partialWindows = true)
+      fl.fslidingWindow(ix1, ix2) shouldBe fl.asList().windowed(ix1, ix2, partialWindows = true)
     }
   }
 
@@ -78,7 +78,7 @@ class FListGroupingPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix1 = kotlin.random.Random.Default.nextInt(fl.size) + 1
       val ix2 = kotlin.random.Random.Default.nextInt(fl.size) + 1
-      fl.fslidingFullWindow(ix1, ix2) shouldBe fl.windowed(ix1, ix2, partialWindows = false)
+      fl.fslidingFullWindow(ix1, ix2) shouldBe fl.asList().windowed(ix1, ix2, partialWindows = false)
     }
   }
 
@@ -87,33 +87,33 @@ class FListGroupingPropertyTest : FunSpec({
       val maybeIx = kotlin.random.Random.Default.nextInt(fl.size) + (fl.size / 2)
       val maybeOra = fl.fgetOrNull(maybeIx)
       // no matching functionality
-      fl.fsplitAt(maybeIx) shouldBe Triple(fl.take(maybeIx), maybeOra, fl.drop(maybeIx+1))
+      fl.fsplitAt(maybeIx) shouldBe Triple(fl.asList().take(maybeIx), maybeOra, fl.asList().drop(maybeIx+1))
     }
   }
 
   test("funzip") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val zipped: FList<Pair<Int, Int>> = fl.findexed()
-      zipped.funzip { p -> p } shouldBe zipped.unzip()
+      zipped.funzip { p -> p } shouldBe zipped.asList().unzip()
     }
   }
 
   test("zipWith") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.fzipWith(fl) {a, b -> Pair(a,b)} shouldBe fl.zip(fl)
+      fl.fzipWith(fl) {a, b -> Pair(a,b)} shouldBe fl.asList().zip(fl.asList())
     }
   }
 
   test("zipWith iterable") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.fzipWith(fl.iterator()) shouldBe fl.zip(fl)
+      fl.fzipWith(fl.asList().iterator()) shouldBe fl.asList().zip(fl.asList())
     }
   }
 
 
   test("fzipWithIndex") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.fzipWithIndex() shouldBe fl.zip((0..fl.size))
+      fl.fzipWithIndex() shouldBe fl.asList().zip((0..fl.size))
     }
   }
 
@@ -121,7 +121,7 @@ class FListGroupingPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..fl.size)) {
         // no matching functionality
-        fl.fzipWithIndex(n) shouldBe fl.drop(n).zip((0..fl.size))
+        fl.fzipWithIndex(n) shouldBe fl.asList().drop(n).zip((0..fl.size))
       }
     }
   }

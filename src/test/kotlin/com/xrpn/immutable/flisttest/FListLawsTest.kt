@@ -2,10 +2,12 @@ package com.xrpn.immutable.flisttest
 
 import com.xrpn.imapi.*
 import com.xrpn.immutable.*
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
-import io.kotest.property.arbitrary.int
+import io.kotest.property.PropTestConfig
+import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
@@ -55,6 +57,52 @@ class FListLawsTest: FunSpec({
         flistApplicativeLaw.compositionLaw(intListOfNone, fmapInt2String_I, longListOfNone, fmapLong2StrangeInt ) shouldBe true
     }
 
-    test("flist cartesian law") {}
+    test("flist cartesian law") {
+        val empty: ITMap<IMZPair<Any, Any>> = FCartesian.emptyZipMap()
+        val zempty = IMCartesian.asZMap(empty)!!
+        Arb.triple(
+            Arb.flist(Arb.int(), repeats.second..repeats.third),
+            Arb.flist(Arb.string(3..7), repeats.second..repeats.third),
+            Arb.flist(Arb.double(), repeats.second..repeats.third)
+        ).checkAll(repeats.first, PropTestConfig(seed = 6389489730542018457)) { (fil,fsl,fll) ->
+            val zm1: ITMap<IMZPair<Int, String>> = fil mapWith fsl
+            val zmap1: ITZMap<Int, String> = IMCartesian.asZMap(zm1)!!
+
+            val zm2: ITMap<IMZPair<Int, String>> = fsl mapWith fil
+            val zmap2 = IMCartesian.asZMap(zm2)!!
+
+            flistCartesianLaw.zidentityLaw(zmap1) shouldBe true
+            flistCartesianLaw.zidentitypLaw(zmap1) shouldBe true
+            flistCartesianLaw.zidentityLaw(zmap2) shouldBe true
+            flistCartesianLaw.zidentitypLaw(zmap2) shouldBe true
+
+            flistCartesianLaw.kidentity(zmap1, zmap2) shouldBe true
+            flistCartesianLaw.kidentityp(zmap1, zmap2) shouldBe true
+            flistCartesianLaw.kidentity(zmap2, zmap1) shouldBe true
+            flistCartesianLaw.kidentityp(zmap2, zmap1) shouldBe true
+            flistCartesianLaw.kidentity(zempty, zmap2) shouldBe true
+            flistCartesianLaw.kidentityp(zmap1, zempty) shouldBe true
+
+            flistCartesianLaw.zassociativeLaw(fil,fsl,fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw(emptyIMList(),fsl,fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw(fil,emptyIMList(),fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw(fil,fsl,emptyIMList()) shouldBe true
+            flistCartesianLaw.zassociativeLaw2(fil,fsl,fil,fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw2(emptyIMList(),fsl,fil,fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw2(fil,emptyIMList(),fil,fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw2(fil,fsl,emptyIMList(),fll) shouldBe true
+            flistCartesianLaw.zassociativeLaw2(fil,fsl,fil,emptyIMList()) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(fil,fsl,fil,fll,fsl) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(emptyIMList(),fsl,fil,fll,fsl) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(fil,emptyIMList(),fil,fll,fsl) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(fil,fsl,emptyIMList(),fll,fsl) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(fil,fsl,fil,emptyIMList(),fsl) shouldBe true
+            flistCartesianLaw.zassociativeLaw3(fil,fsl,fil,fll,emptyIMList()) shouldBe true
+       }
+       flistCartesianLaw.zidentityLaw(zempty) shouldBe true
+       flistCartesianLaw.zidentitypLaw(zempty) shouldBe true
+       flistCartesianLaw.kidentity(zempty, zempty) shouldBe true
+       flistCartesianLaw.kidentityp(zempty, zempty) shouldBe true
+    }
 
 })

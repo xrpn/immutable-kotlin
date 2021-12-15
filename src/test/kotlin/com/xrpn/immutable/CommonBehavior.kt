@@ -79,16 +79,103 @@ val imbtreeFunctorKLaw = object: FunctorKLaw {}
 val immapFunctorKLaw = object: FunctorKLaw {}
 
 interface CartesianLaw  {
-    fun <S: Any, T: Any, X: Any> isZipMppableEqual(lhs: ITZMap<S,T>, rhs: ITMap<X>): Boolean =
-        rhs.equals(lhs)
-//    fun <S: Any, T: Any, X: Any> idOp(s: S, t: T): ITMap<X> {  Pair(s,t) }
-//    fun <S: Any, T: Any> identityLaw(zm: ITZMap<S,T>): Boolean = isZipMppableEqual(zm, zm.fzipMap(::idOp))
+    fun <S: Any, T: Any, X: Any> isZipEqual(lhs: ITZMap<S,T>, rhs: ITMap<X>): Boolean =
+        IMZipMap.softEqual(lhs, rhs)
+    fun <S: Any, T: Any, X: Any> isKartEqual(lhs: ITZMap<S,T>, rhs: ITMap<ITMap<X>>): Boolean {
+        val laux = lhs.asMap().fmap { it._1() }
+        val raux = rhs.fmap {
+            @Suppress("UNCHECKED_CAST") (it as IMOrdered<S>)
+            it.fnext()!!
+        }
+        @Suppress("UNCHECKED_CAST") (laux as IMOrdered<S>)
+        @Suppress("UNCHECKED_CAST") (raux as IMOrdered<S>)
+        return laux.fzip(raux).fall { it.first == it.second }
+    }
+    fun <S: Any, T: Any, X: Any> idpOp(s: S, t: T): X = @Suppress("UNCHECKED_CAST") (Pair(s,t) as X)
+    fun <S: Any, T: Any, X: Any> idOp(): (S) -> (T) -> X = { s: S -> { t: T -> @Suppress("UNCHECKED_CAST") (Pair(s,t) as X) } }
+    fun <S: Any, T: Any> zidentitypLaw(zm: ITZMap<S,T>): Boolean = isZipEqual(zm, zm.fzippMap(::idpOp))
+    fun <S: Any, T: Any> zidentityLaw(zm: ITZMap<S,T>): Boolean = isZipEqual(zm, zm.fzipMap(idOp()))
+    fun <S: Any, T: Any, U: Any> zassociativeLaw (
+        s: ITMap<S>,
+        t: ITMap<T>,
+        u: ITMap<U>,
+    ): Boolean {
+        val lhs = s mapWith t mapWith u
+        val rhsNatural = (s mapWith t) mapWith u
+        val rhs = s mapWith (t mapWith u)
+        return lhs.equals(rhsNatural) && lhs.equals(rhs)
+    }
+    fun <S: Any, T: Any, U: Any, V: Any> zassociativeLaw2 (
+        s: ITMap<S>,
+        t: ITMap<T>,
+        u: ITMap<U>,
+        v: ITMap<V>,
+    ): Boolean {
+        val lhs = s mapWith t mapWith u mapWith v
+        val rhsNatural = ((s mapWith t) mapWith u) mapWith v
+        val rhs1 = s mapWith t mapWith (u mapWith v)
+        val rhs2 = s mapWith (t mapWith (u mapWith v))
+        val rhs3 = (s mapWith t) mapWith (u mapWith v)
+        val rn = lhs.equals(rhsNatural)
+        val r1 = lhs.equals(rhs1)
+        val r2 = lhs.equals(rhs2)
+        val r3 = lhs.equals(rhs3)
+        return rn && r1 && r2 && r3
+    }
+    fun <S: Any, T: Any, U: Any, V: Any, W: Any> zassociativeLaw3 (
+        s: ITMap<S>,
+        t: ITMap<T>,
+        u: ITMap<U>,
+        v: ITMap<V>,
+        w: ITMap<W>,
+    ): Boolean {
+        val lhs = s mapWith t mapWith u mapWith v mapWith w
+        val rhsNatural = (((s mapWith t) mapWith u) mapWith v) mapWith w
+        val rhs1 = s mapWith t mapWith u mapWith (v mapWith w)
+        val rhs2 = s mapWith t mapWith (u mapWith (v mapWith w))
+        val rhs3 = s mapWith (t mapWith (u mapWith (v mapWith w)))
+        val rn = lhs.equals(rhsNatural)
+        val r1 = lhs.equals(rhs1)
+        val r2 = lhs.equals(rhs2)
+        val r3 = lhs.equals(rhs3)
+        return rn && r1 && r2 && r3
+    }
+
+    fun <S: Any, T: Any> kidentityp(zm1: ITZMap<S,T>, zm2: ITZMap<T,S>): Boolean {
+        val m1 = zm1.fkartpMap(::idpOp).fmap {
+            @Suppress("UNCHECKED_CAST") (it as IMOrdered<Pair<S,T>>)
+            DWFMap.of(it.fnext()!!.first)
+        }
+        val m2 = zm2.fkartpMap(::idpOp).fmap {
+            @Suppress("UNCHECKED_CAST") (it as IMOrdered<Pair<T,S>>)
+            DWFMap.of(it.fnext()!!.first)
+        }
+
+        return isKartEqual(zm1, m1) && isKartEqual(zm2, m2)
+    }
+    fun <S: Any, T: Any> kidentity(zm1: ITZMap<S,T>, zm2: ITZMap<T,S>): Boolean {
+        val m1 = zm1.fkartMap(idOp()).fmap {
+            @Suppress("UNCHECKED_CAST") (it as IMOrdered<Pair<S,T>>)
+            DWFMap.of(it.fnext()!!.first)
+        }
+        val m2 = zm2.fkartMap(idOp()).fmap {
+            @Suppress("UNCHECKED_CAST") (it as IMOrdered<Pair<T,S>>)
+            DWFMap.of(it.fnext()!!.first)
+        }
+        return isKartEqual(zm1, m1) && isKartEqual(zm2, m2)
+    }
+
 //    fun <S: Any, T: Any, V: Any, W: Any> associativeLaw(mapOp: IMMapOp<V,IMCommon<V>>, f1: (V) -> S, f2: (S) -> T, f3: (T) -> W): Boolean =
 //        isZipMppableEqual(mapOp.fmap(f2 fKompose f1).fmap(f3), mapOp.fmap(f1).fmap(f3 fKompose f2))
 //    companion object {
 //    }
 }
 
+val fdisjunctionCartesianLaw = object: CartesianLaw {}
+val fwrapperCartesianLaw = object: CartesianLaw {}
+val fstackCartesianLaw = object: CartesianLaw {}
+val fqueueCartesianLaw = object: CartesianLaw {}
+val flistCartesianLaw = object: CartesianLaw {}
 
 interface ApplicativeLaw  {
     //

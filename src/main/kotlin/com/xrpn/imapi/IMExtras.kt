@@ -70,6 +70,7 @@ interface IMMapExtras<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVari
 
     operator fun contains(k: @UnsafeVariance K): Boolean
     operator fun set(k: @UnsafeVariance K, v: @UnsafeVariance V): IMMap<K, V>
+    operator fun get(key: @UnsafeVariance K): V?
 
     infix fun or(rhs: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = (this as IMMap<K, V>).fOR(rhs)
     infix fun and(rhs: IMMap<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V> = (this as IMMap<K, V>).fAND(rhs)
@@ -79,6 +80,7 @@ interface IMMapExtras<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVari
 
 interface IMBTreeExtras<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
 
+    // TODO operator fun contains(k: @UnsafeVariance K): Boolean = fcontainsKey(k)
     operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): IMBTree<A, B>
     operator fun get(key: @UnsafeVariance A): B?
 

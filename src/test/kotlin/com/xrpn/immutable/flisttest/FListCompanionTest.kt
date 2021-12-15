@@ -63,7 +63,7 @@ class FListCompanionTest : FunSpec({
   // IMListCompanion
 
   test("co.emptyFList") {
-    FList.emptyIMList<Int>().isEmpty() shouldBe true
+    FList.emptyIMList<Int>().asList().isEmpty() shouldBe true
     FList.emptyIMList<Int>().fempty() shouldBe true
   }
 

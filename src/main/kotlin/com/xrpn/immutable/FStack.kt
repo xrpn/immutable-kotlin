@@ -10,7 +10,7 @@ sealed class FStack<out A: Any>: IMStack<A>, Iterable<A> {
 
     val size: Int by lazy { toFList().size }
 
-    fun isEmpty(): Boolean = toFList().isEmpty()
+    fun isEmpty(): Boolean = toFList().fempty()
 
     override fun iterator(): FStackIterator<A> = FStackIterator(this)
 

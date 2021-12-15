@@ -180,12 +180,12 @@ class FBSTreeUtilityTest : FunSpec({
     checkAll(repeats, Arb.fbsItree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ims1: FKSet<Int, Int> = fbst.toIMSet(IntKeyType)!!
       (ims1.toIMBTree() === fbst) shouldBe false
-      ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+      ims1.equals(ofBody(fbst.toFRBTree())) shouldBe true
     }
     checkAll(repeats, Arb.fbsStree<Int, Int>(Arb.int(),20..100)) { fbst ->
       val ims1: FKSet<String, Int> = fbst.toIMSet(StrKeyType)!!
       (ims1.toIMBTree() === fbst) shouldBe false
-      ims1.equals(fbst.preorder().fmap { tkv -> tkv.getv() }.toSet()) shouldBe true
+      ims1.equals(ofBody(fbst.toFRBTree())) shouldBe true
     }
   }
 

@@ -116,8 +116,8 @@ class FListGroupingTest : FunSpec({
   }
 
   test("fsplitAt") {
-    intListOfNone.fsplitAt((intListOfNone as FList<Int>).indexOfFirst { it > 1 }) shouldBe Triple(FLNil, null, FLNil)
-    intListOfOne.fsplitAt((intListOfOne as FList<Int>).indexOfFirst { it > 1 })  shouldBe Triple(FLCons(1,FLNil), null, FLNil)
+    intListOfNone.fsplitAt((intListOfNone as FList<Int>).asList().indexOfFirst { it > 1 }) shouldBe Triple(FLNil, null, FLNil)
+    intListOfOne.fsplitAt((intListOfOne as FList<Int>).asList().indexOfFirst { it > 1 })  shouldBe Triple(FLCons(1,FLNil), null, FLNil)
     FList.of(*arrayOf<Int>(2,1)).fsplitAt(0)  shouldBe Triple(FLNil, 2, FLCons(1,FLNil))
     FList.of(*arrayOf<Int>(3,2,1)).fsplitAt(0)  shouldBe Triple(FLNil, 3, FLCons(2, FLCons(1,FLNil)))
     FList.of(*arrayOf<Int>(3,2,1,0)).fsplitAt(1) shouldBe Triple(FLCons(3, FLNil), 2, FLCons(1,FLCons(0,FLNil)))

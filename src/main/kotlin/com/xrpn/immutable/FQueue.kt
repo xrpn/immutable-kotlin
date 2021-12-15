@@ -329,8 +329,8 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
             fqStrongEqual(rhs) -> true
             else -> {
                 check(fqSameSize(rhs))
-                val thisFrontRhsBack = (fqGetBack().isEmpty() && rhs.fqGetFront().isEmpty())
-                val thisBackRhsFront = (fqGetFront().isEmpty() && rhs.fqGetBack().isEmpty())
+                val thisFrontRhsBack = (fqGetBack().fempty() && rhs.fqGetFront().fempty())
+                val thisBackRhsFront = (fqGetFront().fempty() && rhs.fqGetBack().fempty())
                 when {
                     // items are in their entirety at opposite ends
                     thisFrontRhsBack -> IMListEqual2(fqGetFront(), rhs.fqGetBack().freverse())
@@ -408,7 +408,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
         // ========= implementation
 
         private fun <A: Any> fqEnqueue(q: FQueue<A>, item: A): FQueue<A> {
-            return if (q.fqGetBack().isEmpty()) {
+            return if (q.fqGetBack().fempty()) {
                 FQueueBody.of(q.fqGetFront(), FLCons(item, FLNil))
             } else {
                 FQueueBody.of(q.fqGetFront(), FLCons(item, q.fqGetBack()))
@@ -416,7 +416,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
         }
 
         private tailrec fun <A: Any> fqDequeue(q: FQueue<A>): Pair<A?, FQueue<A>> =
-            if (q.isEmpty()) Pair(null, emptyIMQueue()) else {
+            if (q.fempty()) Pair(null, emptyIMQueue()) else {
                 q as FQueueBody<A>
                 when (q.front) {
                     is FLCons -> Pair(q.front.head, FQueueBody.of(q.front.tail, q.back))
@@ -429,7 +429,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
 
         // remove one element from the back
         private tailrec fun <A: Any> fqTrim(q: FQueue<A>): Pair<A?, FQueue<A>> =
-            if (q.isEmpty()) Pair(null, emptyIMQueue()) else {
+            if (q.fempty()) Pair(null, emptyIMQueue()) else {
                 q as FQueueBody<A>
                 when (q.back) {
                     is FLCons -> Pair(q.back.head, FQueueBody.of(q.front, q.back.tail))

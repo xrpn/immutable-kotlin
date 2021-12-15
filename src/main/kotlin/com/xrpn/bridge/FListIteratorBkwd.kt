@@ -12,7 +12,7 @@ class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val
 
     // not thread safe
     override fun hasPrevious(): Boolean = synchronized(current) {
-        ! current.isEmpty()
+        ! current.fempty()
     }
 
     // not thread safe
@@ -26,11 +26,11 @@ class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val
     }
 
     fun resetIfEmpty():Boolean = synchronized(current) {
-        if (current.isEmpty()) doReset() else false
+        if (current.fempty()) doReset() else false
     }
 
     fun nullablePrevious(): A? = synchronized(current) {
-        if (current.isEmpty()) null else getPrevious()
+        if (current.fempty()) null else getPrevious()
     }
 
     private fun getPrevious(): A {

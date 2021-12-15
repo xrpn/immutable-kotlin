@@ -689,17 +689,17 @@ interface IMRSetNotEmpty<out A: Any>: IMCommon<A>,
     IMSetUtility<A>,
     IMSetExtras<A>,
     IMSetTyping<A> {
-    // fun <KK> edj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<KK>> where KK: Any, KK: Comparable<KK>
-    fun sxdj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<*>>
+    fun <KK> xdj(): TSDJ<ErrorMsgTrap, IMXSetNotEmpty<KK>> where KK: Any, KK: Comparable<KK>
+    fun sdj(): TSDJ<IMSetNotEmpty<@UnsafeVariance A>, IMXSetNotEmpty<*>>
 }
 
 interface IMSetNotEmpty<out A:Any>: IMSet<A>, IMRSetNotEmpty<A>,
     IMSetAltering<A>,
     IMWritable<A>,
     IMSetTransforming<A> {
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = this
-    override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = null
-    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = this
+    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = sdj().left()
+    override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = xdj<K>().right()
+    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A> = this
 }
 
 interface IMXSetNotEmpty<out A>: IMSet<A>, IMRSetNotEmpty<A>,
@@ -748,8 +748,9 @@ internal interface IMKASetNotEmpty<out K, out A:Any>: IMKSetNotEmpty<K, A>,
     IMSetNotEmpty<A>,
     IMKASetAltering<K, A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
-    // override fun edj(): TSDJ<IMSetNotEmpty<A>, IMXSetNotEmpty<K>> = TSDL(this)
-    override fun sxdj() = IMSetDJL(this)
+    override fun sdj() = IMSetDJL(this)
+    override fun <J> xdj(): TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>> where J: Any, J:Comparable<J> =
+        @Suppress("UNCHECKED_CAST") (ErrorMsgTrap("failure: ${this::class.simpleName}") as TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>>)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>? = this
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = null
 }
@@ -759,7 +760,9 @@ internal interface IMKKSetNotEmpty<out K>: IMKSetNotEmpty<K, K>,
     IMKKSetTransforming<K>,
     IMKKSetAltering<K>
         where K: Any, K: Comparable<@UnsafeVariance K> {
-    override fun sxdj() = IMXSetDJR(this)
+    override fun sdj() = IMXSetDJR(this)
+    override fun <J> xdj(): TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>> where J:Any, J:Comparable<J> =
+        @Suppress("UNCHECKED_CAST") (IMXSetDJR(this) as TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>>)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, K>? = null
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = this
 }

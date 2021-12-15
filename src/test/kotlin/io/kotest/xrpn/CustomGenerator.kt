@@ -20,13 +20,13 @@ fun <A: Any, B> Arb.Companion.flistAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = flist(arbB, range, f)
+): Arb<Collection<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
 fun <A: Any, B> Arb.Companion.flistAsKList(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<List<A>> where B:A = flist(arbB, range, f)
+): Arb<List<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
 fun <A: Any, B> Arb.Companion.fiset(
     arbB: Arb<B>,

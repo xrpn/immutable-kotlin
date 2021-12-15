@@ -1,8 +1,6 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FKSetIterator
-import com.xrpn.hash.JohnsonTrotter.jtPermutations
-import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -359,7 +357,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         else -> when (this) {
             is FIKSetEmpty, is FSKSetEmpty -> {
                 val aux: IMSet<Any> = if (items.fpickKey() is Int && items is IMSet<*>) items
-                    else items.asIMBTree().ffold(this) { acc: IMRSetAltering<A>, tkv -> acc.faddItem(tkv.getv()).sxdj().left()!! }
+                    else items.asIMBTree().ffold(this) { acc: IMRSetAltering<A>, tkv -> acc.faddItem(tkv.getv()).sdj().left()!! }
                 @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
             }
             is FKKSetEmpty<*> -> {
@@ -367,7 +365,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
                 else {
                     @Suppress("UNCHECKED_CAST") (items.asIMBTree().ffold(this as IMXSetAltering<K>) { acc: IMXSetAltering<K>, tkv ->
                     check(tkv.getk().equals(tkv.getv()))
-                    acc.faddItem(tkv.getk()).sxdj().right()!! as IMXSetAltering<K>
+                    acc.faddItem(tkv.getk()).sdj().right()!! as IMXSetAltering<K>
                 })}
                 @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
             }
@@ -519,11 +517,13 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         }
 
         val res: Collection<FList<A>> = if (maxSize < 1 || this.size < maxSize) toEmptyRetyped() else {
-            val sizedCmbs: FKSet<K, FKSet<K, A>> = this.fcombinations(maxSize).ffilter { it.size == maxSize }
-            if (this.size < PERMUTATIONCARDLIMIT) {
-                val aux: IMSet<FList<A>> = goSmall(sizedCmbs, nul()).toIMSet(IntKeyType)!!
-                (@Suppress("UNCHECKED_CAST") (aux as Collection<FList<A>>))
-            } else goLarge(sizedCmbs, emptyIMList())
+//            val sizedCmbs: FKSet<K, FKSet<K, A>> = this.fcombinations(maxSize).ffilter { it.size == maxSize }
+//            if (this.size < PERMUTATIONCARDLIMIT) {
+//                val aux: IMSet<FList<A>> = goSmall(sizedCmbs, nul()).toIMSet(IntKeyType)!!
+//                (@Suppress("UNCHECKED_CAST") (aux as Collection<FList<A>>))
+//            } else goLarge(sizedCmbs, emptyIMList())
+            fun f(): Collection<FList<A>> = TODO()
+            f()
         }
         
         return res
@@ -569,64 +569,67 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
         */
 
-        val res = if (this.size < PERMUTATIONCARDLIMIT) {
+//        val res = if (this.size < PERMUTATIONCARDLIMIT) {
+//
+//            /*
+//
+//                The probability that 2 out of n items will have the same hashcode if
+//                there are d available hashcode slots is (see for example
+//                https://en.wikipedia.org/wiki/Birthday_problem#Approximations)
+//
+//                                                -n(n-1)
+//                             P(n, d) ~ 1 - exp(---------)
+//                                                  2d
+//
+//                A set of q elements has q! permutations; the probability of a collision
+//                for a 32-bit hashCode (for which d is 4,294,967,295) is therefore
+//
+//                                                -(q!)((q!)-1)
+//                                P(q) ~ 1 - exp(----------------)
+//                                                 2*4294967295
+//
+//                for q = 7 then that probability is ~0.003
+//                for q = 8 then that probability is ~0.17
+//                for q = 9 then that probability is ~0.9999997
+//
+//                The following recursive solution computes, for a set of size s,
+//                all permutations of size (s-1) for each s elements.
+//
+//             */
+//
+//            val fkset: FKSet<Int, FList<A>> = permuteRecursively()
+//            fkset
+//
+//        } else {
+//
+//            /*
+//
+//                There are _many_ algorithms to compute permutations, see for
+//                instance Sedgewick, Robert (1977),"Permutation generation methods",
+//                ACM Comput. Surv., 9 (2): 137–164, doi:10.1145/356689.356692 or
+//                Knuth, "Art of Computer Programming", vol. 4A.  Overall they are
+//                all O(n!) with different coefficients (DUH!).  The iterative
+//                Johnson-Trotter is efficient and relatively simple even if not, at
+//                least in theory, the most-est efficient; but we are on a virtual
+//                machine anyway, so no point in clock cycle counting.
+//
+//             */
+//
+//            val aryls: ArrayList<TKVEntry<K, A>> = ArrayList(body)
+//            // this ends up being (_has_ to be, too many collisions for set) a FList
+//            val flist: FList<FList<A>> = jtPermutations(aryls)
+//                .fold(emptyIMList()) { l: FList<FList<A>>, aryl: ArrayList<TKVEntry<K, A>> ->
+//                    FLCons(FList.ofMap(aryl) { tkv -> tkv.getv() }, l)
+//                }
+//            flist
+//        }
+//
+//        val constrainedFactorial = { n: Int -> smallFact(n) } // blows up at 13!
+//        check( this.isEmpty() || res.size == constrainedFactorial(size))
+//        res
 
-            /*
-
-                The probability that 2 out of n items will have the same hashcode if
-                there are d available hashcode slots is (see for example
-                https://en.wikipedia.org/wiki/Birthday_problem#Approximations)
-
-                                                -n(n-1)
-                             P(n, d) ~ 1 - exp(---------)
-                                                  2d
-
-                A set of q elements has q! permutations; the probability of a collision
-                for a 32-bit hashCode (for which d is 4,294,967,295) is therefore
-
-                                                -(q!)((q!)-1)
-                                P(q) ~ 1 - exp(----------------)
-                                                 2*4294967295
-
-                for q = 7 then that probability is ~0.003
-                for q = 8 then that probability is ~0.17
-                for q = 9 then that probability is ~0.9999997
-
-                The following recursive solution computes, for a set of size s,
-                all permutations of size (s-1) for each s elements.
-
-             */
-
-            val fkset: FKSet<Int, FList<A>> = permuteRecursively()
-            fkset
-
-        } else {
-
-            /*
-
-                There are _many_ algorithms to compute permutations, see for
-                instance Sedgewick, Robert (1977),"Permutation generation methods",
-                ACM Comput. Surv., 9 (2): 137–164, doi:10.1145/356689.356692 or
-                Knuth, "Art of Computer Programming", vol. 4A.  Overall they are
-                all O(n!) with different coefficients (DUH!).  The iterative
-                Johnson-Trotter is efficient and relatively simple even if not, at
-                least in theory, the most-est efficient; but we are on a virtual
-                machine anyway, so no point in clock cycle counting.
-
-             */
-
-            val aryls: ArrayList<TKVEntry<K, A>> = ArrayList(body)
-            // this ends up being (_has_ to be, too many collisions for set) a FList
-            val flist: FList<FList<A>> = jtPermutations(aryls)
-                .fold(emptyIMList()) { l: FList<FList<A>>, aryl: ArrayList<TKVEntry<K, A>> ->
-                    FLCons(FList.ofMap(aryl) { tkv -> tkv.getv() }, l)
-                }
-            flist
-        }
-
-        val constrainedFactorial = { n: Int -> smallFact(n) } // blows up at 13!
-        check( this.isEmpty() || res.size == constrainedFactorial(size))
-        res
+        fun f(): Collection<FList<A>> = TODO()
+        f()
     }
 
     override fun fpermute(): Collection<FList<A>> = permutedFIKSet

@@ -114,7 +114,7 @@ class FRBTreeAlteringTest : FunSpec({
 
     test("finserts, finsertt") {
         Arb.flist<Int, Int>(Arb.int(-25, 25)).checkAll(repeatsHigh.first, PropTestConfig(seed = -3400901283900794903)) { fl ->
-            val tab = FRBTree.ofvi(fl.iterator())
+            val tab = FRBTree.ofvi(fl.asList().iterator())
             val flkv: FList<TKVEntry<Int, Int>> = fl.fmap { it.toIAEntry() }
             val sl: List<TKVEntry<Int, Int>> = flkv.copyToMutableList().toSet().sorted()
             nul<Int, Int>().finserts(flkv).inorder() shouldBe sl

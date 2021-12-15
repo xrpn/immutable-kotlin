@@ -24,7 +24,7 @@ class FListFilteringPropertyTest : FunSpec({
   test("fdrop") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..fl.size)) {
-        fl.fdrop(n) shouldBe fl.drop(n)
+        fl.fdrop(n) shouldBe fl.asList().drop(n)
       }
     }
   }
@@ -32,31 +32,31 @@ class FListFilteringPropertyTest : FunSpec({
   test("fdropFirst") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
-      val item = fl.get(ix)
+      val item = fl.asList().get(ix)
       // no matching functionality
-      fl.fdropFirst(matchEqual(item)) shouldBe fl.filterNot(matchEqual(fl.first(matchEqual(item))))
+      fl.fdropFirst(matchEqual(item)) shouldBe fl.asList().filterNot(matchEqual(fl.asList().first(matchEqual(item))))
     }
   }
 
   test("fdropRight") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..fl.size)) {
-        fl.fdropRight(n) shouldBe fl.dropLast(n)
+        fl.fdropRight(n) shouldBe fl.asList().dropLast(n)
       }
     }
   }
 
   test("fdropWhile") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
-      fl.fdropWhile(matchLessThan(ora)) shouldBe fl.dropWhile(matchLessThan(ora))
+      val ora = middle(fl.asList())
+      fl.fdropWhile(matchLessThan(ora)) shouldBe fl.asList().dropWhile(matchLessThan(ora))
     }
   }
 
   test("fdropWhen") {
     // Arb.flist<Int, Int>(Arb.int()).checkAll(repeats, PropTestConfig(seed=2890448575695491053)) { fl ->
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
+      val ora = middle(fl.asList())
       val aux: MutableList<Int> = fl.copyToMutableList()
       aux.removeIf(matchLessThan(ora))
       fl.fdropWhen(matchLessThan(ora)) shouldBe aux
@@ -66,15 +66,15 @@ class FListFilteringPropertyTest : FunSpec({
 
   test("ffilter") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
-      fl.ffilter(matchLessThan(ora)) shouldBe fl.filter(matchLessThan(ora))
+      val ora = middle(fl.asList())
+      fl.ffilter(matchLessThan(ora)) shouldBe fl.asList().filter(matchLessThan(ora))
     }
   }
 
   test("ffilterNot") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
-      fl.ffilterNot(matchLessThan(ora)) shouldBe fl.filterNot(matchLessThan(ora))
+      val ora = middle(fl.asList())
+      fl.ffilterNot(matchLessThan(ora)) shouldBe fl.asList().filterNot(matchLessThan(ora))
       fl.fdropWhen(matchLessThan(ora)) shouldBe fl.ffilterNot(matchLessThan(ora))
     }
   }
@@ -82,44 +82,44 @@ class FListFilteringPropertyTest : FunSpec({
   test("ffindFromLeft") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
-      val item = fl.get(ix)
-      fl.ffind(matchEqual(item)) shouldBe fl.find(matchEqual(item))
+      val item = fl.asList().get(ix)
+      fl.ffind(matchEqual(item)) shouldBe fl.asList().find(matchEqual(item))
     }
   }
 
   test("ffindFromRight") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val ix = kotlin.random.Random.Default.nextInt(fl.size)
-      val item = fl.get(ix)
-      fl.ffindLast(matchEqual(item)) shouldBe fl.findLast(matchEqual(item))
+      val item = fl.asList().get(ix)
+      fl.ffindLast(matchEqual(item)) shouldBe fl.asList().findLast(matchEqual(item))
     }
   }
 
   test ("fgetOrNull") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (ix in (-1..fl.size+1)) {
-        fl.fgetOrNull(ix) shouldBe fl.elementAtOrNull(ix)
+        fl.fgetOrNull(ix) shouldBe fl.asList().elementAtOrNull(ix)
       }
     }
   }
 
   test("fhead") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.fhead() shouldBe fl.first()
+      fl.fhead() shouldBe fl.asList().first()
     }
   }
 
   test("finit") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       // no matching functionality
-      fl.finit() shouldBe fl.filterNot(matchEqual(fl.last()))
-      fl.finit() shouldBe fl.dropLast(1)
+      fl.finit() shouldBe fl.asList().filterNot(matchEqual(fl.asList().last()))
+      fl.finit() shouldBe fl.asList().dropLast(1)
     }
   }
 
   test("flast") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.flast() shouldBe fl.last()
+      fl.flast() shouldBe fl.asList().last()
     }
   }
 
@@ -127,7 +127,7 @@ class FListFilteringPropertyTest : FunSpec({
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       val aux1 = kotlin.random.Random.Default.nextInt(fl.size)
       val aux2 = kotlin.random.Random.Default.nextInt(fl.size)
-      fl.fslice(aux1, aux2) shouldBe fl.subList(aux1, aux2)
+      fl.fslice(aux1, aux2) shouldBe fl.asList().subList(aux1, aux2)
     }
   }
 
@@ -136,23 +136,23 @@ class FListFilteringPropertyTest : FunSpec({
       val aux1 = kotlin.random.Random.Default.nextInt(fl.size)
       val aux2 = kotlin.random.Random.Default.nextInt(fl.size)
       val ixs = FList.of(aux1, aux2)
-      fl.fselect(ixs) shouldBe fl.slice(ixs)
-      fl.fselect(FList.of()) shouldBe fl.slice(FList.of())
-      fl.fselect(FList.of(aux1, fl.size-1)) shouldBe fl.slice(FList.of(aux1, fl.size-1))
-      fl.fselect(FList.of(fl.size-1, aux2)) shouldBe fl.slice(FList.of(fl.size-1, aux2))
+      fl.fselect(ixs) shouldBe fl.asList().slice(ixs.asList())
+      fl.fselect(FList.of()) shouldBe fl.asList().slice(FList.of<Int>().asList())
+      fl.fselect(FList.of(aux1, fl.size-1)) shouldBe fl.asList().slice(FList.of(aux1, fl.size-1).asList())
+      fl.fselect(FList.of(fl.size-1, aux2)) shouldBe fl.asList().slice(FList.of(fl.size-1, aux2).asList())
     }
   }
 
   test("ftail") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      fl.ftail() shouldBe fl.drop(1)
+      fl.ftail() shouldBe fl.asList().drop(1)
     }
   }
 
   test("ftake") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..fl.size)) {
-        fl.ftake(n) shouldBe fl.take(n)
+        fl.ftake(n) shouldBe fl.asList().take(n)
       }
     }
   }
@@ -160,15 +160,15 @@ class FListFilteringPropertyTest : FunSpec({
   test("ftakeRight") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
       for (n in (0..fl.size)) {
-        fl.ftakeRight(n) shouldBe fl.takeLast(n)
+        fl.ftakeRight(n) shouldBe fl.asList().takeLast(n)
       }
     }
   }
 
   test("ftakeWhile") {
     Arb.flist<Int, Int>(Arb.int()).checkAll(repeats) { fl ->
-      val ora = middle(fl)
-      fl.ftakeWhile(matchLessThan(ora)) shouldBe fl.takeWhile(matchLessThan(ora))
+      val ora = middle(fl.asList())
+      fl.ftakeWhile(matchLessThan(ora)) shouldBe fl.asList().takeWhile(matchLessThan(ora))
     }
   }
 

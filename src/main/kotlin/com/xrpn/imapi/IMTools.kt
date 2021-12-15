@@ -97,7 +97,7 @@ object IM {
 
     fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMapOp<B, IMCommon<B>>? = when(item) {
         is IMList -> item
-        is IMSet -> item.asIMRSetNotEmpty()?.let { it -> it.sxdj().bireduce(
+        is IMSet -> item.asIMRSetNotEmpty()?.let { it -> it.sdj().bireduce(
             { id -> id },
             { id -> @Suppress("UNCHECKED_CAST") (id as IMSet<B>) })
         } ?: item

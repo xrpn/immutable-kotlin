@@ -87,7 +87,7 @@ class FListOrderedTest : FunSpec({
 
   test("frotl properties") {
     checkAll(repeats.first, Arb.flist(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FList<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FList<Int>): Unit = if (ff.fempty()) Unit else {
         ff.fhead()?.let {
           if (ff.flast() != it) {
             val aut = ff.frotl()
@@ -110,7 +110,7 @@ class FListOrderedTest : FunSpec({
 
   test("frotr properties") {
     checkAll(repeats.first, Arb.flist(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FList<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FList<Int>): Unit = if (ff.fempty()) Unit else {
         ff.fhead()?.let {
           if (ff.flast() != it) {
             val aut = ff.frotr()
@@ -133,7 +133,7 @@ class FListOrderedTest : FunSpec({
 
   test("fswaph properties") {
     checkAll(repeats.first, Arb.flist(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FList<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FList<Int>): Unit = if (ff.fempty()) Unit else {
         ff.fhead()?.let {
           if (ff.flast() != it) {
             val aut = ff.fswaph()
