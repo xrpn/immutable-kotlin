@@ -1,5 +1,6 @@
 package com.xrpn.immutable.frbtreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.nul
@@ -23,10 +24,10 @@ class FRBTreeTransformingTest : FunSpec({
         nul<Int,String>().fflatMap{ tkv -> ttDepthOneRight.finsert(tkv) } shouldBe nul()
         ttDepthOneRight.fflatMap{ nul<Int,String>() } shouldBe nul()
         ttDepthOneRight.fflatMap{ tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
-        nul<Int,String>().asCollection().flatMap{ ttDepthOneRight.asCollection() } shouldBe nul<Int,String>().asCollection()
-        ttDepthOneRight.asCollection().flatMap{ nul<Int,String>().asCollection() } shouldBe nul<Int,String>().asCollection()
-        ttDepthOneRight.asCollection().flatMap{ tkv -> nul<Int,String>().finsert(tkv).asCollection() } shouldBe ttDepthOneRight
-        ttDepthOneRight.asCollection().flatMap{ emptySet<TKVEntry<Int,String>>() } shouldBe nul<Int,String>().asCollection()
+        FTreeIterator(nul<Int,String>()).flatMap{ FTreeIterator(ttDepthOneRight) } shouldBe FTreeIterator(nul<Int,String>())
+        FTreeIterator(ttDepthOneRight).flatMap{ FTreeIterator(nul<Int,String>()) } shouldBe FTreeIterator(nul<Int,String>())
+        FTreeIterator(ttDepthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int,String>().finsert(tkv)) } shouldBe FTreeIterator(ttDepthOneRight)
+        FTreeIterator(ttDepthOneRight).flatMap{ emptySet<TKVEntry<Int,String>>() } shouldBe FTreeIterator(nul<Int,String>())
         val cheat1 = wikiTree.fflatMap { slideShareTree }
         cheat1 shouldBe slideShareTree
         val cheat2 = slideShareTree.fflatMap { wikiTree }

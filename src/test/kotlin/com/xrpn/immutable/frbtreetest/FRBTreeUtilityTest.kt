@@ -1,5 +1,6 @@
 package com.xrpn.immutable.frbtreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.IMKSet
 import com.xrpn.imapi.IntKeyType
 import com.xrpn.immutable.*
@@ -114,10 +115,10 @@ class FRBTreeUtilityTest  : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.asCollection().forEach(doCount)
+            FTreeIterator(tree).forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.asCollection().forEach(doSum)
+            FTreeIterator(tree).forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
@@ -134,10 +135,10 @@ class FRBTreeUtilityTest  : FunSpec({
             values.shuffle()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.asCollection().forEach(doCount)
+            FTreeIterator(tree).forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.asCollection().forEach(doSum)
+            FTreeIterator(tree).forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
@@ -154,10 +155,10 @@ class FRBTreeUtilityTest  : FunSpec({
             values.reverse()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.asCollection().forEach(doCount)
+            FTreeIterator(tree).forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.asCollection().forEach(doSum)
+            FTreeIterator(tree).forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
@@ -207,7 +208,7 @@ class FRBTreeUtilityTest  : FunSpec({
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val ml: MutableMap<Int, Int> = frbt.copyToMutableMap()
             ml.size shouldBe frbt.size
-            frbt.asCollection().toSet() shouldBe ml.entries.map { mentry -> TKVEntry.ofkk(mentry.key, mentry.value) }.toSet()
+            FTreeIterator(frbt).toSet() shouldBe ml.entries.map { mentry -> TKVEntry.ofkk(mentry.key, mentry.value) }.toSet()
         }
     }
 })

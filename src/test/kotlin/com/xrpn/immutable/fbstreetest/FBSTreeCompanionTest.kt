@@ -559,6 +559,7 @@ class FBSTreeCompanionTest : FunSpec({
                     when (val deleted = bstDelete(t, acc.head, atMostOne = true)) {
                         is FBSTNode -> deleted.inorder() shouldBe inorder.fdropFirst { it == acc.head }
                         is FBSTNil -> true shouldBe false
+                        else -> throw RuntimeException("internal error")
                     }
                     go(t, acc.tail, inorder)
                 }

@@ -29,7 +29,7 @@ class FBSTreeTransformingTest : FunSpec({
         depthOneRight.fflatMap{ tkv -> nul<Int, String>().finsert(tkv) } shouldBe depthOneRight
         FTreeIterator(nul<Int, String>()).flatMap{  FTreeIterator(depthOneRight) } shouldBe FTreeIterator( nul<Int, String>())
         FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>() ) } shouldBe FTreeIterator( nul<Int, String>())
-        depthOneRight.softEqual(FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator( nul<Int, String>() ) }.toList()) shouldBe true
+        depthOneRight.softEqual(FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>() ) }.toList()) shouldBe true
         val cheat1 = wikiTree.fflatMap { slideShareTree }
         cheat1 shouldBe slideShareTree
         val cheat2 = slideShareTree.fflatMap { wikiTree }

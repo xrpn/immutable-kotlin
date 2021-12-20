@@ -3,7 +3,7 @@ package com.xrpn.bridge
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FStackRetrieval
 
-class FQueueIterator<out A: Any> internal constructor(val seed: FQueue<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A>, Iterable<A> {
+class FQueueIterator<out A: Any> internal constructor(val seed: FQueue<A>, val resettable: Boolean = true): Iterator<A>, Iterable<A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: FList<A> = seed.toFList()

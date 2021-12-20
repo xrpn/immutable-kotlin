@@ -1,5 +1,7 @@
 package io.kotest.xrpn
 
+import com.xrpn.bridge.FKSetIterator
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.list
@@ -58,13 +60,13 @@ fun <A: Any, B> Arb.Companion.fsetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = fiset(arbB, range, f).map { it.asSet() }
+): Arb<Collection<A>> where B:A = fiset(arbB, range, f).map { FKSetIterator(it).toSet() }
 
 fun <A: Any, B> Arb.Companion.fssetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = fsset(arbB, range, f).map { it.asSet() }
+): Arb<Collection<A>> where B:A = fsset(arbB, range, f).map { FKSetIterator(it).toSet() }
 
 fun <A: Any, B> Arb.Companion.frbtree(
     arbB: Arb<B>,
@@ -90,7 +92,7 @@ fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f).map{ it.asCollection() }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f).map{ FTreeIterator(it).toList() }
 
 fun <A: Any, B> Arb.Companion.fbsItree(
     arbB: Arb<B>,
@@ -135,7 +137,7 @@ fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ it.asCollection() }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ FTreeIterator(it).toList() }
 
 fun <A: Any, B> Arb.Companion.fqueue(
     arbB: Arb<B>,

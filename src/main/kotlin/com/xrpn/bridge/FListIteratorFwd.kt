@@ -5,7 +5,7 @@ import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.FListRetrieval
 
-class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A>, Iterable<A> {
+class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val resettable: Boolean = true): Iterator<A>, Iterable<A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: FList<A> = seed

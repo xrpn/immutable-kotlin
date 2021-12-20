@@ -484,7 +484,7 @@ internal val inodeBstOf4 = FBSTree.ofvi(copa1, copa2, copa3, copa4)
 internal val snodeBstOf4 = FBSTree.ofvs(copa1, copa2, copa3, copa4)
 
 internal val copaNSetOf3 = ofBody(nnodeRbtOf3)
-internal val copaKKSetOf3 = ofBody(knodeRbtOf3)!!
+internal val copaKKSetOf3: FKSet<CoPa<Int, String>, CoPa<Int, String>> = ofBody(knodeRbtOf3)!!
 internal val copaISetOf3 = ofBody(inodeRbtOf3)!!
 internal val copaSSetOf3 = ofBody(snodeRbtOf3)!!
 internal val copanSetOf4 = ofBody(nnodeRbtOf4)

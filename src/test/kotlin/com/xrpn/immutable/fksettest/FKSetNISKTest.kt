@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fksettest
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.IntKeyType
 import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.*
@@ -54,24 +55,24 @@ class FKSetNISKTest : FunSpec({
     }
 
     test("K to FKSet") {
-        copaKKSetOf3.asSet().toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
-        (copaKKSetOf3.asSet().toIMKSet(copaKey) === copaKKSetOf3) shouldBe true
-        copaKKSetOf3.asSet().toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
-        copaKKSetOf3.asSet().toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
+        FKSetIterator(copaKKSetOf3).toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
+        (FKSetIterator(copaKKSetOf3).toIMKSet(copaKey) === copaKKSetOf3) shouldBe true
+        FKSetIterator(copaKKSetOf3).toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
+        FKSetIterator(copaKKSetOf3).toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
     }
 
     test("I to FKSet") {
-        copaISetOf3.asSet().toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
-        copaISetOf3.asSet().toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
-        (copaISetOf3.asSet().toIMKSet(IntKeyType) === copaISetOf3) shouldBe true
-        copaISetOf3.asSet().toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
+        FKSetIterator(copaISetOf3).toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
+        FKSetIterator(copaISetOf3).toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
+        (FKSetIterator(copaISetOf3).toIMKSet(IntKeyType) === copaISetOf3) shouldBe true
+        FKSetIterator(copaISetOf3).toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
     }
 
     test("S to FKSet") {
-        copaSSetOf3.asSet().toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
-        copaSSetOf3.asSet().toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
-        copaSSetOf3.asSet().toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
-        (copaSSetOf3.asSet().toIMKSet(StrKeyType) === copaSSetOf3) shouldBe true
+        FKSetIterator(copaSSetOf3).toIMKSet(copaKey)?.equals(copaKKSetOf3) shouldBe true
+        FKSetIterator(copaSSetOf3).toIMKSet(IntKeyType)?.equals(copaISetOf3) shouldBe true
+        FKSetIterator(copaSSetOf3).toIMKSet(StrKeyType)?.equals(copaSSetOf3) shouldBe true
+        (FKSetIterator(copaSSetOf3).toIMKSet(StrKeyType) === copaSSetOf3) shouldBe true
     }
 
 })

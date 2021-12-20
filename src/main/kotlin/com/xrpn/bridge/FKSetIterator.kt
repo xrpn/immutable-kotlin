@@ -3,7 +3,7 @@ package com.xrpn.bridge
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FKSetRetrieval
 
-class FKSetIterator<out K, out A: Any> internal constructor(val seed: FKSet<K, A>, val resettable: Boolean = true): Iterator<A>, Sequence<A>, Iterable<A> where K: Any, K: Comparable<@UnsafeVariance K> {
+class FKSetIterator<out K, out A: Any> internal constructor(val seed: FKSet<K, A>, val resettable: Boolean = true): Iterator<A>, Iterable<A> where K: Any, K: Comparable<@UnsafeVariance K> {
 
     private val iter = FTreeIterator(seed.toIMBTree())
 

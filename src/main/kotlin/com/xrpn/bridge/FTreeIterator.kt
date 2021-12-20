@@ -4,7 +4,7 @@ import com.xrpn.imapi.IMBTree
 import com.xrpn.immutable.FBTreeRetrieval
 import com.xrpn.immutable.TKVEntry
 
-class FTreeIterator<out A, out B: Any> internal constructor(val seed: IMBTree<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A, B>>, Sequence<TKVEntry<A, B>>, Iterable<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
+class FTreeIterator<out A, out B: Any> internal constructor(val seed: IMBTree<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A, B>>, Iterable<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: IMBTree<A, B> = seed

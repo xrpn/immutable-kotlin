@@ -1,5 +1,6 @@
 package com.xrpn.immutable.frbtreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.nul
 import io.kotest.assertions.fail
@@ -24,9 +25,9 @@ class FRBTreeGroupingTest  : FunSpec({
         nul<Int,Int>().fpartition { true } shouldBe Pair(nul(), nul())
         Arb.frbtree<Int, Int>(Arb.int(0..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
             val isEven: (tkv: TKVEntry<Int, Int>) -> Boolean = { tkv -> 0 == tkv.getv() % 2}
-            val (even, odd) = frbt.fpartition(isEven)
-            even.asCollection().forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
-            odd.asCollection().forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
+            val (even: FRBTree<Int, Int>, odd: FRBTree<Int, Int>) = frbt.fpartition(isEven)
+            FTreeIterator(even).forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
+            FTreeIterator(odd).forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
             even.size + odd.size shouldBe frbt.size
         }
     }

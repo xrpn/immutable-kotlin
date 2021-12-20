@@ -69,7 +69,7 @@ class FStackTest : FunSpec({
     }
 
     test("pop vs iterator") {
-        val iter = strStackOfThree.asIterable().iterator() as FStackIterator<String>
+        val iter = FStackIterator(strStackOfThree)
 
         tailrec fun go(s: FStack<String>) {
             if (s.fempty()) {

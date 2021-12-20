@@ -445,7 +445,7 @@ class FKSetGroupingTest : FunSpec({
 
         val fourp = intKKSetOfFour.fpermute()
         fourp.size shouldBe 24 // 3!
-        val aryls4: ArrayList<TKVEntry<Int, Int>> = FT.fkset2listary(intKKSetOfFour.asIMRSetNotEmpty())
+        val aryls4: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfFour)!!
         val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
@@ -453,7 +453,7 @@ class FKSetGroupingTest : FunSpec({
 
         val fivep = intKKSetOfFive.fpermute()
         fivep.size shouldBe 120 // 5!
-        val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfFive).toIMBTree() as FRBTree<Int, Int>).asCollection())
+        val aryls5: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfFive)!!
         val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
@@ -463,7 +463,7 @@ class FKSetGroupingTest : FunSpec({
         val sixp = intKKSetOfSix.fpermute()
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
         sixp.size shouldBe 720 // 6!
-        val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfSix).toIMBTree() as FRBTree<Int, Int>).asCollection())
+        val aryls6: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfSix)!!
         val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
@@ -473,7 +473,7 @@ class FKSetGroupingTest : FunSpec({
         val sevenp = intKKSetOfSeven.fpermute()
         if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
         sevenp.size shouldBe 5040 // 7!
-        val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfSeven).toIMBTree() as FRBTree<Int, Int>).asCollection())
+        val aryls7: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfSeven)!!
         val p7jt: FKSet<Int, FList<Int>> =
             JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
                 s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))

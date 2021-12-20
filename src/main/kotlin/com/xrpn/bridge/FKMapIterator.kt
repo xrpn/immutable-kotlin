@@ -10,7 +10,7 @@ import com.xrpn.immutable.*
 //   W   W    I  P
 //
 
-class FKMapIterator<out K, out V: Any> internal constructor (val seed: FKMap<K, V>, val resettable: Boolean = true): Iterator<TKVEntry<K, V>>, Sequence<TKVEntry<K, V>>, Iterable<TKVEntry<K, V>> where K: Any, K: Comparable<@UnsafeVariance K> {
+class FKMapIterator<out K, out V: Any> internal constructor (val seed: FKMap<K, V>, val resettable: Boolean = true): Iterator<TKVEntry<K, V>>, Iterable<TKVEntry<K, V>> where K: Any, K: Comparable<@UnsafeVariance K> {
 
     private val iter = FTreeIterator(seed.toIMBTree())
 

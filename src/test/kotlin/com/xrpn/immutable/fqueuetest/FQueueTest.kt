@@ -125,8 +125,8 @@ class FQueueTest : FunSpec({
     qC shouldBe emptyIMQueue()
   }
 
-  test("dequeue vs ierator") {
-    val iter: FQueueIterator<Int> = intQueueOfThreer2B.asIterable().iterator() as FQueueIterator<Int>
+  test("dequeue vs iterator") {
+    val iter: FQueueIterator<Int> = FQueueIterator(intQueueOfThreer2B)
 
     tailrec fun go(q: FQueue<Int>) {
       if (q.fempty()) {
