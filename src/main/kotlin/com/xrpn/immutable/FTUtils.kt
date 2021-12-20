@@ -36,7 +36,7 @@ internal object FT {
             } ?: notEmpty?.let { ne -> keySample?.let { sample ->
                 val net: IMBTree<X, B> = ne.asIMBTree()
                 val res: ArrayList<TKVEntry<A, B>>? = when {
-                    net.fpick()!!.getv().isStrictl y(sample) /* X == A */ -> @Suppress("UNCHECKED_CAST") (imbtree2listary(net) as? ArrayList<TKVEntry<A, B>>)
+                    net.fpick()!!.getv().isStrictly(sample) /* X == A */ -> @Suppress("UNCHECKED_CAST") (imbtree2listary(net) as? ArrayList<TKVEntry<A, B>>)
                     sample is Int -> @Suppress("UNCHECKED_CAST") (net.toIMBTree(IntKeyType) as? ArrayList<TKVEntry<A, B>>)
                     sample is String -> @Suppress("UNCHECKED_CAST") (net.toIMBTree(StrKeyType) as? ArrayList<TKVEntry<A, B>>)
                     else -> null // cannot recover
