@@ -1,7 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.imapi.*
-import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKISet
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -144,7 +144,7 @@ class IMCartesianTest : FunSpec({
         isITMap0.fdropAll(ispListOfTwo).fempty() shouldBe true
         (isITMap0.fdropAll(ispListOfTwo) === FCartesian.emptyZMap<Int,String>().asMap()) shouldBe true
         isITMap4.fdropAll(ispStrSet) shouldBe FList.of(*arrayOf(isZp3))
-        isITMap4.fdropAll(emptyIMKSet()) shouldBe ispListOfFour
+        isITMap4.fdropAll(emptyIMKISet()) shouldBe ispListOfFour
         isITMap4a.fdropAll(ispStrSet) shouldBe FList.of(*arrayOf(isZp3))
         isITMap4.fdropAll(ispListOfTwo) shouldBe FList.of(*arrayOf(isZp3))
         isITMap4a.fdropAll(ispListOfTwo) shouldBe FList.of(*arrayOf(isZp3))

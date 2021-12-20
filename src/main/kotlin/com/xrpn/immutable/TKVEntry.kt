@@ -52,6 +52,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
         (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(getkKc(),getvKc()) as KeyedTypeSample<KClass<Any>?,KClass<Any>>))
     fun untype(): TKVEntry<Comparable<Any>, Any> = @Suppress("UNCHECKED_CAST") (this as TKVEntry<Comparable<Any>, Any>)
     fun equal(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
+    fun isSelfKeyed(): Boolean = getkKc().isStrictly(getvKc())
     fun strictly(other: TKVEntry<Comparable<Any>, Any>?): Boolean
     fun strictlyNot(other: TKVEntry<Comparable<Any>, Any>?): Boolean = !strictly(other)
     fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean
@@ -80,6 +81,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
             } else TKVEntryK(key, value, cc)
         }
 
+        fun <A> ofk (item: A): RTKVEntry<A, A> where A: Any, A: Comparable<A> = RKTKVEntry(item, item)
         fun <A> ofkk (key:A, value: A): TKVEntry<A, A> where A: Any, A: Comparable<A> = RKTKVEntry(key, value)
         fun <A> ofkkc (key:A, value: A, cc: Comparator<A>): TKVEntry<A, A> where A: Any, A: Comparable<A> = RKTKVEntry(key, value, cc)
 
@@ -98,7 +100,6 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
             else -> RSTKVEntry(item.toString(), item)
         }
 
-        fun <B> ofk (item: B): RTKVEntry<B, B> where B: Any, B: Comparable<B> = RKTKVEntry(item, item)
         fun <T: Any> T.toIAEntry(): RTKVEntry<Int, T> = ofIntKey(this)
         fun <T: Any> T.toSAEntry(): RTKVEntry<String, T> = ofStrKey(this)
         fun <T> T.toKKEntry(): RTKVEntry<T, T> where T: Any, T: Comparable<T> = ofk(this)
@@ -188,7 +189,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
     // IMCommon
 
     override val seal: IMSC = IMSC.IMENTRY
-    override fun fcontains(item: TKVEntry<A, B>): Boolean = this == item
+    override fun fcontains(item: TKVEntry<A, B>?): Boolean = item?.let{ this.equals(it) } ?: false
     override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int = if (isMatch(this)) 1 else 0
     override fun fdropAll(items: IMCommon<TKVEntry<A, B>>): IMCommon<TKVEntry<A, B>> = if (items.fcontains(this)) emptyTkv else this
     override fun fdropItem(item: TKVEntry<A, B>): IMCommon<TKVEntry<A, B>> = if (this.equals(item)) emptyTkv else this

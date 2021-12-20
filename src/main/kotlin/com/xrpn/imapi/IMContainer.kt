@@ -23,10 +23,8 @@ enum class IMSC {
 
 fun Any?.asIMUniCo(): IMUniversalCommon? = this?.let { if(it is IMUniversalCommon) it else null }
 
-fun <T: Any> Any.asIMCommon(): IMCommon<T>? = try {
-        @Suppress("UNCHECKED_CAST") (this as IMCommon<T>)
-    } catch(ex: ClassCastException) {
-        IMSystemErrLogging(this::class).emitUnconditionally("fail with  ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+fun <T: Any> Any.asIMCommon(): IMCommon<T>? = @Suppress("UNCHECKED_CAST") (this as? IMCommon<T>) ?: run {
+        IMSystemErrLogging(this::class).emitUnconditionally("${this::class.simpleName} is-not-a ${IMCommon::class.simpleName}")
         null
     }
 
@@ -44,9 +42,12 @@ interface IMSealed<out A:IMUniversalCommon>: IMUniversalCommon {
 
 // One or more A
 interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
-    fun fall(predicate: (A) -> Boolean): Boolean = fempty() || fcount(predicate) == fsize()
+    fun fall(predicate: (A) -> Boolean): Boolean = fempty() || run {
+        val negated: (A) -> Boolean = { a: A -> ! predicate(a) }
+        return ffindAny(negated) == null
+    }
     fun fany(predicate: (A) -> Boolean): Boolean = fempty() || ffindAny(predicate) != null
-    fun fcontains(item: @UnsafeVariance A): Boolean
+    fun fcontains(item: @UnsafeVariance A?): Boolean
     fun fcount(isMatch: (A) -> Boolean): Int // count the element that match the predicate
     fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMCommon<A>
     fun fdropItem(item: @UnsafeVariance A): IMCommon<A>
@@ -78,15 +79,56 @@ interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
     fun toEmpty(): IMCommon<A>
 
     companion object {
-        //fun <T: Any, S: Any> from(t: T): IMCommon<S>? = t.asIMUniCo()?.asIMCommon()
-        //fun <T: Any> of(t: T): IMCommon<T> = DWCommon.of(t)
-        //fun <T: Any> fliftToCommon(t: T): IMCommon<T> = from(t) ?: of(t)
 
-        fun <T: Any> equal(lhs: IMCommon<T>, rhs: IMCommon<T>): Boolean = when {
+        // O(n^2)
+        fun <A: Any> cointainmentEquals(lhs: IMCommon<A>, rhs: Iterable<A>): Boolean {
+            val rhsIter = rhs.iterator()
+            val rhsEmpty = ! rhsIter.hasNext()
+            return when {
+                lhs.fempty() -> rhsEmpty
+                rhsEmpty -> false
+                !(lhs.fpick()!!.equals(rhs.first())) -> false
+                else -> {
+                    var match: Boolean = false
+                    for(item in rhs) {
+                        match = lhs.fcontains(item)
+                        if (!match) break
+                    }
+                    match
+                }
+            }
+        }
+
+        fun <T: Any> equal(lhs: IMCommon<T>, rhs: IMCommon<T>): Boolean = lhs === rhs || lhs.equals(rhs) || when {
             lhs === rhs -> true
-            lhs.fempty() && rhs.fempty() -> true
+            lhs.fempty() -> rhs.fempty()
+            rhs.fempty() -> false
             lhs.fsize() != rhs.fsize() -> false
             lhs.isStrictly(rhs) -> /* TODO consider taint from mutable content */ lhs.fisStrict() && rhs.fisStrict() && lhs.equals(rhs)
+            else -> ! lhs.fany { lIt: T -> rhs.fany { rIt: T -> ! lIt.equals(rIt)  } }
+        }
+
+        fun <T: Any> softEqual(lhs: IMCommon<T>, rhs: Any?): Boolean = lhs === rhs || lhs.equals(rhs) || when (rhs) {
+            is IMCommon<*> ->(@Suppress("UNCHECKED_CAST") (rhs as? IMCommon<T>))?.let { equal(lhs, it) } ?: false
+            is Iterable<*> -> {
+                val rhsIter = rhs.iterator()
+                val rhsEmpty = ! rhsIter.hasNext()
+                when {
+                    lhs.fempty() -> rhsEmpty
+                    rhsEmpty -> false
+                    lhs.fpick()!!.isStrictlyNot(rhs.first()!!) -> false
+                    else -> when (rhs) {
+                        is Collection<*> -> if(lhs.fsize() != rhs.size) false else {
+                            (@Suppress("UNCHECKED_CAST") (rhs as? Collection<T>))?.let {
+                                cointainmentEquals(lhs, it)
+                            } ?: false
+                        }
+                        else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<T>))?.let {
+                            cointainmentEquals(lhs, it)
+                        } ?: false
+                    }
+                }
+            }
             else -> false
         }
 
@@ -104,7 +146,7 @@ interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
 
 interface IMCommonEmpty<out A: Any>: IMCommon<A> {
     override fun fcount(isMatch: (A) -> Boolean): Int = 0
-    override fun fcontains(item: @UnsafeVariance A): Boolean = false
+    override fun fcontains(item: @UnsafeVariance A?): Boolean = false
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMCommon<@UnsafeVariance A> = this
     override fun fdropItem(item: @UnsafeVariance A): IMCommon<@UnsafeVariance A> = this
     override fun fdropWhen(isMatch: (A) -> Boolean): IMCommon<A> = this
@@ -125,10 +167,15 @@ interface IMCommonEmpty<out A: Any>: IMCommon<A> {
 
     companion object {
         fun equal(other: IMCommon<*>): Boolean = other.fempty()
+        fun softEqual(other: Any?): Boolean = other?.let { when(it) {
+            is IMCommon<*> -> it.fempty()
+            is Iterable<*> -> ! it.iterator().hasNext()
+            is Map<*,*> -> it.isEmpty()
+            else -> false
+        }} ?: false
         internal open class IMCommonEmptyEquality: EqualsProxy, HashCodeProxy {
             override fun equals(other: Any?): Boolean = other?.let { when(it) {
-                is IMCommon<*> -> it.fempty()
-                is Collection<*> -> it.isEmpty()
+                is IMCommon<*> -> equals(it)
                 else -> false
             }} ?: false
             override fun hashCode(): Int = javaClass.hashCode()
@@ -157,7 +204,7 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fget(key: @UnsafeVariance K): A?
     fun fgetOrElse(key: @UnsafeVariance K, default: () -> @UnsafeVariance A): A = fget(key) ?: default()
     fun ftypeSample(): KeyedTypeSample<KClass<Any>?,KClass<Any>>? = fpickValue()?.let { value ->
-        (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(fpickKey()!!::class, value::class) as KeyedTypeSample<KClass<Any>?,KClass<Any>>))
+        (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(fpickKey()!!::class, value::class) as? KeyedTypeSample<KClass<Any>?,KClass<Any>>))
     }
     fun fpickValue(): A?  // peek at one random value
 
@@ -165,10 +212,6 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
     fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
     fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-}
-
-interface IMWritable<out A: Any> {
-    fun fadd(item: @UnsafeVariance A): IMWritable<A>
 }
 
 interface IMReducible<out A: Any>: IMUniversalCommon {
@@ -193,24 +236,65 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
 
     companion object {
 
+        // O(n)
         tailrec fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
-            lhs.fempty() -> true
+            lhs.fempty() -> rhs.fempty()
+            rhs.fempty() -> false
             !(lhs.fnext()!!.equals(rhs.fnext())) -> false
             else -> pairwiseEquals(lhs.fdrop(1), rhs.fdrop(1))
         }
 
+        // O(n)
+        fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: Iterable<A>): Boolean {
+            val rhsIter = rhs.iterator()
+            val rhsEmpty = ! rhsIter.hasNext()
+            return when {
+                lhs.fempty() -> rhsEmpty
+                rhsEmpty -> false
+                !(lhs.fnext()!!.equals(rhs.first())) -> false
+                else -> {
+                    tailrec fun go(l: IMOrdered<A>, r: A): Boolean {
+                        val lItem = l.fnext()
+                        val lNext = l.fdrop(1)
+                        return when {
+                            lItem == null -> ! rhsIter.hasNext()
+                            ! lItem.equals(r) -> false
+                            (! rhsIter.hasNext()) && lNext.fempty() -> true
+                            else ->go(lNext, rhsIter.next())
+                        }
+                    }
+                    go(lhs, rhsIter.next())
+                }
+            }
+        }
+
         fun <A: Any> equal(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
             lhs.fempty() -> rhs.fempty()
+            rhs.fempty() -> false
             lhs.fsize() != rhs.fsize() -> false
             else -> pairwiseEquals(lhs,rhs)
         }
 
         fun <A: Any> softEqual(lhs: IMOrdered<A>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
-            is IMOrdered<*> -> equal(lhs, rhs)
-            is IMCommon<*> -> when {
-                lhs.fempty() -> rhs.fempty()
-                lhs.fsize() != rhs.fsize() -> false
-                else -> false
+            is IMCommon<*> -> IMCommon.softEqual(lhs, rhs)
+            is Iterable<*> -> {
+                val rhsIter = rhs.iterator()
+                val rhsEmpty = ! rhsIter.hasNext()
+                when {
+                    lhs.fempty() -> rhsEmpty
+                    rhsEmpty -> false
+                    lhs.fpick()!!.isStrictlyNot(rhs.first()!!) -> false
+                    else -> when (rhs) {
+                        is Collection<*> -> if(lhs.fsize() != rhs.size) false else {
+                            (@Suppress("UNCHECKED_CAST") (rhs as? Collection<A>))?.let {
+                                pairwiseEquals(lhs, it)
+                            } ?: false
+                        }
+                        else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
+                            pairwiseEquals(lhs, it)
+                        } ?: false
+                    }
+                }
             }
             else -> false
         }
@@ -288,9 +372,9 @@ interface IMZipMap<out S: Any, out T: Any, out W: IMZPair<S,T>>: IMZipWrap<S,T> 
     fun softEqual(rhs: Any?): Boolean = equals(rhs) || softEqual(this, rhs)
 
     companion object {
-        fun <S: Any, T: Any, X: Any> ITMap<IMZPair<S,T>>.fmap2p(f: (S, T) -> X): ITMap<X> =
+        fun <S: Any, T: Any, X: Any, W:IMZPair<S,T>> ITMap<W>.fmap2p(f: (S, T) -> X): ITMap<X> =
             IMCartesian.asZMap(this)!!.fzippMap(f)
-        fun <S: Any, T: Any, X: Any> ITMap<IMZPair<S,T>>.fmap2(f: (S) -> (T) -> X): ITMap<X> =
+        fun <S: Any, T: Any, X: Any, W:IMZPair<S,T>> ITMap<W>.fmap2(f: (S) -> (T) -> X): ITMap<X> =
             IMCartesian.asZMap(this)!!.fzipMap(f)
         fun <S: Any, T: Any, U: Any, X: Any> ITMap<IMZPair<IMZPair<S,T>,U>>.fmap3p(f: (S, T, U) -> X): ITMap<X> =
             this.fmap { f(it._1()._1(), it._1()._2(), it._2()) }
@@ -384,17 +468,17 @@ typealias ITMapp<S> = IMMappOp<S, IMMapOp<S, IMCommon<S>>>
 
 interface IMMappOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
 
-    fun asFMap(): ITMap<S> = (@Suppress("UNCHECKED_CAST") (this as ITMap<S>))
+    fun asITMap(): ITMap<S> = (@Suppress("UNCHECKED_CAST") (this as ITMap<S>))
 
     // maintains the container of 'this'
     fun <T: Any> fmapp(f: (S) -> T): ITMapp<T> =
-        flift2mapp(asFMap().fmap(f))!!
+        flift2mapp(asITMap().fmap(f))!!
 
     // drops the container of 'this' and replaces with generic container
     fun <T: Any> fmappx(f: (S) -> T): ITMapp<T> {
         fun fLifted(u: ITMapp<S>): (IMCommon<(S) -> T>) -> ITMap<T> = { g: IMCommon<(S) -> T> ->
             check(1 == g.fsize())
-            u.asFMap().fmap(g.fpick()!!)
+            u.asITMap().fmap(g.fpick()!!)
         }
         return flift2mapp(DWCommon.of(f))!!.fapp(fLifted(this))
       }
@@ -403,8 +487,8 @@ interface IMMappOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
 
     fun <T: Any, V: ITMap<T>> fmaprod(f: (U) -> V): ITMap<Pair<U,V>> {
         fun fLifted(u: ITMapp<S>): ((ITMap<S>) -> ITMap<T>) -> Pair<ITMap<S>,ITMap<T>> = { g: (ITMap<S>) -> ITMap<T> ->
-            val aux: ITMap<T> = u.fapp(g).asFMap()
-            Pair(u.asFMap(), aux)
+            val aux: ITMap<T> = u.fapp(g).asITMap()
+            Pair(u.asITMap(), aux)
         }
         val fmapp: ITMapp<S> = flift2mapp(this)!!
         val faux: ((U) -> V) -> ITMap<Pair<U,V>> = { _: (U) -> V ->
@@ -468,12 +552,14 @@ interface IMMappOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
             TODO()
 
         }}
-        */
+
         infix fun <A: Any, B: Any, C: Any> ITMapp<A>.kmapp(bk: ITMapp<B>): ITMapp<C> = if (fempty() || bk.fempty()) flift2mapp(DWFMap.empty())!! else {
             @Suppress("UNCHECKED_CAST") (this as IMOrdered<A>)
-            IMCartesian.flift2kart<A,B>(this).mpro(bk.asFMap())
+            IMCartesian.flift2kart<A,B>(this).mpro(bk.asITMap())
             TODO()
         }
+
+         */
     }
 }
 
@@ -498,7 +584,7 @@ interface IMDj<out L, out R>: IMOrdered<IMDj<L,R>>,
         fun <A, B, L:Any, R: Any> bifold(djs: IMCommon<IMDj<A,B>>, acc:Pair<IMList<L>, IMList<R>>? = null): ((A) -> L, (B) -> R) -> Pair<IMList<L>, IMList<R>> = { fl: (A) -> L, fr: (B) -> R ->
             val biAcc = acc ?: Pair(FList.emptyIMList(),FList.emptyIMList())
             fun apportion (acc:Pair<IMList<L>, IMList<R>>, item:IMDj<A,B>): Pair<IMList<L>, IMList<R>> =
-                item.right()?.let { dr -> Pair(acc.first, acc.second.fprepend(fr(dr))) } ?: Pair(acc.first.fprepend(fl(item.left()!!)), acc.second)
+                item.right()?.let { dr -> Pair(acc.first, IMList.fprepend(fr(dr), acc.second)!!) } ?: Pair( IMList.fprepend(fl(item.left()!!),acc.first)!!, acc.second)
             djs.ffold(biAcc, ::apportion)
         }
     }
@@ -516,23 +602,20 @@ typealias ITDsw<A> = IMDisw<A, IMCommon<A>>
 
 interface IMDisw<out A: Any, out B: IMCommon<A>>:
     IMCommon<A>,
-    IMOrdered<A>,
-    IMWritable<A>
+    IMOrdered<A>
 
 typealias ITDmw<A> = IMDimw<A, IMCommon<A>>
 
 interface IMDimw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDimw<A,B>>,
-    IMOrdered<A>,
-    IMWritable<A>
+    IMOrdered<A>
 
 typealias ITDaw<A> = IMDiaw<A, IMCommon<A>>
 
 interface IMDiaw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDiaw<A,B>>,
     IMMappOp<A, ITMap<A>>,
-    IMOrdered<A>,
-    IMWritable<A>
+    IMOrdered<A>
 
 // collections
 
@@ -540,8 +623,6 @@ interface IMList<out A:Any>: IMOrdered<A>,
     IMListFiltering<A>,
     IMListGrouping<A>,
     IMListTransforming<A>,
-    IMListAltering<A>,
-    IMWritable<A>,
     IMListUtility<A>,
     IMListExtras<A>,
     IMReducible<A>,
@@ -550,6 +631,8 @@ interface IMList<out A:Any>: IMOrdered<A>,
     IMListTyping<A> {
     override fun <R> ffold(z: R, f: (acc: R, A) -> R): R = ffoldLeft(z, f)
     override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
+
+    companion object: IMListWritable by FList.Companion {}
 }
 
 interface IMStack<out A:Any>: IMOrdered<A>,
@@ -557,26 +640,30 @@ interface IMStack<out A:Any>: IMOrdered<A>,
     IMStackGrouping<A>,
     IMStackTransforming<A>,
     IMStackAltering<A>,
-    IMWritable<A>,
     IMStackUtility<A>,
     IMMapOp<A, IMStack<Nothing>>,
     IMMappOp<A, IMStack<A>>,
-    IMStackTyping<A>
+    IMStackTyping<A> {
+
+    companion object: IMStackWritable by FStack.Companion {}
+
+}
 
 interface IMQueue<out A:Any>: IMOrdered<A>,
     IMQueueFiltering<A>,
     IMQueueGrouping<A>,
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
-    IMWritable<A>,
     IMQueueUtility<A>,
     IMMapOp<A, IMQueue<Nothing>>,
     IMMappOp<A, IMQueue<A>>,
-    IMQueueTyping<A>
+    IMQueueTyping<A> {
+
+    companion object: IMQueueWritable by FQueue.Companion {}
+}
 
 interface IMSet<out A: Any>: IMCommon<A>,
     IMRSetAltering<A>,
-    IMWritable<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
     IMSetTransforming<A>,
@@ -592,7 +679,6 @@ interface IMSet<out A: Any>: IMCommon<A>,
 }
 
 interface IMHeap<out A: Any>: IMCommon<A>,
-    IMWritable<A>,
     IMMapOp<A, IMHeap<Nothing>>,
     IMMappOp<A, IMHeap<A>>,
     IMHeapTyping<A>
@@ -603,7 +689,6 @@ interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
     IMMapTransforming<K, V>,
     IMMapUtility<K, V>,
     IMMapAltering<K, V>,
-    IMWritable<TKVEntry<K,V>>,
     IMMapExtras<K, V>,
     IMKeyed<K>,
     IMKeyedValue<K, V>,
@@ -641,11 +726,9 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     IMBTreeGrouping<A, B>,
     IMBTreeTransforming<A,B>,
     IMBTreeAltering<A, B>,
-    IMWritable<TKVEntry<A,B>>,
     IMBTreeExtras<A, B>,
     IMKeyed<A>,
     IMKeyedValue<A, B>,
-//    IMFoldable<TKVEntry<A,B>>,
     IMReducible<TKVEntry<A,B>>,
     IMKMappable<A, B, IMBTree<Nothing,Nothing>>,
     IMBTreeTyping<A, B>
@@ -683,7 +766,6 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
 
 interface IMRSetNotEmpty<out A: Any>: IMCommon<A>,
     IMRSetAltering<A>,
-    IMWritable<A>,
     IMSetFiltering<A>,
     IMSetGrouping<A>,
     IMSetUtility<A>,
@@ -695,7 +777,6 @@ interface IMRSetNotEmpty<out A: Any>: IMCommon<A>,
 
 interface IMSetNotEmpty<out A:Any>: IMSet<A>, IMRSetNotEmpty<A>,
     IMSetAltering<A>,
-    IMWritable<A>,
     IMSetTransforming<A> {
     override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = sdj().left()
     override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = xdj<K>().right()
@@ -704,13 +785,12 @@ interface IMSetNotEmpty<out A:Any>: IMSet<A>, IMRSetNotEmpty<A>,
 
 interface IMXSetNotEmpty<out A>: IMSet<A>, IMRSetNotEmpty<A>,
     IMXSetAltering<A>,
-    IMWritable<A>,
     IMXSetTransforming<A>
         where A: Any, A: Comparable<@UnsafeVariance A> {
     override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
     override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> =
-        @Suppress("UNCHECKED_CAST") (this as IMXSetNotEmpty<K>)
-    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A>? = this
+        @Suppress("UNCHECKED_CAST") (this as? IMXSetNotEmpty<K>)
+    override fun asIMRSetNotEmpty(): IMRSetNotEmpty<A> = this
 }
 
 // ============ INTERNAL

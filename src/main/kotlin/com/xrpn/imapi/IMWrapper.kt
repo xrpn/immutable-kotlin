@@ -5,11 +5,14 @@ import com.xrpn.immutable.toUCon
 
 private interface EmptyDiw<out A: Any>: IMOrderedEmpty<A>, IMDisw<A, IMCommonEmpty<A>>  {
     override fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
+    companion object : IMWritable {
+        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMDisw<A, IMCommon<A>>? =
+            (dest as? DWCommon<A>)?.let { it.fadd(src) }
+    }
 }
 
 private val emptyDiw: EmptyDiw<Any> = object: EmptyDiw<Any>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
     override val seal: IMSC = IMSC.IMDIW
-    override fun fadd(item: Any): IMWritable<Nothing> = TODO("internal error")
 }
 
 internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> constructor (val a: A): IMDisw<A, IMCommon<A>> {
@@ -18,7 +21,7 @@ internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> const
 
     val strictness: Boolean by lazy { if (!FT.isContainer(this.a)) true else this.a.toUCon()!!.isStrict() }
     override val seal: IMSC = IMSC.IMDIW
-    override fun fcontains(item: @UnsafeVariance A): Boolean = item == a
+    override fun fcontains(item: @UnsafeVariance A?): Boolean = item?.let { it.equals(a) } ?: false
     override fun fcount(isMatch: (A) -> Boolean): Int = if (isMatch(this.a)) 1 else 0
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A> = if (items.fcontains((this.a))) empty() else this
     override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A> = if (this.equals(item)) empty() else this
@@ -51,8 +54,8 @@ internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> const
 
     // IMWritable
 
-    override fun fadd(item: @UnsafeVariance A): ITDsw<A> =
-        of(a)
+    internal fun fadd(item: @UnsafeVariance A): ITDsw<A> =
+        of(item)
 
     companion object {
         fun <A: Any> of(a: IMCommon<A>): IMCommon<A> = a
@@ -70,12 +73,15 @@ internal data class /* Discardable Wrapper, Common */ DWCommon<out A: Any> const
 
 private interface EmptyDmw<out A: Any, out B: IMCommonEmpty<A>>: IMOrderedEmpty<A>, IMDimw<A, IMCommonEmpty<A>> {
     override fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
+    companion object : IMWritable {
+        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMDimw<A, IMCommon<A>>? =
+            (dest as? DWFMap<A, IMCommon<A>>)?.let { it.fadd(src) }
+    }
 }
 
 private val emptyDmw: EmptyDmw<Any,IMCommonEmpty<Any>> = object : EmptyDmw<Any,IMCommonEmpty<Any>>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
     override val seal: IMSC = IMSC.IMDMW
     override fun <T : Any> fmap(f: (Any) -> T): ITMap<Nothing> = TODO("internal error")
-    override fun fadd(item: Any): IMWritable<Nothing> = TODO("internal error")
 }
 
 internal data class /* Discardable Wrapper, FMap */ DWFMap<out A: Any, out B: IMCommon<A>> constructor (
@@ -85,8 +91,8 @@ internal data class /* Discardable Wrapper, FMap */ DWFMap<out A: Any, out B: IM
     override val seal: IMSC = IMSC.IMDMW
     override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(a, empty())
     override fun toEmpty(): ITDmw<A> = empty()
-    override fun fadd(item: @UnsafeVariance A): ITDmw<A> =
-        of(a)
+    internal fun fadd(item: @UnsafeVariance A): ITDmw<A> =
+        of(item)
 
     override fun <T : Any> fmap(f: (A) -> T): IMMapOp<T, IMCommon<T>>
         = of(f(this.a))
@@ -124,13 +130,16 @@ internal data class /* Discardable Wrapper, FMap */ DWFMap<out A: Any, out B: IM
 
 private interface EmptyDaw<out A: Any, out B: EmptyDmw<A, IMCommonEmpty<A>>>: IMOrderedEmpty<A>, IMDiaw<A, IMCommonEmpty<A>> {
     override fun <T: Any> fapp(op: (ITMap<A>) -> ITMap<T>): ITMapp<Nothing> = TODO("internal error")
+    companion object : IMWritable {
+        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMDiaw<A, IMCommon<A>>? =
+            (dest as? DWFMapp<A, IMDiaw<A, IMCommon<A>>>)?.let { it.fadd(src) }
+    }
 }
 
 private val emptyDaw: EmptyDaw<Any, EmptyDmw<Any,IMCommonEmpty<Any>>> = object: EmptyDaw<Any, EmptyDmw<Any,IMCommonEmpty<Any>>>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
     override val seal: IMSC = IMSC.IMDAW
     override fun <B : Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
     override fun <T : Any> fmap(f: (Any) -> T): ITMap<Nothing> = TODO("internal error")
-    override fun fadd(item: Any): IMWritable<Nothing> = TODO("internal error")
 }
 
 internal data class /* Discardable Wrapper, FMapp */ DWFMapp<out A: Any, out B: IMDiaw<A, IMCommon<A>>> constructor (
@@ -140,7 +149,8 @@ internal data class /* Discardable Wrapper, FMapp */ DWFMapp<out A: Any, out B: 
     override val seal: IMSC = IMSC.IMDAW
     override fun fpopAndRemainder(): Pair<A?, IMOrdered<A>> = Pair(this.a, empty())
     override fun toEmpty(): ITDaw<A> = empty()
-    override fun fadd(item: @UnsafeVariance A): ITDaw<A> = of(a)
+    internal fun fadd(item: @UnsafeVariance A): ITDaw<A> =
+        of(item)
 
     override fun <T: Any> fmap(f: (A) -> T): ITMap<T> = b.fmap(f)
 

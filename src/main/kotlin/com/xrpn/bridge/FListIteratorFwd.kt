@@ -3,8 +3,9 @@ package com.xrpn.bridge
 import com.xrpn.immutable.FLCons
 import com.xrpn.immutable.FLNil
 import com.xrpn.immutable.FList
+import com.xrpn.immutable.FListRetrieval
 
-class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
+class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A>, Iterable<A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: FList<A> = seed
@@ -53,6 +54,9 @@ class FListIteratorFwd<out A: Any> internal constructor(val seed: FList<A>, val 
 
     override fun iterator(): Iterator<A> = this
 
+    internal val retriever: FListRetrieval<A> = object : FListRetrieval<A> {
+        override fun original(): FList<A> = seed
+    }
 
     companion object {
 

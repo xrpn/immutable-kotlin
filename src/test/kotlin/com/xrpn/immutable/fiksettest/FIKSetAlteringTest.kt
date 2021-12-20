@@ -25,8 +25,8 @@ class FIKSetAlteringTest : FunSpec({
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (strISetOfNone as IMKASetNotEmpty<Int, String>)
         }
-        (@Suppress("UNCHECKED_CAST") (strISetOfOne.faddItem("2") as IMKASetNotEmpty<Int, String>)).strongEqual(strISetOfTwo) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (strISetOfTwo.faddItem("3") as IMKASetNotEmpty<Int, String>)).strongEqual(strISetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (strISetOfOne.faddItem("2") as IMKASetNotEmpty<Int, String>)).equal(strISetOfTwo.asIMSet()) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (strISetOfTwo.faddItem("3") as IMKASetNotEmpty<Int, String>)).equal(strISetOfThree.asIMSet()) shouldBe true
         strISetOfOne.faddItem("2").equal(strISetOfTwo) shouldBe true
         strISetOfTwo.faddItem("3").equal(strISetOfThree) shouldBe true
         strISetOfThree.faddItem("4").fsize() shouldBe 4
@@ -38,7 +38,7 @@ class FIKSetAlteringTest : FunSpec({
 
     test("faddItem on empty") {
         val aux1 = strISetOfNone.faddItem("1")
-        aux1.equals(strISetOfOne)  shouldBe true
+        aux1.equal(strISetOfOne)  shouldBe true
         (aux1 === strISetOfOne) shouldBe false
         aux1.ner() shouldNotBe null
         aux1.ne() shouldNotBe null

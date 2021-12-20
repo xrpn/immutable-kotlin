@@ -25,8 +25,8 @@ class FRBTreeGroupingTest  : FunSpec({
         Arb.frbtree<Int, Int>(Arb.int(0..repeatsHigh.second)).checkAll(repeatsHigh.first) { frbt ->
             val isEven: (tkv: TKVEntry<Int, Int>) -> Boolean = { tkv -> 0 == tkv.getv() % 2}
             val (even, odd) = frbt.fpartition(isEven)
-            even.forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
-            odd.forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
+            even.asCollection().forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
+            odd.asCollection().forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
             even.size + odd.size shouldBe frbt.size
         }
     }

@@ -23,14 +23,14 @@ class FMapTest : FunSpec({
         bkw.fsize() shouldBe szw
         for(key in FListIteratorFwd(frbWikiPreorder.fmap { it.getk() })) bkw.fcontains(key) shouldBe true
         bulkMapWiki.fvalues() shouldBe frbWikiPreorder.fmap { it.getv() }.freverse()
-        bulkMapWiki.fentries() shouldBe frbWikiPreorder.asList()
+        bulkMapWiki.fentries() shouldBe frbWikiPreorder
         val bulkMapSs = of(frbSlideSharePreorder)
         val szss = frbSlideSharePreorder.size
         val bkss: IMSet<Int> = bulkMapSs.fkeys()
         bkss.fsize() shouldBe szss
         for(key in FListIteratorFwd(frbSlideSharePreorder.fmap { it.getk() })) bkss.fcontains(key) shouldBe true
         bulkMapSs.fvalues() shouldBe frbSlideSharePreorder.fmap { it.getv() }.freverse()
-        bulkMapSs.fentries() shouldBe frbSlideSharePreorder.asList()
+        bulkMapSs.fentries() shouldBe frbSlideSharePreorder
     }
 
     //
@@ -62,33 +62,48 @@ class FMapTest : FunSpec({
             mapkv.fsize() shouldBe n
             mapp.fsize() shouldBe n
             mapv.fsize() shouldBe n
-            bulkMap.asMap().get(-1) shouldBe null
+            //TODO OOM_ERR bulkMap.asMap().get(-1) shouldBe null
+            bulkMap[-1] shouldBe null
             (bulkMap.fcontainsKey(-1)) shouldBe false
-            mapkv.asMap().get(-1) shouldBe null
+            //TODO OOM_ERR mapkv.asMap().get(-1) shouldBe null
+            mapkv[-1] shouldBe null
             (mapkv.fcontainsKey(-1)) shouldBe false
-            mapp.asMap().get(-1) shouldBe null
+            //TODO OOM_ERR mapp.asMap().get(-1) shouldBe null
+            mapp[-1] shouldBe null
             (mapp.fcontainsKey(-1)) shouldBe false
-            mapv.asMap().get(-1) shouldBe null
+            //TODO OOM_ERR mapv.asMap().get(-1) shouldBe null
+            mapv[-1] shouldBe null
             (mapv.fcontainsKey(-1)) shouldBe false
             for (k in 0 until n) {
-                bulkMap.asMap().get(k) shouldBe k
-                bulkMap[k]
+                //TODO OOM_ERR bulkMap.asMap().get(k) shouldBe k
+                bulkMap[k] shouldBe k
                 (bulkMap.fcontainsKey(k)) shouldBe true
-                mapkv.asMap().get(k) shouldBe k
+                mapkv[k] shouldBe k
+                //TODO OOM_ERR mapkv.asMap().get(k) shouldBe k
                 (mapkv.fcontainsKey(k)) shouldBe true
-                mapp.asMap().get(k) shouldBe k
+                //TODO OOM_ERR mapp.asMap().get(k) shouldBe k
+                mapp[k] shouldBe k
                 (mapp.fcontainsKey(k)) shouldBe true
-                mapv.asMap().get(k) shouldBe k
+                //TODO OOM_ERR mapv.asMap().get(k) shouldBe k
+                mapv[k] shouldBe k
                 (mapv.fcontainsKey(k)) shouldBe true
-                bulkMap.asMap().get(k) shouldBe bulkMap.fgetOrElse(k, {-1})
-                mapkv.asMap().get(k) shouldBe mapkv.fgetOrElse(k, {-1})
-                mapp.asMap().get(k) shouldBe mapp.fgetOrElse(k, {-1})
-                mapv.asMap().get(k) shouldBe mapv.fgetOrElse(k, {-1})
+                //TODO OOM_ERR bulkMap.asMap().get(k) shouldBe bulkMap.fgetOrElse(k, {-1})
+                bulkMap[k] shouldBe bulkMap.fgetOrElse(k, {-1})
+                //TODO OOM_ERR mapkv.asMap().get(k) shouldBe mapkv.fgetOrElse(k, {-1})
+                mapkv[k] shouldBe mapkv.fgetOrElse(k, {-1})
+                //TODO OOM_ERR mapp.asMap().get(k) shouldBe mapp.fgetOrElse(k, {-1})
+                mapp[k] shouldBe mapp.fgetOrElse(k, {-1})
+                //TODO OOM_ERR mapv.asMap().get(k) shouldBe mapv.fgetOrElse(k, {-1})
+                mapv[k] shouldBe mapv.fgetOrElse(k, {-1})
             }
-            bulkMap.asMap().get(n) shouldBe null
-            mapkv.asMap().get(n) shouldBe null
-            mapp.asMap().get(n) shouldBe null
-            mapv.asMap().get(n) shouldBe null
+            //TODO OOM_ERR bulkMap.asMap().get(n) shouldBe null
+            bulkMap[n] shouldBe null
+            //TODO OOM_ERR mapkv.asMap().get(n) shouldBe null
+            mapkv[n] shouldBe null
+            //TODO OOM_ERR mapp.asMap().get(n) shouldBe null
+            mapp[n] shouldBe null
+            //TODO OOM_ERR mapv.asMap().get(n) shouldBe null
+            mapv[n] shouldBe null
         }
     }
 
@@ -109,34 +124,50 @@ class FMapTest : FunSpec({
             mapkv.fsize() shouldBe n
             mapp.fsize() shouldBe n
             mapv.fsize() shouldBe n
-            bulkMap.asMap().get((-1).toString()) shouldBe null
+            //TODO OOM_ERR bulkMap.asMap().get((-1).toString()) shouldBe null
+            bulkMap[(-1).toString()] shouldBe null
             (bulkMap.fcontainsKey((-1).toString())) shouldBe false
-            mapkv.asMap().get((-1).toString()) shouldBe null
+            //TODO OOM_ERR mapkv.asMap().get((-1).toString()) shouldBe null
+            mapkv[(-1).toString()] shouldBe null
             (mapkv.fcontainsKey((-1).toString())) shouldBe false
-            mapp.asMap().get((-1).toString()) shouldBe null
+            //TODO OOM_ERR mapp.asMap().get((-1).toString()) shouldBe null
+            mapp[(-1).toString()] shouldBe null
             (mapp.fcontainsKey((-1).toString())) shouldBe false
-            mapv.asMap().get((-1).toString()) shouldBe null
+            //TODO OOM_ERR mapv.asMap().get((-1).toString()) shouldBe null
+            mapv[(-1).toString()] shouldBe null
             (mapv.fcontainsKey((-1).toString())) shouldBe false
             for (k in 0..n-1) {
                 val ks = k.toString()
-                bulkMap.asMap().get(ks) shouldBe ks
+                //TODO OOM_ERR bulkMap.asMap().get(ks) shouldBe ks
+                bulkMap[ks] shouldBe ks
                 (bulkMap.fcontainsKey(ks)) shouldBe true
-                mapkv.asMap().get(ks) shouldBe ks
+                //TODO OOM_ERR mapkv.asMap().get(ks) shouldBe ks
+                mapkv[ks] shouldBe ks
                 (mapkv.fcontainsKey(ks)) shouldBe true
-                mapp.asMap().get(ks) shouldBe ks
+                //TODO OOM_ERR mapp.asMap().get(ks) shouldBe ks
+                mapp[ks] shouldBe ks
                 (mapp.fcontainsKey(ks)) shouldBe true
-                mapv.asMap().get(ks) shouldBe ks
+                //TODO OOM_ERR mapv.asMap().get(ks) shouldBe ks
+                mapv[ks] shouldBe ks
                 (mapv.fcontainsKey(ks)) shouldBe true
-                bulkMap.asMap().get(ks) shouldBe bulkMap.fgetOrElse(ks) { (-1).toString() }
-                mapkv.asMap().get(ks) shouldBe mapkv.fgetOrElse(ks) { (-1).toString() }
-                mapp.asMap().get(ks) shouldBe mapp.fgetOrElse(ks) { (-1).toString() }
-                mapv.asMap().get(ks) shouldBe mapv.fgetOrElse(ks) { (-1).toString() }
+                //TODO OOM_ERR bulkMap.asMap().get(ks) shouldBe bulkMap.fgetOrElse(ks) { (-1).toString() }
+                bulkMap[ks] shouldBe bulkMap.fgetOrElse(ks) { (-1).toString() }
+                //TODO OOM_ERR mapkv.asMap().get(ks) shouldBe mapkv.fgetOrElse(ks) { (-1).toString() }
+                mapkv[ks] shouldBe mapkv.fgetOrElse(ks) { (-1).toString() }
+                //TODO OOM_ERR mapp.asMap().get(ks) shouldBe mapp.fgetOrElse(ks) { (-1).toString() }
+                mapp[ks] shouldBe mapp.fgetOrElse(ks) { (-1).toString() }
+                //TODO OOM_ERR mapv.asMap().get(ks) shouldBe mapv.fgetOrElse(ks) { (-1).toString() }
+                mapv[ks] shouldBe mapv.fgetOrElse(ks) { (-1).toString() }
             }
             val ns = n.toString()
-            bulkMap.asMap().get(ns) shouldBe null
-            mapkv.asMap().get(ns) shouldBe null
-            mapp.asMap().get(ns) shouldBe null
-            mapv.asMap().get(ns) shouldBe null
+            //TODO OOM_ERR bulkMap.asMap().get(ns) shouldBe null
+            bulkMap[ns] shouldBe null
+            //TODO OOM_ERR mapkv.asMap().get(ns) shouldBe null
+            mapkv[ns] shouldBe null
+            //TODO OOM_ERR mapp.asMap().get(ns) shouldBe null
+            mapp[ns] shouldBe null
+            //TODO OOM_ERR mapv.asMap().get(ns) shouldBe null
+            mapv[ns] shouldBe null
         }
     }
 })

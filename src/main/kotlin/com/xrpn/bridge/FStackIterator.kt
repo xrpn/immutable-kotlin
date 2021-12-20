@@ -1,11 +1,8 @@
 package com.xrpn.bridge
 
-import com.xrpn.immutable.FLCons
-import com.xrpn.immutable.FLNil
-import com.xrpn.immutable.FList
-import com.xrpn.immutable.FStack
+import com.xrpn.immutable.*
 
-class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A> {
+class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val resettable: Boolean = true): Iterator<A>, Sequence<A>, Iterable<A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: FList<A> = seed.toFList()
@@ -54,6 +51,9 @@ class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val r
 
     override fun iterator(): Iterator<A> = this
 
+    internal val retriever: FStackRetrieval<A> = object : FStackRetrieval<A> {
+        override fun original(): FStack<A> = seed
+    }
 
     companion object {
 

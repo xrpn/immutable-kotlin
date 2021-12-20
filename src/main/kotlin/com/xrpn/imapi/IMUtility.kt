@@ -11,8 +11,7 @@ interface IMListUtility<out A: Any> {
 }
 
 interface IMSetUtility<out A: Any> {
-    fun equal(rhs: IMRSetNotEmpty<@UnsafeVariance A>): Boolean
-    fun equal(rhs: Set<@UnsafeVariance A>): Boolean
+    fun equal(rhs: IMSet<@UnsafeVariance A>): Boolean = equals(rhs)
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMSet<A>
     fun ner(): IMRSetNotEmpty<A>?
@@ -23,7 +22,7 @@ interface IMSetUtility<out A: Any> {
 }
 
 internal interface IMKSetUtility<out K, out A: Any>: IMSetUtility<A> where K: Any, K: Comparable<@UnsafeVariance K> {
-    fun strongEqual(rhs: IMSet<@UnsafeVariance A>): Boolean
+    // fun equal(rhs: IMSet<@UnsafeVariance A>): Boolean = equals(rhs)
     fun toIMBTree(): IMBTree<K, A>
     fun <KK> toIMKSetNotEmpty(kt: RestrictedKeyType<KK>): IMKSetNotEmpty<KK, A>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
     fun <KK> toIMBTree(kt: RestrictedKeyType<KK>): IMBTree<KK, A>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = when (kt) {

@@ -25,8 +25,8 @@ class FSKSetAlteringTest : FunSpec({
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (intSSetOfNone as IMKASetNotEmpty<String, Int>)
         }
-        (@Suppress("UNCHECKED_CAST") (intSSetOfOne.faddItem(2) as IMKASetNotEmpty<String, Int>)).strongEqual(intSSetOfTwo) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (intSSetOfTwo.faddItem(3) as IMKASetNotEmpty<String, Int>)).strongEqual(intSSetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (intSSetOfOne.faddItem(2) as IMKASetNotEmpty<String, Int>)).equal(intSSetOfTwo) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (intSSetOfTwo.faddItem(3) as IMKASetNotEmpty<String, Int>)).equal(intSSetOfThree) shouldBe true
         intSSetOfOne.faddItem(2).equal(intSSetOfTwo) shouldBe true
         intSSetOfTwo.faddItem(3).equal(intSSetOfThree) shouldBe true
         intSSetOfThree.faddItem(4).fsize() shouldBe 4

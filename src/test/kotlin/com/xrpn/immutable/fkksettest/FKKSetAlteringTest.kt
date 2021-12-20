@@ -25,14 +25,14 @@ class FKKSetAlteringTest : FunSpec({
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (intKKSetOfNone as IMKASetNotEmpty<Int, Int>)
         }
-        (@Suppress("UNCHECKED_CAST") (intKKSetOfOne.faddItem(2) as IMKKSetNotEmpty<Int>)).strongEqual(intKKSetOfTwo) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (intKKSetOfTwo.faddItem(3) as IMKKSetNotEmpty<Int>)).strongEqual(intKKSetOfThree) shouldBe true
-        intKKSetOfOne.faddItem(2).equal(intKKSetOfTwo) shouldBe true
-        intKKSetOfTwo.faddItem(3).equal(intKKSetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (intKKSetOfOne.faddItem(2) as IMKKSetNotEmpty<Int>)).equal(intKKSetOfTwo) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (intKKSetOfTwo.faddItem(3) as IMKKSetNotEmpty<Int>)).equal(intKKSetOfThree) shouldBe true
+        intKKSetOfOne.faddItem(2).equals(intKKSetOfTwo) shouldBe true
+        intKKSetOfTwo.faddItem(3).equals(intKKSetOfThree) shouldBe true
         intKKSetOfThree.faddItem(4).fsize() shouldBe 4
 
-        intSSetOfOne.faddItem(2).equal(intKKSetOfTwo) shouldBe true
-        intSSetOfOne.faddItem(2).equal(intSSetOfTwo) shouldBe true
+        intSSetOfOne.faddItem(2).equals(intKKSetOfTwo) shouldBe true
+        intSSetOfOne.faddItem(2).equals(intSSetOfTwo) shouldBe true
     }
 
     test("faddItem on empty") {

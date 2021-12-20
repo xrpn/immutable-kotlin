@@ -3,6 +3,7 @@ package com.xrpn.immutable
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FKSet.Companion.NOT_FOUND
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKISet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import com.xrpn.immutable.FKSet.Companion.ofiMap
 import com.xrpn.immutable.FKSet.Companion.ofk
@@ -454,22 +455,22 @@ class FKSetCompanionTest : FunSpec({
     // IMSet TODO needs more for delta btw ISet and SSet and KSet
 
     test("co.ofi vararg"){
-        ofi(*arrayOf()) shouldBe emptyIMKSet()
+        ofi(*arrayOf()) shouldBe emptyIMKISet()
         (ofi(*arrayOf()) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
     }
 
     test("co.ofi Iterator"){
-        ofi(emptyArrayOfInt.iterator()) shouldBe emptyIMKSet()
+        ofi(emptyArrayOfInt.iterator()) shouldBe emptyIMKISet()
         (ofi(emptyArrayOfInt.iterator()) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (ofi(arrayOf(1, 2, 3).iterator()) as IMKKSetNotEmpty<Int>)).strongEqual(intKKSetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (ofi(arrayOf(1, 2, 3).iterator()) as IMKKSetNotEmpty<Int>)).equal(intKKSetOfThree) shouldBe true
     }
 
     test("co.ofi FBSTree<K, A>"){
-        ofi(FRBTree.nul<Int, Int>()) shouldBe emptyIMKSet()
+        ofi(FRBTree.nul<Int, Int>()) shouldBe emptyIMKISet()
         (ofi(FRBTree.nul<Int, Int>()) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
-        ofi(FBSTree.nul<Int, Int>()) shouldBe emptyIMKSet()
+        ofi(FBSTree.nul<Int, Int>()) shouldBe emptyIMKISet()
         (ofi(FBSTree.nul<Int, Int>()) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
-        ofi(FBSTree.nul<Int, Int>(true)) shouldBe emptyIMKSet()
+        ofi(FBSTree.nul<Int, Int>(true)) shouldBe emptyIMKISet()
         (ofi(FBSTree.nul<Int, Int>(true)) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
         (@Suppress("UNCHECKED_CAST") (ofi(FRBTree.ofvi(1, 2, 3)) as IMKKSetNotEmpty<Int>)) shouldBe intKKSetOfThree
         (@Suppress("UNCHECKED_CAST") (ofi(FBSTree.ofvi(1, 2, 3)) as IMKKSetNotEmpty<Int>)) shouldBe intKKSetOfThree
@@ -477,21 +478,21 @@ class FKSetCompanionTest : FunSpec({
     }
 
     test("co.ofi IMList"){
-        ofi(emptyIMList()) shouldBe emptyIMKSet()
+        ofi(emptyIMList()) shouldBe emptyIMKISet()
         (ofi(emptyIMList()) === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
         ofi(FLCons(2, FLCons(3, FLCons(1, FLNil)))).equals(intKKSetOfThree) shouldBe true
         ofi(FLCons("2", FLCons("3", FLCons("1", FLNil)))).equals(strISetOfThree) shouldBe true
     }
 
     test("co.ofiMap Iterator"){
-        ofiMap(emptyArrayOfInt.iterator()){ it.toString() } shouldBe emptyIMKSet()
+        ofiMap(emptyArrayOfInt.iterator()){ it.toString() } shouldBe emptyIMKISet()
         (ofiMap(emptyArrayOfInt.iterator()){ it.toString() } === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
         (@Suppress("UNCHECKED_CAST") (ofiMap(arrayOf(1, 2, 3).iterator()){ it.toString() } as IMKASetNotEmpty<Int, Int>)) shouldBe strISetOfThree
         ofiMap(arrayOf(1, 2, 3).iterator()){ it }.equals(intKKSetOfThree) shouldBe true
     }
 
     test("co.ofiMap IMList"){
-        ofiMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMKSet()
+        ofiMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMKISet()
         (ofiMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } === emptyIMKSet<Int, Int>(IntKeyType)) shouldBe true
         (@Suppress("UNCHECKED_CAST") (ofiMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toString() } as IMKASetNotEmpty<Int, Int>)) shouldBe strISetOfThree
         ofiMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it }.equals(intKKSetOfThree) shouldBe true
@@ -500,84 +501,84 @@ class FKSetCompanionTest : FunSpec({
     // IMSet TODO needs more for delta btw ISet and SSet and KSet
 
     test("co.ofs vararg"){
-        ofs(*arrayOf()) shouldBe emptyIMKSet()
+        ofs(*arrayOf()) shouldBe emptyIMKISet()
         (ofs(*arrayOf()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
     }
 
     test("co.ofs Iterator"){
-        ofs(emptyArrayOfInt.iterator()) shouldBe emptyIMKSet()
+        ofs(emptyArrayOfInt.iterator()) shouldBe emptyIMKISet()
         (ofs(emptyArrayOfInt.iterator()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val aut: IMKSet<String, Int> = ofs(arrayOf(1, 2, 3).iterator())
-        aut.strongEqual(intSSetOfThree) shouldBe true
+        aut.equal(intSSetOfThree) shouldBe true
         aut.equals(intKKSetOfThree) shouldBe false
         // the following compares lhs and rhs as Iterable<A>, so the test is correct
         aut shouldBe intKKSetOfThree
         aut.isStrictly(intKKSetOfThree) shouldBe false // DUH
         // this is a bad cast, but type erasure prevents the following from blowing up (as it should)
-        (@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs FRBTree<K, A>") {
-        ofs(FRBTree.nul<String, Int>()) shouldBe emptyIMKSet()
+        ofs(FRBTree.nul<String, Int>()) shouldBe emptyIMKISet()
         (ofs(FRBTree.nul<String, Int>()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val autfrb: IMKSet<String, Int> = ofs(FRBTree.ofvs(1, 2, 3))!!
-        autfrb.strongEqual(intSSetOfThree) shouldBe true
+        autfrb.equal(intSSetOfThree) shouldBe true
         autfrb.equals(intKKSetOfThree) shouldBe false
         autfrb shouldBe intKKSetOfThree
         autfrb.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs FBSTree<K, A>"){
-        ofs(FBSTree.nul<String, Int>()) shouldBe emptyIMKSet()
+        ofs(FBSTree.nul<String, Int>()) shouldBe emptyIMKISet()
         (ofs(FBSTree.nul<String, Int>()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         (ofs(FBSTree.nul<String, Int>(true)) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         ofs(FBSTree.ofvs(1, 2, 3, allowDups = true)) shouldBe null
         val autfbs: FKSet<String, Int> = ofs(FBSTree.ofvs(1, 2, 3))!!
-        autfbs.strongEqual(intSSetOfThree) shouldBe true
+        autfbs.equal(intSSetOfThree) shouldBe true
         autfbs.equals(intKKSetOfThree) shouldBe false
         autfbs shouldBe intKKSetOfThree
         autfbs.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)).strongEqual(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.strongEqual(@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)) shouldBe false
     }
 
     test("co.ofs IMList"){
-        ofs(emptyIMList()) shouldBe emptyIMKSet()
+        ofs(emptyIMList()) shouldBe emptyIMKISet()
         (ofs(emptyIMList()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auti = ofs(FLCons(2, FLCons(3, FLCons(1, FLNil))))
-        auti.strongEqual(intSSetOfThree) shouldBe true
+        auti.equal(intSSetOfThree) shouldBe true
         auti.equals(intKKSetOfThree) shouldBe false
         auti shouldBe intKKSetOfThree
         auti.isStrictly(intKKSetOfThree) shouldBe false // DUH
         (@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)).equals(intKKSetOfThree) shouldBe false
         intKKSetOfThree.equals(@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)) shouldBe false
         val auts = ofs(FLCons("1", FLCons("2", FLCons("3", FLNil))))
-        auts.strongEqual(strKKSetOfThree) shouldBe true
+        auts.equal(strKKSetOfThree) shouldBe true
         auts.equals(strISetOfThree) shouldBe false
         auts shouldBe strKKSetOfThree
     }
 
     test("co.ofsMap Iterator"){
-        ofsMap(emptyArrayOfInt.iterator()){ it.toString() } shouldBe emptyIMKSet()
+        ofsMap(emptyArrayOfInt.iterator()){ it.toString() } shouldBe emptyIMKISet()
         (ofsMap(emptyArrayOfInt.iterator()){ it.toString() } === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auts = ofsMap(arrayOf(1, 2, 3).iterator()){ it.toString() }
         (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).strongEqual(strISetOfThree) shouldBe false
+        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe false
         val autl: FKSet<String, Long> = ofsMap(arrayOf(1, 2, 3).iterator()){ it.toLong() }
-        autl.equal(longISetOfThree) shouldBe true
+        autl.equal(longISetOfThree.asIMSet()) shouldBe true
     }
 
     test("co.ofsMap IMList"){
-        ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMKSet()
+        ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMKISet()
         (ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auts = ofsMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toString() }
         (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).strongEqual(strISetOfThree) shouldBe false
+        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe false
         val autl: FKSet<String, Long> = ofsMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toLong() }
-        autl.equal(longISetOfThree) shouldBe true
+        autl.equal(longISetOfThree.asIMSet()) shouldBe true
     }
 
     // IMSet TODO needs more for delta btw ISet and SSet and KSet
@@ -587,33 +588,33 @@ class FKSetCompanionTest : FunSpec({
     }
 
     test("co.ofk Iterator"){
-        ofk(emptyArrayOfLong.iterator()) shouldBe emptyIMKSet()
+        ofk(emptyArrayOfLong.iterator()) shouldBe emptyIMKISet()
         (ofk(emptyArrayOfLong.iterator()) === emptyIMKSet<Long, Long>(SymKeyType(Long::class))) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (ofk(arrayOf(1L, 2L, 3L).iterator()) as IMKKSetNotEmpty<Long>)).strongEqual(longKKSetOfThree) shouldBe true
+        (@Suppress("UNCHECKED_CAST") (ofk(arrayOf(1L, 2L, 3L).iterator()) as IMKKSetNotEmpty<Long>)).equal(longKKSetOfThree) shouldBe true
     }
 
     test("co.ofk IMBTree<K, A>"){
         ofk(FRBTree.nul<Long, Long>()) shouldBe emptyIMKSet(SymKeyType(Long::class))
         (ofk(FRBTree.nul<Long, Long>()) === emptyIMKSet<Long, Long>(SymKeyType(Long::class))) shouldBe true
-        ofk(FBSTree.nul<Long, Long>()) shouldBe emptyIMKSet()
+        ofk(FBSTree.nul<Long, Long>()) shouldBe emptyIMKISet()
         (@Suppress("UNCHECKED_CAST") (ofk(FRBTree.of(1L.toKKEntry() , 2L.toKKEntry(), 3L.toKKEntry())) as IMKKSetNotEmpty<Long>)) shouldBe longKKSetOfThree
         (@Suppress("UNCHECKED_CAST") (ofk(FBSTree.of(1L.toKKEntry(), 2L.toKKEntry(), 3L.toKKEntry())) as IMKKSetNotEmpty<Long>)) shouldBe longKKSetOfThree
     }
 
     test("co.ofk IMList"){
-        ofk(emptyIMList<Long>()) shouldBe emptyIMKSet()
+        ofk(emptyIMList<Long>()) shouldBe emptyIMKISet()
         (ofk(emptyIMList<Long>()) === emptyIMKSet<Long, Long>(SymKeyType(Long::class))) shouldBe true
         (@Suppress("UNCHECKED_CAST") (ofk(FLCons(2L, FLCons(3L, FLCons(1L, FLNil)))) as IMKKSetNotEmpty<Long>)) shouldBe longKKSetOfThree
     }
 
     test("co.ofkMap Iterator"){
-        ofkMap(emptyArrayOfLong.iterator()){ it.toString() } shouldBe emptyIMKSet()
+        ofkMap(emptyArrayOfLong.iterator()){ it.toString() } shouldBe emptyIMKISet()
         (ofkMap(emptyArrayOfLong.iterator()){ it.toString() } === emptyIMKSet<Long, Long>(SymKeyType(Long::class))) shouldBe true
         ofkMap(arrayOf(1L, 2L, 3L).iterator()){ it.toString() }.equals(strKKSetOfThree) shouldBe true
     }
 
     test("co.ofkMap IMList"){
-        ofkMap(emptyIMList<Long>() as IMList<Long>){ it.toString() } shouldBe emptyIMKSet()
+        ofkMap(emptyIMList<Long>() as IMList<Long>){ it.toString() } shouldBe emptyIMKISet()
         (ofkMap(emptyIMList<Long>() as IMList<Long>){ it.toString() } === emptyIMKSet<Long, Long>(SymKeyType(Long::class))) shouldBe true
         ofkMap(FLCons(2L, FLCons(3L, FLCons(1L, FLNil))) as IMList<Long>){ it.toString() }.equals(strKKSetOfThree) shouldBe true
     }
@@ -647,8 +648,8 @@ class FKSetCompanionTest : FunSpec({
     test("co.toArray"){
         Arb.fiset<Int, Int>(Arb.int()).checkAll(repeats) { fs ->
             val ary: Array<Int> = FKSet.toArray(fs)
-            fs.strongEqual(FKSet.ofi(ary.iterator())) shouldBe true
-            fs.strongEqual(FKSet.ofi(*ary)) shouldBe true
+            fs.equal(FKSet.ofi(ary.iterator())) shouldBe true
+            fs.equal(FKSet.ofi(*ary)) shouldBe true
         }
     }
 

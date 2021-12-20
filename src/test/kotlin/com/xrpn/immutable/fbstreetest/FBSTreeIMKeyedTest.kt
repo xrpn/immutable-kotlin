@@ -139,8 +139,10 @@ class FBSTreeIMKeyedTest : FunSpec({
     (iiTreeOfTwo.asIMMap()::class === FKMapNotEmpty::class) shouldBe true
     iiTreeOfTwo.asIMMap().fsize() shouldBe 2
     (iiTreeOfTwo as FBSTree<Int,Int>).fdropAll(iiTreeOfTwo.asIMMap()).fempty() shouldBe true
-    (iiTreeOfTwo.asIMMap().toIMBTree() === iiTreeOfTwo) shouldBe false
-    (iiTreeOfTwo.asIMMap().toIMBTree().equal(iiTreeOfTwo)) shouldBe true
+    val autOf2 = iiTreeOfTwo.asIMMap().toIMBTree()
+    (autOf2 === iiTreeOfTwo) shouldBe false
+    (autOf2.equal(iiTreeOfTwo)) shouldBe false
+    (autOf2.softEqual(iiTreeOfTwo)) shouldBe true
   }
 
   test("fcontainsValue") {

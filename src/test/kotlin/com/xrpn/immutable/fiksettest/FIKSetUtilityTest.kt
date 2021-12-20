@@ -83,24 +83,24 @@ class FIKSetUtilityTest : FunSpec({
     }
 
     test("strongEqual") {
-        strKKSetOfNone.strongEqual(strKKSetOfNone) shouldBe true
-        strKKSetOfNone.strongEqual(strKKSetOfOne) shouldBe false
-        strKKSetOfOne.strongEqual(strKKSetOfNone) shouldBe false
-        strKKSetOfOne.strongEqual(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.strongEqual(strISetOfOne) shouldBe false
-        strISetOfOne.strongEqual(strKKSetOfOne) shouldBe false
-        strKKSetOfOne.strongEqual(strKKSetOfTwo) shouldBe false
-        strKKSetOfTwo.strongEqual(strKKSetOfOne) shouldBe false
-        strKKSetOfTwo.strongEqual(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.strongEqual(strISetOfTwo) shouldBe false
-        strISetOfTwo.strongEqual(strKKSetOfTwo) shouldBe false
-        strKKSetOfTwo.strongEqual(strKKSetOfTwoOfst1) shouldBe false
-        strKKSetOfTwoOfst1.strongEqual(strKKSetOfTwo) shouldBe false
-        strKKSetOfTwo.strongEqual(strKKSetOfThree) shouldBe false
-        strKKSetOfTwoOfst1.strongEqual(strKKSetOfThree) shouldBe false
-        strKKSetOfThree.strongEqual(strKKSetOfTwo) shouldBe false
-        strKKSetOfThree.strongEqual(strKKSetOfTwoOfst1) shouldBe false
-        strKKSetOfThree.strongEqual(strKKSetOfThree) shouldBe true
+        strKKSetOfNone.equal(strKKSetOfNone) shouldBe true
+        strKKSetOfNone.equal(strKKSetOfOne) shouldBe false
+        strKKSetOfOne.equal(strKKSetOfNone) shouldBe false
+        strKKSetOfOne.equal(strKKSetOfOne) shouldBe true
+        strKKSetOfOne.equal(strISetOfOne) shouldBe false
+        strISetOfOne.equal(strKKSetOfOne) shouldBe false
+        strKKSetOfOne.equal(strKKSetOfTwo) shouldBe false
+        strKKSetOfTwo.equal(strKKSetOfOne) shouldBe false
+        strKKSetOfTwo.equal(strKKSetOfTwo) shouldBe true
+        strKKSetOfTwo.equal(strISetOfTwo) shouldBe false
+        strISetOfTwo.equal(strKKSetOfTwo) shouldBe false
+        strKKSetOfTwo.equal(strKKSetOfTwoOfst1) shouldBe false
+        strKKSetOfTwoOfst1.equal(strKKSetOfTwo) shouldBe false
+        strKKSetOfTwo.equal(strKKSetOfThree) shouldBe false
+        strKKSetOfTwoOfst1.equal(strKKSetOfThree) shouldBe false
+        strKKSetOfThree.equal(strKKSetOfTwo) shouldBe false
+        strKKSetOfThree.equal(strKKSetOfTwoOfst1) shouldBe false
+        strKKSetOfThree.equal(strKKSetOfThree) shouldBe true
     }
 
     test("fforEach") {
@@ -111,7 +111,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fs ->
             val oraSum = fs.ffold(0){ acc, el -> acc + el }
             fs.fforEach(doCount)
-            counter.get() shouldBe fs.size
+            counter.get() shouldBe fs.fsize()
             counter.set(0)
             fs.fforEach(doSum)
             summer.get() shouldBe oraSum
@@ -137,7 +137,7 @@ class FIKSetUtilityTest : FunSpec({
             val fs1: FKSet<String, Int> = FKSet.ofs(fbst)!!
             (fs1.asIMXSetNotEmpty<String>() == null) shouldBe true
             (fs1.asIMSetNotEmpty() === fs1) shouldBe true
-            fs1.asIMSetNotEmpty()?.equal(fs) shouldBe true
+            fs1.asIMSetNotEmpty()?.equals(fs) shouldBe true
         }
         checkAll(repeats, Arb.fsset(Arb.string(),20..100)) { fs ->
             val frbt: IMBTree<String, String> = fs.toIMBTree()
@@ -145,7 +145,7 @@ class FIKSetUtilityTest : FunSpec({
             val fs1: FKSet<String, String> = FKSet.ofs(fbst)!!
             (fs1.asIMXSetNotEmpty<String>() === fs1) shouldBe true
             (fs1.asIMSetNotEmpty() == null) shouldBe true
-            fs1.asIMXSetNotEmpty<String>()?.equal(fs) shouldBe true
+            fs1.asIMXSetNotEmpty<String>()?.equals(fs) shouldBe true
         }
     }
 
@@ -154,7 +154,7 @@ class FIKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fs ->
             val fs1 = fs.copy()
             (fs1 === fs) shouldBe false
-            fs.strongEqual(fs1) shouldBe true
+            fs.equal(fs1) shouldBe true
         }
     }
 

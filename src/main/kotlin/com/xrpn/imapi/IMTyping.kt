@@ -5,7 +5,6 @@ import com.xrpn.immutable.TKVEntry
 interface IMListTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
-    IMWritable<A>,
     IMMapOp<A, IMList<A>>,
     IMMappOp<A, IMList<A>> {
     // IMCommon
@@ -30,7 +29,6 @@ interface IMListTyping<out A: Any>:
 interface IMStackTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
-    IMWritable<A>,
     IMMapOp<A, IMStack<Nothing>> {
     // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMStack<A>
@@ -54,7 +52,6 @@ interface IMStackTyping<out A: Any>:
 interface IMQueueTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
-    IMWritable<A>,
     IMMapOp<A, IMQueue<Nothing>>  {
     // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMQueue<A>
@@ -77,8 +74,8 @@ interface IMQueueTyping<out A: Any>:
 
 interface IMSetTyping<out A: Any>:
     IMCommon<A>,
-    IMWritable<A>,
     IMMapOp<A, IMSet<Nothing>> {
+    fun asIMSet(): IMSet<A> = @Suppress("UNCHECHED_CAST") (this as IMSet<A>)
     // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMSet<A>
     override fun fdropItem(item: @UnsafeVariance A): IMSet<A>
@@ -92,7 +89,6 @@ interface IMSetTyping<out A: Any>:
 
 interface IMHeapTyping<out A: Any>:
     IMCommon<A>,
-    IMWritable<A>,
     IMMapOp<A, IMHeap<Nothing>> {
     // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMHeap<A>
@@ -124,7 +120,6 @@ internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, 
 
 interface IMMapTyping<out K, out V: Any>:
     IMCommon<TKVEntry<K,V>>,
-    IMWritable<TKVEntry<K,V>>,
     IMKeyed<K>, IMKeyedValue<K,V>,
     IMKMappable<K, V, IMMap<Nothing,Nothing>>
         where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -155,7 +150,6 @@ interface IMMapTyping<out K, out V: Any>:
 
 interface IMBTreeTyping<out A, out B: Any>:
     IMCommon<TKVEntry<A,B>>,
-    IMWritable<TKVEntry<A,B>>,
     IMKeyed<A>,
     IMKeyedValue<A,B>,
     IMKMappable<A, B, IMBTree<Nothing,Nothing>>

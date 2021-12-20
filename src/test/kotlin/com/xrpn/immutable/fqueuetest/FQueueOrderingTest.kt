@@ -168,7 +168,7 @@ class FQueueOrderingTest : FunSpec({
 
   test("frotl properties") {
     checkAll(repeats.first, Arb.fqueue(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.fempty()) Unit else {
         val (first, shortQueue) = ff.fdequeue()
         first?.let {
           if (ff.flast() != it) {
@@ -192,7 +192,7 @@ class FQueueOrderingTest : FunSpec({
 
   test("frotr properties") {
     checkAll(repeats.first, Arb.fqueue(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.fempty()) Unit else {
         val (first, shortQueue) = ff.fdequeue()
         first?.let {
           if (ff.flast() != it) {
@@ -216,7 +216,7 @@ class FQueueOrderingTest : FunSpec({
 
   test("fswaph properties") {
     checkAll(repeats.first, Arb.fqueue(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FQueue<Int>): Unit = if (ff.fempty()) Unit else {
         val (first, shortQueue) = ff.fdequeue()
         first?.let {
           if (ff.flast() != it) {

@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fksettest
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.IMSet
 import com.xrpn.imapi.IntKeyType
 import com.xrpn.imapi.StrKeyType
@@ -338,9 +339,9 @@ class FKSetFilteringStrVTest : FunSpec({
     test("fpick") {
         strKKSetOfNone.fpick() shouldBe null
         checkAll(repeats, Arb.fiset(Arb.int(),20..100)) { fii: FKSet<Int, Int> ->
-            val fsi: IMSet<Int> = fii.toIMKSet(StrKeyType)!!
+            val fsi: IMSet<Int> = FKSetIterator(fii).toIMKSet(StrKeyType)!!
             var count = 0
-            for (item in fii) {
+            for (item in FKSetIterator(fii)) {
                 fsi.fcontains(item) shouldBe true
                 count += 1
             }
@@ -349,9 +350,9 @@ class FKSetFilteringStrVTest : FunSpec({
         }
         strISetOfNone.fpick() shouldBe null
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fsi: FKSet<String, Int> ->
-            val fii: IMSet<Int> = fsi.toIMKSet(IntKeyType)!!
+            val fii: IMSet<Int> = FKSetIterator(fsi).toIMKSet(IntKeyType)!!
             var count = 0
-            for (item in fsi) {
+            for (item in FKSetIterator(fsi)) {
                 fii.fcontains(item) shouldBe true
                 count += 1
             }

@@ -75,24 +75,24 @@ class FSKSetUtilityTest : FunSpec({
     }
 
     test("strongEqual") {
-        intKKOfNone.strongEqual(intKKOfNone) shouldBe true
-        intKKOfNone.strongEqual(intKKOfOne) shouldBe false
-        intKKOfOne.strongEqual(intKKOfNone) shouldBe false
-        intKKOfOne.strongEqual(intKKOfOne) shouldBe true
-        intKKOfOne.strongEqual(FKSet.ofi(1)) shouldBe true
-        FKSet.ofi(1).strongEqual(intKKOfOne) shouldBe true
-        intKKOfOne.strongEqual(intKKOfTwo) shouldBe false
-        intKKOfTwo.strongEqual(intKKOfOne) shouldBe false
-        intKKOfTwo.strongEqual(intKKOfTwo) shouldBe true
-        intKKOfTwo.strongEqual(FKSet.ofi(1,2)) shouldBe true
-        FKSet.ofi(1,2).strongEqual(intKKOfTwo) shouldBe true
-        intKKOfTwo.strongEqual(intKKOfTwoOfst1) shouldBe false
-        intKKOfTwoOfst1.strongEqual(intKKOfTwo) shouldBe false
-        intKKOfTwo.strongEqual(intKKOfThree) shouldBe false
-        intKKOfTwoOfst1.strongEqual(intKKOfThree) shouldBe false
-        intKKOfThree.strongEqual(intKKOfTwo) shouldBe false
-        intKKOfThree.strongEqual(intKKOfTwoOfst1) shouldBe false
-        intKKOfThree.strongEqual(intKKOfThree) shouldBe true
+        intKKOfNone.equal(intKKOfNone) shouldBe true
+        intKKOfNone.equal(intKKOfOne) shouldBe false
+        intKKOfOne.equal(intKKOfNone) shouldBe false
+        intKKOfOne.equal(intKKOfOne) shouldBe true
+        intKKOfOne.equal(FKSet.ofi(1)) shouldBe true
+        FKSet.ofi(1).equal(intKKOfOne) shouldBe true
+        intKKOfOne.equal(intKKOfTwo) shouldBe false
+        intKKOfTwo.equal(intKKOfOne) shouldBe false
+        intKKOfTwo.equal(intKKOfTwo) shouldBe true
+        intKKOfTwo.equal(FKSet.ofi(1,2)) shouldBe true
+        FKSet.ofi(1,2).equal(intKKOfTwo) shouldBe true
+        intKKOfTwo.equal(intKKOfTwoOfst1) shouldBe false
+        intKKOfTwoOfst1.equal(intKKOfTwo) shouldBe false
+        intKKOfTwo.equal(intKKOfThree) shouldBe false
+        intKKOfTwoOfst1.equal(intKKOfThree) shouldBe false
+        intKKOfThree.equal(intKKOfTwo) shouldBe false
+        intKKOfThree.equal(intKKOfTwoOfst1) shouldBe false
+        intKKOfThree.equal(intKKOfThree) shouldBe true
     }
 
     test("fforEach") {
@@ -109,7 +109,7 @@ class FSKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val oraSum = fs.ffold(0){ acc, el -> acc + el }
             fs.fforEach(doCount)
-            counter.get() shouldBe fs.size
+            counter.get() shouldBe fs.fsize()
             counter.set(0)
             fs.fforEach(doSum)
             summer.get() shouldBe oraSum
@@ -152,7 +152,7 @@ class FSKSetUtilityTest : FunSpec({
         checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val fs1 = fs.copy()
             (fs1 === fs) shouldBe false
-            fs.strongEqual(fs1) shouldBe true
+            fs.equal(fs1) shouldBe true
         }
     }
 

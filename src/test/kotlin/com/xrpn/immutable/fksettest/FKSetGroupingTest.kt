@@ -86,6 +86,8 @@ private val oracleG: FKSet<Int, FList<Int>> = ofi(FList.of(1, 2), FList.of(1, 3)
                          FList.of(4, 5),
                          FList.of(5, 4))
 
+
+
 class FKSetGroupingTest : FunSpec({
 
     val longTest = false
@@ -397,7 +399,7 @@ class FKSetGroupingTest : FunSpec({
         val fourByOne = intKKSetOfFour.fpermutations(1)
         fourByOne.size shouldBe 4 // 4! / (4-1)!
         val fourByTwo = intKKSetOfFour.fpermutations(2)
-        fourByTwo.toIMISet().equals(oracleF) shouldBe true
+        fourByTwo.toIMISet()?.equals(oracleF) shouldBe true
         fourByTwo.size shouldBe 12 // 4! / (4-2)!
         val fourByThree = intKKSetOfFour.fpermutations(3)
         fourByThree.size shouldBe 24 // 4! / (4-3)!
@@ -409,7 +411,7 @@ class FKSetGroupingTest : FunSpec({
         fiveByOne.size shouldBe 5 // 5! / (5-1)!
         val fiveByTwo = intKKSetOfFive.fpermutations(2)
         fiveByTwo.size shouldBe 20 // 5! / (5-2)!
-        fiveByTwo.toIMISet().equals(oracleG) shouldBe true
+        fiveByTwo.toIMISet()?.equals(oracleG) shouldBe true
         val fiveByThree = intKKSetOfFive.fpermutations(3)
         fiveByThree.size shouldBe 60 // 5! / (5-3)!
         val fiveByfour = intKKSetOfFive.fpermutations(4)
@@ -443,40 +445,40 @@ class FKSetGroupingTest : FunSpec({
 
         val fourp = intKKSetOfFour.fpermute()
         fourp.size shouldBe 24 // 3!
-        val aryls4: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfFour).toIMBTree() as FRBTree<Int, Int>)
+        val aryls4: ArrayList<TKVEntry<Int, Int>> = FT.fkset2listary(intKKSetOfFour.asIMRSetNotEmpty())
         val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
-        fourp.toIMISet().equals(p4jt) shouldBe true
+        fourp.toIMISet()?.equals(p4jt) shouldBe true
 
         val fivep = intKKSetOfFive.fpermute()
         fivep.size shouldBe 120 // 5!
-        val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfFive).toIMBTree() as FRBTree<Int, Int>)
+        val aryls5: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfFive).toIMBTree() as FRBTree<Int, Int>).asCollection())
         val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
-        fivep.toIMISet().equals(p5jt) shouldBe true
+        fivep.toIMISet()?.equals(p5jt) shouldBe true
 
         val sixpNow = System.currentTimeMillis()
         val sixp = intKKSetOfSix.fpermute()
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
         sixp.size shouldBe 720 // 6!
-        val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfSix).toIMBTree() as FRBTree<Int, Int>)
+        val aryls6: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfSix).toIMBTree() as FRBTree<Int, Int>).asCollection())
         val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
             s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
         }
-        sixp.toIMISet().equals(p6jt) shouldBe true
+        sixp.toIMISet()?.equals(p6jt) shouldBe true
 
         val sevenpNow = System.currentTimeMillis()
         val sevenp = intKKSetOfSeven.fpermute()
         if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
         sevenp.size shouldBe 5040 // 7!
-        val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList(asFKSet<Int,Int>(intKKSetOfSeven).toIMBTree() as FRBTree<Int, Int>)
+        val aryls7: ArrayList<TKVEntry<Int, Int>> = ArrayList((asFKSet<Int,Int>(intKKSetOfSeven).toIMBTree() as FRBTree<Int, Int>).asCollection())
         val p7jt: FKSet<Int, FList<Int>> =
             JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
                 s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
             }
-        sevenp.toIMISet().equals(p7jt) shouldBe true
+        sevenp.toIMISet()?.equals(p7jt) shouldBe true
 
         if (longTest) {
             // ~1.5 s on machine Avogadro
@@ -530,7 +532,7 @@ class FKSetGroupingTest : FunSpec({
         resSk.first.equals(ofFSKSBody(sstSk)) shouldBe true
         val (lastPoppedSk, lastRemainderSk) = resSk.second
         lastPoppedSk shouldBe null
-        lastRemainderSk shouldBe FKSet.emptyIMKSet()
+        lastRemainderSk shouldBe FKSet.emptyIMKISet()
     }
 
     test("fpopAndRemainder properties") {
@@ -563,7 +565,7 @@ class FKSetGroupingTest : FunSpec({
                 res.first.equals(fsi) shouldBe true
                 val (lastPopped, lastRemainder) = res.second
                 lastPopped shouldBe null
-                lastRemainder shouldBe FKSet.emptyIMKSet()
+                lastRemainder shouldBe FKSet.emptyIMKISet()
             }
         }
     }

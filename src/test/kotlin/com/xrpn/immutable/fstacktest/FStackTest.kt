@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fstacktest
 
+import com.xrpn.bridge.FStackIterator
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
 import io.kotest.assertions.throwables.shouldThrow
@@ -68,7 +69,7 @@ class FStackTest : FunSpec({
     }
 
     test("pop vs iterator") {
-        val iter = strStackOfThree.iterator()
+        val iter = strStackOfThree.asIterable().iterator() as FStackIterator<String>
 
         tailrec fun go(s: FStack<String>) {
             if (s.fempty()) {

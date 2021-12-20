@@ -4,6 +4,7 @@ import com.xrpn.bridge.FListIteratorFwd
 import com.xrpn.imapi.IMStack
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
+import com.xrpn.immutable.FStack.Companion.fpush
 
 //
 // W       W  I  P P P
@@ -42,7 +43,7 @@ sealed class FStream<out A: Any> {
         tailrec fun accrue(xs: FStream<A>, acc: IMStack<() -> A>): IMStack<() -> A> =
             when (xs) {
                 is FSNil -> acc
-                is FSCons -> accrue(xs.tail(), acc.fpush(xs.head))
+                is FSCons -> accrue(xs.tail(), fpush(xs.head, acc)!!)
             }
 
         return when (this) {
@@ -92,7 +93,7 @@ sealed class FStream<out A: Any> {
             when {
                 iter > n -> acc
                 current is FSNil -> acc
-                else -> accrue(iter+1, current.tail(), acc.fpush((current as FSCons).head))
+                else -> accrue(iter+1, current.tail(), fpush((current as FSCons).head, acc)!!)
             }
 
         return unwind(accrue(1, this, emptyIMStack()), emptyFStream())
@@ -103,7 +104,7 @@ sealed class FStream<out A: Any> {
         tailrec fun accrue(current: FStream<A>, acc: IMStack<() -> A>): IMStack<() -> A>  =
             when {
                 current is FSNil -> acc
-                p(current.head()!!) -> accrue(current.tail(), acc.fpush((current as FSCons).head))
+                p(current.head()!!) -> accrue(current.tail(), fpush((current as FSCons).head, acc)!!)
                 else -> acc
             }
 
@@ -123,7 +124,7 @@ sealed class FStream<out A: Any> {
                 is FSNil -> TODO() // Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
                 is FSCons -> when {
                     match(pos.head()) -> Triple(unwind(acc, emptyFStream()), pos.head(), pos.tail())
-                    else -> traverseToMatch(match, pos.tail(), acc.fpush(pos.head))
+                    else -> traverseToMatch(match, pos.tail(), fpush(pos.head, acc)!!)
                 }
             }
 

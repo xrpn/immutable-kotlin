@@ -1,9 +1,10 @@
 package com.xrpn.bridge
 
 import com.xrpn.imapi.IMBTree
+import com.xrpn.immutable.FBTreeRetrieval
 import com.xrpn.immutable.TKVEntry
 
-class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A, B>>, Sequence<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
+class FTreeIterator<out A, out B: Any> internal constructor(val seed: IMBTree<A, B>, val resettable: Boolean = true): Iterator<TKVEntry<A, B>>, Sequence<TKVEntry<A, B>>, Iterable<TKVEntry<A, B>> where A: Any, A: Comparable<@UnsafeVariance A> {
 
     // iterator are inescapably stateful, mutable creatures
     private var current: IMBTree<A, B> = seed
@@ -51,11 +52,15 @@ class FTreeIterator<out A, B: Any> internal constructor(val seed: IMBTree<A, B>,
 
     override fun iterator(): Iterator<TKVEntry<A, B>> = this
 
+    internal val retriever: FBTreeRetrieval<A, B> = object : FBTreeRetrieval<A, B> {
+        override fun original(): IMBTree<A, B> = seed
+    }
+
     companion object {
 
         internal const val MSG_EMPTY_ITERATOR = "empty iterator"
 
-        internal inline fun <reified A, reified B: Any> toArray(n: Int, fli: FTreeIterator<A, B>) where A: Any, A: Comparable<A> = Array(n){ fli.next() }
+        internal inline fun <reified A, reified B: Any> toArray(n: Int, fli: FTreeIterator<A, B>): Array<TKVEntry<A, B>> where A: Any, A: Comparable<A> = Array(n){ fli.next() }
         fun <A, B: Any, R> Sequence<TKVEntry<A, B>>.flatMap(
             transform: (TKVEntry<A, B>) -> Sequence<R>
         ): Sequence<R> where A: Any, A: Comparable<A> = when (val itr: Iterator<TKVEntry<A, B>> = this.iterator()) {

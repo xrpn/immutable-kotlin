@@ -146,8 +146,8 @@ class FRBTreeCompanionTest : FunSpec({
     }
     
     test("co.of varargs") {
-        of(*arrayOf<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
-        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(*arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of iterator") {

@@ -10,23 +10,32 @@ import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FQueueBody.Companion.empty
 import java.util.*
 
-sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
+internal interface FQueueRetrieval<out A: Any> {
+    fun original(): FQueue<A>
+}
 
-    fun isEmpty(): Boolean = this === empty
+sealed class FQueue<out A: Any> : IMQueue<A> {
 
     val size: Int by lazy { this.fsize() }
 
-    override fun iterator(): FQueueIterator<A> = FQueueIterator(this)
+    /* TODO start
+    private val iterable: Iterable<A> by lazy { object : Iterable<A>, FQueueRetrieval<A> {
+        override fun iterator(): FQueueIterator<A> = FQueueIterator(this@FQueue)
+        override fun original(): FQueue<A> = this@FQueue
+    }}
+
+    fun asIterable(): Iterable<A> = iterable
+    TODO end */
 
     // imcommon
 
     override val seal: IMSC = IMSC.IMQUEUE
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean =
-        this.fqGetBack().fcontains(item) || this.fqGetFront().fcontains(item)
+    override fun fcontains(item: @UnsafeVariance A?): Boolean =
+        item?.let{ fqGetBack().fcontains(item) || fqGetFront().fcontains(item) } ?: false
 
     override fun fcount(isMatch: (A) -> Boolean): Int =
-        this.fqGetFront().fcount(isMatch)+this.fqGetBack().fcount(isMatch)
+        fqGetFront().fcount(isMatch)+fqGetBack().fcount(isMatch)
 
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): FQueue<A> =
         if (items.fempty()) this else FQueueBody.of(fqGetFront().fdropAll(items),fqGetBack().fdropAll(items))
@@ -34,7 +43,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
     override fun fdropItem(item: @UnsafeVariance A): FQueue<A> =
         FQueueBody.of(fqGetFront().fdropItem(item),fqGetBack().fdropItem(item))
 
-    override fun fempty(): Boolean = isEmpty() || run {
+    override fun fempty(): Boolean = this === empty || run {
         // TODO remove in time
         check((!fqIsFrontEmpty()) || (!fqIsBackEmpty()))
         false
@@ -220,7 +229,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
     // ============ altering
 
     override fun fdequeue(): Pair<A?, FQueue<A>> =
-        if (isEmpty()) Pair(null, emptyIMQueue()) else {
+        if (fempty()) Pair(null, emptyIMQueue()) else {
             this as FQueueBody<A>
             when (front) {
                 is FLCons -> Pair(front.head, FQueueBody.of(front.tail, back))
@@ -236,7 +245,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
         return maybe.first?.let { Pair(it, maybe.second) } ?: throw IllegalStateException("dequeue on empty queue")
     }
 
-    override fun fenqueue(back: @UnsafeVariance A): FQueue<A> =
+    internal fun fenqueue(back: @UnsafeVariance A): FQueue<A> =
         fqEnqueue(this, back)
 
     // ============ utility
@@ -273,14 +282,22 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
     internal fun fqFrontMatch(isMatch: (A) -> Boolean): Boolean =
         ffirst()?.let { isMatch(it) } ?: false
 
+    internal val forceFrontYesMerge: FQueue<A> by lazy {
+        this as FQueueBody
+        FQueueBody.of(FList.flAppend(front, back.freverse()), FLNil)
+    }
+    internal val forceFrontNoMerge: FQueue<A> by lazy {
+        this as FQueueBody
+        when (front) {
+            is FLNil -> FQueueBody.of(back.freverse(), FLNil)
+            is FLCons -> this
+        }
+    }
     internal fun fqForceFront(merge: Boolean = false): FQueue<A> =
-        if (isEmpty()) emptyIMQueue() else {
+        if (fempty()) emptyIMQueue() else {
             this as FQueueBody<A>
-            if (merge) FQueueBody.of(FList.flAppend(front, back.freverse()), FLNil)
-            else when (front) {
-                is FLNil -> FQueueBody.of(back.freverse(), FLNil)
-                is FLCons -> this
-            }
+            if (merge) forceFrontYesMerge
+            else forceFrontNoMerge
         }
 
     internal fun fqGetFront(): FList<A> = (this as FQueueBody<A>).front
@@ -288,7 +305,7 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
     internal fun fqIsFrontEmpty(): Boolean = null == fqGetFront().fhead()
 
     internal fun fqForceBack(merge: Boolean = false): FQueue<A> =
-        if (isEmpty()) emptyIMQueue() else {
+        if (fempty()) emptyIMQueue() else {
             this as FQueueBody<A>
             if (merge) FQueueBody.of(FLNil, FList.flAppend(back, front.freverse()))
             else when (back) {
@@ -345,9 +362,15 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
     // the head of the list is the first item out (i.e. the head of the queue)
     fun toFList(): FList<A> = fqForceFront(merge = true).fqGetFront()
 
-    companion object: IMQueueCompanion {
+    companion object: IMQueueCompanion, IMQueueWritable, IMWritable {
 
         override fun <A: Any> emptyIMQueue(): FQueue<A> = empty
+
+        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMQueue<A>? =
+            (dest as? FQueue<A>)?.let { it.fenqueue(src) }
+
+        override fun <A : Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>?  =
+            (dest as? FQueue<A>)?.let { it.fenqueue(back) }
 
         override fun <A : Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()
@@ -439,7 +462,6 @@ sealed class FQueue<out A: Any> : IMQueue<A>, Iterable<A> {
                     }
                 }
             }
-
     }
 }
 
@@ -451,14 +473,12 @@ internal class FQueueBody<out A: Any> private constructor(
     override fun equals(other: Any?): Boolean = if (fempty()) emptyEquals(other) else when {
         this === other -> true
         other == null -> false
-        other is FQueueBody<*> -> {
-            @Suppress("UNCHECKED_CAST") if (fqSameSize(other as IMQueue<A>)) when {
-                ffirst()!!.isStrictly(other.ffirst()!!) -> {
-                    @Suppress("UNCHECKED_CAST") equal(other as FQueue<A>)
-                }
+        other is FQueueBody<*> -> (@Suppress("UNCHECKED_CAST") (other as? IMQueue<A>))?.let{ oth ->
+            if (fqSameSize(oth)) when {
+                ffirst().isStrictly(other.ffirst()) -> equal(oth)
                 else -> false
             } else false
-        }
+        } ?: false
         else -> false
     }
 
@@ -491,7 +511,7 @@ internal class FQueueBody<out A: Any> private constructor(
     override fun hashCode(): Int = hash
 
     val show: String by lazy {
-        if (isEmpty()) FQueue::class.simpleName+"(*)"
+        if (fempty()) FQueue::class.simpleName+"(*)"
         else {
             val sFront = if (front.fempty()) " " else front.ffoldLeft(""){ str, item -> "$str $item" }
             val sBack = if (back.fempty()) " " else {

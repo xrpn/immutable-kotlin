@@ -104,10 +104,10 @@ class FStackOrderingTest : FunSpec({
 
   test("frotl properties") {
     checkAll(repeats.first, Arb.fstack(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FStack<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FStack<Int>): Unit = if (ff.fempty()) Unit else {
         val (top, shortStack) = ff.fpop()
         top?.let {
-          if (ff.toFList().asList().last() != it) {
+          if (ff.toFList().flast() != it) {
             val aut: IMStack<Int> = ff.frotl()
             aut.toIMList().flast() shouldBe it
             aut.ftop() shouldBe shortStack.ftop()
@@ -127,7 +127,7 @@ class FStackOrderingTest : FunSpec({
 
   test("frotr properties") {
     checkAll(repeats.first, Arb.fstack(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FStack<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FStack<Int>): Unit = if (ff.fempty()) Unit else {
         val (top, shortStack) = ff.fpop()
         top?.let {
           if (ff.toIMList().flast() != it) {
@@ -150,7 +150,7 @@ class FStackOrderingTest : FunSpec({
 
   test("fswaph properties") {
     checkAll(repeats.first, Arb.fstack(Arb.int(),repeats.second..repeats.third)) { fl ->
-      tailrec fun go(ff: FStack<Int>): Unit = if (ff.isEmpty()) Unit else {
+      tailrec fun go(ff: FStack<Int>): Unit = if (ff.fempty()) Unit else {
         val (first, shortStack) = ff.fpop()
         first?.let {
           if (ff.toIMList().flast() != it) {

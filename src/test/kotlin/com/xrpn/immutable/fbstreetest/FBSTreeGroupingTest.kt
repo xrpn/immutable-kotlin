@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fbstreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
 
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
@@ -55,8 +56,8 @@ class FBSTreeGroupingTest : FunSpec({
         Arb.fbstreeWithDups<Int, Int>(Arb.int(0..100)).checkAll(repeats) { fbst ->
             val isEven: (tkv: TKVEntry<Int, Int>) -> Boolean = { tkv -> 0 == tkv.getv() % 2}
             val (even, odd) = fbst.fpartition(isEven)
-            even.forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
-            odd.forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
+            FTreeIterator(even).iterator().forEach { tkv -> tkv.getv() % 2 shouldBe 0 }
+            FTreeIterator(odd).iterator().forEach { tkv -> tkv.getv() % 2 shouldBe 1 }
             even.size + odd.size shouldBe fbst.size
         }
     }

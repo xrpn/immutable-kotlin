@@ -6,21 +6,29 @@ import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
 import java.util.*
 
-sealed class FStack<out A: Any>: IMStack<A>, Iterable<A> {
+internal interface FStackRetrieval<out A: Any> {
+    fun original(): FStack<A>
+}
+
+sealed class FStack<out A: Any>: IMStack<A> {
 
     val size: Int by lazy { toFList().size }
 
-    fun isEmpty(): Boolean = toFList().fempty()
+    /* TODO start
+    private val iterable: Iterable<A> by lazy { object : Iterable<A>, FStackRetrieval<A> {
+        override fun iterator(): FStackIterator<A> = FStackIterator(this@FStack)
+        override fun original(): FStack<A> = this@FStack
+    }}
 
-    override fun iterator(): FStackIterator<A> = FStackIterator(this)
+    fun asIterable(): Iterable<A> = iterable
+    TODO end */
 
     // imcommon
 
     override val seal: IMSC = IMSC.IMSTACK
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean=
-        toFList().fcontains(item)
-
+    override fun fcontains(item: @UnsafeVariance A?): Boolean=
+        item?.let{ toFList().fcontains(item) } ?: false
 
     override fun fcount(isMatch: (A) -> Boolean): Int =
         toFList().fcount(isMatch)
@@ -137,7 +145,7 @@ sealed class FStack<out A: Any>: IMStack<A>, Iterable<A> {
     override fun fpopOrThrow(): Pair<A, FStack<A>> =
         ftop()?.let { buildPair() } ?: throw IllegalStateException("pop from empty stack")
 
-    override fun fpush(top: @UnsafeVariance A): FStack<A> =
+    internal fun fpush(top: @UnsafeVariance A): FStack<A> =
         FStackBody.of(FLCons(top, toFList()))
 
     // ============ utility
@@ -167,9 +175,15 @@ sealed class FStack<out A: Any>: IMStack<A>, Iterable<A> {
         return Pair(body.fhead()!!, FStackBody.of(body.ftail()))
     }
 
-    companion object: IMStackCompanion {
+    companion object: IMStackCompanion, IMStackWritable, IMWritable {
 
         override fun <A: Any> emptyIMStack(): FStack<A> = FStackBody.empty
+
+        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): FStack<A>? =
+            (dest as? FStack<A>)?.let { it.fpush(src) }
+
+        override fun <A : Any> fpush(top: A, dest: IMStack<A>): IMStack<A>?  =
+            (dest as? FStack<A>)?.let { it.fpush(top) }
 
         override fun <A : Any> of(vararg items: A): FStack<A> =
             FStackBody.of(FList.of(items.iterator()))

@@ -114,10 +114,10 @@ class FRBTreeUtilityTest  : FunSpec({
             val values = (Array(n) { i: Int -> TKVEntry.ofkk(i, i) })
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.forEach(doCount)
+            tree.asCollection().forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.forEach(doSum)
+            tree.asCollection().forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
@@ -134,10 +134,10 @@ class FRBTreeUtilityTest  : FunSpec({
             values.shuffle()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.forEach(doCount)
+            tree.asCollection().forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.forEach(doSum)
+            tree.asCollection().forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
@@ -154,17 +154,17 @@ class FRBTreeUtilityTest  : FunSpec({
             values.reverse()
             val oraSum = (n*(n-1))/2 // filling is 0..(n-1) => ((n-1)*(n-1+1))/2 QED
             val tree: FRBTree<Int, Int> = FRBTree.of(values.iterator())
-            tree.forEach(doCount)
+            tree.asCollection().forEach(doCount)
             counter.get() shouldBe n
             counter.set(0)
-            tree.forEach(doSum)
+            tree.asCollection().forEach(doSum)
             summer.get() shouldBe oraSum
             summer.set(0)
         }
     }
 
     test("toIMRSet") {
-        intFRBTreeOfNone.toIMSet(IntKeyType) shouldBe FKSet.emptyIMKSet()
+        intFRBTreeOfNone.toIMSet(IntKeyType) shouldBe FKSet.emptyIMKISet()
         intFRBTreeOfNone.toIMSet(null) shouldBe null // not enough info to infer what kind of empty set
         checkAll(repeats, Arb.frbtree(Arb.int(),20..50)) { frbt ->
             val ims1: IMKSet<Int, Int> = frbt.toIMSet(null)!!
@@ -207,7 +207,7 @@ class FRBTreeUtilityTest  : FunSpec({
         checkAll(repeats, Arb.frbtree<Int, Int>(Arb.int(),20..100)) { frbt ->
             val ml: MutableMap<Int, Int> = frbt.copyToMutableMap()
             ml.size shouldBe frbt.size
-            frbt.toSet() shouldBe ml.entries.map { mentry -> TKVEntry.ofkk(mentry.key, mentry.value) }.toSet()
+            frbt.asCollection().toSet() shouldBe ml.entries.map { mentry -> TKVEntry.ofkk(mentry.key, mentry.value) }.toSet()
         }
     }
 })

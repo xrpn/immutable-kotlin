@@ -23,9 +23,10 @@ class FRBTreeTransformingTest : FunSpec({
         nul<Int,String>().fflatMap{ tkv -> ttDepthOneRight.finsert(tkv) } shouldBe nul()
         ttDepthOneRight.fflatMap{ nul<Int,String>() } shouldBe nul()
         ttDepthOneRight.fflatMap{ tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
-        nul<Int,String>().flatMap{ ttDepthOneRight } shouldBe nul()
-        ttDepthOneRight.flatMap{ nul<Int,String>() } shouldBe nul()
-        ttDepthOneRight.flatMap{ tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
+        nul<Int,String>().asCollection().flatMap{ ttDepthOneRight.asCollection() } shouldBe nul<Int,String>().asCollection()
+        ttDepthOneRight.asCollection().flatMap{ nul<Int,String>().asCollection() } shouldBe nul<Int,String>().asCollection()
+        ttDepthOneRight.asCollection().flatMap{ tkv -> nul<Int,String>().finsert(tkv).asCollection() } shouldBe ttDepthOneRight
+        ttDepthOneRight.asCollection().flatMap{ emptySet<TKVEntry<Int,String>>() } shouldBe nul<Int,String>().asCollection()
         val cheat1 = wikiTree.fflatMap { slideShareTree }
         cheat1 shouldBe slideShareTree
         val cheat2 = slideShareTree.fflatMap { wikiTree }

@@ -60,7 +60,7 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
     
     val strictness: Boolean by lazy { if (!FT.isContainer(this)) true else this.toUCon()!!.isStrict() }
     override val seal: IMSC = IMSC.IMTSDJ
-    override fun fcontains(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): Boolean = item == this
+    override fun fcontains(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>?): Boolean = item?.let{ it.equals(this) } ?: false
     override fun fcount(isMatch: (IMDj<A, B>) -> Boolean): Int = if (isMatch(this)) 1 else 0
     override fun fdropAll(items: IMCommon<IMDj<@UnsafeVariance A, @UnsafeVariance B>>): IMDj<A, B> = if (items.fcontains((this))) empty() else this
     override fun fdropItem(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): IMDj<A, B> = if (this.equals(item)) empty() else this

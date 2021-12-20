@@ -1,20 +1,53 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FKSet.Companion.toIMKSet
 import mu.KLogger
 import mu.KotlinLogging
-import java.io.PrintStream
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
-import java.util.logging.Level
-import java.util.logging.Logger
-import java.util.logging.Logger.getLogger
 import kotlin.reflect.KClass
 
 internal object FT {
 
     infix fun <B, C, A> ((B) -> C).kompose(f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
+
+    fun <A, B: Any> imbtree2listary(imbt: IMBTree<A, B>): ArrayList<TKVEntry<A, B>> where A: Any, A: Comparable<A> {
+        val ary = ArrayList<TKVEntry<A, B>>(imbt.fsize())
+        FTreeIterator(imbt).forEach{ ary.add(it) }
+        return ary
+    }
+
+    fun <A, B: Any> fkset2listary(fset: IMKSet<A, B>): ArrayList<TKVEntry<A, B>> where A: Any, A: Comparable<A> = when (fset) {
+        is FKSet<A,B> -> imbtree2listary(fset.asIMBTree())
+        else -> ArrayList()
+    }
+
+    fun <A, B: Any> fset2listary(fset: IMSet<B>, keySample: A? = null): ArrayList<TKVEntry<A, B>>? where A: Any, A: Comparable<A> {
+
+        fun <X> spool(fkset: FKSet<X,B>): ArrayList<TKVEntry<A, B>>? where X: Any, X: Comparable<X> {
+            val notEmptySaneKey = @Suppress("UNCHECKED_CAST") (fkset as? IMKSetNotEmpty<A,B>)
+            val notEmpty = @Suppress("UNCHECKED_CAST") (fkset as? IMKSetNotEmpty<X,B>)
+            return notEmptySaneKey?.let { nes ->
+                val tree: IMBTree<A, B> = nes.asIMBTree()
+                imbtree2listary(tree)
+            } ?: notEmpty?.let { ne -> keySample?.let { sample ->
+                val net: IMBTree<X, B> = ne.asIMBTree()
+                val res: ArrayList<TKVEntry<A, B>>? = when {
+                    net.fpick()!!.getv().isStrictl y(sample) /* X == A */ -> @Suppress("UNCHECKED_CAST") (imbtree2listary(net) as? ArrayList<TKVEntry<A, B>>)
+                    sample is Int -> @Suppress("UNCHECKED_CAST") (net.toIMBTree(IntKeyType) as? ArrayList<TKVEntry<A, B>>)
+                    sample is String -> @Suppress("UNCHECKED_CAST") (net.toIMBTree(StrKeyType) as? ArrayList<TKVEntry<A, B>>)
+                    else -> null // cannot recover
+                }
+                res
+            }}
+        }
+
+        fset as FKSet<*,B>
+        return spool(fset)
+    }
 
     fun <A : Any> isContainer(c: A): Boolean = when (c) {
         is TSDJ<*,*> -> c.left()?.let { isContainer(it) } ?: isContainer(c.right()!!)
@@ -31,8 +64,8 @@ internal object FT {
         is IMCommon<*> -> c.fisNested()
         is Collection<*> -> isNestedCollection(c)
         is Map<*, *> -> {
-            val aux: Map<Nothing, Any> = @Suppress("UNCHECKED_CAST") (c as Map<Nothing, Any>)
-            isNestedMap(aux)
+            val aux: Map<Nothing, Any>? = @Suppress("UNCHECKED_CAST") (c as? Map<Nothing, Any>)
+            aux?.let{ isNestedMap(it) }
         }
         is Array<*> -> isNestedArray(c)
         is TKVEntry<*,*> -> isContainer(c.getv())
@@ -174,10 +207,12 @@ internal object FT {
         val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
         return m.all { item: Map.Entry<K, V> ->
             val strict = strictly(item.key, kvc.first) && strictly(item.value, kvc.second)
-            val v = @Suppress("UNCHECKED_CAST") (item.value as Any)
-            strict && (!isContainer(v) || (v.toUCon()?.let {
-                    uc -> uc.stricture(ucKc)
-            } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+            val v = @Suppress("UNCHECKED_CAST") (item.value as? Any)
+            v?.let {
+                strict && (!isContainer(v) || (v.toUCon()?.let { uc ->
+                    uc.stricture(ucKc)
+                } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+            } ?: false
         }
     }
 
@@ -190,10 +225,12 @@ internal object FT {
         val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
         return (kvc.first == kKc) && (kvc.second == vKc) && m.all { item: Map.Entry<K, V> ->
             val strict = strictly(item.key, kvc.first) && strictly(item.value, kvc.second)
-            val v = @Suppress("UNCHECKED_CAST") (item.value as Any)
-            strict && (!isContainer(v) || (v.toUCon()?.let {
-                    uc -> uc.stricture(ucKc)
-            } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+            val v = @Suppress("UNCHECKED_CAST") (item.value as? Any)
+            v?.let {
+                strict && (!isContainer(v) || (v.toUCon()?.let { uc ->
+                    uc.stricture(ucKc)
+                } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+            } ?: false
         }
     }
 

@@ -39,7 +39,7 @@ interface IMListCompanion {
     fun <B, A: Any> ofMap(items: Iterator<B>, f: (B) -> A): IMList<A>
     fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMList<A>
 
-    fun <A: Any> Collection<A>.toIMList():IMList<A>
+    fun <A: Any> Iterable<A>.toIMList():IMList<A>
 
 }
 
@@ -91,9 +91,9 @@ interface IMKSetCompanion {
     fun <K, B: Any> asKeyed(self: IMSet<B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K>
     fun <K, B: Any> toTKVEntry(s: IMSet<B>, v: B): TKVEntry<K, B>? where K: Any, K: Comparable<K>
 
-    fun <K, A: Any> Collection<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K>
-    fun <A: Any> Collection<A>.toIMISet(): IMSet<A>
-    fun <A: Any> Collection<A>.toIMSSet(): IMSet<A>
+    fun <K, A: Any> Iterable<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K>
+    fun <A: Any> Iterable<A>.toIMISet(): IMSet<A>?
+    fun <A: Any> Iterable<A>.toIMSSet(): IMSet<A>?
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"

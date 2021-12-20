@@ -3,6 +3,10 @@ package com.xrpn.immutable
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 
+internal interface FBTreeRetrieval<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun original(): IMBTree<A,B>
+}
+
 interface MappTraversal<T: Any, S: Any, D: Any> {
     fun traversal(candidates: ITMapp<T>): IMSdj<IMList<D>, IMList<S>>
     fun grossTraversal(candidates: ITMapp<T>): Pair<IMList<D>, IMList<S>>
@@ -110,6 +114,6 @@ data class FMultiMappTraversal<T: Any, R: Any, E: Any, TR: Any, ER: Any> (
 
     override fun grossTraversal(candidates: ITMapp<T>): Pair<IMList<ER>, IMList<TR>> =
         if (candidates.fempty()) Pair(emptyIMList(), emptyIMList())
-        else accumulate(candidates.asFMap())
+        else accumulate(candidates.asITMap())
 
 }

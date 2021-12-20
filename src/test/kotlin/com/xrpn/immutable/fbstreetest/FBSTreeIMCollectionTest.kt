@@ -84,14 +84,14 @@ class FBSTreeIMCollectionTest : FunSpec({
       aut.fall { count+=1; true } shouldBe true
       count shouldBe ts
       count = 0
-      aut.fall { count+=1;false } shouldBe false
-      count shouldBe ts
+      aut.fall { count+=1; false } shouldBe false
+      count shouldBe 1
       count = 0
       aut.fall { count+=1; it > 0.toIAEntry() } shouldBe true
       count shouldBe ts
       count = 0
       aut.fall { count+=1; it > repeatsHigh.second.toIAEntry() } shouldBe false
-      count shouldBe ts
+      count shouldBe 1
     }
   }
 
@@ -355,10 +355,10 @@ class FBSTreeIMCollectionTest : FunSpec({
   }
 
   test("ffilter, filterNot (nil)") {
-    nul<Int, Int>().ffilter { true } shouldBe FRBTree.emptyIMBTree()
+    nul<Int, Int>().ffilter { true } shouldBe emptyIMBTree()
     (nul<Int, Int>().ffilter { true } === emptyIMBTree<Int,Int>()) shouldBe true
     (nul<Int, Int>().ffilter { true } === FRBTree.emptyIMBTree<Int,Int>()) shouldBe false
-    nul<Int, Int>().ffilterNot { false } shouldBe FRBTree.emptyIMBTree()
+    nul<Int, Int>().ffilterNot { false } shouldBe emptyIMBTree()
   }
 
   test ("ffilter (A), ffilterNot, dropWhen") {

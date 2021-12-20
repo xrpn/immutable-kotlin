@@ -11,10 +11,10 @@ import java.util.logging.Logger
 import java.util.logging.Logger.getLogger
 import kotlin.reflect.KClass
 
-private fun <A, B> isSameType(a: A, b: B): Boolean = a?.let{ outer: A -> outer!!::class == b?.let{ it::class } } ?: false
-private fun <A, B: Any> isSameTypeLike(a: A, b: KClass<B>): Boolean = a?.let{ outer: A -> outer!!::class == b } ?: false
+private fun <A: Any, B: Any> isSameType(a: A?, b: B?): Boolean = a?.let{ outer: A -> outer::class == b?.let{ it::class } } ?: false
+private fun <A: Any, B: Any> isSameTypeLike(a: A?, b: KClass<B>?): Boolean = a?.let{ outer: A -> outer::class == b } ?: false
 private fun <A: Any, B> isLikeSameType(a: KClass<A>, b: B): Boolean = a == b?.let{ it::class }
-private fun <A: Any, B: KClass<Any>> isLikeSameTypeLike(a: KClass<A>, b: B): Boolean = a == b
+private fun <A: Any, B: KClass<Any>?> isLikeSameTypeLike(a: KClass<A>, b: B?): Boolean = a == b
 
 fun <A, B> Pair<A, A>.pmap1(f: (A) -> B): Pair<B, B> = Pair(f(this.first), f(this.second))
 fun <A, B, C, D> Pair<A, B>.pmap2(f: (A) -> C, g: (B) -> D): Pair<C, D> = Pair(f(this.first), g(this.second))
@@ -39,22 +39,24 @@ fun <A: Any> Triple<A, A, A>.toIMList() = FLCons(this.first, FLCons(this.second,
 
 
 fun <A, B> A.isStrictly(b: B): Boolean = when(this) {
-    is KClass<*> -> when(b) {
-        is KClass<*> -> isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
+    is KClass<*> -> null != b && when(b) {
+        is KClass<*> -> isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as? KClass<Any>))
         else -> isLikeSameType(this, b)
     }
-    else -> when(b) {
+    null -> false
+    else -> null != b && when(b) {
         is KClass<*> -> isSameTypeLike(this, b)
         else -> isSameType(this, b)
     }
 }
 
 fun <A, B> A.isStrictlyNot(b: B): Boolean = when(this) {
-    is KClass<*> -> when(b) {
-        is KClass<*> -> !isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as KClass<Any>))
+    is KClass<*> -> null != b && when(b) {
+        is KClass<*> -> !isLikeSameTypeLike(this, @Suppress("UNCHECKED_CAST") (b as? KClass<Any>))
         else -> !isLikeSameType(this, b)
     }
-    else -> when(b) {
+    null -> true
+    else -> null != b && when(b) {
         is KClass<*> -> {
             val foo = !isSameTypeLike(this, b)
             foo }

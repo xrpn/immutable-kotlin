@@ -230,8 +230,8 @@ private data class ZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: IMZPa
 
     override val seal: IMSC = IMSC.IMKART
 
-    override fun fcontains(item: @UnsafeVariance W): Boolean =
-        iproduct.fcontains(w2zw(item)!!)
+    override fun fcontains(item: @UnsafeVariance W?): Boolean =
+        item?.let{ iproduct.fcontains(w2zw(it)!!) } ?: false
 
     override fun fcount(isMatch: (W) -> Boolean): Int =
         iproduct.fcount(w2zwf(isMatch))
@@ -309,9 +309,13 @@ private data class ZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: IMZPa
             else iproduct
 
         override fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X> = when (val maybeAcc = iproduct.toEmpty() ) {
-                is IMWritable<*> -> {
-                    val racc = @Suppress("UNCHECKED_CAST") (maybeAcc as IMWritable<X>)
-                    val res = @Suppress("UNCHECKED_CAST") (iproduct.ffold(racc) { acc, st -> acc.fadd(f(st.ff)(st.ss)) } as ITMap<X>)
+                is IMWritable -> {
+                    val res = @Suppress("UNCHECKED_CAST") (iproduct.ffold(maybeAcc) { acc, st ->
+                        val x: X = f(st.ff)(st.ss)
+                        val intermediate: IMCommon<Any>? = acc.fadd(x, acc)
+                        val composite = if (intermediate is IMWritable) intermediate else throw RuntimeException("impossible branch")
+                        TODO("the compiler freaks out here: ${composite}")
+                    } as ITMap<X>)
                     if (res.fempty()) @Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<X>) else res
                 }
                 else -> {

@@ -179,45 +179,45 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.of varargs A") {
         of(*arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
-        of(7.toIAEntry(), 4.toIAEntry(), 9.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry()).inorder() shouldBe
-                listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+        of(7.toIAEntry(), 4.toIAEntry(), 9.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry()).inorder().softEqual(
+                listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())) shouldBe true
     }
 
     test("co.of varargs A3") {
-        of(9.toIAEntry(), 4.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
-            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+        of(9.toIAEntry(), 4.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 3.toIAEntry()).inorder().softEqual(
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())) shouldBe true
     }
 
     test("co.of varargs B") {
-        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry()).inorder() shouldBe
-            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry()).inorder().softEqual(
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())) shouldBe true
     }
 
     test("co.of varargs B3") {
-        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
-            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+        of(9.toIAEntry(), 7.toIAEntry(), 3.toIAEntry(), 5.toIAEntry(), 6.toIAEntry(), 8.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder().softEqual(
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())) shouldBe true
     }
 
     test("co.of varargs C") {
-        of(9.toIAEntry(), 8.toIAEntry(), 7.toIAEntry(), 6.toIAEntry(), 5.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder() shouldBe
-            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())
+        of(9.toIAEntry(), 8.toIAEntry(), 7.toIAEntry(), 6.toIAEntry(), 5.toIAEntry(), 4.toIAEntry(), 3.toIAEntry()).inorder().softEqual(
+            listOf(3.toIAEntry(),4.toIAEntry(),5.toIAEntry(),6.toIAEntry(),7.toIAEntry(),8.toIAEntry(),9.toIAEntry())) shouldBe true
     }
 
     test("co.of varargs D") {
-        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of varargs DD") {
-        of(3.toSAEntry(), 1.toSAEntry(), 2.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 1.toSAEntry(), 2.toSAEntry()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of varargs D1") {
-        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of varargs dups A") {
         of(*arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree()
-        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry(), allowDups = true).inorder().softEqual(listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of varargs dups B") {
@@ -232,19 +232,19 @@ class FBSTreeCompanionTest : FunSpec({
 
     test("co.of iterator") {
         of(emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree()
-        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of iterator dups") {
         of(emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
-        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator(), allowDups = true).inorder().softEqual(listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of IMList (dups and no dups)") {
         of<Int, Int>(FLNil) shouldBe FBSTUnique.empty
         of<Int, Int>(FLNil) shouldBe FBSTGeneric.empty
         of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,nEntry))
-        of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)), allowDups = true) shouldBe
+        of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)), allowDups = true).softEqual(
                 FBSTNode.of(true,
                     mEntry,
                     FBSTNode.of(true,
@@ -256,8 +256,8 @@ class FBSTreeCompanionTest : FunSpec({
                         FBSTNode.of(true,dEntry, FBSTGeneric.empty, FBSTGeneric.empty)
                     ),
                     FBSTNode.of(true,zEntry, FBSTGeneric.empty, FBSTGeneric.empty)
-                )
-        of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)) /*, allowDups = false */) shouldBe
+                )) shouldBe true
+        of(FList.of(*arrayOf(mEntry, cEntry, bEntry, dEntry, zEntry, bEntry)) /*, allowDups = false */).softEqual(
                 FBSTNode.of(false,
                     mEntry,
                     FBSTNode.of(false,
@@ -266,7 +266,7 @@ class FBSTreeCompanionTest : FunSpec({
                         FBSTNode.of(false,dEntry, FBSTUnique.empty, FBSTUnique.empty)
                     ),
                     FBSTNode.of(false,zEntry, FBSTUnique.empty, FBSTUnique.empty)
-                )
+                )) shouldBe true
         of(wikiPreorder) shouldBe wikiTree
         of(slideSharePreorder) shouldBe slideShareTree
     }
@@ -275,46 +275,46 @@ class FBSTreeCompanionTest : FunSpec({
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree(true)
         (ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
+        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).inorder().softEqual(listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())) shouldBe true
     }
 
     test("co.ofc varargs dups") {
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree()
         ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) shouldBe emptyIMBTree(true)
         (ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
+        ofc(reverseIntCompare, 3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry(), allowDups = true).inorder().softEqual(listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())) shouldBe true
     }
 
     test("co.ofc iterator") {
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree()
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree(true)
         (ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator()).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())
+        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator()).inorder().softEqual(listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry())) shouldBe true
     }
 
     test("co.ofc iterator dups") {
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree()
         ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) shouldBe emptyIMBTree(true)
         (ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator(), allowDups = true).inorder() shouldBe listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())
+        ofc(reverseIntCompare, listOf(3.toIAEntry(), 2.toIAEntry(), 1.toIAEntry(), 1.toIAEntry()).iterator(), allowDups = true).inorder().softEqual(listOf(3.toIAEntry(),2.toIAEntry(),1.toIAEntry(),1.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi varargs") {
         ofvi(*emptyArrayOfInt) shouldBe emptyIMBTree()
         (ofvi(*emptyArrayOfInt) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(3, 2, 1, 1).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi varargs dups") {
         ofvi(*emptyArrayOfInt, allowDups = true) shouldBe emptyIMBTree(true)
         (ofvi(*emptyArrayOfInt, allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvi(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(3, 2, 1, 1, allowDups = true).inorder().softEqual(listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi iterator") {
         ofvi(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
         (ofvi(emptyArrayOfInt.iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(arrayOf(3,2,1,1).iterator()).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi iterator (property)") {
@@ -332,55 +332,55 @@ class FBSTreeCompanionTest : FunSpec({
     test("co.ofvi iterator dups") {
         ofvi(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree(true)
         (ofvi(emptyArrayOfInt.iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder().softEqual(listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi IMList") {
         ofvi(FList.emptyIMList()) shouldBe emptyIMBTree()
         (ofvi(FList.emptyIMList()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvi(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(FList.of(3, 2, 1, 1)).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi IMList dups") {
         ofvi(FList.emptyIMList(), allowDups = true) shouldBe emptyIMBTree(true)
         (ofvi(FList.emptyIMList(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvi(FList.of(3, 2, 1, 1), allowDups = true).inorder() shouldBe listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(FList.of(3, 2, 1, 1), allowDups = true).inorder().softEqual(listOf(1.toIAEntry(),1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvs varargs") {
         ofvs(*emptyArrayOfInt) shouldBe emptyIMBTree()
         (ofvs(*emptyArrayOfInt) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(3, 2, 1, 1).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs varargs dups") {
         ofvs(*emptyArrayOfInt, allowDups = true) shouldBe emptyIMBTree(true)
         (ofvs(*emptyArrayOfInt, allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvs(3, 2, 1, 1, allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(3, 2, 1, 1, allowDups = true).inorder().softEqual(listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs iterator") {
         ofvs(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
         (ofvs(emptyArrayOfInt.iterator()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(arrayOf(3,2,1,1).iterator()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs iterator dups") {
         ofvs(emptyArrayOfInt.iterator(), allowDups = true) shouldBe emptyIMBTree(true)
         (ofvs(emptyArrayOfInt.iterator(), allowDups = true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(arrayOf(3,2,1,1).iterator(), allowDups = true).inorder().softEqual(listOf(1.toSAEntry(), 1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs IMList") {
         ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
         (ofvs(FList.emptyIMList()) === emptyIMBTree<Int,Int>()) shouldBe true
-        ofvs(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(FList.of(3, 2, 1, 1)).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs IMList dups") {
         ofvs(FList.emptyIMList(), true) shouldBe emptyIMBTree(true)
         (ofvs(FList.emptyIMList(), true) === emptyIMBTree<Int,Int>(true)) shouldBe true
-        ofvs(FList.of(3, 2, 1, 1), allowDups = true).inorder() shouldBe listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(FList.of(3, 2, 1, 1), allowDups = true).inorder().softEqual(listOf(1.toSAEntry(),1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofMap ABCD Iterator") {
@@ -414,50 +414,50 @@ class FBSTreeCompanionTest : FunSpec({
                 it,
                 -it
             )
-        }.iterator()) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) }.inorder() shouldBe
-                listOf(TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(2, "2"), TKVEntry.ofkv(3, "3"))
+        }.iterator()) { tkv -> TKVEntry.ofkv(tkv.getk(), tkv.getv().toString()) }.inorder().softEqual(
+                listOf(TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(1, "1"), TKVEntry.ofkv(2, "2"), TKVEntry.ofkv(3, "3"))) shouldBe true
     }
 
     test("co.ofviMap Iterator") {
         ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
         (ofviMap(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>()) shouldBe true 
-        ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
                 listOf(
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
                     TKVEntry.ofkv(intKeyOf("2"), "2"),
                     TKVEntry.ofkv(intKeyOf("3"), "3")
-                )
+                )) shouldBe true
     }
 
     test("co.ofviMap Iterator dups") {
         ofviMapNotUnique(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree(true)
         (ofviMapNotUnique(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>(true)) shouldBe true 
-        ofviMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofviMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
                 listOf(
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
                     TKVEntry.ofkv(intKeyOf("1"), "1"),
                     TKVEntry.ofkv(intKeyOf("2"), "2"),
                     TKVEntry.ofkv(intKeyOf("3"), "3")
-                )
+                )) shouldBe true
     }
 
     test("co.ofvsMap Iterator") {
         ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
         (ofvsMap(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>()) shouldBe true 
-        ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
-                listOf(TKVEntry.ofkk("1", "1"), TKVEntry.ofkk("2", "2"), TKVEntry.ofkk("3", "3"))
+        ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
+                listOf(TKVEntry.ofkk("1", "1"), TKVEntry.ofkk("2", "2"), TKVEntry.ofkk("3", "3"))) shouldBe true
     }
 
     test("co.ofvsMap Iterator dups") {
         ofvsMapNotUnique(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree(true)
         (ofvsMapNotUnique(emptyList<Int>().iterator()) { it.toString() } === emptyIMBTree<Int,Int>(true)) shouldBe true 
-        ofvsMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofvsMapNotUnique(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
                 listOf(
                     TKVEntry.ofkk("1", "1"),
                     TKVEntry.ofkk("1", "1"),
                     TKVEntry.ofkk("2", "2"),
                     TKVEntry.ofkk("3", "3")
-                )
+                )) shouldBe true
     }
 
     test("co.toIMBTree Map") {

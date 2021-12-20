@@ -16,17 +16,17 @@ fun <A: Any, B> Arb.Companion.flist(
     return Arb.list(arbB, range).map { bs -> FList.ofMap(bs, f) }
 }
 
-fun <A: Any, B> Arb.Companion.flistAsCollection(
-    arbB: Arb<B>,
-    range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = flist(arbB, range, f).map { it.asList() }
+//fun <A: Any, B> Arb.Companion.flistAsCollection(
+//    arbB: Arb<B>,
+//    range: IntRange = 1..50,
+//    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+//): Arb<Collection<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
-fun <A: Any, B> Arb.Companion.flistAsKList(
-    arbB: Arb<B>,
-    range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<List<A>> where B:A = flist(arbB, range, f).map { it.asList() }
+//fun <A: Any, B> Arb.Companion.flistAsKList(
+//    arbB: Arb<B>,
+//    range: IntRange = 1..50,
+//    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+//): Arb<List<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
 fun <A: Any, B> Arb.Companion.fiset(
     arbB: Arb<B>,
@@ -58,13 +58,13 @@ fun <A: Any, B> Arb.Companion.fsetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = fiset(arbB, range, f)
+): Arb<Collection<A>> where B:A = fiset(arbB, range, f).map { it.asSet() }
 
 fun <A: Any, B> Arb.Companion.fssetAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<A>> where B:A = fsset(arbB, range, f)
+): Arb<Collection<A>> where B:A = fsset(arbB, range, f).map { it.asSet() }
 
 fun <A: Any, B> Arb.Companion.frbtree(
     arbB: Arb<B>,
@@ -90,7 +90,7 @@ fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f)
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f).map{ it.asCollection() }
 
 fun <A: Any, B> Arb.Companion.fbsItree(
     arbB: Arb<B>,
@@ -135,7 +135,7 @@ fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f)
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ it.asCollection() }
 
 fun <A: Any, B> Arb.Companion.fqueue(
     arbB: Arb<B>,

@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fqueuetest
 
+import com.xrpn.bridge.FQueueIterator
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.emptyArrayOfInt
@@ -125,7 +126,7 @@ class FQueueTest : FunSpec({
   }
 
   test("dequeue vs ierator") {
-    val iter = intQueueOfThreer2B.iterator()
+    val iter: FQueueIterator<Int> = intQueueOfThreer2B.asIterable().iterator() as FQueueIterator<Int>
 
     tailrec fun go(q: FQueue<Int>) {
       if (q.fempty()) {

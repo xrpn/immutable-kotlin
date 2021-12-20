@@ -32,7 +32,7 @@ data class FMultiMappValidation<T: Any, E: Any> (
 
         fun f4innerFold(lrAcc: Pair<IMList<E>, IMList<T>>, disj: IMSdj<E, T>): Pair<IMList<E>, IMList<T>> {
             val (lAcc, rAcc) = lrAcc
-            return disj.bireduce({ ld -> Pair(lAcc.fprepend(ld), rAcc) }, { rd -> Pair(lAcc, rAcc.fprepend(rd)) })
+            return disj.bireduce({ ld -> Pair(IMList.fprepend(ld, lAcc)!!, rAcc) }, { rd -> Pair(lAcc, IMList.fprepend(rd, rAcc)!!) })
         }
 
         fun f4fold(lrAcc: Pair<IMList<E>, IMList<T>>, item: T): Pair<IMList<E>, IMList<T>> =

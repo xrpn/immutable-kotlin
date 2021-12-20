@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fbstreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.fbtAssertNodeInvariant
 import com.xrpn.immutable.FBSTree.Companion.nul
@@ -410,12 +411,12 @@ class FBSTreeTraversingTest : FunSpec({
     test("values") {
         Arb.fbsItree(Arb.int()).checkAll(repeats) { fbst ->
             val lv = fbst.copyToMutableMap().map { it.value }.sorted()
-            fbst.inorderValues() shouldBe lv
+            fbst.inorderValues().softEqual(lv) shouldBe true
         }
         Arb.fbstreeWithDups(Arb.int(),5..30).checkAll(repeats) { fbst ->
             val lv: List<Int> = fbst.copyToMutableMap().map { it.value }.sorted()
             lv.forEach { v -> fbst.fcontainsValue(v) shouldBe true }
-            fbst.forEach { v: TKVEntry<Int, Int> -> lv.contains(v.getv()) shouldBe true }
+            FTreeIterator(fbst).iterator().forEach { v: TKVEntry<Int, Int> -> lv.contains(v.getv()) shouldBe true }
         }
     }
 })

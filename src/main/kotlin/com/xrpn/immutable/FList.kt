@@ -1,6 +1,5 @@
 package com.xrpn.immutable
-import com.xrpn.bridge.FListIteratorBidi
-import com.xrpn.bridge.FListIteratorFwd
+import com.xrpn.bridge.*
 import com.xrpn.hash.DigestHash.lChecksumHashCode
 import com.xrpn.hash.DigestHash.uIntChecksumHashCode
 import com.xrpn.hash.MurMur3at32
@@ -11,22 +10,23 @@ import java.util.ArrayList
 import java.util.zip.CRC32C
 import kotlin.reflect.KClass
 
+internal interface FListRetrieval<out A: Any> {
+    fun original(): FList<A>
+}
+
 sealed class FList<out A: Any>: IMList<A> {
 
     val size: Int by lazy { if (this is FLNil) 0 else this.ffoldLeft(0) { b, _ -> b + 1 } }
-    
-    private val klist: List<A> = object : List<A> {
+
+    /* TODO start
+    private val klist: List<A> by lazy { object : List<A>, FListRetrieval<A> {
 
         // from Collection<A>
 
         override val size: Int by lazy { this@FList.size }
-
         override fun isEmpty(): Boolean = this@FList is FLNil
-
         override operator fun contains(element: @UnsafeVariance A): Boolean = !ffilter { it == element }.fempty()
-
-        override fun iterator(): Iterator<A> = FListIteratorFwd(this@FList)
-
+        override fun iterator(): FListIteratorFwd<A> = FListIteratorFwd(this@FList)
         override fun containsAll(elements: Collection<@UnsafeVariance A>): Boolean {
             elements.forEach { if (!contains(it)) return false }
             return true
@@ -35,30 +35,28 @@ sealed class FList<out A: Any>: IMList<A> {
         // from List <A>
 
         override fun get(index: Int): A = atWantedIxPosition(index, this@FList.size,this@FList, 0) ?: throw IndexOutOfBoundsException("index $index")
-
         override fun indexOf(element: @UnsafeVariance A): Int {
             val res: Triple<FList<A>, A?, FList<A>> = ffindFirst { it == element }
             return res.second?.let { res.first.size } ?: NOT_FOUND
         }
-
         override fun lastIndexOf(element: @UnsafeVariance A): Int =
             when (val rix = this@FList.freverse().klist.indexOf(element)) {
                 NOT_FOUND -> rix
                 else -> size - rix - 1
             }
-
         override fun listIterator(): ListIterator<A> = FListIteratorBidi(this@FList)
-
         override fun listIterator(index: Int): ListIterator<A> = when {
             index < 0 || size < index -> throw IndexOutOfBoundsException()
             else -> FListIteratorBidi(this@FList, index)
         }
-
         override fun subList(fromIndex: Int, toIndex: Int): /* [fromIndex, toIndex) */ List<A> = fslice(fromIndex, toIndex).klist
 
-    }
+        override fun original(): FList<A> = this@FList
+
+    }}
 
     fun asList(): List<A> = klist
+    TODO end */
 
     /*
         Stack-safe implementation.  May run out of heap memory, will not run
@@ -69,8 +67,8 @@ sealed class FList<out A: Any>: IMList<A> {
 
     override val seal: IMSC = IMSC.IMLIST
 
-    override fun fcontains(item: @UnsafeVariance A): Boolean =
-        null != ffind { it == item }
+    override fun fcontains(item: @UnsafeVariance A?): Boolean =
+        item?.let{ null != ffind { it == item } } ?: false
 
     override fun fcount(isMatch: (A) -> Boolean): Int {
 
@@ -116,8 +114,16 @@ sealed class FList<out A: Any>: IMList<A> {
         return ffilter(aux)
     }
 
-    override fun ffindAny(isMatch: (A) -> Boolean): A? = // TODO stop immediately after positive match
-        ffind(isMatch)
+    override fun ffindAny(isMatch: (A) -> Boolean): A? {
+
+        tailrec fun go(xs: FList<A>): A? = when (xs) {
+            is FLNil -> null
+            is FLCons -> if (isMatch(xs.head)) xs.head else go(xs.tail)
+        }
+
+        return go(this)
+    }
+
 
     private val strictness: Boolean by lazy { when { // TODO cannot be immutable if holding mutable containers
         fempty() -> true
@@ -160,7 +166,7 @@ sealed class FList<out A: Any>: IMList<A> {
 
         return when {
             size <= n -> FLNil
-            n < 0 -> this
+            n <= 0 -> this
             else -> dropNext(1, this)
         }
     }
@@ -291,7 +297,10 @@ sealed class FList<out A: Any>: IMList<A> {
             null -> acc
             else -> {
                 val newAcc = if (currentIx < 0 || size <= currentIx) acc
-                else FLCons(klist.get(currentIx), acc)
+                else {
+                    val a: A = atWantedIxPosition(currentIx, this.size,this,0) ?: throw IndexOutOfBoundsException("index $currentIx")
+                    FLCons(a, acc)
+                }
                 go(ixs.ftail(), newAcc)
             }
         }
@@ -553,16 +562,16 @@ sealed class FList<out A: Any>: IMList<A> {
 
     // ===== altering
 
-    override fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
+    internal fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
 
-    override fun fappendAll(elements: IMList<@UnsafeVariance A>): FList<A> = when(elements) {
+    internal fun fappendAll(elements: IMList<@UnsafeVariance A>): FList<A> = when(elements) {
         is FList -> flAppend(this, elements)
         else -> flAppend(this, of(elements))
     }
 
-    override fun fprepend(item: @UnsafeVariance A): FList<A> = flSetHead(item, this)
+    internal fun fprepend(item: @UnsafeVariance A): FList<A> = flSetHead(item, this)
 
-    override fun fprependAll(elements: IMList<@UnsafeVariance A>): FList<A> = when (elements) {
+    internal fun fprependAll(elements: IMList<@UnsafeVariance A>): FList<A> = when (elements) {
         is FList -> flAppend(elements, this)
         else -> flAppend(of(elements), this)
     }
@@ -631,11 +640,26 @@ sealed class FList<out A: Any>: IMList<A> {
         }
     }
 
-    companion object: IMListCompanion {
+    companion object: IMListCompanion, IMListWritable {
 
         val NOT_FOUND: Int = -1
 
         override fun <A: Any> emptyIMList(): FList<A> = FLNil
+
+        override fun <A: Any> fadd(src: A, dest: IMCommon<A>): FList<A>? =
+            (dest as? FList<A>)?.let { it.fappend(src) }
+
+        override fun <A : Any> fappend(src: A, dest: IMList<A>): FList<A>? =
+            (dest as? FList<A>)?.let { it.fappend(src) }
+
+        override fun <A : Any> fappendAll(src: IMList<A>, dest: IMList<A>): FList<A>? =
+            (dest as? FList<A>)?.let { it.fappendAll(src) }
+
+        override fun <A : Any> fprepend(src: A, dest: IMList<A>): FList<A>? =
+            (dest as? FList<A>)?.let { it.fprepend(src) }
+
+        override fun <A : Any> fprependAll(src: IMList<A>, dest: IMList<A>): FList<A>? =
+            (dest as? FList<A>)?.let { it.fprependAll(src) }
 
         override fun <A: Any> of(vararg items: A): FList<A> {
             var acc : FList<A> = FLNil
@@ -682,11 +706,27 @@ sealed class FList<out A: Any>: IMList<A> {
 
         // ==========
 
-        override fun <A: Any> Collection<A>.toIMList(): IMList<A> = when(this) {
-            is FList<*> -> TODO()
-            is FKSet<*, A> -> this.copyToFList()
-            is List -> of(this)
-            else -> of(this.iterator())
+        /*
+        if (this.isEmpty()) FIKSetEmpty.empty() else when (val iter = this.iterator()) {
+            is FKSetIterator<*, A> -> {
+                val original = @Suppress("UNCHECKED_CAST") (this as FKSetRetrieval<*,A>).original()
+                when (original.fkeyTypeOrNull()!!) {
+                    is IntKeyType -> @Suppress("UNCHECKED_CAST") (this as FKSet<Int, A>)
+                    else -> original.body.toIMSet(IntKeyType)?.let { @Suppress("UNCHECKED_CAST") (it as FKSet<Int, A>) }
+                }
+            }
+            else -> ofi(iter)
+        }
+         */
+        override fun <A: Any> Iterable<A>.toIMList(): IMList<A> {
+            val iter = this.iterator()
+            return if (!iter.hasNext()) emptyIMList() else when (iter) {
+                is FKSetIterator<*,*> -> @Suppress("UNCHECKED_CAST") (this as FKSetRetrieval<*,A>).original().toFList()
+                is FListIteratorFwd<A> -> @Suppress("UNCHECKED_CAST") (this as FListRetrieval<A>).original()
+                is FStackIterator<A> -> @Suppress("UNCHECKED_CAST") (this as FStackRetrieval<A>).original().toFList()
+                is FQueueIterator<A> -> @Suppress("UNCHECKED_CAST") (this as FQueueRetrieval<A>).original().toFList()
+                else -> of(iter)
+            }
         }
 
         // ========== implementation
@@ -706,8 +746,8 @@ sealed class FList<out A: Any>: IMList<A> {
         }
 
         internal inline fun <reified A: Any, reified B: FList<A>> firstNotEmpty(l: FList<A>): FList<A>? {
-            val iter = l.klist.iterator() as FListIteratorFwd<A>
-            for ( el in iter) when (el) {
+            val iter = FListIteratorFwd(l)
+            for (el in iter) when (el) {
                 is FLCons<*> -> if (el is B && !el.fempty()) return el
                 else -> continue
             }
@@ -815,7 +855,7 @@ data class FLCons<out A: Any>(
         other is IMList<*> -> when {
             other.fempty() -> false
             fhead()!!.isStrictlyNot(other.fhead()!!) -> false
-            else -> @Suppress("UNCHECKED_CAST") IMListEqual2(this, other as IMList<A>)
+            else -> (@Suppress("UNCHECKED_CAST")(other as? IMList<A>))?.let { IMListEqual2(this, it) } ?: false
         }
         else -> false
     }
@@ -826,12 +866,7 @@ data class FLCons<out A: Any>(
             fsize() != rhs.fsize() -> false
             else -> TODO()
         }
-        is List<*> -> when {
-            rhs.isEmpty() -> false
-            fhead()!!.isStrictlyNot(rhs.first()!!) -> false
-            fsize() != rhs.size -> false
-            else -> rhs.equals(this)
-        }
+        is List<*> -> IMOrdered.softEqual(this,rhs)
         else -> false
     }
 
@@ -885,4 +920,5 @@ data class FLCons<out A: Any>(
         //
         fun <A: Any> hashCode(cons: FLCons<A>) = cons.hash
     }
+
 }

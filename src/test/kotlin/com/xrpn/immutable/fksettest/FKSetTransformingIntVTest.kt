@@ -5,6 +5,7 @@ import com.xrpn.imapi.StrKeyType
 import com.xrpn.immutable.FKSet
 import com.xrpn.immutable.FKSet.Companion.asFKSet
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
+import com.xrpn.immutable.FKSet.Companion.emptyIMKISet
 import com.xrpn.immutable.FList
 import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.core.spec.style.FunSpec
@@ -76,7 +77,7 @@ class FKSetTransformingIntVTest : FunSpec({
     }
 
     test("fmap") {
-        intKKSOfNone.fmap { it + 1 } shouldBe emptyIMKSet()
+        intKKSOfNone.fmap { it + 1 } shouldBe emptyIMKISet()
         (intKKSOfNone.fmap { it + 1 } === emptyIMKSet<Int,Int>(IntKeyType)) shouldBe true
         (intKKSOfNone.fmap { it + 1 } === emptyIMKSet<String,Int>(StrKeyType)) shouldBe false
         intKKSOfTwo.fmap { it + 1 }.equals(intKKSOfTwoOfst1) shouldBe true

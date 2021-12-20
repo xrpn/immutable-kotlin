@@ -1,11 +1,10 @@
 package com.xrpn.bridge
 
-import com.xrpn.immutable.FLCons
-import com.xrpn.immutable.FLNil
-import com.xrpn.immutable.FList
+import com.xrpn.immutable.*
+import com.xrpn.immutable.FListRetrieval
 import java.util.concurrent.atomic.AtomicInteger
 
-class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, nextIndex: Int = IX_START): ListIterator<A> {
+class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, nextIndex: Int = IX_START): ListIterator<A>, Iterable<A> {
 
     enum class BIDI { FWD, BACK }
 
@@ -28,6 +27,12 @@ class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, ne
     override fun hasNext(): Boolean = nextIndex() < seed.size
 
     override fun nextIndex(): Int = nextIx.get()
+
+    override fun iterator(): ListIterator<A> = this
+
+    internal val retriever: FListRetrieval<A> = object : FListRetrieval<A> {
+        override fun original(): FList<A> = seed
+    }
 
     override fun next(): A =
         if (hasNext()) getAt(nextIndex(), BIDI.FWD)
