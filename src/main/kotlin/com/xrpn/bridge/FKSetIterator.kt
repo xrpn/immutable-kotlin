@@ -25,9 +25,9 @@ class FKSetIterator<out K, out A: Any> internal constructor(val seed: FKSet<K, A
 
     override fun iterator(): Iterator<A> = this
 
-    internal val retriever: FKSetRetrieval<K, A> = object : FKSetRetrieval<K, A> {
+    internal val retriever: FKSetRetrieval<K, A> by lazy { object : FKSetRetrieval<K, A> {
         override fun original(): FKSet<K, A> = seed
-    }
+    }}
 
     companion object {
 

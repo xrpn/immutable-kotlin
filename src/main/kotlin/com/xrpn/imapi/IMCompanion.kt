@@ -19,9 +19,7 @@ internal fun <A: Any> IMListEqual2(lhs: IMList<A>, rhs: IMList<A>): Boolean {
         rhs.fempty() && lhs.fempty() -> true
         rhs.fempty() || lhs.fempty() -> false
         rhs.fsize() != lhs.fsize() -> false
-        // same elements in same order
-        lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize() -> true
-        else -> false
+        else -> lhs.fzipWhile(rhs) { l, r ->  l.equals(r) }.fsize() == lhs.fsize()
     }
 
     // TODO remove in time
@@ -40,30 +38,26 @@ interface IMListCompanion {
     fun <A: Any, B> ofMap(items: List<B>, f: (B) -> A): IMList<A>
 
     fun <A: Any> Iterable<A>.toIMList():IMList<A>
+}
 
+internal fun <A: Any> IMRSetSoftEqual2(lhs: IMSet<A>, rhs: IMSet<Any>): Boolean = when {
+    rhs === lhs -> true
+    rhs.fempty() && lhs.fempty() -> true
+    rhs.fempty() || lhs.fempty() -> false
+    rhs.fsize() != lhs.fsize() -> false
+    else -> lhs.fcount(rhs::fcontains) == rhs.fsize()
 }
 
 // because of type erasure, this is not entirely type safe, hence "internal"
-internal fun <A: Any> IMRSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean {
+internal fun <A: Any> IMRSetEqual2(lhs: IMSet<A>, rhs: IMSet<A>): Boolean =
+    IMRSetSoftEqual2(lhs,rhs)
 
-    val res = when {
-        lhs === rhs -> true
-        lhs.fempty() && rhs.fempty() -> true
-        lhs.fempty() || rhs.fempty() -> false
-        lhs.fsize() != rhs.fsize() -> false
-        else -> {
-            val lhsInRhs = rhs.fcount(lhs::fcontains)
-            val rhsInLhs = lhs.fcount(rhs::fcontains)
-            lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
-        }
-    }
-
-    return res
-}
+internal fun <A: Any> IMKSetSoftEqual2(lhs: IMKSet<*, A>, rhs: IMKSet<*, A>): Boolean =
+    IMRSetEqual2(lhs,rhs)
 
 // because of type erasure, this is not entirely type safe, hence "internal"
 internal fun <K, A: Any> IMKSetEqual2(lhs: IMKSet<K, A>, rhs: IMKSet<K, A>): Boolean  where K: Any, K: Comparable<K> =
-    IMBTreeEqual2(lhs.toIMBTree(), rhs.toIMBTree())
+    IMKSetSoftEqual2(lhs,rhs)
 
 interface IMKSetCompanion {
 
@@ -126,11 +120,7 @@ internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) :
         rhs.fempty() && lhs.fempty() -> true
         rhs.fempty() || lhs.fempty() -> false
         rhs.fsize() != lhs.fsize() -> false
-        else -> {
-            val lhsInRhs = rhs.fcount(lhs::fcontains)
-            val rhsInLhs = lhs.fcount(rhs::fcontains)
-            lhsInRhs == rhsInLhs && lhsInRhs == rhs.fsize()
-        }
+        else -> rhs.fcount(lhs::fcontains) == rhs.fsize()
     }
 
     // TODO remove in time

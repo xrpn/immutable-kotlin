@@ -133,11 +133,17 @@ fun <A: Any, B> Arb.Companion.fbstreeWithDups(
     }
 }
 
+fun <A: Any, B> Arb.Companion.fbstreeAsIterable(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Iterable<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ FTreeIterator(it) }
+
 fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ FTreeIterator(it).toList() }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ it.asCollection() }
 
 fun <A: Any, B> Arb.Companion.fqueue(
     arbB: Arb<B>,

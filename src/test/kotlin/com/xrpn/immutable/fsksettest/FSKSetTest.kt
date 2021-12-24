@@ -29,7 +29,7 @@ class FSKSetTest : FunSpec({
         copaSSetOfNone.toIMKSetNotEmpty(lskt) shouldBe null
         copaSSetOf3.toIMKSetNotEmpty(lskt) shouldBe null
         copaSSetOfNone.toIMKSetNotEmpty(copaKey) shouldBe null
-        copaSSetOf3.toIMKSetNotEmpty(copaKey)!!.equals(copaKKSetOf3) shouldBe true
+        copaSSetOf3.toIMKSetNotEmpty(copaKey)?.equals(copaKKSetOf3) shouldBe true
     }
 
     test("toIMKSetNotEmpty b") {

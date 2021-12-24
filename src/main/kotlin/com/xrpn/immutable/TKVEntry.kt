@@ -162,7 +162,7 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
             other !is TKVEntryType<*,*> -> false
             kClass != other.kClass -> false
             vClass != other.vClass -> false
-            else -> 0 == @Suppress("UNCHECKED_CAST")(other as TKVEntryType<A, B>).compareTo(this)
+            else -> 0 == @Suppress("UNCHECKED_CAST")(other as? TKVEntryType<A, B>)?.compareTo(this)
         }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)

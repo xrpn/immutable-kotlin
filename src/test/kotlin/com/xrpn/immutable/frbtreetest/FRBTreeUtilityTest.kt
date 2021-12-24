@@ -20,7 +20,6 @@ import io.kotest.xrpn.frbtree
 import java.util.concurrent.atomic.AtomicInteger
 
 private val intFRBTreeOfNone = FRBTree.ofvi(*emptyArrayOfInt)
-private val intFRBSTreeOfNone = FRBTree.ofvs(*emptyArrayOfInt)
 private val intFRBTreeOfOne = FRBTree.ofvi(*arrayOf<Int>(1))
 private val intFRBTreeOfTwo = FRBTree.ofvi(*arrayOf<Int>(1, 2))
 private val intFRBTreeOfThree = FRBTree.ofvi(*arrayOf<Int>(1, 2, 3))
@@ -83,26 +82,26 @@ class FRBTreeUtilityTest  : FunSpec({
         intFRBTreeOfThree.equal(FRBTree.finsertIK(FRBTree.finsertIK(emptyIMBTree(),3), 2)) shouldBe false
     }
 
-    test("equal (B)") {
+    test("softEqual") {
         
-        intFBSTreeOfNone.equal(intFRBTreeOfNone) shouldBe true
+        intFBSTreeOfNone.softEqual(intFRBTreeOfNone) shouldBe true
 
-        intFBSTreeOfNone.equal(intFRBTreeOfOne) shouldBe false
-        intFBSTreeOfOne.equal(intFRBTreeOfNone) shouldBe false
-        intFBSTreeOfOne.equal(FRBTree.finsertIK(emptyIMBTree(),1)) shouldBe true
-        intFBSTreeOfOne.equal(intFRBTreeOfOne) shouldBe true
+        intFBSTreeOfNone.softEqual(intFRBTreeOfOne) shouldBe false
+        intFBSTreeOfOne.softEqual(intFRBTreeOfNone) shouldBe false
+        intFBSTreeOfOne.softEqual(FRBTree.finsertIK(emptyIMBTree(),1)) shouldBe true
+        intFBSTreeOfOne.softEqual(intFRBTreeOfOne) shouldBe true
 
-        intFBSTreeOfOne.equal(intFRBTreeOfTwo) shouldBe false
-        intFBSTreeOfTwo.equal(intFRBTreeOfOne) shouldBe false
-        intFBSTreeOfTwo.equal(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 2)) shouldBe true
-        intFRBTreeOfTwo.equal(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),2), 1)) shouldBe true
-        intFBSTreeOfTwo.equal(intFRBTreeOfTwo) shouldBe true
+        intFBSTreeOfOne.softEqual(intFRBTreeOfTwo) shouldBe false
+        intFBSTreeOfTwo.softEqual(intFRBTreeOfOne) shouldBe false
+        intFBSTreeOfTwo.softEqual(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),1), 2)) shouldBe true
+        intFRBTreeOfTwo.softEqual(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),2), 1)) shouldBe true
+        intFBSTreeOfTwo.softEqual(intFRBTreeOfTwo) shouldBe true
 
-        intFBSTreeOfThree.equal(intFRBTreeOfTwo) shouldBe false
-        intFBSTreeOfTwo.equal(intFRBTreeOfThree) shouldBe false
-        intFBSTreeOfThree.equal(FRBTree.finsertIK(FRBTree.finsertIK(emptyIMBTree(),1), 3)) shouldBe false
-        intFBSTreeOfThree.equal(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 1)) shouldBe false
-        intFBSTreeOfThree.equal(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 2)) shouldBe false
+        intFBSTreeOfThree.softEqual(intFRBTreeOfTwo) shouldBe false
+        intFBSTreeOfTwo.softEqual(intFRBTreeOfThree) shouldBe false
+        intFBSTreeOfThree.softEqual(FRBTree.finsertIK(FRBTree.finsertIK(emptyIMBTree(),1), 3)) shouldBe false
+        intFBSTreeOfThree.softEqual(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 1)) shouldBe false
+        intFBSTreeOfThree.softEqual(FRBTree.finsertIK(FBSTree.finsertIK(emptyIMBTree(),3), 2)) shouldBe false
     }
 
     test ("forEach presorted") {

@@ -11,6 +11,7 @@ interface IMListUtility<out A: Any> {
 }
 
 interface IMSetUtility<out A: Any> {
+    fun asSet(): Set<A>
     fun equal(rhs: IMSet<@UnsafeVariance A>): Boolean = equals(rhs)
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMSet<A>

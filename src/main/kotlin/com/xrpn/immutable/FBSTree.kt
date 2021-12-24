@@ -41,7 +41,6 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     // =========== Collection
 
-    /* TODO start
     private val kollection: Collection<TKVEntry<A, B>> by lazy { object : Collection<TKVEntry<A, B>> {
         override val size: Int by lazy { this@FBSTree.size }
         override fun isEmpty(): Boolean = this@FBSTree is FBSTNil
@@ -55,10 +54,11 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             return true
         }
         override fun iterator(): FTreeIterator<A, B> = FTreeIterator(this@FBSTree)
+        override fun equals(other: Any?): Boolean = this@FBSTree.softEqual(other)
+        override fun hashCode(): Int = this@FBSTree.hashCode()
     }}
 
     fun asCollection(): Collection<TKVEntry<A, B>> = kollection
-    TODO end */
 
     val size: Int by lazy { if (this.fempty()) 0 else this.ffold(0) { acc, _ -> acc+1 } }
 
@@ -83,7 +83,7 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     override fun fcontains(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean =
         item?.let { bstFind(this, it) != null } ?: false
 
-    override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = when (items) {
+    override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FBSTree<A, B> = if (items.fempty()) this else when (items) {
         // TODO consider memoization
         is IMBTree -> this.fdropAlt(items) as FBSTree<A, B>
         is IMMap -> this.fdropAlt(items.asIMBTree()) as FBSTree<A, B>
@@ -776,7 +776,10 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         internal tailrec fun <A, B: Any> bstDeletes(treeStub: FBSTree<A, B>, items: IMCommon<TKVEntry<A,B>>): FBSTree<A, B>
         where A: Any, A: Comparable<A> {
-            val (nextItem, collection) = items.fpopAndRemainder()
+            val (nextItem, collection) = when (items) {
+                is IMOrdered<TKVEntry<A, B>> -> Pair(items.fnext(), items.fdrop(1))
+                else -> items.fpopAndRemainder()
+            }
             return if (null == nextItem) treeStub else bstDeletes(bstDelete(treeStub, nextItem), collection)
         }
 
@@ -1287,16 +1290,23 @@ internal abstract class FBSTNode<out A, out B: Any> protected constructor (
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other == null -> false
-        other is FBSTNode<*, *> -> when {
-            other.fempty() -> false
-            entry.strictlyNot(other.entry.untype()) -> false
-            else -> (@Suppress("UNCHECKED_CAST") (other as? FBSTNode<A, B>))?.let { IMBTreeEqual2 (this, it) } ?: false
+        other is FBSTree<*, *> -> when {
+           other.fempty() -> false
+            else -> {
+                other as FBSTNode<*,*>
+                if (entry.strictlyNot(other.entry.untype())) false
+                else (@Suppress("UNCHECKED_CAST") (other as? FBSTNode<A, B>))?.let { IMBTreeEqual2(this, it) } ?: false
+            }
+        }
+        (other is Collection<*>) -> when(val iter = other.iterator()) {
+            is FTreeIterator<*,*> -> equals(iter.retriever.original())
+            else -> false
         }
         else -> false
     }
 
-    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
-        is IMBTree<*, *> -> when {
+    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when {
+        rhs is IMBTree<*, *> -> when {
             rhs.fempty() -> false
             entry.strictlyNot(rhs.froot()!!.untype()) -> false
             else -> (@Suppress("UNCHECKED_CAST") (rhs as? IMBTree<A, B>))?.let { IMBTreeEqual2 (this, it) } ?: false

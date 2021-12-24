@@ -15,6 +15,9 @@ import com.xrpn.immutable.TKVEntry.Companion.ofk
 //  W W W W   I  P
 //   W   W    I  P
 //
+internal interface FKMapRetrieval<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
+    fun original(): FKMap<K,V>
+}
 
 sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@UnsafeVariance K> {
 

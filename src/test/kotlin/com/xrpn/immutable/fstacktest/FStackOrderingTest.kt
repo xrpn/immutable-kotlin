@@ -69,11 +69,11 @@ class FStackOrderingTest : FunSpec({
   }
 
   test("fnext") {
-    strStackOfNone.fnext() shouldBe Pair(null, strStackOfNone)
-    strStackOfOneA.fnext() shouldBe Pair(itemA, strStackOfNone)
-    strStackOfTwoAB.fnext() shouldBe Pair(itemA, strStackOfOneB)
-    strStackOfTwoBA.fnext() shouldBe Pair(itemB, strStackOfOneA)
-    strStackOfThree.fnext() shouldBe Pair(itemA, strStackOfTwoBC)
+    strStackOfNone.fnext() shouldBe null
+    strStackOfOneA.fnext() shouldBe itemA
+    strStackOfTwoAB.fnext() shouldBe itemA
+    strStackOfTwoBA.fnext() shouldBe itemB
+    strStackOfThree.fnext() shouldBe itemA
   }
 
   test("freverse") {

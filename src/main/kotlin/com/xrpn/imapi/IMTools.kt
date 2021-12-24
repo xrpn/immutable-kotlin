@@ -73,7 +73,7 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
     fun isLike(kClass: KClass<*>?, vClass: KClass<*>): Boolean = kKc == kClass && vKc == vClass
     fun <KK: KClass<*>?, VV: KClass<*>> isStrictly(other: KeyedTypeSample<KK, VV>): Boolean = (kKc == other.kKc && vKc == other.vKc)
     fun isLikeKey(kClass: KClass<*>?): Boolean = kKc == kClass
-    fun isLikeValue(vClass: KClass<*>): Boolean = vKc == vClass
+    fun isLikeValue(vClass: KClass<*>?): Boolean = vKc == vClass
 }
 
 fun <T: Any> IMCommon<T>?.toIMMapplicable(): ITMapp<T>? =

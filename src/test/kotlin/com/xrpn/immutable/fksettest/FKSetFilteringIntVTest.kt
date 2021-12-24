@@ -149,8 +149,8 @@ class FKSetFilteringIntVTest : FunSpec({
 
         // mixed mode
 
-        intSSetOfThree.fdropItem(3).equal(intKKSetOfTwo) shouldBe true
-        intKKSetOfThree.fdropItem(3).equal(intSSetOfTwo) shouldBe true
+        intSSetOfThree.fdropItem(3).equals(intKKSetOfTwo) shouldBe true
+        intKKSetOfThree.fdropItem(3).equals(intSSetOfTwo) shouldBe true
     }
 
     test("fdropAll") {

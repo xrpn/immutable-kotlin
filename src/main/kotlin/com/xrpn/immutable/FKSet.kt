@@ -2,6 +2,7 @@ package com.xrpn.immutable
 
 import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.*
+import com.xrpn.immutable.FKSet.Companion.toIMISet
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
@@ -54,13 +55,18 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     override fun equals(other: Any?): Boolean = asIMKSetNotEmpty()?.let { fksetNe -> when {
         fksetNe === other -> true
         other == null -> false
-        other is IMKSetNotEmpty<*,*> -> imkSetNotEmptyIMEquality(fksetNe, other)
-        else -> false
+        other !is IMKeyedValue<*,*> -> false
+        other.fpickKey() == null /* i.e.empty */ -> false
+        !(other.ftypeSample()?.isLikeValue(ftypeSample()?.vKc) ?: false) -> false
+        else -> (other as? IMKSetNotEmpty<*,*>)?.let { IMRSetEqual2(this, it ) } ?: false
     }} ?: throw RuntimeException("internal error, ${this::class} (size:${this.fsize()}) must not be empty")
 
     override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
-        is Set<*> -> if (rhs.isEmpty() || rhs.size != fsize()) false
-                     else rhs.equals(FKSetIterator(this))
+        is Set<*> -> when {
+            rhs.isEmpty() -> fempty()
+            rhs.size != fsize() -> false
+            else -> rhs.equals(asSet())
+        }
         else -> false
     }
 
@@ -73,7 +79,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     
     override fun hashCode(): Int = hash
 
-    /* TODO start
     private val set: Set<A> by lazy { object : Set<A>, FKSetRetrieval<K,A> {
         // from Collection<A>
         override val size: Int by lazy { this@FKSet.fsize() }
@@ -85,10 +90,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         override fun isEmpty(): Boolean = this@FKSet.fempty()
         override fun iterator(): FKSetIterator<K, A> = FKSetIterator(this@FKSet)
         override fun original(): FKSet<K, A> = this@FKSet
+        override fun equals(other: Any?): Boolean = this@FKSet.softEqual(other)
+        override fun hashCode(): Int = this@FKSet.hashCode()
     }}
 
-    fun asSet(): Set<A> = set
-    TODO end */
+    override fun asSet(): Set<A> = set
 
     override operator fun contains(element: @UnsafeVariance A): Boolean = when (this) {
         is FKSetEmpty -> false
@@ -969,24 +975,33 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
         // ==========
 
-        override fun <K, A: Any> Iterable<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K> =
-            if (this.iterator().hasNext()) when(kType) {
+        override fun <K, A: Any> Iterable<A>.toIMKSet(kType: RestrictedKeyType<K>): IMSet<A>? where K: Any, K: Comparable<K> {
+
+            fun migrate() = when (kType) {
                 is IntKeyType -> this.toIMISet()
                 is StrKeyType -> this.toIMSSet()
-                is SymKeyType -> if (this.first()::class != kType.kc) null else
-                    @Suppress("UNCHECKED_CAST") ((this as? Collection<K>)?.toIMKSet() as? FKSet<K,A>)
+                is SymKeyType -> @Suppress("UNCHECKED_CAST") ((this as? Iterable<K>)?.toIMKSet() as? FKSet<K, A>)
                 is DeratedCustomKeyType -> throw RuntimeException("internal error")
-            } else emptyIMKSet(kType)
+            }
+
+            val iter = this.iterator()
+            val maybeIMSet = if (iter is FKSetIterator<*, A>) iter.retriever.original() else null
+            val maybeKey: RestrictedKeyType<Any>? = maybeIMSet?.fkeyTypeOrNull()
+            return maybeKey?.let { iterKey -> when {
+                iterKey.isStrictly(kType) -> if (iterKey.kc == kType.kc) maybeIMSet else /* different SymKeyType */ null
+                else -> migrate()
+            }} ?: migrate()
+        }
 
         override fun <A: Any> Iterable<A>.toIMISet(): FKSet<Int, A>?    {
             val iter = this.iterator()
             return if (iter.hasNext()) when (iter) {
                 is FKSetIterator<*, A> -> {
-                    val original = @Suppress("UNCHECKED_CAST") (this as? FKSetRetrieval<*,A>)?.original()
-                    original?.let { ori -> when (ori.fkeyTypeOrNull()!!) {
+                    val ori = iter.retriever.original()
+                    when (ori.fkeyTypeOrNull()!!) {
                         is IntKeyType -> @Suppress("UNCHECKED_CAST") (this as? FKSet<Int, A>)
-                        else -> ori.body.toIMSet(IntKeyType)?.let { @Suppress("UNCHECKED_CAST") (it as? FKSet<Int, A>) }
-                    }}
+                        else -> ori.body.toIMBTree(IntKeyType)?.let { it as FRBTree<Int, A> }?.let { ofFIKSBody(it) }
+                    }
                 }
                 else -> ofi(iter)
             }
@@ -997,11 +1012,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
             val iter = this.iterator()
             return if (iter.hasNext()) when (iter) {
                 is FKSetIterator<*, A> -> {
-                    val original = @Suppress("UNCHECKED_CAST") (this as? FKSetRetrieval<*,A>)?.original()
-                    original?.let { ori -> when (ori.fkeyTypeOrNull()!!) {
+                    val ori = iter.retriever.original()
+                    when (ori.fkeyTypeOrNull()!!) {
                         is StrKeyType -> @Suppress("UNCHECKED_CAST") (this as? FKSet<String, A>)
-                        else -> ori.body.toIMSet(IntKeyType)?.let { @Suppress("UNCHECKED_CAST") (it as? FKSet<String, A>) }
-                    }}
+                        else -> ori.body.toIMBTree(StrKeyType)?.let { it as FRBTree<String, A> }?.let { ofFSKSBody(it) }
+                    }
                 }
                 else -> ofs(iter)
             }
@@ -1012,11 +1027,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
             val iter = this.iterator()
             return if (iter.hasNext()) when (iter) {
                 is FKSetIterator<*, A> -> {
-                    val original = @Suppress("UNCHECKED_CAST") (this as? FKSetRetrieval<*, A>)?.original()
-                    original?.let { ori -> when (ori.fkeyTypeOrNull()!!) {
+                    val ori = iter.retriever.original()
+                    when (ori.fkeyTypeOrNull()!!) {
                         is SymKeyType<*> -> @Suppress("UNCHECKED_CAST") (this as? FKSet<A, A>)
-                        else -> ori.body.toIMSet(IntKeyType)?.let { @Suppress("UNCHECKED_CAST") (it as? FKSet<A, A>) }
-                    }}
+                        else -> ofk(iter)
+                    }
                 }
                 else -> ofk(iter)
             } else FKKSetEmpty.empty()
@@ -1146,20 +1161,6 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
 // FIKSet implementation
 // =====================================================================================================================
 
-private fun <J, K, A: Any, B: Any> imkSetNotEmptyIMEquality(lhs: IMKSetNotEmpty<J, A>, rhsMaybeEmpty: IMKSet<K, B>): Boolean
-where K: Any, K: Comparable<K>, J: Any, J: Comparable<J> = rhsMaybeEmpty.asIMKSetNotEmpty()?.let { rhs -> when {
-    lhs === rhs -> true
-    else -> lhs.toIMBTree().equals(rhs.toIMBTree())
-}} ?: false
-
-private fun <K, A: Any, B: Any> imkSetNotEmptyEquality(lhs: IMKSetNotEmpty<K, A>, rhs: Set<B>): Boolean
-where K: Any, K: Comparable<K> = if (rhs.isEmpty()) false else when {
-    rhs is IMKSetNotEmpty<*, *> -> imkSetNotEmptyIMEquality(lhs, rhs)
-    lhs.fsize() != rhs.size -> false
-    lhs.fpick()!!.isStrictlyNot(rhs.first()) -> false
-    else -> rhs.equals(lhs)
-}
-
 private class FIKSetEmpty<out A: Any> private constructor (
     b: FRBTree<Int,A> = FRBTNil
 ): FKSetEmpty<Int,@UnsafeVariance A>(b), IMSetAltering<A> {
@@ -1219,8 +1220,11 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
     override fun <KK> toIMKSetNotEmpty(kt: RestrictedKeyType<KK>): IMKSetNotEmpty<KK, A>? where KK: Any, KK : Comparable<KK> = when (kt) {
         is IntKeyType -> forceKey<KK, Int, A>(this)
         is StrKeyType -> @Suppress("UNCHECKED_CAST") (toFSKSetNotEmpty() as? IMKSetNotEmpty<KK, A>)
-        is SymKeyType -> if ( kt.kc.isStrictlyNot(body.froot()?.getkKc())) null
-                         else toFKKSetNotEmpty()?.let { @Suppress("UNCHECKED_CAST") (it as? IMKSetNotEmpty<KK, A>) }
+        is SymKeyType -> when {
+            kt.kc.isStrictly(body.froot()?.getkKc()) -> @Suppress("UNCHECKED_CAST") (this as? IMKSetNotEmpty<KK, A>)
+            kt.kc.isStrictlyNot(body.froot()?.getvKc()) -> null
+            else -> toFKKSetNotEmpty()?.let { @Suppress("UNCHECKED_CAST") (it as? IMKSetNotEmpty<KK, A>) }
+        }
         is DeratedCustomKeyType -> kt.specialize<KK>()?.let { toIMKSetNotEmpty(it) }
     }
 
@@ -1319,8 +1323,11 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     override fun <KK> toIMKSetNotEmpty(kt: RestrictedKeyType<KK>): IMKSetNotEmpty<KK, A>? where KK: Any, KK : Comparable<KK> = when (kt) {
         is StrKeyType -> forceKey<KK, String, A>(this)
         is IntKeyType -> @Suppress("UNCHECKED_CAST") (toFIKSetNotEmpty() as? IMKSetNotEmpty<KK, A>)
-        is SymKeyType -> if ( kt.kc.isStrictlyNot(body.froot()?.getkKc())) null
-                         else toFKKSetNotEmpty()?.let { @Suppress("UNCHECKED_CAST") (it as? IMKSetNotEmpty<KK, A>) }
+        is SymKeyType ->  when {
+            kt.kc.isStrictly(body.froot()?.getkKc()) -> @Suppress("UNCHECKED_CAST") (this as? IMKSetNotEmpty<KK, A>)
+            kt.kc.isStrictlyNot(body.froot()?.getvKc()) -> null
+            else -> toFKKSetNotEmpty()?.let { @Suppress("UNCHECKED_CAST") (it as? IMKSetNotEmpty<KK, A>) }
+        }
         is DeratedCustomKeyType -> kt.specialize<KK>()?.let { toIMKSetNotEmpty(it) }
     }
 
@@ -1335,7 +1342,7 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     // implementation
 
     fun toFKKSetNotEmpty(): IMSet<A>? =  when {
-        fpick() !is String -> throw RuntimeException("internal error") // FSKSetNotEmpty should have been FKKSetNotEmpty
+        fpick()!! is String -> throw RuntimeException("internal error") // FSKSetNotEmpty should have been FKKSetNotEmpty
         !(compKc.isInstance(fpick()!!)) -> null
         else -> toFKKSetNe(this, body)
     }

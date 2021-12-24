@@ -32,9 +32,11 @@ class FListCompanionTest : FunSpec({
 
   test("equals") {
     FList.emptyIMList<Int>().equals(null) shouldBe false
-    FList.emptyIMList<Int>().equals(emptyList<Int>()) shouldBe true
+    FList.emptyIMList<Int>().equals(emptyList<Int>()) shouldBe false
+    FList.emptyIMList<Int>().softEqual(emptyList<Int>()) shouldBe true
     FList.emptyIMList<Int>().equals(1) shouldBe false
     /* Sigh... */ intListOfNone.equals(strListOfNone) shouldBe true
+    /* Sigh... */ (intListOfNone === strListOfNone) shouldBe true
     intListOfTwo.equals(null) shouldBe false
     intListOfTwo.equals(strListOfNone) shouldBe false
     intListOfTwo.equals(strListOfTwo) shouldBe false

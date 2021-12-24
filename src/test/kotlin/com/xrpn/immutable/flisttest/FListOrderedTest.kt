@@ -63,10 +63,10 @@ class FListOrderedTest : FunSpec({
   }
 
   test("fnext") {
-    intListOfNone.fnext() shouldBe Pair(null, FLNil)
-    intListOfOne.fnext() shouldBe Pair(1, FLNil)
-    intListOfTwo.fnext() shouldBe Pair(1, intListOfOneB)
-    intListOfThree.fnext() shouldBe Pair(1, intListOfTwoB)
+    intListOfNone.fnext() shouldBe null
+    intListOfOne.fnext() shouldBe 1
+    intListOfTwo.fnext() shouldBe 1
+    intListOfThree.fnext() shouldBe 1
   }
 
   test("freverse") {

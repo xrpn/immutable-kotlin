@@ -23,14 +23,15 @@ class FMapTest : FunSpec({
         bkw.fsize() shouldBe szw
         for(key in FListIteratorFwd(frbWikiPreorder.fmap { it.getk() })) bkw.fcontains(key) shouldBe true
         bulkMapWiki.fvalues() shouldBe frbWikiPreorder.fmap { it.getv() }.freverse()
-        bulkMapWiki.fentries() shouldBe frbWikiPreorder
+        bulkMapWiki.fentries().equals(FKSet.ofi(frbWikiPreorder)) shouldBe true
+        bulkMapWiki.fentries().equals(FKSet.ofs(frbWikiPreorder)) shouldBe true
         val bulkMapSs = of(frbSlideSharePreorder)
         val szss = frbSlideSharePreorder.size
         val bkss: IMSet<Int> = bulkMapSs.fkeys()
         bkss.fsize() shouldBe szss
         for(key in FListIteratorFwd(frbSlideSharePreorder.fmap { it.getk() })) bkss.fcontains(key) shouldBe true
         bulkMapSs.fvalues() shouldBe frbSlideSharePreorder.fmap { it.getv() }.freverse()
-        bulkMapSs.fentries() shouldBe frbSlideSharePreorder
+        bulkMapSs.fentries().equals(FKSet.ofi(frbSlideSharePreorder)) shouldBe true
     }
 
     //

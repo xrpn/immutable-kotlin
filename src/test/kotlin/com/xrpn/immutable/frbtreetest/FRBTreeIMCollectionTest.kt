@@ -5,6 +5,7 @@ import com.xrpn.imapi.IMCommon
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.emptyIMBTree
 import com.xrpn.immutable.FRBTree.Companion.nul
+import com.xrpn.immutable.FRBTree.Companion.ofvi
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import io.kotest.core.spec.style.FunSpec
@@ -85,13 +86,13 @@ class FRBTreeIMCollectionTest : FunSpec({
       count shouldBe ts
       count = 0
       aut.fall { count+=1;false } shouldBe false
-      count shouldBe ts
+      count shouldBe 1
       count = 0
       aut.fall { count+=1; it > 0.toIAEntry() } shouldBe true
       count shouldBe ts
       count = 0
       aut.fall { count+=1; it > repeatsHigh.second.toIAEntry() } shouldBe false
-      count shouldBe ts
+      count shouldBe 1
     }
   }
 
@@ -153,8 +154,8 @@ class FRBTreeIMCollectionTest : FunSpec({
   }
 
   test("dropAll (nil)") {
-    FBSTree.nul<Int, Int>().fdropAll(FList.emptyIMList<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
-    FBSTree.nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe FRBTree.emptyIMBTree()
+    nul<Int, Int>().fdropAll(FList.emptyIMList()) shouldBe emptyIMBTree()
+    nul<Int, Int>().fdropAll(FLCons(1.toIAEntry(), FLNil)) shouldBe emptyIMBTree()
   }
 
   test("fdropAll") {
@@ -528,20 +529,20 @@ class FRBTreeIMCollectionTest : FunSpec({
   test("fpopAndRemainder") {
     val (nilPop, nilRemainder) = FRBTree.emptyIMBTree<Int, Int>().fpopAndRemainder()
     nilPop shouldBe null
-    nilRemainder shouldBe FRBTree.emptyIMBTree()
+    nilRemainder shouldBe emptyIMBTree()
 
-    val (onePop, oneRemainder) = FRBTree.ofvi(1).fpopAndRemainder()
+    val (onePop, oneRemainder) = ofvi(1).fpopAndRemainder()
     onePop shouldBe 1.toIAEntry()
-    oneRemainder shouldBe FRBTree.emptyIMBTree()
+    oneRemainder shouldBe emptyIMBTree()
 
     // this traverses slideShareTree popping one element at a time, and rebuilds the tree with the popped element
     // could probably have been a forEach...  It's always a fold in the end.
-    val res = frbSlideShareTree.ffold(Pair(FRBTree.nul<Int, Int>(), frbSlideShareTree.fpopAndRemainder())) { acc, _ ->
+    val res = frbSlideShareTree.ffold(Pair(nul<Int, Int>(), frbSlideShareTree.fpopAndRemainder())) { acc, _ ->
       val (rebuild, popAndStub) = acc
       val (pop, stub) = popAndStub
       Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
     }
-    res.first shouldBe slideShareTree
+    res.first shouldBe frbSlideShareTree
     val (lastPopped, lastRemainder) = res.second
     lastPopped shouldBe null
     lastRemainder shouldBe FRBTree.emptyIMBTree()

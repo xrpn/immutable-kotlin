@@ -52,9 +52,9 @@ class FQueueIterator<out A: Any> internal constructor(val seed: FQueue<A>, val r
 
     override fun iterator(): Iterator<A> = this
 
-    internal val retriever: FQueueRetrieval<A> = object : FQueueRetrieval<A> {
+    internal val retriever: FQueueRetrieval<A> by lazy { object : FQueueRetrieval<A> {
         override fun original(): FQueue<A> = seed
-    }
+    }}
 
     companion object {
 

@@ -63,6 +63,7 @@ import io.kotest.property.checkAll
 import io.kotest.xrpn.fbsItree
 import kotlin.random.Random.Default.nextInt
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.property.arbitrary.set
 
 private val intFbstOfNone = ofvi(*emptyArrayOfInt)
 private val intFbstOfOne = ofvi(*arrayOf<Int>(1))
@@ -461,13 +462,14 @@ class FBSTreeCompanionTest : FunSpec({
     }
 
     test("co.toIMBTree Map") {
-        Arb.list(Arb.int()).checkAll(repeats) { l ->
+        Arb.set(Arb.int()).checkAll(repeats) { l ->
             fun f(t: Int): Pair<Int, String> = Pair(t, (-t).toString())
             val m: Map<Int, String> = l.associate(::f)
-            m.toIMBTree() shouldBe ofMap(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
+            val mt = m.toIMBTree()
+            mt shouldBe ofMap(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
                 TKVEntry.ofkv(tkv.getk(), tkv.getv().toString())
             }
-            m.toIMBTree() shouldBe ofMapNotUnique(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
+            mt shouldBe ofMapNotUnique(l.map{ TKVEntry.ofkk(it, -it) }.iterator()) { tkv ->
                 TKVEntry.ofkv(tkv.getk(), tkv.getv().toString())
             }
         }

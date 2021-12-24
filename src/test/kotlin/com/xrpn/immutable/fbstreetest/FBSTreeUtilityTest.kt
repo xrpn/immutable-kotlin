@@ -57,6 +57,15 @@ class FBSTreeUtilityTest : FunSpec({
      FTreeIterator(depthTwoRightPartial).iterator().forEach(depthTwoRightPartial::quietAssert)
      FTreeIterator(depthTwoRightRight).iterator().forEach(depthTwoRightRight::quietAssert)
      FTreeIterator(depthTwoRightLeft).iterator().forEach(depthTwoRightLeft::quietAssert)
+
+    wikiTree.preorder() shouldBe wikiPreorder
+    wikiTree.inorder() shouldBe wikiInorder
+    wikiTree.postorder() shouldBe wikiPostorder
+
+    slideShareTree.preorder() shouldBe slideSharePreorder
+    slideShareTree.inorder() shouldBe slideShareInorder
+    slideShareTree.postorder() shouldBe slideSharePostorder
+
   }
 
   test("equal") {

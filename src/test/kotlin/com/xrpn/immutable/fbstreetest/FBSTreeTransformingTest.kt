@@ -5,7 +5,6 @@ import com.xrpn.imapi.IMList
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FBSTree.Companion.nul
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
-import io.kotest.assertions.fail
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -27,9 +26,8 @@ class FBSTreeTransformingTest : FunSpec({
             .fflatMap{ tkv -> depthOneRight.finsert(tkv) } shouldBe nul()
         depthOneRight.fflatMap{ nul<Int, String>() } shouldBe nul()
         depthOneRight.fflatMap{ tkv -> nul<Int, String>().finsert(tkv) } shouldBe depthOneRight
-        FTreeIterator(nul<Int, String>()).flatMap{  FTreeIterator(depthOneRight) } shouldBe FTreeIterator( nul<Int, String>())
-        FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>() ) } shouldBe FTreeIterator( nul<Int, String>())
-        depthOneRight.softEqual(FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>() ) }.toList()) shouldBe true
+        FTreeIterator(nul<Int, String>()).flatMap{  FTreeIterator(depthOneRight) } shouldBe FTreeIterator( nul<Int, String>()).toList()
+        FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>() ) } shouldBe FTreeIterator( nul<Int, String>()).toList()
         val cheat1 = wikiTree.fflatMap { slideShareTree }
         cheat1 shouldBe slideShareTree
         val cheat2 = slideShareTree.fflatMap { wikiTree }
@@ -68,11 +66,10 @@ class FBSTreeTransformingTest : FunSpec({
             .fflatMap { tkv -> depthOneRight.finsert(tkv) } shouldBe nul()
         depthOneRight.fflatMap{ nul<Int, String>() } shouldBe nul()
         depthOneRight.fflatMap{ tkv -> nul<Int, String>().finsert(tkv) }.equals(depthOneRight) shouldBe true
-        FTreeIterator( nul<Int,String>()).flatMap{  FTreeIterator(depthOneRight) } shouldBe FTreeIterator( nul<Int, String>()).iterator()
-        FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>()) } shouldBe FTreeIterator( nul<Int, String>()).iterator()
-        FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator( nul<Int, String>().finsert(tkv)) } shouldBe FTreeIterator(depthOneRight)
-        FTreeIterator(depthOneRight) shouldBe FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int, String>().finsert(tkv)) }
-        depthOneRight.softEqual(FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int, String>().finsert(tkv)) }) shouldBe false
+        FTreeIterator( nul<Int,String>()).flatMap{  FTreeIterator(depthOneRight) } shouldBe FTreeIterator( nul<Int, String>()).toList()
+        FTreeIterator(depthOneRight).flatMap{ FTreeIterator( nul<Int, String>()) } shouldBe FTreeIterator( nul<Int, String>()).toList()
+        FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator( nul<Int, String>().finsert(tkv)) } shouldBe FTreeIterator(depthOneRight).toList()
+        FTreeIterator(depthOneRight).toList() shouldBe FTreeIterator(depthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int, String>().finsert(tkv)) }
     }
 
     test("fflatMap (BB)") {

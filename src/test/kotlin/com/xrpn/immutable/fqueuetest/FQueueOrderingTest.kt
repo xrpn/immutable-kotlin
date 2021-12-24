@@ -104,25 +104,25 @@ class FQueueOrderingTest : FunSpec({
   }
 
   test("fnext (ready)") {
-    intQueueOfNoneYR.fnext() shouldBe Pair(null, emptyIMQueue<Int>())
-    intQueueOfOne1YR.fnext() shouldBe Pair(1, emptyIMQueue<Int>())
-    intQueueOfTwoYR.fnext() shouldBe Pair(1, intQueueOfOne2YR)
-    intQueueOfTwoYR.fnext() shouldBe Pair(intQueueOfTwoYR.ffirst(), intQueueOfTwoYR.fdiscardFront())
-    intQueueOfThreeYR.fnext() shouldBe Pair(3, intQueueOfTwoYR)
-    intQueueOfThreeYR.fnext() shouldBe Pair(intQueueOfThreeYR.ffirst(), intQueueOfThreeYR.fdiscardFront())
-    intQueueOfThreesYR.fnext() shouldBe Pair(1, intQueueOfTwo23YR)
-    intQueueOfThreesYR.fnext() shouldBe Pair(intQueueOfThreesYR.ffirst(), intQueueOfThreesYR.fdiscardFront())
+    intQueueOfNoneYR.fnext() shouldBe null
+    intQueueOfOne1YR.fnext() shouldBe 1
+    intQueueOfTwoYR.fnext() shouldBe 1
+    intQueueOfTwoYR.fnext() shouldBe intQueueOfTwoYR.ffirst()
+    intQueueOfThreeYR.fnext() shouldBe 3
+    intQueueOfThreeYR.fnext() shouldBe intQueueOfThreeYR.ffirst()
+    intQueueOfThreesYR.fnext() shouldBe 1
+    intQueueOfThreesYR.fnext() shouldBe intQueueOfThreesYR.ffirst()
   }
 
   test("fnext (not ready)") {
-    intQueueOfNoneNR.fnext() shouldBe Pair(null, emptyIMQueue<Int>())
-    intQueueOfOne1NR.fdequeueOrThrow() shouldBe Pair(1, emptyIMQueue<Int>())
-    intQueueOfTwoNR.fdequeueOrThrow() shouldBe Pair(1, intQueueOfOne2YR)
-    intQueueOfTwoYR.fnext() shouldBe Pair(intQueueOfTwoYR.ffirst(), intQueueOfTwoYR.fdiscardFront())
-    intQueueOfThreeNR.fdequeueOrThrow() shouldBe  Pair(3, intQueueOfTwoYR)
-    intQueueOfThreeNR.fnext() shouldBe Pair(intQueueOfThreeNR.ffirst(), intQueueOfThreeNR.fdiscardFront())
-    intQueueOfThreesNR.fnext() shouldBe Pair(1, intQueueOfTwo23YR)
-    intQueueOfThreesNR.fnext() shouldBe Pair(intQueueOfThreesNR.ffirst(), intQueueOfThreesNR.fdiscardFront())
+    intQueueOfNoneNR.fnext() shouldBe null
+    intQueueOfOne1NR.fnext() shouldBe 1
+    intQueueOfTwoNR.fnext() shouldBe 1
+    intQueueOfTwoYR.fnext() shouldBe intQueueOfTwoYR.ffirst()
+    intQueueOfThreeNR.fnext() shouldBe  3
+    intQueueOfThreeNR.fnext() shouldBe intQueueOfThreeNR.ffirst()
+    intQueueOfThreesNR.fnext() shouldBe 1
+    intQueueOfThreesNR.fnext() shouldBe intQueueOfThreesNR.ffirst()
   }
 
   test("freverse") {

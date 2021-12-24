@@ -30,9 +30,9 @@ class FListIteratorBidi<out A: Any> internal constructor (val seed: FList<A>, ne
 
     override fun iterator(): ListIterator<A> = this
 
-    internal val retriever: FListRetrieval<A> = object : FListRetrieval<A> {
+    internal val retriever: FListRetrieval<A> by lazy { object : FListRetrieval<A> {
         override fun original(): FList<A> = seed
-    }
+    }}
 
     override fun next(): A =
         if (hasNext()) getAt(nextIndex(), BIDI.FWD)

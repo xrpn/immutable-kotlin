@@ -152,11 +152,12 @@ class FRBTreeCompanionTest : FunSpec({
 
     test("co.of iterator") {
         of(emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe FRBTree.emptyIMBTree()
-        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        of(listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.of IMList") {
         of<Int, Int>(FLNil) shouldBe FRBTNil
+        (of<Int, Int>(FLNil) === FRBTNil) shouldBe true
         of(FList.of(*arrayOf(mEntry, lEntry, nEntry))) shouldBe FRBTNode.of(
             mEntry,
             BLACK,
@@ -180,25 +181,25 @@ class FRBTreeCompanionTest : FunSpec({
     }
 
     test("co.ofc varargs") {
-        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe FRBTree.emptyIMBTree()
-        ofc(reverseStrCompare, 3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder() shouldBe
-                FList.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry())
+        ofc(reverseIntCompare, *arrayOf<TKVEntry<Int, Int>>()) shouldBe emptyIMBTree()
+        ofc(reverseStrCompare, 3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).inorder().softEqual(
+                FList.of(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry())) shouldBe true
     }
 
     test("co.ofc iterator") {
-        ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe FRBTree.emptyIMBTree()
-        ofc(reverseStrCompare, listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder() shouldBe
-                listOf(3.toSAEntry(),2.toSAEntry(),1.toSAEntry())
+        ofc(reverseIntCompare, emptyList<TKVEntry<Int, Int>>().iterator()) shouldBe emptyIMBTree()
+        ofc(reverseStrCompare, listOf(3.toSAEntry(), 2.toSAEntry(), 1.toSAEntry(), 1.toSAEntry()).iterator()).inorder().softEqual(
+                listOf(3.toSAEntry(),2.toSAEntry(),1.toSAEntry())) shouldBe true
     }
 
     test("co.ofvi varargs") {
         ofvi(*emptyArrayOfInt) shouldBe FRBTree.emptyIMBTree()
-        ofvi(3, 2, 1, 1).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(3, 2, 1, 1).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi iterator") {
-        ofvi(emptyArrayOfInt.iterator()) shouldBe FRBTree.emptyIMBTree()
-        ofvi(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
+        ofvi(arrayOf(3,2,1,1).iterator()).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvi iterator (property)") {
@@ -214,23 +215,23 @@ class FRBTreeCompanionTest : FunSpec({
     }
 
     test("co.ofvi IMList") {
-        ofvi(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
-        ofvi(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())
+        ofvi(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvi(FList.of(3, 2, 1, 1)).inorder().softEqual(listOf(1.toIAEntry(),2.toIAEntry(),3.toIAEntry())) shouldBe true
     }
 
     test("co.ofvs varargs") {
-        ofvs(*emptyArrayOfInt) shouldBe FRBTree.emptyIMBTree()
-        ofvs(3, 2, 1, 1).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(*emptyArrayOfInt) shouldBe emptyIMBTree()
+        ofvs(3, 2, 1, 1).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs iterator") {
-        ofvs(emptyArrayOfInt.iterator()) shouldBe FRBTree.emptyIMBTree()
-        ofvs(arrayOf(3,2,1,1).iterator()).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(emptyArrayOfInt.iterator()) shouldBe emptyIMBTree()
+        ofvs(arrayOf(3,2,1,1).iterator()).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofvs IMList") {
-        ofvs(FList.emptyIMList()) shouldBe FRBTree.emptyIMBTree()
-        ofvs(FList.of(3, 2, 1, 1)).inorder() shouldBe listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())
+        ofvs(FList.emptyIMList()) shouldBe emptyIMBTree()
+        ofvs(FList.of(3, 2, 1, 1)).inorder().softEqual(listOf(1.toSAEntry(),2.toSAEntry(),3.toSAEntry())) shouldBe true
     }
 
     test("co.ofMap ABCD Iterator") {
@@ -239,20 +240,20 @@ class FRBTreeCompanionTest : FunSpec({
 
     test("co.ofviMap Iterator") {
         ofviMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
-        ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
+        ofviMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
                 listOf(
                     TKVEntry.ofkv(TKVEntry.intKeyOf("1"), "1"),
                     TKVEntry.ofkv(TKVEntry.intKeyOf("2"), "2"),
                     TKVEntry.ofkv(
                         TKVEntry.intKeyOf("3"), "3"
                     )
-                )
+                )) shouldBe true
     }
 
     test("co.ofvsMap Iterator") {
         ofvsMap(emptyList<Int>().iterator()) { it.toString() } shouldBe emptyIMBTree()
-        ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder() shouldBe
-                listOf(TKVEntry.ofkk("1", "1"), TKVEntry.ofkk("2", "2"), TKVEntry.ofkk("3", "3"))
+        ofvsMap(listOf(1, 1, 2, 3).iterator()) { it.toString() }.inorder().softEqual(
+                listOf(TKVEntry.ofkk("1", "1"), TKVEntry.ofkk("2", "2"), TKVEntry.ofkk("3", "3"))) shouldBe true
     }
 
 //    test("co.toIMBTree Collection") {

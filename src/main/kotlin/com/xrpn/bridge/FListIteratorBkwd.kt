@@ -36,9 +36,9 @@ class FListIteratorBkwd<out A: Any> internal constructor(val seed: FList<A>, val
 
     override fun iterator(): Iterator<A> = this
 
-    internal val retriever: FListRetrieval<A> = object : FListRetrieval<A> {
+    internal val retriever: FListRetrieval<A> by lazy { object : FListRetrieval<A> {
         override fun original(): FList<A> = seed
-    }
+    }}
 
     private fun getPrevious(): A {
 

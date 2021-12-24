@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fsksettest
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.IMBTree
 import com.xrpn.immutable.emptyArrayOfInt
 import com.xrpn.immutable.FBSTree
@@ -160,8 +161,10 @@ class FSKSetUtilityTest : FunSpec({
         intKKOfNone.copyToMutableSet() shouldBe mutableSetOf()
         checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val ms: MutableSet<Int> = fs.copyToMutableSet()
-            (fs == ms) shouldBe true
-            (ms == fs) shouldBe true
+            (fs == ms) shouldBe false
+            (ms == fs) shouldBe false
+            (FKSetIterator(fs).toSet() == ms) shouldBe true
+            (ms == FKSetIterator(fs).toSet()) shouldBe true
         }
     }
 })

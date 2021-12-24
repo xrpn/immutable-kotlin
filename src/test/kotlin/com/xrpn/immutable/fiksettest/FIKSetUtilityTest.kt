@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fiksettest
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.IMBTree
 import com.xrpn.immutable.emptyArrayOfStr
 import com.xrpn.immutable.FBSTree
@@ -37,15 +38,15 @@ class FIKSetUtilityTest : FunSpec({
         strKKSetOfNone.equal(strKKSetOfOne) shouldBe false
         strKKSetOfOne.equal(strKKSetOfNone) shouldBe false
         strKKSetOfOne.equal(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.equals(FKSet.ofi("1")) shouldBe false
-        FKSet.ofi("1").equals(strKKSetOfOne) shouldBe false
+        strKKSetOfOne.equals(FKSet.ofi("1")) shouldBe true
+        FKSet.ofi("1").equals(strKKSetOfOne) shouldBe true
         strKKSetOfOne.equal(FKSet.ofi("1")) shouldBe true
         FKSet.ofi("1").equal(strKKSetOfOne) shouldBe true
         strKKSetOfOne.equal(strKKSetOfTwo) shouldBe false
         strKKSetOfTwo.equal(strKKSetOfOne) shouldBe false
         strKKSetOfTwo.equal(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.equals(FKSet.ofi("1","2")) shouldBe false
-        FKSet.ofi("1","2").equals(strKKSetOfTwo) shouldBe false
+        strKKSetOfTwo.equals(FKSet.ofi("1","2")) shouldBe true
+        FKSet.ofi("1","2").equals(strKKSetOfTwo) shouldBe true
         strKKSetOfTwo.equal(FKSet.ofi("1","2")) shouldBe true
         FKSet.ofi("1","2").equal(strKKSetOfTwo) shouldBe true
         strKKSetOfTwo.equal(strKKSetOfTwoOfst1) shouldBe false
@@ -62,15 +63,15 @@ class FIKSetUtilityTest : FunSpec({
         strISetOfNone.equal(strKKSetOfOne) shouldBe false
         strISetOfOne.equal(strKKSetOfNone) shouldBe false
         strISetOfOne.equal(strKKSetOfOne) shouldBe true
-        strISetOfOne.equals(FKSet.ofk("1")) shouldBe false
-        FKSet.ofk("1").equals(strISetOfOne) shouldBe false
+        strISetOfOne.equals(FKSet.ofk("1")) shouldBe true
+        FKSet.ofk("1").equals(strISetOfOne) shouldBe true
         strISetOfOne.equal(FKSet.ofk("1")) shouldBe true
         FKSet.ofk("1").equal(strISetOfOne) shouldBe true
         strISetOfOne.equal(strKKSetOfTwo) shouldBe false
         strISetOfTwo.equal(strKKSetOfOne) shouldBe false
         strISetOfTwo.equal(strKKSetOfTwo) shouldBe true
-        strISetOfTwo.equals(FKSet.ofk("1","2")) shouldBe false
-        FKSet.ofk("1","2").equals(strISetOfTwo) shouldBe false
+        strISetOfTwo.equals(FKSet.ofk("1","2")) shouldBe true
+        FKSet.ofk("1","2").equals(strISetOfTwo) shouldBe true
         strISetOfTwo.equal(FKSet.ofk("1","2")) shouldBe true
         FKSet.ofk("1","2").equal(strISetOfTwo) shouldBe true
         strISetOfTwo.equal(strKKSetOfTwoOfst1) shouldBe false
@@ -87,13 +88,13 @@ class FIKSetUtilityTest : FunSpec({
         strKKSetOfNone.equal(strKKSetOfOne) shouldBe false
         strKKSetOfOne.equal(strKKSetOfNone) shouldBe false
         strKKSetOfOne.equal(strKKSetOfOne) shouldBe true
-        strKKSetOfOne.equal(strISetOfOne) shouldBe false
-        strISetOfOne.equal(strKKSetOfOne) shouldBe false
+        strKKSetOfOne.equal(strISetOfOne) shouldBe true
+        strISetOfOne.equal(strKKSetOfOne) shouldBe true
         strKKSetOfOne.equal(strKKSetOfTwo) shouldBe false
         strKKSetOfTwo.equal(strKKSetOfOne) shouldBe false
         strKKSetOfTwo.equal(strKKSetOfTwo) shouldBe true
-        strKKSetOfTwo.equal(strISetOfTwo) shouldBe false
-        strISetOfTwo.equal(strKKSetOfTwo) shouldBe false
+        strKKSetOfTwo.equal(strISetOfTwo) shouldBe true
+        strISetOfTwo.equal(strKKSetOfTwo) shouldBe true
         strKKSetOfTwo.equal(strKKSetOfTwoOfst1) shouldBe false
         strKKSetOfTwoOfst1.equal(strKKSetOfTwo) shouldBe false
         strKKSetOfTwo.equal(strKKSetOfThree) shouldBe false
@@ -162,8 +163,10 @@ class FIKSetUtilityTest : FunSpec({
         strKKSetOfNone.copyToMutableSet() shouldBe mutableSetOf()
         checkAll(repeats, Arb.fsset(Arb.int(),20..100)) { fs ->
             val ms: MutableSet<Int> = fs.copyToMutableSet()
-            (fs == ms) shouldBe true
-            (ms == fs) shouldBe true
+            (fs == ms) shouldBe false
+            (ms == fs) shouldBe false
+            (FKSetIterator(fs).toSet() == ms) shouldBe true
+            (ms == FKSetIterator(fs).toSet()) shouldBe true
         }
     }
 })

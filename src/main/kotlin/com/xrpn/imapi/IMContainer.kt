@@ -175,7 +175,7 @@ interface IMCommonEmpty<out A: Any>: IMCommon<A> {
         }} ?: false
         internal open class IMCommonEmptyEquality: EqualsProxy, HashCodeProxy {
             override fun equals(other: Any?): Boolean = other?.let { when(it) {
-                is IMCommon<*> -> equals(it)
+                is IMCommon<*> -> it.fempty()
                 else -> false
             }} ?: false
             override fun hashCode(): Int = javaClass.hashCode()
@@ -183,7 +183,7 @@ interface IMCommonEmpty<out A: Any>: IMCommon<A> {
     }
 }
 
-interface IMKeyed<out K>: IMUniversalCommon where K: Any, K: Comparable<@kotlin.UnsafeVariance K> {
+interface IMKeyed<out K>: IMUniversalCommon where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fcontainsKey(key: @UnsafeVariance K): Boolean
     fun fcountKey(isMatch: (K) -> Boolean): Int // count the values that match the predicate
     fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMKeyed<K>
@@ -734,7 +734,6 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     IMBTreeTyping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
-    // IMCommon
     override fun fcount(isMatch: (TKVEntry<A, B>) -> Boolean): Int =
         ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     override fun fisNested(): Boolean?  = if (fempty()) null else FT.isContainer(fpick()!!.getv())
@@ -821,7 +820,7 @@ internal interface IMKSetNotEmpty<out K, out A:Any>: IMKSet<K,A>,
     IMRSetNotEmpty<A>
         where K: Any, K: Comparable<@UnsafeVariance K> {
     fun toSetKey(a: @UnsafeVariance A): K
-    override fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = this
+    override fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A> = this
 }
 
 internal interface IMKASetNotEmpty<out K, out A:Any>: IMKSetNotEmpty<K, A>,
@@ -831,7 +830,7 @@ internal interface IMKASetNotEmpty<out K, out A:Any>: IMKSetNotEmpty<K, A>,
     override fun sdj() = IMSetDJL(this)
     override fun <J> xdj(): TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>> where J: Any, J:Comparable<J> =
         @Suppress("UNCHECKED_CAST") (ErrorMsgTrap("failure: ${this::class.simpleName}") as TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>>)
-    override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>? = this
+    override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A> = this
     override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = null
 }
 
@@ -844,5 +843,5 @@ internal interface IMKKSetNotEmpty<out K>: IMKSetNotEmpty<K, K>,
     override fun <J> xdj(): TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>> where J:Any, J:Comparable<J> =
         @Suppress("UNCHECKED_CAST") (IMXSetDJR(this) as TSDJ<ErrorMsgTrap, IMXSetNotEmpty<J>>)
     override fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, K>? = null
-    override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>? = this
+    override fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K> = this
 }

@@ -681,7 +681,10 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         internal tailrec fun <A, B: Any> rbtDeletes(treeStub: FRBTree<A, B>, items: IMCommon<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A>  {
-            val (nextItem: TKVEntry<A, B>?, collection: IMCommon<TKVEntry<A, B>>) = items.fpopAndRemainder()
+            val (nextItem: TKVEntry<A, B>?, collection: IMCommon<TKVEntry<A, B>>) = when(items) {
+                is IMOrdered<TKVEntry<A,B>> -> Pair(items.fnext(), items.fdrop(1))
+                else -> items.fpopAndRemainder()
+            }
             return if (null == nextItem) treeStub else rbtDeletes(rbtDelete(treeStub, nextItem), collection)
         }
 
@@ -1279,8 +1282,7 @@ internal class FRBTKNode<out A> internal constructor (
 ): FRBTNode<@UnsafeVariance A, @UnsafeVariance A>(e, c, bL, bR), FRBTRNode<A> where A: Any, A: Comparable<@UnsafeVariance A>{
 
     companion object {
-        internal fun <A, B: Any> asKFRBTree(n: FRBTKNode<A>): FRBTree<A, B> where A: Any, A: Comparable<A> =
-            @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>)
+        internal fun <A> asKFRBTree(n: FRBTKNode<A>): FRBTree<A, A> where A: Any, A: Comparable<A> = n
         internal fun <A, B: Any> asKFRBTree(n: FRBTKNode<*>, a: A): FRBTree<A, B> where A: Any, A: Comparable<A> =
             if ((n.entry as RKTKVEntry<*, *>).getrk().kc.isInstance(a)) @Suppress("UNCHECKED_CAST") (n as FRBTree<A, B>) else emptyIMBTree()
         fun <A, B: Any> hashCode(n: FRBTNode<A,B>): Int where A: Any, A: Comparable<A> = n.hash

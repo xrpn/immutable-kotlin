@@ -10,7 +10,7 @@ import com.xrpn.order.fuzzy.FzyFloat.Companion.asFzyFloat
 import com.xrpn.order.fuzzy.FzyFloat.Companion.fzyIsUnity
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.property.arbitrary.float
-import io.kotest.property.arbitrary.numericFloats
+import io.kotest.property.arbitrary.numericFloat
 
 
 class FzyFloatEqualityTest : FunSpec({
@@ -139,7 +139,7 @@ class FzyFloatEqualityTest : FunSpec({
     }
 
     test("float properties, reflexive") {
-        checkAll(Arb.float(), Arb.numericFloats()) { f1, f2 ->
+        checkAll(Arb.float(), Arb.numericFloat()) { f1, f2 ->
             val ff1a = FzyFloat(f1)
             val ff1b = FzyFloat(f1)
             val ff2a = FzyFloat(f2)
@@ -167,12 +167,12 @@ class FzyFloatEqualityTest : FunSpec({
     }
 
     test("float properties, symmetric") {
-        checkAll(Arb.float(), Arb.numericFloats()) { f1, f2 ->
+        checkAll(Arb.float(), Arb.numericFloat()) { f1, f2 ->
             val ff1 = FzyFloat(f1)
-            val f1d = ff1.qty / (1.0f + (defaultFloatTol /2.0f))
+            val f1d = ff1.qty / (1.0f + (defaultFloatTol / 2.0f))
             val ff1d = FzyFloat(f1d)
             val ff2 = FzyFloat(f2)
-            val f2d = ff2.qty / (1.0f + (defaultFloatTol /2.0f))
+            val f2d = ff2.qty / (1.0f + (defaultFloatTol / 2.0f))
             val ff2d = FzyFloat(f2d)
 
             (!ff1.equals(f1d) && f1.fzyIsZero()) shouldBe false
@@ -204,17 +204,17 @@ class FzyFloatEqualityTest : FunSpec({
     }
 
     test("float properties, transitive") {
-        checkAll(Arb.float(), Arb.numericFloats()) { f1, f2 ->
+        checkAll(Arb.float(), Arb.numericFloat()) { f1, f2 ->
             val ff1 = FzyFloat(f1)
-            val f1a = f1 / (1.0f + (defaultFloatTol /1.7f))
+            val f1a = f1 / (1.0f + (defaultFloatTol / 1.7f))
             val ff1a = FzyFloat(f1a)
-            val f1b = f1 / (1.0f + (defaultFloatTol /1.3f))
+            val f1b = f1 / (1.0f + (defaultFloatTol / 1.3f))
             val ff1b = FzyFloat(f1b)
 
             val ff2 = FzyFloat(f2)
-            val f2a = f2 / (1.0f + (defaultFloatTol /1.9f))
+            val f2a = f2 / (1.0f + (defaultFloatTol / 1.9f))
             val ff2a = FzyFloat(f2a)
-            val f2b = f2 / (1.0f + (defaultFloatTol /1.5f))
+            val f2b = f2 / (1.0f + (defaultFloatTol / 1.5f))
             val ff2b = FzyFloat(f2b)
 
             (!ff1.equals(f1a) && f1.fzyIsZero()) shouldBe false

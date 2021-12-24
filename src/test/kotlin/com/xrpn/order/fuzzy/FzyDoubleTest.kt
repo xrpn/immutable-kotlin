@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.*
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.double
+import io.kotest.property.arbitrary.numericDouble
 import io.kotest.property.arbitrary.numericDoubles
 
 class FzyDoubleTest : FunSpec({
@@ -102,7 +103,7 @@ class FzyDoubleTest : FunSpec({
     }
 
     test("Double.fzyEqual") {
-        checkAll(Arb.numericDoubles()) { nd1 ->
+        checkAll(Arb.numericDouble()) { nd1 ->
             val nf1fzy = nd1.asFzyDouble()
 
             nd1.fzyEqual(nf1fzy) shouldBe true
@@ -134,7 +135,7 @@ class FzyDoubleTest : FunSpec({
     }
 
     test("Double.fzyEqual tol pathology") {
-        checkAll(Arb.numericDoubles(), Arb.double()) { nfQty, nfTol ->
+        checkAll(Arb.numericDouble(), Arb.double()) { nfQty, nfTol ->
             val tol = Math.abs(nfTol)
             val nf1fzy = FzyDouble(nfQty, tol, defeatOk = true)
             nfQty.fzyEqual(nf1fzy) shouldBe !tol.isNaN()

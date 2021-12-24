@@ -51,9 +51,9 @@ class FStackIterator<out A: Any> internal constructor(val seed: FStack<A>, val r
 
     override fun iterator(): Iterator<A> = this
 
-    internal val retriever: FStackRetrieval<A> = object : FStackRetrieval<A> {
+    internal val retriever: FStackRetrieval<A> by lazy { object : FStackRetrieval<A> {
         override fun original(): FStack<A> = seed
-    }
+    }}
 
     companion object {
 

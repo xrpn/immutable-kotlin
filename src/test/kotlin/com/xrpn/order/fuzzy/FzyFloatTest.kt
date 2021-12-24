@@ -10,7 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.*
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.float
-import io.kotest.property.arbitrary.numericFloats
+import io.kotest.property.arbitrary.numericFloat
 
 class FzyFloatTest : FunSpec({
 
@@ -102,7 +102,7 @@ class FzyFloatTest : FunSpec({
     }
 
     test("Float.fzyEqual") {
-        checkAll(Arb.numericFloats()) { nf1 ->
+        checkAll(Arb.numericFloat()) { nf1 ->
             val nf1fzy = nf1.asFzyFloat()
 
             nf1.fzyEqual(nf1fzy) shouldBe true
@@ -134,7 +134,7 @@ class FzyFloatTest : FunSpec({
     }
 
     test("Float.fzyEqual tol pathology") {
-        checkAll(Arb.numericFloats(), Arb.float()) { nfQty, nfTol ->
+        checkAll(Arb.numericFloat(), Arb.float()) { nfQty, nfTol ->
             val tol = Math.abs(nfTol)
             val nf1fzy = FzyFloat(nfQty, tol, defeatOk = true)
             nfQty.fzyEqual(nf1fzy) shouldBe !tol.isNaN()

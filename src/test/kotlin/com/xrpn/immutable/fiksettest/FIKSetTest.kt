@@ -28,7 +28,7 @@ class FIKSetTest : FunSpec({
         copaISetOfNone.toIMKSetNotEmpty(lskt) shouldBe null
         copaISetOf3.toIMKSetNotEmpty(lskt) shouldBe null
         copaISetOfNone.toIMKSetNotEmpty(copaKey) shouldBe null
-        copaISetOf3.toIMKSetNotEmpty(copaKey)!!.equals(copaKKSetOf3) shouldBe true
+        copaISetOf3.toIMKSetNotEmpty(copaKey)?.equals(copaKKSetOf3) shouldBe true
     }
 
     test("toIMKSetNotEmpty b") {

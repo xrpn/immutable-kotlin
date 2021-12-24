@@ -10,6 +10,7 @@ import com.xrpn.order.fuzzy.FzyDouble.Companion.asFzyDouble
 import com.xrpn.order.fuzzy.FzyDouble.Companion.fzyIsUnity
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.property.arbitrary.double
+import io.kotest.property.arbitrary.numericDouble
 import io.kotest.property.arbitrary.numericDoubles
 
 
@@ -139,7 +140,7 @@ class FzyDoubleEqualityTest : FunSpec({
     }
 
     test("double properties, reflexive") {
-        checkAll(Arb.double(), Arb.numericDoubles()) { f1, f2 ->
+        checkAll(Arb.double(), Arb.numericDouble()) { f1, f2 ->
             val ff1a = FzyDouble(f1)
             val ff1b = FzyDouble(f1)
             val ff2a = FzyDouble(f2)
@@ -167,7 +168,7 @@ class FzyDoubleEqualityTest : FunSpec({
     }
 
     test("double properties, symmetric") {
-        checkAll(Arb.double(), Arb.numericDoubles()) { f1, f2 ->
+        checkAll(Arb.double(), Arb.numericDouble()) { f1, f2 ->
             val ff1 = FzyDouble(f1)
             val f1d = f1 / (1.0 + (defaultDoubleTol /2.0))
             val ff1d = FzyDouble(f1d)
@@ -204,7 +205,7 @@ class FzyDoubleEqualityTest : FunSpec({
     }
 
     test("double properties, transitive") {
-        checkAll(Arb.double(), Arb.numericDoubles()) { f1, f2 ->
+        checkAll(Arb.double(), Arb.numericDouble()) { f1, f2 ->
             val ff1 = FzyDouble(f1)
             val f1a = f1 / (1.0 + (defaultDoubleTol /1.7))
             val ff1a = FzyDouble(f1a)

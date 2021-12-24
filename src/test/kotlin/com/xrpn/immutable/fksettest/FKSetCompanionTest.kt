@@ -1,5 +1,6 @@
 package com.xrpn.immutable
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FKSet.Companion.NOT_FOUND
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
@@ -121,223 +122,179 @@ class FKSetCompanionTest : FunSpec({
     }
 
     test("equals KSet") {
-        intKKSetOfNone.equals(knSetOfNone) shouldBe true
-        intKKSetOfNone.equals(kiSetOfOne) shouldBe false
-        intKKSetOfOne.equals(knSetOfNone) shouldBe false
-        intKKSetOfOne.equals(kiSetOfOne) shouldBe true
-        intKKSetOfOne.equals(kiSetOfTwo) shouldBe false
-        intKKSetOfTwo.equals(kiSetOfOne) shouldBe false
-        intKKSetOfTwo.equals(kiSetOfTwo) shouldBe true
-        intKKSetOfTwo.equals(kiSetOfTwoOfst1) shouldBe false
-        intKKSetOfTwoOfst1.equals(kiSetOfTwo) shouldBe false
-        intKKSetOfTwo.equals(kiSetOfThree) shouldBe false
-        intKKSetOfTwoOfst1.equals(kiSetOfThree) shouldBe false
-        intKKSetOfThree.equals(kiSetOfTwo) shouldBe false
-        intKKSetOfThree.equals(kiSetOfTwoOfst1) shouldBe false
-        intKKSetOfThree.equals(kiSetOfThree) shouldBe true
+        intKKSetOfNone.softEqual(knSetOfNone) shouldBe true
+        (intKKSetOfNone === knSetOfNone) shouldBe false
+        intKKSetOfNone.softEqual(kiSetOfOne) shouldBe false
+        intKKSetOfOne.softEqual(knSetOfNone) shouldBe false
+        intKKSetOfOne.softEqual(kiSetOfOne) shouldBe true
+        intKKSetOfOne.softEqual(kiSetOfTwo) shouldBe false
+        intKKSetOfTwo.softEqual(kiSetOfOne) shouldBe false
+        intKKSetOfTwo.softEqual(kiSetOfTwo) shouldBe true
+        intKKSetOfTwo.softEqual(kiSetOfTwoOfst1) shouldBe false
+        intKKSetOfTwoOfst1.softEqual(kiSetOfTwo) shouldBe false
+        intKKSetOfTwo.softEqual(kiSetOfThree) shouldBe false
+        intKKSetOfTwoOfst1.softEqual(kiSetOfThree) shouldBe false
+        intKKSetOfThree.softEqual(kiSetOfTwo) shouldBe false
+        intKKSetOfThree.softEqual(kiSetOfTwoOfst1) shouldBe false
+        intKKSetOfThree.softEqual(kiSetOfThree) shouldBe true
 
-        knSetOfNone.equals(intKKSetOfNone) shouldBe true
+        knSetOfNone.equals(intKKSetOfNone) shouldBe false
+        knSetOfNone.equals(intKKSetOfNone.asSet()) shouldBe true
         knSetOfNone.equals(intKKSetOfOne) shouldBe false
         kiSetOfOne.equals(intKKSetOfNone) shouldBe false
-        kiSetOfOne.equals(intKKSetOfOne) shouldBe true
-        kiSetOfOne.equals(intKKSetOfTwo) shouldBe false
+        kiSetOfOne.equals(intKKSetOfOne.asSet()) shouldBe true
+        kiSetOfOne.equals(intKKSetOfOne) shouldBe false
+        kiSetOfOne.equals(intKKSetOfTwo.asSet()) shouldBe false
         kiSetOfTwo.equals(intKKSetOfOne) shouldBe false
-        kiSetOfTwo.equals(intKKSetOfTwo) shouldBe true
-        kiSetOfTwo.equals(intKKSetOfTwoOfst1) shouldBe false
-        kiSetOfTwoOfst1.equals(intKKSetOfTwo) shouldBe false
-        kiSetOfTwo.equals(intKKSetOfThree) shouldBe false
-        kiSetOfTwoOfst1.equals(intKKSetOfThree) shouldBe false
-        kiSetOfThree.equals(intKKSetOfTwo) shouldBe false
-        kiSetOfThree.equals(intKKSetOfTwoOfst1) shouldBe false
-        kiSetOfThree.equals(intKKSetOfThree) shouldBe true
+        kiSetOfTwo.equals(intKKSetOfTwo.asSet()) shouldBe true
+        kiSetOfTwo.equals(intKKSetOfTwo) shouldBe false
+        kiSetOfTwo.equals(intKKSetOfTwoOfst1.asSet()) shouldBe false
+        knSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
+        ksSetOfNone.equals(intKKSetOfNone.asSet()) shouldBe true
 
-        knSetOfNone.equals(strISetOfNone) shouldBe true
-        ksSetOfNone.equals(intKKSetOfNone) shouldBe true
-
-        // this is why "equal" (vs. equals) is _always_ preferred
+        // prefer "equal" (vs. equals)
         intKKSetOfNone.equals(strISetOfNone) shouldBe true
         strISetOfNone.equals(intKKSetOfNone) shouldBe true
     }
 
     test("equals iSSet") {
-        intSSetOfNone.equals(knSetOfNone) shouldBe true
-        intSSetOfNone.equals(kiSetOfOne) shouldBe false
-        intSSetOfOne.equals(knSetOfNone) shouldBe false
-        intSSetOfOne.equals(kiSetOfOne) shouldBe true
-        intSSetOfOne.equals(kiSetOfTwo) shouldBe false
-        intSSetOfTwo.equals(kiSetOfOne) shouldBe false
-        intSSetOfTwo.equals(kiSetOfTwo) shouldBe true
-        intSSetOfTwo.equals(kiSetOfTwoOfst1) shouldBe false
-        intSSetOfTwoOfst1.equals(kiSetOfTwo) shouldBe false
-        intSSetOfTwo.equals(kiSetOfThree) shouldBe false
-        intSSetOfTwoOfst1.equals(kiSetOfThree) shouldBe false
-        intSSetOfThree.equals(kiSetOfTwo) shouldBe false
-        intSSetOfThree.equals(kiSetOfTwoOfst1) shouldBe false
-        intSSetOfThree.equals(kiSetOfThree) shouldBe true
+        intSSetOfNone.softEqual(knSetOfNone) shouldBe true
+        (intSSetOfNone === knSetOfNone) shouldBe false
+        intSSetOfNone.softEqual(kiSetOfOne) shouldBe false
+        intSSetOfOne.softEqual(knSetOfNone) shouldBe false
+        intSSetOfOne.softEqual(kiSetOfOne) shouldBe true
+        intSSetOfOne.softEqual(kiSetOfTwo) shouldBe false
+        intSSetOfTwo.softEqual(kiSetOfOne) shouldBe false
+        intSSetOfTwo.softEqual(kiSetOfTwo) shouldBe true
+        intSSetOfTwo.softEqual(kiSetOfTwoOfst1) shouldBe false
+        intSSetOfTwoOfst1.softEqual(kiSetOfTwo) shouldBe false
+        intSSetOfTwo.softEqual(kiSetOfThree) shouldBe false
+        intSSetOfTwoOfst1.softEqual(kiSetOfThree) shouldBe false
+        intSSetOfThree.softEqual(kiSetOfTwo) shouldBe false
+        intSSetOfThree.softEqual(kiSetOfTwoOfst1) shouldBe false
+        intSSetOfThree.softEqual(kiSetOfThree) shouldBe true
 
-        knSetOfNone.equals(intSSetOfNone) shouldBe true
-        knSetOfNone.equals(intSSetOfOne) shouldBe false
-        kiSetOfOne.equals(intSSetOfNone) shouldBe false
-        kiSetOfOne.equals(intSSetOfOne) shouldBe true
-        kiSetOfOne.equals(intSSetOfTwo) shouldBe false
-        kiSetOfTwo.equals(intSSetOfOne) shouldBe false
-        kiSetOfTwo.equals(intSSetOfTwo) shouldBe true
-        kiSetOfTwo.equals(intSSetOfTwoOfst1) shouldBe false
-        kiSetOfTwoOfst1.equals(intSSetOfTwo) shouldBe false
-        kiSetOfTwo.equals(intSSetOfThree) shouldBe false
-        kiSetOfTwoOfst1.equals(intSSetOfThree) shouldBe false
-        kiSetOfThree.equals(intSSetOfTwo) shouldBe false
-        kiSetOfThree.equals(intSSetOfTwoOfst1) shouldBe false
-        kiSetOfThree.equals(intSSetOfThree) shouldBe true
+        knSetOfNone.equals(intSSetOfNone) shouldBe false
+        knSetOfNone.equals(intSSetOfOne.asSet()) shouldBe false
+        kiSetOfOne.equals(intSSetOfNone.asSet()) shouldBe false
+        kiSetOfOne.equals(intSSetOfOne) shouldBe false
+        kiSetOfOne.equals(intSSetOfOne.asSet()) shouldBe true
+        kiSetOfOne.equals(intSSetOfTwo.asSet()) shouldBe false
 
-        knSetOfNone.equals(intSSetOfNone) shouldBe true
-        knSetOfNone.equals(intSSetOfOne) shouldBe false
-        kiSetOfOne.equals(intSSetOfNone) shouldBe false
-        kiSetOfOne.equals(intSSetOfOne) shouldBe true
-        kiSetOfOne.equals(intSSetOfTwo) shouldBe false
-        kiSetOfTwo.equals(intSSetOfOne) shouldBe false
-        kiSetOfTwo.equals(intSSetOfTwo) shouldBe true
-        kiSetOfTwo.equals(intSSetOfTwoOfst1) shouldBe false
-        kiSetOfTwoOfst1.equals(intSSetOfTwo) shouldBe false
-        kiSetOfTwo.equals(intSSetOfThree) shouldBe false
-        kiSetOfTwoOfst1.equals(intSSetOfThree) shouldBe false
-        kiSetOfThree.equals(intSSetOfTwo) shouldBe false
-        kiSetOfThree.equals(intSSetOfTwoOfst1) shouldBe false
-        kiSetOfThree.equals(intSSetOfThree) shouldBe true
+        knSetOfNone.equals(strKKSetOfNone) shouldBe false
+        knSetOfNone.equals(strKKSetOfNone.asSet()) shouldBe true
+        ksSetOfNone.equals(intSSetOfNone) shouldBe false
 
-        knSetOfNone.equals(strKKSetOfNone) shouldBe true
-        ksSetOfNone.equals(intSSetOfNone) shouldBe true
-
-        // this is why "equal" (vs. equals) is _always_ preferred
         intSSetOfNone.equals(strKKSetOfNone) shouldBe true
         strKKSetOfNone.equals(intSSetOfNone) shouldBe true
     }
 
     test("equals sISet") {
-        strISetOfNone.equals(knSetOfNone) shouldBe true
-        strISetOfNone.equals(ksSetOfOne) shouldBe false
-        strISetOfOne.equals(knSetOfNone) shouldBe false
-        strISetOfOne.equals(ksSetOfOne) shouldBe true
-        strISetOfOne.equals(ksSetOfTwo) shouldBe false
-        strISetOfTwo.equals(ksSetOfOne) shouldBe false
-        strISetOfTwo.equals(ksSetOfTwo) shouldBe true
-        strISetOfTwo.equals(ksSetOfTwoOfst1) shouldBe false
-        strISetOfTwoOfst1.equals(ksSetOfTwo) shouldBe false
-        strISetOfTwo.equals(ksSetOfThree) shouldBe false
-        strISetOfTwoOfst1.equals(ksSetOfThree) shouldBe false
-        strISetOfThree.equals(ksSetOfTwo) shouldBe false
-        strISetOfThree.equals(ksSetOfTwoOfst1) shouldBe false
-        strISetOfThree.equals(ksSetOfThree) shouldBe true
+        strISetOfNone.softEqual(knSetOfNone) shouldBe true
+        (strISetOfNone === knSetOfNone) shouldBe false
+        strISetOfNone.softEqual(ksSetOfOne) shouldBe false
+        strISetOfOne.softEqual(knSetOfNone) shouldBe false
+        strISetOfOne.softEqual(ksSetOfOne) shouldBe true
+        strISetOfOne.softEqual(ksSetOfTwo) shouldBe false
+        strISetOfTwo.softEqual(ksSetOfOne) shouldBe false
+        strISetOfTwo.softEqual(ksSetOfTwo) shouldBe true
+        strISetOfTwo.softEqual(ksSetOfTwoOfst1) shouldBe false
+        strISetOfTwoOfst1.softEqual(ksSetOfTwo) shouldBe false
+        strISetOfTwo.softEqual(ksSetOfThree) shouldBe false
+        strISetOfTwoOfst1.softEqual(ksSetOfThree) shouldBe false
+        strISetOfThree.softEqual(ksSetOfTwo) shouldBe false
+        strISetOfThree.softEqual(ksSetOfTwoOfst1) shouldBe false
+        strISetOfThree.softEqual(ksSetOfThree) shouldBe true
 
-        knSetOfNone.equals(strISetOfNone) shouldBe true
-        knSetOfNone.equals(strISetOfOne) shouldBe false
-        ksSetOfOne.equals(strISetOfNone) shouldBe false
-        ksSetOfOne.equals(strISetOfOne) shouldBe true
-        ksSetOfOne.equals(strISetOfTwo) shouldBe false
-        ksSetOfTwo.equals(strISetOfOne) shouldBe false
-        ksSetOfTwo.equals(strISetOfTwo) shouldBe true
-        ksSetOfTwo.equals(strISetOfTwoOfst1) shouldBe false
-        ksSetOfTwoOfst1.equals(strISetOfTwo) shouldBe false
-        ksSetOfTwo.equals(strISetOfThree) shouldBe false
-        ksSetOfTwoOfst1.equals(strISetOfThree) shouldBe false
-        ksSetOfThree.equals(strISetOfTwo) shouldBe false
-        ksSetOfThree.equals(strISetOfTwoOfst1) shouldBe false
-        ksSetOfThree.equals(strISetOfThree) shouldBe true
+        knSetOfNone.equals(strISetOfNone) shouldBe false
+        knSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
+        ksSetOfTwo.equals(strISetOfTwo) shouldBe false
+        ksSetOfTwo.equals(strISetOfTwo.asSet()) shouldBe true
+        val foo = strISetOfTwo.asSet()
+            foo.equals(ksSetOfTwo) shouldBe true
 
-        knSetOfNone.equals(strISetOfNone) shouldBe true
-        knSetOfNone.equals(strISetOfOne) shouldBe false
-        ksSetOfOne.equals(strISetOfNone) shouldBe false
-        ksSetOfOne.equals(strISetOfOne) shouldBe true
-        ksSetOfOne.equals(strISetOfTwo) shouldBe false
-        ksSetOfTwo.equals(strISetOfOne) shouldBe false
-        ksSetOfTwo.equals(strISetOfTwo) shouldBe true
-        ksSetOfTwo.equals(strISetOfTwoOfst1) shouldBe false
-        ksSetOfTwoOfst1.equals(strISetOfTwo) shouldBe false
-        ksSetOfTwo.equals(strISetOfThree) shouldBe false
-        ksSetOfTwoOfst1.equals(strISetOfThree) shouldBe false
-        ksSetOfThree.equals(strISetOfTwo) shouldBe false
-        ksSetOfThree.equals(strISetOfTwoOfst1) shouldBe false
-        ksSetOfThree.equals(strISetOfThree) shouldBe true
+        knSetOfNone.equals(strKKSetOfNone.asSet()) shouldBe true
+        ksSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
 
-        knSetOfNone.equals(strKKSetOfNone) shouldBe true
-        ksSetOfNone.equals(strISetOfNone) shouldBe true
-
-        // this is why "equal" (vs. equals) is _always_ preferred
         strISetOfNone.equals(strKKSetOfNone) shouldBe true
         strKKSetOfNone.equals(strISetOfNone) shouldBe true
     }
 
     test("equals iKSet iSSet") {
         intKKSetOfNone.equals(intSSetOfNone) shouldBe true
+        (intKKSetOfNone === intSSetOfNone) shouldBe false
         intKKSetOfNone.equals(intSSetOfOne) shouldBe false
         intKKSetOfOne.equals(intSSetOfNone) shouldBe false
-        intKKSetOfOne.equals(intSSetOfOne) shouldBe false
+        intKKSetOfOne.equals(intSSetOfOne) shouldBe true
         intKKSetOfOne.equals(intSSetOfTwo) shouldBe false
         intKKSetOfTwo.equals(intSSetOfOne) shouldBe false
-        intKKSetOfTwo.equals(intSSetOfTwo) shouldBe false
+        intKKSetOfTwo.equals(intSSetOfTwo) shouldBe true
         intKKSetOfTwo.equals(intSSetOfTwoOfst1) shouldBe false
         intKKSetOfTwoOfst1.equals(intSSetOfTwo) shouldBe false
         intKKSetOfTwo.equals(intSSetOfThree) shouldBe false
         intKKSetOfTwoOfst1.equals(intSSetOfThree) shouldBe false
         intKKSetOfThree.equals(intSSetOfTwo) shouldBe false
         intKKSetOfThree.equals(intSSetOfTwoOfst1) shouldBe false
-        intKKSetOfThree.equals(intSSetOfThree) shouldBe false
+        intKKSetOfThree.equals(intSSetOfThree) shouldBe true
 
         intSSetOfNone.equals(intKKSetOfNone) shouldBe true
+        (intSSetOfNone === intKKSetOfNone) shouldBe false
         intSSetOfNone.equals(intKKSetOfOne) shouldBe false
         intSSetOfOne.equals(intKKSetOfNone) shouldBe false
-        intSSetOfOne.equals(intKKSetOfOne) shouldBe false
+        intSSetOfOne.equals(intKKSetOfOne) shouldBe true
         intSSetOfOne.equals(intKKSetOfTwo) shouldBe false
         intSSetOfTwo.equals(intKKSetOfOne) shouldBe false
-        intSSetOfTwo.equals(intKKSetOfTwo) shouldBe false
+        intSSetOfTwo.equals(intKKSetOfTwo) shouldBe true
         intSSetOfTwo.equals(intKKSetOfTwoOfst1) shouldBe false
         intSSetOfTwoOfst1.equals(intKKSetOfTwo) shouldBe false
         intSSetOfTwo.equals(intKKSetOfThree) shouldBe false
         intSSetOfTwoOfst1.equals(intKKSetOfThree) shouldBe false
         intSSetOfThree.equals(intKKSetOfTwo) shouldBe false
         intSSetOfThree.equals(intKKSetOfTwoOfst1) shouldBe false
-        intSSetOfThree.equals(intKKSetOfThree) shouldBe false
+        intSSetOfThree.equals(intKKSetOfThree) shouldBe true
 
         intSSetOfNone.equals(strISetOfNone) shouldBe true
-        ksSetOfNone.equals(intKKSetOfNone) shouldBe true
+        ksSetOfNone.equals(intKKSetOfNone) shouldBe false
     }
 
     test("equals sKSet sISet") {
         strKKSetOfNone.equals(strISetOfNone) shouldBe true
+        (strKKSetOfNone === strISetOfNone) shouldBe false
         strKKSetOfNone.equals(strISetOfOne) shouldBe false
         strKKSetOfOne.equals(strISetOfNone) shouldBe false
-        strKKSetOfOne.equals(strISetOfOne) shouldBe false
+        strKKSetOfOne.equals(strISetOfOne) shouldBe true
         strKKSetOfOne.equals(strISetOfTwo) shouldBe false
         strKKSetOfTwo.equals(strISetOfOne) shouldBe false
-        strKKSetOfTwo.equals(strISetOfTwo) shouldBe false
+        strKKSetOfTwo.equals(strISetOfTwo) shouldBe true
         strKKSetOfTwo.equals(strISetOfTwoOfst1) shouldBe false
         strKKSetOfTwoOfst1.equals(strISetOfTwo) shouldBe false
         strKKSetOfTwo.equals(strISetOfThree) shouldBe false
         strKKSetOfTwoOfst1.equals(strISetOfThree) shouldBe false
         strKKSetOfThree.equals(strISetOfTwo) shouldBe false
         strKKSetOfThree.equals(strISetOfTwoOfst1) shouldBe false
-        strKKSetOfThree.equals(strISetOfThree) shouldBe false
+        strKKSetOfThree.equals(strISetOfThree) shouldBe true
 
         strISetOfNone.equals(strKKSetOfNone) shouldBe true
+        (strISetOfNone === strKKSetOfNone) shouldBe false
         strISetOfNone.equals(strKKSetOfOne) shouldBe false
         strISetOfOne.equals(strKKSetOfNone) shouldBe false
-        strISetOfOne.equals(strKKSetOfOne) shouldBe false
+        strISetOfOne.equals(strKKSetOfOne) shouldBe true
         strISetOfOne.equals(strKKSetOfTwo) shouldBe false
         strISetOfTwo.equals(strKKSetOfOne) shouldBe false
-        strISetOfTwo.equals(strKKSetOfTwo) shouldBe false
+        strISetOfTwo.equals(strKKSetOfTwo) shouldBe true
         strISetOfTwo.equals(strKKSetOfTwoOfst1) shouldBe false
         strISetOfTwoOfst1.equals(strKKSetOfTwo) shouldBe false
         strISetOfTwo.equals(strKKSetOfThree) shouldBe false
         strISetOfTwoOfst1.equals(strKKSetOfThree) shouldBe false
         strISetOfThree.equals(strKKSetOfTwo) shouldBe false
         strISetOfThree.equals(strKKSetOfTwoOfst1) shouldBe false
-        strISetOfThree.equals(strKKSetOfThree) shouldBe false
+        strISetOfThree.equals(strKKSetOfThree) shouldBe true
 
         strISetOfNone.equals(strISetOfNone) shouldBe true
-        ksSetOfNone.equals(strKKSetOfNone) shouldBe true
+        ksSetOfNone.equals(strKKSetOfNone) shouldBe false
     }
 
-    test("equals fail KKSet ISet") {
+    test("equals KKSet ISet") {
         intKKSetOfNone.equals(null) shouldBe false
 
         intKKSetOfOne.equals(strISetOfOne) shouldBe false
@@ -359,7 +316,7 @@ class FKSetCompanionTest : FunSpec({
         strISetOfOne.equals("a") shouldBe false
     }
 
-    test("equals fail KKSet SSet") {
+    test("equals KKSet SSet") {
         intSSetOfNone.equals(null) shouldBe false
 
         intSSetOfOne.equals(strKKSetOfOne) shouldBe false
@@ -510,13 +467,10 @@ class FKSetCompanionTest : FunSpec({
         (ofs(emptyArrayOfInt.iterator()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val aut: IMKSet<String, Int> = ofs(arrayOf(1, 2, 3).iterator())
         aut.equal(intSSetOfThree) shouldBe true
-        aut.equals(intKKSetOfThree) shouldBe false
-        // the following compares lhs and rhs as Iterable<A>, so the test is correct
-        aut shouldBe intKKSetOfThree
+        aut.equals(intKKSetOfThree) shouldBe true
         aut.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        // this is a bad cast, but type erasure prevents the following from blowing up (as it should)
-        (@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe true
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (aut as IMKASetNotEmpty<Int, Int>)) shouldBe true
     }
 
     test("co.ofs FRBTree<K, A>") {
@@ -524,11 +478,10 @@ class FKSetCompanionTest : FunSpec({
         (ofs(FRBTree.nul<String, Int>()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val autfrb: IMKSet<String, Int> = ofs(FRBTree.ofvs(1, 2, 3))!!
         autfrb.equal(intSSetOfThree) shouldBe true
-        autfrb.equals(intKKSetOfThree) shouldBe false
-        autfrb shouldBe intKKSetOfThree
+        autfrb.equals(intKKSetOfThree) shouldBe true
         autfrb.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe true
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfrb as IMKASetNotEmpty<Int, Int>)) shouldBe true
     }
 
     test("co.ofs FBSTree<K, A>"){
@@ -538,11 +491,10 @@ class FKSetCompanionTest : FunSpec({
         ofs(FBSTree.ofvs(1, 2, 3, allowDups = true)) shouldBe null
         val autfbs: FKSet<String, Int> = ofs(FBSTree.ofvs(1, 2, 3))!!
         autfbs.equal(intSSetOfThree) shouldBe true
-        autfbs.equals(intKKSetOfThree) shouldBe false
-        autfbs shouldBe intKKSetOfThree
+        autfbs.equals(intKKSetOfThree) shouldBe true
         autfbs.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)).equal(intKKSetOfThree) shouldBe true
+        intKKSetOfThree.equal(@Suppress("UNCHECKED_CAST") (autfbs as IMKASetNotEmpty<Int, Int>)) shouldBe true
     }
 
     test("co.ofs IMList"){
@@ -550,14 +502,13 @@ class FKSetCompanionTest : FunSpec({
         (ofs(emptyIMList()) === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auti = ofs(FLCons(2, FLCons(3, FLCons(1, FLNil))))
         auti.equal(intSSetOfThree) shouldBe true
-        auti.equals(intKKSetOfThree) shouldBe false
-        auti shouldBe intKKSetOfThree
+        auti.equals(intKKSetOfThree) shouldBe true
         auti.isStrictly(intKKSetOfThree) shouldBe false // DUH
-        (@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)).equals(intKKSetOfThree) shouldBe false
-        intKKSetOfThree.equals(@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)) shouldBe false
+        (@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)).equals(intKKSetOfThree) shouldBe true
+        intKKSetOfThree.equals(@Suppress("UNCHECKED_CAST") (auti as IMKASetNotEmpty<Int, Int>)) shouldBe true
         val auts = ofs(FLCons("1", FLCons("2", FLCons("3", FLNil))))
         auts.equal(strKKSetOfThree) shouldBe true
-        auts.equals(strISetOfThree) shouldBe false
+        auts.equals(strISetOfThree) shouldBe true
         auts shouldBe strKKSetOfThree
     }
 
@@ -565,8 +516,8 @@ class FKSetCompanionTest : FunSpec({
         ofsMap(emptyArrayOfInt.iterator()){ it.toString() } shouldBe emptyIMKISet()
         (ofsMap(emptyArrayOfInt.iterator()){ it.toString() } === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auts = ofsMap(arrayOf(1, 2, 3).iterator()){ it.toString() }
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe false
+        strISetOfThree.equal((@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>))) shouldBe true
+        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe true
         val autl: FKSet<String, Long> = ofsMap(arrayOf(1, 2, 3).iterator()){ it.toLong() }
         autl.equal(longISetOfThree.asIMSet()) shouldBe true
     }
@@ -575,8 +526,8 @@ class FKSetCompanionTest : FunSpec({
         ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } shouldBe emptyIMKISet()
         (ofsMap(emptyIMList<Int>() as IMList<Int>){ it.toString() } === emptyIMKSet<String, Int>(StrKeyType)) shouldBe true
         val auts = ofsMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toString() }
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)) shouldBe strISetOfThree
-        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe false
+        strISetOfThree.equal((@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>))) shouldBe true
+        (@Suppress("UNCHECKED_CAST") ( auts as IMKKSetNotEmpty<String>)).equal(strISetOfThree) shouldBe true
         val autl: FKSet<String, Long> = ofsMap(FLCons(2, FLCons(3, FLCons(1, FLNil))) as IMList<Int>){ it.toLong() }
         autl.equal(longISetOfThree.asIMSet()) shouldBe true
     }
@@ -624,8 +575,10 @@ class FKSetCompanionTest : FunSpec({
             val ks = kl.toSet()
             val fs1 = kl.toIMKSet(IntKeyType)
             val fs2 = ks.toIMKSet(IntKeyType)
-            fs1?.equals(ks) shouldBe true
-            ks.equals(fs2) shouldBe true
+            fs1!!.equals(ks) shouldBe false
+            ks.equals(fs2!!) shouldBe false
+            fs1.softEqual(ks) shouldBe true
+            ks.equals(fs2.asSet()) shouldBe true
         }
     }
 
@@ -634,8 +587,10 @@ class FKSetCompanionTest : FunSpec({
             val ks = kl.toSet()
             val fs1 = kl.toIMKSet(StrKeyType)
             val fs2 = ks.toIMKSet(StrKeyType)
-            fs1?.equals(ks) shouldBe true
-            ks.equals(fs2) shouldBe true
+            fs1!!.equals(ks) shouldBe false
+            ks.equals(fs2!!) shouldBe false
+            fs1.softEqual(ks) shouldBe true
+            ks.equals(fs2.asSet()) shouldBe true
         }
     }
 

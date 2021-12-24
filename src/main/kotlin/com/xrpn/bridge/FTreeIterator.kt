@@ -52,9 +52,9 @@ class FTreeIterator<out A, out B: Any> internal constructor(val seed: IMBTree<A,
 
     override fun iterator(): Iterator<TKVEntry<A, B>> = this
 
-    internal val retriever: FBTreeRetrieval<A, B> = object : FBTreeRetrieval<A, B> {
+    internal val retriever: FBTreeRetrieval<A, B> by lazy { object : FBTreeRetrieval<A, B> {
         override fun original(): IMBTree<A, B> = seed
-    }
+    }}
 
     companion object {
 

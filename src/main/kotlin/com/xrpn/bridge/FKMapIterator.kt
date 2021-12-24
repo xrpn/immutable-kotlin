@@ -1,5 +1,6 @@
 package com.xrpn.bridge
 
+import com.xrpn.imapi.IMBTree
 import com.xrpn.immutable.*
 
 //
@@ -31,6 +32,10 @@ class FKMapIterator<out K, out V: Any> internal constructor (val seed: FKMap<K, 
     fun nullableNext(): TKVEntry<K, V>? = iter.nullableNext()
 
     override fun iterator(): FKMapIterator<K, V> = this
+
+    internal val retriever: FKMapRetrieval<K, V> by lazy { object : FKMapRetrieval<K, V> {
+        override fun original(): FKMap<K, V> = seed
+    }}
 
     companion object {
 
