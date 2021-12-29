@@ -18,8 +18,10 @@ sealed class FList<out A: Any>: IMList<A> {
 
     val size: Int by lazy { if (this is FLNil) 0 else this.ffoldLeft(0) { b, _ -> b + 1 } }
 
-    /* TODO start
     private val klist: List<A> by lazy { object : List<A>, FListRetrieval<A> {
+
+        override fun equals(other: Any?): Boolean = this@FList.softEqual(other)
+        override fun hashCode(): Int = this@FList.hashCode()
 
         // from Collection<A>
 
@@ -56,7 +58,6 @@ sealed class FList<out A: Any>: IMList<A> {
     }}
 
     fun asList(): List<A> = klist
-    TODO end */
 
     /*
         Stack-safe implementation.  May run out of heap memory, will not run
@@ -721,10 +722,12 @@ sealed class FList<out A: Any>: IMList<A> {
         override fun <A: Any> Iterable<A>.toIMList(): IMList<A> {
             val iter = this.iterator()
             return if (!iter.hasNext()) emptyIMList() else when (iter) {
-                is FKSetIterator<*,*> -> @Suppress("UNCHECKED_CAST") (this as FKSetRetrieval<*,A>).original().toFList()
-                is FListIteratorFwd<A> -> @Suppress("UNCHECKED_CAST") (this as FListRetrieval<A>).original()
-                is FStackIterator<A> -> @Suppress("UNCHECKED_CAST") (this as FStackRetrieval<A>).original().toFList()
-                is FQueueIterator<A> -> @Suppress("UNCHECKED_CAST") (this as FQueueRetrieval<A>).original().toFList()
+                is FKSetIterator<*,A> -> iter.retriever.original().toFList()
+                is FListIteratorFwd<A> -> iter.retriever.original()
+                is FListIteratorBidi<A> -> iter.retriever.original()
+                is FListIteratorBkwd<A> -> iter.retriever.original()
+                is FStackIterator<A> -> iter.retriever.original().toFList()
+                is FQueueIterator<A> -> iter.retriever.original().toFList()
                 else -> of(iter)
             }
         }
@@ -855,18 +858,32 @@ data class FLCons<out A: Any>(
         other is IMList<*> -> when {
             other.fempty() -> false
             fhead()!!.isStrictlyNot(other.fhead()!!) -> false
-            else -> (@Suppress("UNCHECKED_CAST")(other as? IMList<A>))?.let { IMListEqual2(this, it) } ?: false
+            else -> (@Suppress("UNCHECKED_CAST")(other as? IMList<A>))?.let {
+                IMListEqual2(this, it)
+            } ?: false
+        }
+        other is Collection<*> -> when(val iter = other.iterator()) {
+            is FListIteratorFwd<*> -> equals(iter.retriever.original())
+            is FListIteratorBkwd<*> -> equals(iter.retriever.original())
+            is FListIteratorBidi<*> -> equals(iter.retriever.original())
+            else -> false
         }
         else -> false
     }
 
     override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
-        is IMDiaw<*,*> -> when {
+        is IMOrdered<*> -> when {
             rhs.fempty() -> false
             fsize() != rhs.fsize() -> false
-            else -> TODO()
+            else -> IMOrdered.equal(this,rhs)
         }
         is List<*> -> IMOrdered.softEqual(this,rhs)
+        is Collection<*> -> when(val iter = rhs.iterator()) {
+            is FListIteratorFwd<*> -> softEqual(iter.retriever.original())
+            is FListIteratorBkwd<*> -> softEqual(iter.retriever.original())
+            is FListIteratorBidi<*> -> softEqual(iter.retriever.original())
+            else -> false
+        }
         else -> false
     }
 

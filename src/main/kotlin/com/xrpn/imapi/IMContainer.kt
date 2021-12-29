@@ -1,9 +1,13 @@
 package com.xrpn.imapi
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.FCartesian.Companion.emptyZipMap
+import com.xrpn.imapi.FCartesian.Companion.reportException
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FT
 import com.xrpn.immutable.toUCon
+import java.io.OutputStream
+import java.io.PrintStream
 import kotlin.reflect.KClass
 
 enum class IMSC {
@@ -21,23 +25,32 @@ enum class IMSC {
     IMKART
 }
 
-fun Any?.asIMUniCo(): IMUniversalCommon? = this?.let { if(it is IMUniversalCommon) it else null }
+interface IMUniversalCommon {
+    fun errLog(dest: OutputStream = System.err): IMLogging = object : IMLogging {
+        override val logStream: PrintStream by lazy { PrintStream(dest) }
+        override val classId: String by lazy { "${this::class}" }
+//        {"${this::class.takeIf {
+//            !it.isCompanion
+//        } ?: this.javaClass.enclosingClass.kotlin}" }
+    }
+    fun reportException(ex: Exception, item: Any? = null, dest: OutputStream = System.err) {
+        val aux = errLog(dest)
+        val itemMsg = item?.let { " for ${it::class} as $it" }
+        val msg = "failure in ${aux.classId}$itemMsg"
+        aux.emitUnconditionally(msg)
+        aux.emitUnconditionally(ex)
+    }
+}
 
-fun <T: Any> Any.asIMCommon(): IMCommon<T>? = @Suppress("UNCHECKED_CAST") (this as? IMCommon<T>) ?: run {
-        IMSystemErrLogging(this::class).emitUnconditionally("${this::class.simpleName} is-not-a ${IMCommon::class.simpleName}")
+fun <T: Any> IMUniversalCommon.asIMCommon(): IMCommon<T>? = @Suppress("UNCHECKED_CAST") (this as? IMCommon<T>) ?: run {
+        val aux = this.errLog()
+        aux.emitUnconditionally("is-not-a ${IMCommon::class.simpleName}")
         null
     }
-
-interface IMUniversalCommon
 
 interface IMSealed<out A:IMUniversalCommon>: IMUniversalCommon {
     val seal: IMSC
     fun softEqual(rhs: Any?): Boolean
-
-    companion object {
-        fun softEqual(rhs: Any): Boolean = rhs.asIMUniCo()?.let { it is IMSealed<*> } == true
-    }
-
 }
 
 // One or more A
@@ -190,7 +203,7 @@ interface IMKeyed<out K>: IMUniversalCommon where K: Any, K: Comparable<@UnsafeV
     fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K>
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
-    fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean?
+    fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>?): Boolean?
 }
 
 interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -276,7 +289,10 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
         }
 
         fun <A: Any> softEqual(lhs: IMOrdered<A>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
-            is IMCommon<*> -> IMCommon.softEqual(lhs, rhs)
+            null -> false
+            is IMOrdered<*> -> (@Suppress("UNCHECKED_CAST") (rhs as? IMOrdered<A>)?. let {
+                    equal(lhs, it)
+                } ?: false)
             is Iterable<*> -> {
                 val rhsIter = rhs.iterator()
                 val rhsEmpty = ! rhsIter.hasNext()
@@ -296,6 +312,7 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
                     }
                 }
             }
+            is IMCommon<*> -> IMCommon.softEqual(lhs, rhs)
             else -> false
         }
 
@@ -329,11 +346,11 @@ interface IMCartesian<out S: Any, out U: ITMap<S>, out T: Any, out W:IMZPair<S,T
             k?.let { try {
                 FCartesian.asZMap(it as ITMap<IMZPair<S, T>>) as ITZMap<S, T>
             } catch (ex: NullPointerException) {
-                IMSystemErrLogging(this::class).emitUnconditionally("fail with  ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+                reportException(ex)
                 null
             }}
         } catch (ex: ClassCastException) {
-            IMSystemErrLogging(this::class).emitUnconditionally("fail with ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+            reportException(ex,k)
             null
         }
         fun <S: Any, T: Any> flift2kart(item: IMOrdered<S>): ITKart<S,T> = FCartesian.of(item)
@@ -703,8 +720,9 @@ interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
         asIMBTree().fcount(isMatch)
     override fun fisNested(): Boolean? = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean? = sample?.let {
         if (fempty()) null else null == asIMBTree().ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
+    }
     // IMKeyedValue
     override fun asIMMap(): IMMap<K,V> = this
 
@@ -738,8 +756,9 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
         ffold(0) { acc, item -> if(isMatch(item)) acc + 1 else acc }
     override fun fisNested(): Boolean?  = if (fempty()) null else FT.isContainer(fpick()!!.getv())
     // IMKeyed
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>): Boolean? =
-        if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(sample)) }
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>?): Boolean? = sample?.let {
+        if (fempty()) null else null == this.ffindAny { tkv -> !(tkv.strictlyLike(it)) }
+    }
     // IMKeyedValue
     override fun asIMBTree(): IMBTree<A,B> = this
     override fun fcontainsValue(value: @UnsafeVariance B): Boolean = if (this.fempty()) false else {
@@ -759,6 +778,29 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv)) }
     fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
+
+    companion object {
+        fun<A, B: Any> softEqual(lhs: IMBTree<A,B>, rhs: Any?): Boolean
+        where A: Any, A: Comparable<@UnsafeVariance A> = lhs.equals(rhs) || when (rhs) {
+            is IMBTree<*, *> -> when {
+                lhs.fempty() -> rhs.fempty()
+                rhs.fempty() -> false
+                rhs.fsize() != lhs.fsize() -> false
+                rhs.froot()!!.strictlyNot(lhs.froot()!!.untype()) -> false
+                rhs.froot()!!.getvKc().isStrictlyNot(lhs.froot()!!.untype().getvKc()) -> false
+                rhs.froot()!!.getkKc().isStrictlyNot(lhs.froot()!!.untype().getkKc()) -> false
+                else -> (@Suppress("UNCHECKED_CAST") (rhs as? IMBTree<A, B>))?.let {
+                    IMBTreeEqual2 (lhs, it)
+                } ?: false
+            }
+            is Collection<*> -> when(val iter = rhs.iterator()) {
+                is FTreeIterator<*, *> -> softEqual(lhs, iter.retriever.original())
+                else -> false
+            }
+            else -> false
+        }
+
+    }
 }
 
 // Set derivatives
@@ -811,8 +853,9 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
 
-    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>): Boolean? =
-        this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) }}
+    override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean? = sample?.let {
+        this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) } }
+    }
  }
 
 internal interface IMKSetNotEmpty<out K, out A:Any>: IMKSet<K,A>,

@@ -135,8 +135,8 @@ internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) :
 interface IMBTreeCompanion {
 
     fun <A, B: Any> emptyIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> of(vararg items: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> of(vararg items: TKVEntry<A, B>,strict: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, strict: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> where A: Any, A: Comparable<A>
 
     fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
@@ -175,8 +175,8 @@ interface IMBTreeCompanion {
 interface IMBTreeDupCompanion {
 
     fun <A, B: Any> emptyIMBTree(allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean = false, strict: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean = false,  strict: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
     fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>
 
     fun <A, B: Any> ofc(cc: Comparator<A>, vararg items: TKVEntry<A,B>, allowDups: Boolean = false): IMBTree<A, B> where A: Any, A: Comparable<A>

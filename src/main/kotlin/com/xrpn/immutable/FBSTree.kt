@@ -622,11 +622,15 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         // ===============
 
-        override fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator(), allowDups)
-        override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
+        override fun <A, B: Any> of(vararg items: TKVEntry<A,B>, allowDups: Boolean, strict: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> = of(items.iterator(), allowDups, strict)
+        override fun <A, B: Any> of(items: Iterator<TKVEntry<A, B>>, allowDups: Boolean, strict: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> {
             var res: FBSTree<A, B> = nul(allowDups)
-            items.forEach{ res = bstInsert(res, it, allowDups) }
-            return res
+            var taintCount = 0
+            items.forEach  { if (!strict || IM.accept(it, res)) res = bstInsert(res, it, allowDups) else taintCount++ }
+            return if (0 == taintCount) res else {
+                nul<Int,Int>(allowDups).errLog().emitUnconditionally(Throwable("taint count is $taintCount"))
+                nul(allowDups)
+            }
         }
         override fun <A, B: Any> of(items: IMList<TKVEntry<A, B>>, allowDups: Boolean): FBSTree<A, B> where A: Any, A: Comparable<A> =
             items.ffoldLeft(nul(allowDups), appender(allowDups))
@@ -1205,7 +1209,8 @@ internal abstract class FBSTNil(): FBSTree<Nothing, Nothing>() {
 
     override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
         is IMBTree<*, *> -> rhs.fempty()
-        is IMCommon<*> -> IMCommonEmpty.equal(rhs)
+        // is IMCommon<*> -> IMCommonEmpty.equal(rhs)
+        is Collection<*> -> IMBTree.softEqual(this, rhs)
         else -> false
     }
 }
@@ -1292,27 +1297,28 @@ internal abstract class FBSTNode<out A, out B: Any> protected constructor (
         other == null -> false
         other is FBSTree<*, *> -> when {
            other.fempty() -> false
-            else -> {
-                other as FBSTNode<*,*>
-                if (entry.strictlyNot(other.entry.untype())) false
-                else (@Suppress("UNCHECKED_CAST") (other as? FBSTNode<A, B>))?.let { IMBTreeEqual2(this, it) } ?: false
+           else -> {
+               other as FBSTNode<*,*>
+               when {
+                   other.fsize() != fsize() -> false
+                   entry.strictlyNot(other.entry.untype()) -> false
+                   entry.getvKc().isStrictlyNot(other.entry.untype().getvKc()) -> false
+                   entry.getkKc().isStrictlyNot(other.entry.untype().getkKc()) -> false
+                   else -> (@Suppress("UNCHECKED_CAST") (other as? FBSTNode<A, B>))?.let {
+                       IMBTreeEqual2(this, it)
+                   } ?: false
+               }
             }
         }
-        (other is Collection<*>) -> when(val iter = other.iterator()) {
+        other is Collection<*> -> when(val iter = other.iterator()) {
             is FTreeIterator<*,*> -> equals(iter.retriever.original())
             else -> false
         }
         else -> false
     }
 
-    override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when {
-        rhs is IMBTree<*, *> -> when {
-            rhs.fempty() -> false
-            entry.strictlyNot(rhs.froot()!!.untype()) -> false
-            else -> (@Suppress("UNCHECKED_CAST") (rhs as? IMBTree<A, B>))?.let { IMBTreeEqual2 (this, it) } ?: false
-        }
-        else -> false
-    }
+    override fun softEqual(rhs: Any?): Boolean =
+        IMBTree.softEqual(this,rhs)
 
     val hash:Int by lazy {
         val seed: Int = when (val rk = this.froot()?.getk()) {

@@ -22,7 +22,9 @@ private val iiTreeOfTwo: IMKeyedValue<Int,Int> = FRBTree.of(1.toIAEntry(), 2.toI
 private val isTreeOfTwo: IMKeyedValue<Int,String> = FRBTree.of("1".toIAEntry(), "2".toIAEntry())
 private val ssTreeOfTwo: IMKeyedValue<String,String> = FRBTree.of("1".toSAEntry(), "2".toSAEntry())
 private val siTreeOfTwo: IMKeyedValue<String,Int> = FRBTree.of(1.toSAEntry(), 2.toSAEntry())
-private val ixTreeOfTwo: IMKeyedValue<Int, FKSet<*, Int>> = FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
+private val ixTreeOfTwo: IMKeyedValue<Int, FKSet<*, Int>> = FRBTree.of(
+  FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()
+)
 private val ixxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry(),
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry()
@@ -112,21 +114,21 @@ class FRBTreeIMKeyedTest : FunSpec({
   test("fisStrictlyLike, ftypeSample") {
     iiTreeOfNone.ftypeSample() shouldBe null
     iiTreeOfTwo.ftypeSample() shouldBe KeyedTypeSample(Int::class, Int::class)
-    iiTreeOfTwo.fisStrictlyLike(iiTreeOfTwo.ftypeSample()!!) shouldBe true
+    iiTreeOfTwo.fisStrictlyLike(iiTreeOfTwo.ftypeSample()) shouldBe true
     isTreeOfTwo.ftypeSample() shouldBe KeyedTypeSample(Int::class, String::class)
-    isTreeOfTwo.fisStrictlyLike(isTreeOfTwo.ftypeSample()!!) shouldBe true
+    isTreeOfTwo.fisStrictlyLike(isTreeOfTwo.ftypeSample()) shouldBe true
     ssTreeOfTwo.ftypeSample() shouldBe KeyedTypeSample(String::class, String::class)
-    ssTreeOfTwo.fisStrictlyLike(ssTreeOfTwo.ftypeSample()!!) shouldBe true
+    ssTreeOfTwo.fisStrictlyLike(ssTreeOfTwo.ftypeSample()) shouldBe true
     siTreeOfTwo.ftypeSample() shouldBe KeyedTypeSample(String::class, Int::class)
-    siTreeOfTwo.fisStrictlyLike(siTreeOfTwo.ftypeSample()!!) shouldBe true
-    siTreeOfTwo.fisStrictlyLike(ssTreeOfTwo.ftypeSample()!!) shouldBe false
+    siTreeOfTwo.fisStrictlyLike(siTreeOfTwo.ftypeSample()) shouldBe true
+    siTreeOfTwo.fisStrictlyLike(ssTreeOfTwo.ftypeSample()) shouldBe false
 
-    ixTreeOfTwo.fisStrictlyLike(ixTreeOfTwo.ftypeSample()!!) shouldBe false
+    ixTreeOfTwo.fisStrictlyLike(ixTreeOfTwo.ftypeSample()) shouldBe false
     val ixxRecursiveInternalStricture = ixxTreeOfTwo.fisStrict()
-    ixxTreeOfTwo.fisStrictlyLike(ixxTreeOfTwo.ftypeSample()!!) shouldBe !ixxRecursiveInternalStricture
+    ixxTreeOfTwo.fisStrictlyLike(ixxTreeOfTwo.ftypeSample()) shouldBe !ixxRecursiveInternalStricture
     val ixxxRecursiveInternalStricture = ixxxTreeOfTwo.fisStrict()
-    ixxxTreeOfTwo.fisStrictlyLike(ixxxTreeOfTwo.ftypeSample()!!) shouldBe !ixxxRecursiveInternalStricture
-    izTreeOfTwo.fisStrictlyLike(izTreeOfTwo.ftypeSample()!!) shouldBe true
+    ixxxTreeOfTwo.fisStrictlyLike(ixxxTreeOfTwo.ftypeSample()) shouldBe !ixxxRecursiveInternalStricture
+    izTreeOfTwo.fisStrictlyLike(izTreeOfTwo.ftypeSample()) shouldBe true
   }
 
   test("asIMBTree") {

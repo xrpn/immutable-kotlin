@@ -1,8 +1,6 @@
 package com.xrpn.imapi
 
-import com.xrpn.immutable.FLCons
-import com.xrpn.immutable.FLNil
-import com.xrpn.immutable.TKVEntry
+import com.xrpn.immutable.*
 import mu.KLogger
 import mu.KotlinLogging
 import java.io.PrintStream
@@ -90,6 +88,26 @@ inline infix fun <B, C, A> ((B) -> C).fKompose(crossinline f: (A) -> B): (A) -> 
 
 object IM {
 
+    fun <A, B: Any> accept(src: TKVEntry<A, B>, dest: IMBTree<A, B>): Boolean where A: Any, A: Comparable<A> {
+        val goodness: Pair<Boolean, TKVEntry<A, B>?> = when {
+            dest.fempty() -> Pair(true, null)
+            else -> {
+                val entry = dest.froot()!!
+                Pair(src.strictly(entry.untype())
+                        && src.getvKc().isStrictly(entry.untype().getvKc())
+                        && src.getkKc().isStrictly(entry.untype().getkKc()), entry)
+            }
+        }
+        if (!goodness.first) {
+            val atDest = goodness.second!!
+            val newEntry = "new entry: ${src.getv().hashCode()}:${src.getv()} AS <$src>"
+            val treeData = "tree data: ${atDest.getv().hashCode()}:${atDest.getv()} AS <${atDest}>"
+            src.errLog().emitUnconditionally("no acceptance when inserting $newEntry as $treeData")
+        }
+        return goodness.first
+    }
+
+
     fun <A: Any, B: Any> maybe2(a: A?, b: B?): Pair<A,B>? = a?.let { b?.let { Pair(a,b) } }
     fun <A, B, C> maybe3(a: A, b: B, c: C): Triple<A,B,C>? = a?.let { b?.let {  c?.let { Triple(a,b,c) } } }
 
@@ -133,32 +151,9 @@ object IM {
     }
 }
 
-interface IMLogging<out A>  {
-    val logger: A
-    fun emitUnconditionally(msg: String)
-    fun emitUnconditionally(e: Exception)
-}
-
-data class IMSimpleLogging(val forClass: KClass<*>): IMLogging<Logger> {
-    override fun emitUnconditionally(msg: String) = if(logger.isLoggable(Level.SEVERE)) logger.severe(msg) else System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = if(logger.isLoggable(Level.SEVERE)) logger.log(Level.SEVERE, "emitUnconditionally", e) else e.printStackTrace(System.err)
-    override val logger: Logger by lazy { getEngine() }
-    private fun getEngine(): Logger = getLogger(forClass.qualifiedName ?: "<local or anonymous>")
-}
-
-data class IMKLogging(val forClass: KClass<*>): IMLogging<KLogger> {
-    override fun emitUnconditionally(msg: String) = if(logger.isErrorEnabled) logger.error(msg) else System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = if(logger.isErrorEnabled) logger.error("emitUnconditionally", e) else e.printStackTrace(System.err)
-    override val logger: KLogger by lazy { getEngine() }
-    private fun getEngine(): KLogger = KotlinLogging.logger(forClass.qualifiedName ?: "<local or anonymous>")
-}
-
-data class IMSystemErrLogging(val forClass: KClass<*>): IMLogging<PrintStream> {
-    override fun emitUnconditionally(msg: String) = System.err.println(msg)
-    override fun emitUnconditionally(e: Exception) = e.printStackTrace(System.err)
-    override val logger: PrintStream by lazy { getEngine() }
-    private fun getEngine(): PrintStream {
-        System.err.println("LOGGING FOR ${forClass.qualifiedName ?: "<local or anonymous>"} WILL GO TO STANDARD ERROR STREAM")
-        return System.err
-    }
+interface IMLogging  {
+    val logStream: PrintStream
+    val classId: String
+    fun emitUnconditionally(msg: String) = logStream.println("'$classId'#$msg")
+    fun emitUnconditionally(e: Throwable) = e.printStackTrace(logStream)
 }

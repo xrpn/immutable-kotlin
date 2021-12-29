@@ -2,7 +2,6 @@ package com.xrpn.kapi
 
 import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
-import com.xrpn.immutable.FList.Companion.toIMList
 import com.xrpn.immutable.FBSTree.Companion.NOT_FOUND
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntries
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry

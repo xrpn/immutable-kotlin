@@ -18,17 +18,17 @@ fun <A: Any, B> Arb.Companion.flist(
     return Arb.list(arbB, range).map { bs -> FList.ofMap(bs, f) }
 }
 
-//fun <A: Any, B> Arb.Companion.flistAsCollection(
-//    arbB: Arb<B>,
-//    range: IntRange = 1..50,
-//    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-//): Arb<Collection<A>> where B:A = flist(arbB, range, f).map { it.asList() }
+fun <A: Any, B> Arb.Companion.flistAsCollection(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<Collection<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
-//fun <A: Any, B> Arb.Companion.flistAsKList(
-//    arbB: Arb<B>,
-//    range: IntRange = 1..50,
-//    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-//): Arb<List<A>> where B:A = flist(arbB, range, f).map { it.asList() }
+fun <A: Any, B> Arb.Companion.flistAsKList(
+    arbB: Arb<B>,
+    range: IntRange = 1..50,
+    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
+): Arb<List<A>> where B:A = flist(arbB, range, f).map { it.asList() }
 
 fun <A: Any, B> Arb.Companion.fiset(
     arbB: Arb<B>,
@@ -92,7 +92,7 @@ fun <A: Any, B> Arb.Companion.frbtreeAsCollection(
     arbB: Arb<B>,
     range: IntRange = 1..50,
     @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f).map{ FTreeIterator(it).toList() }
+): Arb<Collection<TKVEntry<Int, A>>> where B:A = frbtree(arbB, range, f).map{ it.asCollection() }
 
 fun <A: Any, B> Arb.Companion.fbsItree(
     arbB: Arb<B>,
@@ -132,12 +132,6 @@ fun <A: Any, B> Arb.Companion.fbstreeWithDups(
         FBSTree.ofvi(dups.iterator(), allowDups = true)
     }
 }
-
-fun <A: Any, B> Arb.Companion.fbstreeAsIterable(
-    arbB: Arb<B>,
-    range: IntRange = 1..50,
-    @Suppress("UNCHECKED_CAST") f: (B) -> A = { a -> a }
-): Arb<Iterable<TKVEntry<Int, A>>> where B:A = fbsItree(arbB, range, f).map{ FTreeIterator(it) }
 
 fun <A: Any, B> Arb.Companion.fbstreeAsCollection(
     arbB: Arb<B>,

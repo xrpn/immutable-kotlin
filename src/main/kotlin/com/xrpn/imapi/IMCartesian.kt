@@ -13,9 +13,7 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVaria
                 @Suppress("UNCHECKED_CAST") (tc as IMOrdered<T>)
                 ZipWrap(u, tc)
             } catch (ex: ClassCastException) {
-                IMSystemErrLogging(this::class).emitUnconditionally(
-                "fail with  ${ex::class.simpleName}(${ex.message}) for ${t::class} as $t"
-                )
+                reportException(ex, t)
                 null
            }
            is IMZipWrap<*,*> -> {
@@ -36,7 +34,7 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVaria
     }
 
 
-    companion object {
+    companion object: IMUniversalCommon {
         fun <S : Any, T : Any> of(item: IMOrdered<S>): IMCartesian<S, ITMap<S>, T, IMZPair<S, T>> = when (item) {
 //            is IMCommon<*> -> {
 //                val tmap = (@Suppress("UNCHECKED_CAST") (IMMapOp.flift2map(item) as ITMap<S>?))!!
@@ -66,7 +64,7 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVaria
                 val res = ZipWrap.toZMap(placateWarn(k))
                 res
             } catch (ex: ClassCastException) {
-                IMSystemErrLogging(this::class).emitUnconditionally("fail with  ${ex::class.simpleName}(${ex.message}) for ${this::class} as $this")
+                reportException(ex, k)
                 null
             }
             k.equals(defaultEmptyZipMap) ->

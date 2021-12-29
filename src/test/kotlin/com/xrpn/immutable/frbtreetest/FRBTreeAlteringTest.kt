@@ -24,7 +24,7 @@ class FRBTreeAlteringTest : FunSpec({
     val repeatsMid = Pair(25, 500)
     val repeatsLow = Pair(2, 40000)
 
-    val verbose = false
+    val verbose = true
 
     fun displayRbOnVerbose(rbTree: IMBTree<Int, Int>, n: Int, force: Boolean = false) {
         if (verbose || !FRBTree.rbRootInvariant(rbTree as FRBTree<Int, Int>) || force) {
