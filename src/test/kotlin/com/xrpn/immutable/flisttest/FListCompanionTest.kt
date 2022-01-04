@@ -3,6 +3,7 @@ package com.xrpn.immutable.flisttest
 import com.xrpn.imapi.IMList
 import com.xrpn.imapi.IMListEqual2
 import com.xrpn.immutable.*
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FList.Companion.toIMList
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -31,15 +32,28 @@ class FListCompanionTest : FunSpec({
   beforeTest {}
 
   test("equals") {
-    FList.emptyIMList<Int>().equals(null) shouldBe false
-    FList.emptyIMList<Int>().equals(emptyList<Int>()) shouldBe false
-    FList.emptyIMList<Int>().softEqual(emptyList<Int>()) shouldBe true
-    FList.emptyIMList<Int>().equals(1) shouldBe false
-    /* Sigh... */ intListOfNone.equals(strListOfNone) shouldBe true
-    /* Sigh... */ (intListOfNone === strListOfNone) shouldBe true
+    emptyIMList<Int>().equals(null) shouldBe false
+    emptyIMList<Int>().equals(emptyList<Int>()) shouldBe false
+    emptyIMList<Int>().softEqual(emptyList<Int>()) shouldBe true
+    emptyIMList<Int>().asList().equals(emptyIMList<Int>()) shouldBe true
+    emptyIMList<Int>().equals(emptyIMList<Int>().asList()) shouldBe true
+    emptyIMList<Int>().asList().equals(intListOfOne) shouldBe false
+    intListOfOne.equals(emptyIMList<Int>().asList()) shouldBe false
+
+    emptyIMList<Int>().equals(1) shouldBe false
+    /* Sigh... */
+    intListOfNone.equals(strListOfNone) shouldBe true
+    (intListOfNone === strListOfNone) shouldBe true
     intListOfTwo.equals(null) shouldBe false
     intListOfTwo.equals(strListOfNone) shouldBe false
     intListOfTwo.equals(strListOfTwo) shouldBe false
+
+    intListOfTwo.asList().equals(strListOfTwo) shouldBe false
+    intListOfTwo.equals(strListOfTwo.asList()) shouldBe false
+
+    intListOfTwo.asList().equals(intListOfTwo) shouldBe true
+    intListOfTwo.equals(intListOfTwo.asList()) shouldBe true
+
     intListOfTwo.equals(emptyList<Int>()) shouldBe false
     intListOfTwo.equals(listOf("foobar")) shouldBe false
     intListOfTwo.equals(listOf("foobar","babar")) shouldBe false

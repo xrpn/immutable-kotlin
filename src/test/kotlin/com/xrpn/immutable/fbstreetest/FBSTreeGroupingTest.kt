@@ -76,7 +76,7 @@ class FBSTreeGroupingTest : FunSpec({
         val res = slideShareTree.ffold(Pair(nul<Int, Int>(), slideShareTree.fpopAndRemainder())) { acc, _ ->
             val (rebuild, popAndStub) = acc
             val (pop, stub) = popAndStub
-            Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
+            Pair(rebuild.finsertTkv(pop!!), stub.fpopAndRemainder())
         }
         res.first shouldBe slideShareTree
         val (lastPopped, lastRemainder) = res.second

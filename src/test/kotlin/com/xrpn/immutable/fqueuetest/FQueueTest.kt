@@ -55,9 +55,9 @@ class FQueueTest : FunSpec({
 
   test("fmap") {
     (intQueueOfNoneNR.fmap { it + 1} === emptyIMQueue<Int>()) shouldBe true
-    (intQueueOfOne1NR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfOne2NR) shouldBe true
-    (intQueueOfTwoNR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfTwo23YR) shouldBe false
-    (intQueueOfTwoYR.fmap { it + 1 } as FQueue).fqStrongEqual(intQueueOfTwo23YR) shouldBe true
+    (intQueueOfOne1NR.fmap { it + 1 } as FQueue).fqStructuralEqual(intQueueOfOne2NR) shouldBe true
+    (intQueueOfTwoNR.fmap { it + 1 } as FQueue).fqStructuralEqual(intQueueOfTwo23YR) shouldBe false
+    (intQueueOfTwoYR.fmap { it + 1 } as FQueue).fqStructuralEqual(intQueueOfTwo23YR) shouldBe true
   }
 
   test("fpeekMap") {
@@ -167,11 +167,11 @@ class FQueueTest : FunSpec({
     intQueueOfNoneYR.fenqueue(1) shouldBe intQueueOfOne1NR
 
     // here it is different
-    intQueueOfOne1YR.fqForceBack(merge = true).fenqueue(2).fqStrongEqual(intQueueOfTwoNR) shouldBe true
-    intQueueOfTwoYR.fqForceBack(merge = true).fenqueue(3).fqStrongEqual(intQueueOfThreesNR) shouldBe true
+    intQueueOfOne1YR.fqForceBack(merge = true).fenqueue(2).fqStructuralEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfTwoYR.fqForceBack(merge = true).fenqueue(3).fqStructuralEqual(intQueueOfThreesNR) shouldBe true
 
-    intQueueOfOne1YR.fenqueue(2).fqForceFront(merge = true).fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfTwoYR.fenqueue(3).fqForceFront(merge = true).fqStrongEqual(intQueueOfThreesYR) shouldBe true
+    intQueueOfOne1YR.fenqueue(2).fqForceFront(merge = true).fqStructuralEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoYR.fenqueue(3).fqForceFront(merge = true).fqStructuralEqual(intQueueOfThreesYR) shouldBe true
   }
 
   // ======== utility
@@ -188,11 +188,11 @@ class FQueueTest : FunSpec({
   test("equal (not ready)") {
     intQueueOfOne1NR.equal(emptyIMQueue<Int>()) shouldBe false
     emptyIMQueue<Int>().equal(intQueueOfOne1NR) shouldBe false
-    intQueueOfOne1NR.fqStrongEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1NR.fqStructuralEqual(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfTwoNR) shouldBe false
     intQueueOfTwoNR.equal(intQueueOfOne1NR) shouldBe false
-    intQueueOfTwoNR.fqStrongEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfTwoNR.fqStructuralEqual(intQueueOfTwoNR) shouldBe true
   }
 
   test("equal (ready left)") {
@@ -201,39 +201,39 @@ class FQueueTest : FunSpec({
     intQueueOfNoneYR.equal(intQueueOfOne1NR) shouldBe false
     intQueueOfOne1YR.equal(intQueueOfNoneNR) shouldBe false
     intQueueOfOne1YR.equal(emptyIMQueue<Int>()) shouldBe false
-    intQueueOfOne1YR.fqStrongEqual(intQueueOfOne1NR) shouldBe false
+    intQueueOfOne1YR.fqStructuralEqual(intQueueOfOne1NR) shouldBe false
     intQueueOfOne1YR.fqSemanticEqual(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1YR.equal(intQueueOfOne1NR) shouldBe true
     intQueueOfOne1YR.equal(intQueueOfTwoNR) shouldBe false
     intQueueOfTwoYR.equal(intQueueOfOne1NR) shouldBe false
-    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoNR) shouldBe false
+    intQueueOfTwoYR.fqStructuralEqual(intQueueOfTwoNR) shouldBe false
     intQueueOfTwoYR.fqSemanticEqual(intQueueOfTwoNR) shouldBe true
     intQueueOfTwoYR.equal(intQueueOfTwoNR) shouldBe true
   }
 
   test("equal (ready right)") {
     (intQueueOfNoneNR === intQueueOfNoneYR) shouldBe true
-    intQueueOfNoneNR.fqStrongEqual(intQueueOfNoneYR) shouldBe true
+    intQueueOfNoneNR.fqStructuralEqual(intQueueOfNoneYR) shouldBe true
     intQueueOfNoneNR.equal(intQueueOfOne1YR) shouldBe false
     intQueueOfOne1NR.equal(intQueueOfNoneYR) shouldBe false
     emptyIMQueue<Int>().equal(intQueueOfOne1YR) shouldBe false
-    intQueueOfOne1NR.fqStrongEqual(intQueueOfOne1YR) shouldBe false
+    intQueueOfOne1NR.fqStructuralEqual(intQueueOfOne1YR) shouldBe false
     intQueueOfOne1NR.fqSemanticEqual(intQueueOfOne1YR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfOne1YR) shouldBe true
     intQueueOfOne1NR.equal(intQueueOfTwoYR) shouldBe false
     intQueueOfTwoNR.equal(intQueueOfOne1YR) shouldBe false
-    intQueueOfTwoNR.fqStrongEqual(intQueueOfTwoYR) shouldBe false
+    intQueueOfTwoNR.fqStructuralEqual(intQueueOfTwoYR) shouldBe false
     intQueueOfTwoNR.fqSemanticEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfTwoNR.equal(intQueueOfTwoYR) shouldBe true
   }
 
   test("equal (all ready)") {
-    intQueueOfNoneYR.fqStrongEqual(intQueueOfNoneYR) shouldBe true
+    intQueueOfNoneYR.fqStructuralEqual(intQueueOfNoneYR) shouldBe true
     intQueueOfNoneYR.equal(intQueueOfOne1YR) shouldBe false
-    intQueueOfOne1YR.fqStrongEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1YR.fqStructuralEqual(intQueueOfOne1YR) shouldBe true
     intQueueOfOne1YR.equal(intQueueOfTwoYR) shouldBe false
     intQueueOfTwoYR.equal(intQueueOfOne1YR) shouldBe false
-    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoYR.fqStructuralEqual(intQueueOfTwoYR) shouldBe true
   }
 
   test("fforEach") {
@@ -263,8 +263,8 @@ class FQueueTest : FunSpec({
   test("copy") {
     (intQueueOfNoneNR.copy() === emptyIMQueue<Int>()) shouldBe true
     (intQueueOfOne1YR.copy() === intQueueOfOne1YR) shouldBe false
-    intQueueOfThree2B.copy().fqStrongEqual(intQueueOfThree2B) shouldBe true
-    intQueueOfThree2F.copy().fqStrongEqual(intQueueOfThree2F) shouldBe true
+    intQueueOfThree2B.copy().fqStructuralEqual(intQueueOfThree2B) shouldBe true
+    intQueueOfThree2F.copy().fqStructuralEqual(intQueueOfThree2F) shouldBe true
   }
 
   test("toIMList") {
@@ -289,7 +289,7 @@ class FQueueTest : FunSpec({
   // implementation
 
   test("strongEqual") {
-    intQueueOfTwoYR.fqStrongEqual(intQueueOfTwoNR) shouldBe false
+    intQueueOfTwoYR.fqStructuralEqual(intQueueOfTwoNR) shouldBe false
   }
 
   test("toFList") {

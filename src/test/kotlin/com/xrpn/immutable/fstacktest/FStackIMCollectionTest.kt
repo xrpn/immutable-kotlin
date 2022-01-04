@@ -192,9 +192,9 @@ class FStackIMCollectionTest : FunSpec({
     strStackOfThree.fisStrict() shouldBe true
     intStackOfThree.fisStrict() shouldBe true
     FStack.of(FKSet.ofi("A"), FKSet.ofs("A")).fisStrict() shouldBe false
-    FStack.of(setOf(FKSet.ofi("A"), FKSet.ofs("A"))).fisStrict() shouldBe false
-    FStack.of(setOf(FKSet.ofi("A"), FKSet.ofi("A"), setOf(FKSet.ofi("A"), FKSet.ofs("A")))).fisStrict() shouldBe false
-    FStack.of(FKSet.ofi(FKSet.ofi("A"), FKSet.ofi("A"), setOf(FKSet.ofi("A"), FKSet.ofs("A")))).fisStrict() shouldBe false
+    FStack.of(setOf(FKSet.ofi("A"), FKSet.ofs("B"))).fisStrict() shouldBe false
+    FStack.of(setOf(FKSet.ofi("A"), FKSet.ofi("B"), setOf(FKSet.ofi("A"), FKSet.ofs("C")))).fisStrict() shouldBe false
+    FStack.of(FKSet.ofi(FKSet.ofi("B"), FKSet.ofi("A"), setOf(FKSet.ofi("C"), FKSet.ofs("A")))).fisStrict() shouldBe false
     FStack.of(mutableMapOf(("1" to 1), ("2" to 2)), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe false
     FStack.of(mutableMapOf((1 to "1"), (2 to "2")), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe false
     FStack.of(mutableMapOf((1 to 1), (2 to 2)), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe true

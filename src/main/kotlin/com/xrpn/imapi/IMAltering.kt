@@ -6,6 +6,26 @@ interface IMWritable {
     fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMCommon<A>?
 }
 
+interface IMOrderedWritable {
+    fun <A: Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
+}
+
+interface IMOrderedAltering: IMOrderedWritable {
+    override fun <A: Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
+    fun <A: Any> faddAll(src: IMCommon<A>, dest: IMOrdered<A>): IMOrdered<A> =
+        src.ffold(dest) { imkv, tkv -> fadd(tkv, imkv)?.let { it } ?: imkv }
+}
+
+interface IMKeyedValueWritable {
+    fun <A, B: Any> fadd(src: TKVEntry<A,B>, dest: IMKeyedValue<A, B>): IMKeyedValue<A, B>? where A: Any, A: Comparable<A>
+}
+
+interface IMKeyedValueAltering: IMKeyedValueWritable {
+    override fun <A, B: Any> fadd(src: TKVEntry<A, B>, dest: IMKeyedValue<A, B>): IMKeyedValue<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMKeyedValue<A, B>): IMKeyedValue<A, B> where A: Any, A: Comparable<A> =
+        src.ffold(dest) { imkv, tkv -> fadd(tkv, imkv)?.let { it } ?: imkv }
+}
+
 interface IMListWritable: IMWritable {
     override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMList<A>?
     fun <A: Any> fappend(src: A, dest: IMList<A>): IMList<A>?
@@ -60,10 +80,9 @@ interface IMMapAltering<out K, out V: Any> /* : IMWritable<TKVEntry<K,V>> */ whe
 //    override fun fadd(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K,V>
 }
 
-interface IMBTreeAltering<out A, out B: Any> /* : IMWritable<TKVEntry<A,B>> */ where A: Any, A: Comparable<@UnsafeVariance A> {
-    fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): IMBTree<A, B>
-    fun finsertt(items: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> =
-        items.ffold(this as IMBTree<A, B>) { stub, tkv -> stub.finsert(tkv) }
-    // override fun fadd(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = finsert(item)
+interface IMBTreeAltering: IMKeyedValueWritable {
+    override fun <A, B: Any> fadd(src: TKVEntry<A,B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>? where A: Any, A: Comparable<A>
+    fun <A, B: Any> fadd(src: TKVEntry<A, B>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+    fun <A, B: Any> finserts(src: IMKeyedValue<A, B>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
 }

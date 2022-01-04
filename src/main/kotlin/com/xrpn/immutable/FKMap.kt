@@ -175,7 +175,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
     val fkmapEntries: FKSet<Int, TKVEntry<K, V>> by lazy { when(this) {
         is FKMapEmpty -> emptyIMKISet()
         is FKMapNotEmpty -> {
-            val newBody: FRBTree<Int, TKVEntry<K, V>> = this.body.ffold(nul()) { acc, tkv -> acc.finsert( ofIntKey(tkv) ) }
+            val newBody: FRBTree<Int, TKVEntry<K, V>> = this.body.ffold(nul()) { acc, tkv -> acc.finsertTkv( ofIntKey(tkv) ) }
             ofBody(newBody)!!
         }
     }}
@@ -184,7 +184,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
     val fkmapKeys: FKSet<K,K> by lazy { when(this) {
         is FKMapEmpty -> emptyIMKSet(null)
         is FKMapNotEmpty -> {
-            val newBody = this.body.ffold(nul<K,K>()) { acc, tkv -> acc.finsert( ofk(tkv.getk()) ) }
+            val newBody = this.body.ffold(nul<K,K>()) { acc, tkv -> acc.finsertTkv( ofk(tkv.getk()) ) }
             newBody as FRBTNode<K,K>
             ofFKKSBody(newBody)
         }
@@ -246,17 +246,17 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
 
     override fun fputPair(p: Pair<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
         is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(TKVEntry.ofp(p)) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(TKVEntry.ofp(p)) as FRBTNode)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsertTkv(TKVEntry.ofp(p)) as FRBTNode)
     }
 
     override fun fputList(l: FList<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): FKMap<K,V> = if (l.fempty()) this else when (this) {
         is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(l as IMList<TKVEntry<K,V>>) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finserts(l) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsertTkvs(l) as FRBTNode<K, V>)
     }
 
     override fun fputTree(t: IMBTree<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
         is FKMapEmpty -> t.toIMMap() as FKMap<K,V>
-        is FKMapNotEmpty -> if (t.fempty()) this else ofFKMapNotEmpty(body.finsertt(t) as FRBTNode<K, V>)
+        is FKMapNotEmpty -> if (t.fempty()) this else ofFKMapNotEmpty(body.finsertTkvs(t) as FRBTNode<K, V>)
     }
 
     override fun fputMap(m: IMMap<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K,V> = when (this) {
@@ -269,7 +269,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
 
     internal fun fadd(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): FKMap<K, V>  = when (this) {
         is FKMapEmpty -> ofFKMapNotEmpty(FRBTree.of(item) as FRBTNode<K, V>)
-        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsert(item) as FRBTNode)
+        is FKMapNotEmpty -> ofFKMapNotEmpty(body.finsertTkv(item) as FRBTNode)
     }
 
     // utility
@@ -289,7 +289,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
 
     override fun copy(): FKMap<K, V> = when (this) {
         is FKMapEmpty -> emptyIMMap()
-        is FKMapNotEmpty -> body.ffold(nul<K, V>()) { acc, tkv -> acc.finsert(tkv) }.toIMMap()
+        is FKMapNotEmpty -> body.ffold(nul<K, V>()) { acc, tkv -> acc.finsertTkv(tkv) }.toIMMap()
     }
 
     override fun copyToMutableMap(): MutableMap<@UnsafeVariance K, @UnsafeVariance V> = when (this) {
@@ -317,7 +317,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
 
         override fun <K, V : Any> of(items: Iterator<Pair<K, V>>): FKMap<K, V> where K: Any, K : Comparable<K> {
             var acc: FRBTree<K, V> = nul()
-            items.forEach { acc = acc.finsert(TKVEntry.ofp(it)) }
+            items.forEach { acc = acc.finsertTkv(TKVEntry.ofp(it)) }
             return ofFKMapBody(acc)
         }
 
@@ -332,7 +332,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
 
         override fun <K, V : Any> Collection<V>.toIMMap(keyMaker: (V) -> K): FKMap<K, V> where K: Any, K : Comparable<K> {
             var acc: FRBTree<K, V> = nul()
-            this.forEach { acc = acc.finsert(TKVEntry.ofkv(keyMaker(it), it)) }
+            this.forEach { acc = acc.finsertTkv(TKVEntry.ofkv(keyMaker(it), it)) }
             return ofFKMapBody(acc)
         }
 

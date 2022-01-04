@@ -1,5 +1,6 @@
-package com.xrpn.immutable
+package com.xrpn.immutable.misc
 
+import com.xrpn.immutable.*
 import com.xrpn.immutable.TKVEntry.Companion.intKeyOf
 import com.xrpn.immutable.TKVEntry.Companion.strKeyOf
 import io.kotest.assertions.throwables.shouldThrow

@@ -1,5 +1,6 @@
 package com.xrpn.immutable.frbtreetest
 
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.IMBTreeEqual2
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FRBTree.Companion.NOT_FOUND
@@ -65,12 +66,22 @@ class FRBTreeCompanionTest : FunSpec({
         emptyIMBTree<Int, Int>().equals(null) shouldBe false
         emptyIMBTree<Int, Int>().equals(emptyIMBTree<Int, Int>()) shouldBe true
         emptyIMBTree<Int, Int>().equals(1) shouldBe false
-        /* Sigh... */ intFrbtOfNone.equals(strFrbtOfNone) shouldBe true
+        /* Sigh... */
+        intFrbtOfNone.equals(strFrbtOfNone) shouldBe true
+
+        intFrbtOfNone.equals(intFrbtOfTwo.asCollection()) shouldBe false
+        intFrbtOfTwo.asCollection().equals(intFrbtOfNone) shouldBe false
+        intFrbtOfNone.equals(intFrbtOfNone.asCollection()) shouldBe true
+        intFrbtOfNone.asCollection().equals(intFrbtOfNone) shouldBe true
 
         intFrbtOfTwo.equals(null) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfNone) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfOne) shouldBe false
         intFrbtOfTwo.equals(intFrbtOfTwo) shouldBe true
+        intFrbtOfTwo.asCollection().equals(intFrbtOfTwo) shouldBe true
+        intFrbtOfTwo.equals(intFrbtOfTwo.asCollection()) shouldBe true
+        strFrbtOfTwo.asCollection().equals(intFrbtOfTwo) shouldBe false
+        intFrbtOfTwo.equals(strFrbtOfTwo.asCollection()) shouldBe false
 
         intFrbtOfTwo.equals(frbtOfOneX) shouldBe false
         intFrbtOfTwo.equals(frbtOfOneY) shouldBe false
@@ -102,6 +113,7 @@ class FRBTreeCompanionTest : FunSpec({
         intFrbtOfTwo.equals(listOf("foobar")) shouldBe false
         intFrbtOfTwo.equals(listOf("foobar","babar")) shouldBe false
         intFrbtOfTwo.equals(1) shouldBe false
+
 
     }
 

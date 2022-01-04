@@ -1,17 +1,20 @@
-package com.xrpn.immutable
+package com.xrpn.immutable.misc
 
 import com.xrpn.imapi.*
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKISet
+import com.xrpn.immutable.emptyArrayOfInt
+import com.xrpn.immutable.emptyArrayOfStr
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
 private val intListOfNone = FList.of(*emptyArrayOfInt)
 private val intListOfOne = FList.of(*arrayOf<Int>(1))
-private val intListOfTwo = FList.of(*arrayOf<Int>(1,2))
-private val intListOfThree = FList.of(*arrayOf<Int>(1,2,3))
-private val intListOfFour = FList.of(*arrayOf<Int>(1,2,1,3))
-private val intListOfFourA = FList.of(*arrayOf<Int>(1,2,2,3))
+private val intListOfTwo = FList.of(*arrayOf<Int>(1, 2))
+private val intListOfThree = FList.of(*arrayOf<Int>(1, 2, 3))
+private val intListOfFour = FList.of(*arrayOf<Int>(1, 2, 1, 3))
+private val intListOfFourA = FList.of(*arrayOf<Int>(1, 2, 2, 3))
 
 private val isZp0 = ZW(0,"0")
 private val isZp1 = ZW(1,"1")
@@ -21,19 +24,19 @@ private val ssZp1 = ZW("1","1")
 private val ssZp2 = ZW("2","2")
 private val ssZp3 = ZW("3","3")
 
-private val ispListOfNone = FList.of(*arrayOf<IMZPair<Int,String>>())
-private val ispListOfOne = FList.of(*arrayOf<IMZPair<Int,String>>(isZp1))
-private val ispListOfTwo = FList.of(*arrayOf<IMZPair<Int,String>>(isZp1, isZp2))
-private val ispListOfFour = FList.of(*arrayOf<IMZPair<Int,String>>(isZp1,isZp2,isZp1,isZp3))
+private val ispListOfNone = FList.of(*arrayOf<IMZPair<Int, String>>())
+private val ispListOfOne = FList.of(*arrayOf<IMZPair<Int, String>>(isZp1))
+private val ispListOfTwo = FList.of(*arrayOf<IMZPair<Int, String>>(isZp1, isZp2))
+private val ispListOfFour = FList.of(*arrayOf<IMZPair<Int, String>>(isZp1, isZp2, isZp1, isZp3))
 
-private val ispStrSet = FKSet.ofs(isZp1,isZp2)
+private val ispStrSet = FKSet.ofs(isZp1, isZp2)
 
 private val strListOfNone = FList.of(*emptyArrayOfStr)
 private val strListOfOne = FList.of(*arrayOf<String>("1"))
-private val strListOfTwo = FList.of(*arrayOf<String>("1","2"))
-private val strListOfThree = FList.of(*arrayOf<String>("1","2","3"))
-private val strListOfFour = FList.of(*arrayOf<String>("1","2","1","3"))
-private val strListOfFourA = FList.of(*arrayOf<String>("1","2","2","3"))
+private val strListOfTwo = FList.of(*arrayOf<String>("1", "2"))
+private val strListOfThree = FList.of(*arrayOf<String>("1", "2", "3"))
+private val strListOfFour = FList.of(*arrayOf<String>("1", "2", "1", "3"))
+private val strListOfFourA = FList.of(*arrayOf<String>("1", "2", "2", "3"))
 
 
 class IMCartesianTest : FunSpec({
@@ -181,20 +184,20 @@ class IMCartesianTest : FunSpec({
         isITMap1.ffilter {0 == it._1() % 2}.fempty() shouldBe true
         (isITMap1.ffilter {0 == it._1() % 2} === FCartesian.emptyZMap<Int,String>().asMap()) shouldBe true
         isITMap1.ffilter {true} shouldBe ispListOfOne
-        isITMap2.ffilter {0 == it._1() % 2} shouldBe FLCons(isZp2,FLNil)
+        isITMap2.ffilter {0 == it._1() % 2} shouldBe FLCons(isZp2, FLNil)
         isITMap2.ffilter {true} shouldBe ispListOfTwo
         isITMap2.ffilter {false}.fempty() shouldBe true
-        isITMap3.ffilter {0 == it._1() % 2} shouldBe FLCons(isZp2,FLNil)
+        isITMap3.ffilter {0 == it._1() % 2} shouldBe FLCons(isZp2, FLNil)
     }
 
     test("ffilterNot") {
         isITMap0.ffilterNot {0 == it._1() % 2}.fempty() shouldBe true
         (isITMap0.ffilterNot {0 == it._1() % 2} === FCartesian.emptyZMap<Int,String>().asMap()) shouldBe true
-        isITMap1.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1,FLNil)
+        isITMap1.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1, FLNil)
         isITMap1.ffilterNot {false} shouldBe ispListOfOne
         isITMap1.ffilterNot {true}.fempty() shouldBe true
-        isITMap2.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1,FLNil)
-        isITMap3.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1,FLCons(isZp3,FLNil))
+        isITMap2.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1, FLNil)
+        isITMap3.ffilterNot {0 == it._1() % 2} shouldBe FLCons(isZp1, FLCons(isZp3, FLNil))
     }
 
     test("ffindAny") {

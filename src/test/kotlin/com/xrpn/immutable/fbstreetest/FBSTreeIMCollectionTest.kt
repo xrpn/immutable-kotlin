@@ -21,10 +21,10 @@ private val iiTreeOfNone: IMCommon<TKVEntry<Int,Int>> = nul<Int,Int>()
 private val iiTreeOfTwo: IMCommon<TKVEntry<Int,Int>> = FBSTree.of(1.toIAEntry(), 2.toIAEntry())
 private val siTreeOfTwo: IMCommon<TKVEntry<String, Int>> = FBSTree.of(1.toSAEntry(), 2.toSAEntry())
 private val ixTreeOfTwo: IMCommon<TKVEntry<Int, FKSet<*, Int>>> =
-  FBSTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
+  FBSTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry())
 private val ixxTreeOfTwo: FBSTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
-  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofi(2).toIAEntry()).toIAEntry()
+  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofi(3).toIAEntry()).toIAEntry()
 )
 private val iyxTreeOfTwo: FBSTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry()).toIAEntry(),
@@ -32,7 +32,7 @@ private val iyxTreeOfTwo: FBSTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>
 )
 private val ixxsTreeOfTwo: FBSTree<Int, Set<RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
   setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
-  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofi(2).toIAEntry()).toIAEntry()
+  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofi(3).toIAEntry()).toIAEntry()
 )
 
 private val mmI2S = mutableMapOf((1 to "1"), (2 to "2"))
@@ -223,42 +223,42 @@ class FBSTreeIMCollectionTest : FunSpec({
     goDropItemTele(slideShareTree, slideShareBreadthFirst.freverse(), slideShareInorder)
 
     // remove only one
-    val aux5a = slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!)
-    val aux5b = aux5a.finsert(slideShareTree.fleftMost()!!)
+    val aux5a = slideShareTreeLoose.finsertTkv(slideShareTree.fleftMost()!!)
+    val aux5b = aux5a.finsertTkv(slideShareTree.fleftMost()!!)
     IMBTreeEqual2(aux5b.fdropItem(slideShareTree.fleftMost()!!), aux5a) shouldBe true
   }
 
   test("ffdropItemAll") {
     nul<Int, Int>().fdropItemAll(1.toIAEntry()) shouldBe emptyIMBTree()
     (nul<Int, Int>().fdropItemAll(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
-    val aux1 = wikiTreeLoose.finsert(wikiTree.froot()!!)
+    val aux1 = wikiTreeLoose.finsertTkv(wikiTree.froot()!!)
     goDropItemAll(aux1, wikiPreorder, aux1.inorder())
-    val aux2 = wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!)
+    val aux2 = wikiTreeLoose.finsertTkv(wikiTree.froot()!!).finsertTkv(wikiTree.froot()!!)
     goDropItemAll(aux2, wikiPreorder, aux2.inorder())
-    val aux3 = wikiTreeLoose.finsert(wikiTree.fleftMost()!!)
+    val aux3 = wikiTreeLoose.finsertTkv(wikiTree.fleftMost()!!)
     goDropItemAll(aux3, wikiPreorder, aux3.inorder())
-    val aux4 = wikiTreeLoose.finsert(wikiTree.frightMost()!!)
+    val aux4 = wikiTreeLoose.finsertTkv(wikiTree.frightMost()!!)
     goDropItemAll(aux4, wikiPreorder, aux4.inorder())
-    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!)
+    val aux5 = slideShareTree.finsertTkv(slideShareTree.fleftMost()!!).finsertTkv(slideShareTree.fleftMost()!!)
     goDropItemAll(aux5, slideShareBreadthFirst, aux5.inorder())
-    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!)
+    val aux6 = slideShareTree.finsertTkv(slideShareTree.frightMost()!!).finsertTkv(slideShareTree.frightMost()!!)
     goDropItemAll(aux6, slideShareBreadthFirst, aux6.inorder())
   }
 
   test("ffdropItem with dups") {
     nul<Int, Int>().fdropItem(1.toIAEntry()) shouldBe emptyIMBTree()
     (nul<Int, Int>().fdropItem(1.toIAEntry()) === emptyIMBTree<Int,Int>()) shouldBe true
-    val aux1 = wikiTreeLoose.finsert(wikiTree.froot()!!)
+    val aux1 = wikiTreeLoose.finsertTkv(wikiTree.froot()!!)
     goDropItemTele(aux1, wikiPreorder, aux1.inorder())
-    val aux2 = wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!)
+    val aux2 = wikiTreeLoose.finsertTkv(wikiTree.froot()!!).finsertTkv(wikiTree.froot()!!)
     goDropItemTele(aux2, wikiPreorder, aux2.inorder())
-    val aux3 = wikiTreeLoose.finsert(wikiTree.fleftMost()!!)
+    val aux3 = wikiTreeLoose.finsertTkv(wikiTree.fleftMost()!!)
     goDropItemTele(aux3, wikiPreorder, aux3.inorder())
-    val aux4 = wikiTreeLoose.finsert(wikiTree.frightMost()!!)
+    val aux4 = wikiTreeLoose.finsertTkv(wikiTree.frightMost()!!)
     goDropItemTele(aux4, wikiPreorder, aux4.inorder())
-    val aux5 = slideShareTree.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!)
+    val aux5 = slideShareTree.finsertTkv(slideShareTree.fleftMost()!!).finsertTkv(slideShareTree.fleftMost()!!)
     goDropItemTele(aux5, slideShareBreadthFirst, aux5.inorder())
-    val aux6 = slideShareTree.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!)
+    val aux6 = slideShareTree.finsertTkv(slideShareTree.frightMost()!!).finsertTkv(slideShareTree.frightMost()!!)
     goDropItemTele(aux6, slideShareBreadthFirst, aux6.inorder())
   }
 
@@ -552,7 +552,7 @@ class FBSTreeIMCollectionTest : FunSpec({
     val res = slideShareTree.ffold(Pair(nul<Int, Int>(), slideShareTree.fpopAndRemainder())) { acc, _ ->
       val (rebuild, popAndStub) = acc
       val (pop, stub) = popAndStub
-      Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
+      Pair(rebuild.finsertTkv(pop!!), stub.fpopAndRemainder())
     }
     res.first shouldBe slideShareTree
     val (lastPopped, lastRemainder) = res.second

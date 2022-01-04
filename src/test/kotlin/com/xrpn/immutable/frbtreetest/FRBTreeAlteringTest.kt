@@ -39,89 +39,93 @@ class FRBTreeAlteringTest : FunSpec({
     beforeTest {}
 
     test("finsert items sorted asc") {
-        val aux0 = FRBTree.nul<Int,Int>().finsert(TKVEntry.ofIntKey(0))
+        val aux0 = FRBTree.nul<Int,Int>().finsertTkv(TKVEntry.ofIntKey(0))
         if (verbose) println("tree with 0                   $aux0")
         FRBTree.rbRootInvariant(aux0) shouldBe true
-        val aux1 = aux0.finsert(TKVEntry.ofIntKey(1))
+        val aux1 = aux0.finsertTkv(TKVEntry.ofIntKey(1))
         if (verbose) println("tree with 0,1                 $aux1")
         FRBTree.rbRootInvariant(aux1) shouldBe true
-        val aux2 = aux1.finsert(TKVEntry.ofIntKey(2))
+        val aux2 = aux1.finsertTkv(TKVEntry.ofIntKey(2))
         if (verbose) println("tree with 0,1,2               $aux2")
         FRBTree.rbRootInvariant(aux2) shouldBe true
-        val aux3 = aux2.finsert(TKVEntry.ofIntKey(repeatsLow.first))
+        val aux3 = aux2.finsertTkv(TKVEntry.ofIntKey(repeatsLow.first))
         if (verbose) println("tree with 0,1,2,repeatsLow.first             $aux3")
         FRBTree.rbRootInvariant(aux3) shouldBe true
-        val aux4 = aux3.finsert(TKVEntry.ofIntKey(4))
+        val aux4 = aux3.finsertTkv(TKVEntry.ofIntKey(4))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4           $aux4")
         FRBTree.rbRootInvariant(aux4) shouldBe true
-        val aux5 = aux4.finsert(TKVEntry.ofIntKey(5))
+        val aux5 = aux4.finsertTkv(TKVEntry.ofIntKey(5))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5         $aux5")
         FRBTree.rbRootInvariant(aux5) shouldBe true
-        val aux6 = aux5.finsert(TKVEntry.ofIntKey(6))
+        val aux6 = aux5.finsertTkv(TKVEntry.ofIntKey(6))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6       $aux6")
         FRBTree.rbRootInvariant(aux6) shouldBe true
-        val aux7 = aux6.finsert(TKVEntry.ofIntKey(7))
+        val aux7 = aux6.finsertTkv(TKVEntry.ofIntKey(7))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7     $aux7")
         FRBTree.rbRootInvariant(aux7) shouldBe true
-        val aux8 = aux7.finsert(TKVEntry.ofIntKey(8))
+        val aux8 = aux7.finsertTkv(TKVEntry.ofIntKey(8))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7,8   $aux8")
         FRBTree.rbRootInvariant(aux8) shouldBe true
-        val aux9 = aux8.finsert(TKVEntry.ofIntKey(9))
+        val aux9 = aux8.finsertTkv(TKVEntry.ofIntKey(9))
         if (verbose) println("tree with 0,1,2,repeatsLow.first,4,5,6,7,8,9 $aux9")
         FRBTree.rbRootInvariant(aux9) shouldBe true
     }
 
     test("finsert items sorted desc") {
-        val aux0 = FRBTree.nul<Int,Int>().finsert(TKVEntry.ofIntKey(8))
+        val aux0 = FRBTree.nul<Int,Int>().finsertTkv(TKVEntry.ofIntKey(8))
         if (verbose) println("8: $aux0")
         FRBTree.rbRootInvariant(aux0) shouldBe true
-        val aux1 = aux0.finsert(TKVEntry.ofIntKey(7))
+        val aux1 = aux0.finsertTkv(TKVEntry.ofIntKey(7))
         if (verbose) println("7: $aux1")
         FRBTree.rbRootInvariant(aux1) shouldBe true
-        val aux2 = aux1.finsert(TKVEntry.ofIntKey(6))
+        val aux2 = aux1.finsertTkv(TKVEntry.ofIntKey(6))
         if (verbose) println("6: $aux2")
         FRBTree.rbRootInvariant(aux2) shouldBe true
-        val aux3 = aux2.finsert(TKVEntry.ofIntKey(5))
+        val aux3 = aux2.finsertTkv(TKVEntry.ofIntKey(5))
         if (verbose) println("5: $aux3")
         FRBTree.rbRootInvariant(aux3) shouldBe true
-        val aux4 = aux3.finsert(TKVEntry.ofIntKey(4))
+        val aux4 = aux3.finsertTkv(TKVEntry.ofIntKey(4))
         if (verbose) println("4: $aux4")
         FRBTree.rbRootInvariant(aux4) shouldBe true
-        val aux5 = aux4.finsert(TKVEntry.ofIntKey(repeatsLow.first))
+        val aux5 = aux4.finsertTkv(TKVEntry.ofIntKey(repeatsLow.first))
         if (verbose) println("repeatsLow.first: $aux5")
         FRBTree.rbRootInvariant(aux5) shouldBe true
-        val aux6 = aux5.finsert(TKVEntry.ofIntKey(2))
+        val aux6 = aux5.finsertTkv(TKVEntry.ofIntKey(2))
         if (verbose) println("2: $aux6")
         FRBTree.rbRootInvariant(aux6) shouldBe true
-        val aux7 = aux6.finsert(TKVEntry.ofIntKey(1))
+        val aux7 = aux6.finsertTkv(TKVEntry.ofIntKey(1))
         if (verbose) println("1: $aux7")
         FRBTree.rbRootInvariant(aux7) shouldBe true
-        val aux8 = aux7.finsert(TKVEntry.ofIntKey(0))
+        val aux8 = aux7.finsertTkv(TKVEntry.ofIntKey(0))
         if (verbose) println("0: $aux8")
         FRBTree.rbRootInvariant(aux8) shouldBe true
     }
 
     test("finserts, finsertt NIL") {
-        nul<Int, Int>().finserts(FLNil) shouldBe emptyIMBTree<Int, Int>()
-        (nul<Int, Int>().finserts(FLNil) === emptyIMBTree<Int, Int>()) shouldBe true
-        (nul<Int, Int>().finsertt(emptyIMBTree()) === emptyIMBTree<Int, Int>()) shouldBe true
+        nul<Int, Int>().finsertTkvs(FLNil) shouldBe emptyIMBTree<Int, Int>()
+        (nul<Int, Int>().finsertTkvs(FLNil) === emptyIMBTree<Int, Int>()) shouldBe true
+        (nul<Int, Int>().finsertTkvs(emptyIMBTree()) === emptyIMBTree<Int, Int>()) shouldBe true
     }
 
     test("finsert item") {
-        nul<Int,String>().finsert(mEntry) shouldBe FRBTNode.of(mEntry, FRBTree.BLACK)
-        FRBTNode.of(mEntry).finsert(lEntry) shouldBe frbDepthOneLeft
-        frbDepthOneLeft.finsert(nEntry) shouldBe frbDepthOneFull
-        ttDepthTwoRightPartial.finsert(rEntry) shouldBe frbDepthTwoRightLeft
+        nul<Int,String>().finsertTkv(mEntry) shouldBe FRBTNode.of(mEntry, FRBTree.BLACK)
+        FRBTNode.of(mEntry).finsertTkv(lEntry) shouldBe frbDepthOneLeft
+        frbDepthOneLeft.finsertTkv(nEntry) shouldBe frbDepthOneFull
+        ttDepthTwoRightPartial.finsertTkv(rEntry) shouldBe frbDepthTwoRightLeft
     }
 
     test("finserts, finsertt") {
         Arb.flist<Int, Int>(Arb.int(-25, 25)).checkAll(repeatsHigh.first, PropTestConfig(seed = -3400901283900794903)) { fl ->
-            // TODO OOM_ERR val tab = FRBTree.ofvi(fl.asList().iterator())
+            val tab = FRBTree.ofvi(fl.asList().iterator())
             val flkv: FList<TKVEntry<Int, Int>> = fl.fmap { it.toIAEntry() }
             val sl: List<TKVEntry<Int, Int>> = flkv.copyToMutableList().toSet().sorted()
-            nul<Int, Int>().finserts(flkv).inorder().softEqual(sl) shouldBe true
-            // TODO OOM_ERR nul<Int, Int>().finsertt(tab).inorder() shouldBe sl
-            // TODO OOM_ERR tab.finsertt(nul()).inorder() shouldBe sl
+            nul<Int, Int>().finsertTkvs(flkv).inorder().softEqual(sl) shouldBe true
+            val aut1 = nul<Int, Int>().finsertTkvs(tab).inorder()
+            aut1.asList() shouldBe sl
+            aut1.softEqual(sl) shouldBe true
+            val aut2 = tab.finsertTkvs(nul()).inorder()
+            aut2.asList() shouldBe sl
+            aut2.softEqual(sl) shouldBe true
         }
     }
 

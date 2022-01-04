@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FStackIterator
+import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -14,14 +15,12 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     val size: Int by lazy { toFList().size }
 
-    /* TODO start
     private val iterable: Iterable<A> by lazy { object : Iterable<A>, FStackRetrieval<A> {
         override fun iterator(): FStackIterator<A> = FStackIterator(this@FStack)
         override fun original(): FStack<A> = this@FStack
     }}
 
-    fun asIterable(): Iterable<A> = iterable
-    TODO end */
+    override fun asIterable(): Iterable<A> = iterable
 
     // imcommon
 
@@ -51,7 +50,7 @@ sealed class FStack<out A: Any>: IMStack<A> {
         toFList().ffindAny(isMatch)
 
     override fun <R> ffold(z: R, f: (acc: R, A) -> R): R =
-        TODO("Not yet implemented")
+        toFList().ffold(z,f)
 
     override fun fisStrict(): Boolean =
         toFList().fisStrict()
@@ -218,7 +217,11 @@ internal class FStackBody<out A: Any> private constructor (
         other is FStackBody<*> -> when {
             fempty() && other.fempty() -> true
             fempty() || other.fempty() -> false
-            ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)
+            ftop()!!.isStrictly(other.ftop()!!) -> IMStackEqual2(this, other)  /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
+            else -> false
+        }
+        other is Iterable<*> -> when(val iter = other.iterator()) {
+            is FStackIterator<*> -> equals(iter.retriever.original())
             else -> false
         }
         else -> false
@@ -232,6 +235,7 @@ internal class FStackBody<out A: Any> private constructor (
             fpick()!!.isStrictly(rhs.peek()!!) -> false
             else -> rhs.equals(this)
         }
+        is IMOrdered<*> -> IMOrdered.softEqual(this,rhs)
         else -> false
     }
 

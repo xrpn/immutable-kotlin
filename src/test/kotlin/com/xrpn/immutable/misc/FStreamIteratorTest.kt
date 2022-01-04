@@ -1,5 +1,7 @@
-package com.xrpn.immutable
+package com.xrpn.immutable.misc
 
+import com.xrpn.immutable.FSNil
+import com.xrpn.immutable.FStreamIterator
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

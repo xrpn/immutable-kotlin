@@ -22,14 +22,15 @@ private val iiTreeOfTwo: IMKeyedValue<Int,Int> = FBSTree.of(1.toIAEntry(), 2.toI
 private val isTreeOfTwo: IMKeyedValue<Int,String> = FBSTree.of("1".toIAEntry(), "2".toIAEntry())
 private val ssTreeOfTwo: IMKeyedValue<String,String> = FBSTree.of("1".toSAEntry(), "2".toSAEntry())
 private val siTreeOfTwo: IMKeyedValue<String,Int> = FBSTree.of(1.toSAEntry(), 2.toSAEntry())
-private val ixTreeOfTwo: IMKeyedValue<Int, FKSet<*, Int>> = FBSTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
+private val ixTreeOfTwo: IMKeyedValue<Int, FKSet<*, Int>> =
+  FBSTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry())
 private val ixxTreeOfTwo: FBSTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
-  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry(),
-  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry()
+  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
+  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(3).toIAEntry()).toIAEntry()
 )
 private val ixxxTreeOfTwo: FBSTree<Int, Set<RTKVEntry<Int, FKSet<*, Int>>>> = FBSTree.of(
-  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry(),
-  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry()).toIAEntry()
+  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
+  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(3).toIAEntry()).toIAEntry()
 )
 private val izTreeOfTwo: FBSTree<Int, Set<RTKVEntry<Int, FKSet<Int, Int>>>> = FBSTree.of(
   setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofi(2).toIAEntry()).toIAEntry(),

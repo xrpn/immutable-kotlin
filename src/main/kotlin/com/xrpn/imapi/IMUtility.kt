@@ -3,6 +3,7 @@ package com.xrpn.imapi
 import com.xrpn.immutable.TKVEntry
 
 interface IMListUtility<out A: Any> {
+    fun asList(): List<A>
     fun equal(rhs: IMList<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun fforEachReverse (f: (A) -> Unit): Unit
@@ -46,6 +47,7 @@ interface IMMapUtility<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVar
 }
 
 interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeVariance A> {
+    fun asCollection(): Collection<TKVEntry<A,B>>
     fun equal(rhs: IMBTree<@UnsafeVariance A, @UnsafeVariance B>): Boolean
     fun fforEach(f: (TKVEntry<A, B>) -> Unit): Unit =
         if ((this as IMBTree<A,B>).fempty()) Unit else { this.ffold(this.froot()) { _, tkv -> f(tkv); tkv }; Unit }
@@ -92,6 +94,7 @@ interface IMBTreeUtility<out A, out B: Any> where A: Any, A: Comparable<@UnsafeV
 }
 
 interface IMStackUtility<out A: Any> {
+    fun asIterable(): Iterable<A>
     fun equal(rhs: IMStack<@UnsafeVariance A>): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMStack<A>
@@ -100,6 +103,7 @@ interface IMStackUtility<out A: Any> {
 }
 
 interface IMQueueUtility<out A: Any> {
+    fun asIterable(): Iterable<A>
     fun equal(rhs: IMQueue<@UnsafeVariance A>, strong: Boolean = false): Boolean
     fun fforEach (f: (A) -> Unit): Unit
     fun copy(): IMQueue<A>

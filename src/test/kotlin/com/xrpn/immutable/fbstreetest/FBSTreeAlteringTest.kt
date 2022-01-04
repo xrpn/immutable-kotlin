@@ -32,81 +32,81 @@ class FBSTreeAlteringTest : FunSpec({
     beforeTest {}
 
     test("finsert") {
-        nul<Int, String>().finsert(mEntry) shouldBe FBSTNode.of(false,mEntry)
-        FBSTNode.of(false,mEntry).finsert(lEntry) shouldBe depthOneLeft
-        FBSTNode.of(false,mEntry).finsert(nEntry) shouldBe depthOneRight
+        nul<Int, String>().finsertTkv(mEntry) shouldBe FBSTNode.of(false,mEntry)
+        FBSTNode.of(false,mEntry).finsertTkv(lEntry) shouldBe depthOneLeft
+        FBSTNode.of(false,mEntry).finsertTkv(nEntry) shouldBe depthOneRight
 
-        depthOneLeft.finsert(nEntry) shouldBe depthOneFull
-        depthOneRight.finsert(lEntry) shouldBe depthOneFull
+        depthOneLeft.finsertTkv(nEntry) shouldBe depthOneFull
+        depthOneRight.finsertTkv(lEntry) shouldBe depthOneFull
 
-        depthTwoLeftPartial.finsert(mEntry) shouldBe depthTwoLeftRight
-        depthTwoLeftPartial.finsert(eEntry) shouldBe depthTwoLeftLeft
-        depthTwoRightPartial.finsert(uEntry) shouldBe depthTwoRightRight
-        depthTwoRightPartial.finsert(rEntry) shouldBe depthTwoRightLeft
+        depthTwoLeftPartial.finsertTkv(mEntry) shouldBe depthTwoLeftRight
+        depthTwoLeftPartial.finsertTkv(eEntry) shouldBe depthTwoLeftLeft
+        depthTwoRightPartial.finsertTkv(uEntry) shouldBe depthTwoRightRight
+        depthTwoRightPartial.finsertTkv(rEntry) shouldBe depthTwoRightLeft
 
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsert(pEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsertTkv(pEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTUnique.empty, FBSTNode.of(false,pEntry)))
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsert(nEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsertTkv(nEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTNode.of(false,nEntry), FBSTUnique.empty))
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsert(dEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsertTkv(dEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTUnique.empty, FBSTNode.of(false,dEntry)), FBSTNode.of(false,zEntry))
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsert(bEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsertTkv(bEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTNode.of(false,bEntry), FBSTUnique.empty), FBSTNode.of(false,zEntry))
 
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsert(pEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry)).finsertTkv(pEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTUnique.empty, FBSTNode.of(false,pEntry)))
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTUnique.empty, FBSTNode.of(false,pEntry))).finsert(nEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTUnique.empty, FBSTNode.of(false,pEntry))).finsertTkv(nEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,lEntry), FBSTNode.of(false,oEntry, FBSTNode.of(false,nEntry), FBSTNode.of(false,pEntry)))
 
         // --
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsert(dEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry), FBSTNode.of(false,zEntry)).finsertTkv(dEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTUnique.empty, FBSTNode.of(false,dEntry)), FBSTNode.of(false,zEntry))
-        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTUnique.empty, FBSTNode.of(false,dEntry)), FBSTNode.of(false,zEntry)).finsert(bEntry) shouldBe
+        FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTUnique.empty, FBSTNode.of(false,dEntry)), FBSTNode.of(false,zEntry)).finsertTkv(bEntry) shouldBe
             FBSTNode.of(false,mEntry, FBSTNode.of(false,cEntry, FBSTNode.of(false,bEntry), FBSTNode.of(false,dEntry)), FBSTNode.of(false,zEntry))
     }
 
     test("finsertDup (A)") {
-        com.xrpn.immutable.FBSTree.nul<Int, String>().finsert(mEntry) shouldBe FBSTNode.of(true, mEntry)
-        FBSTNode.of(true, mEntry).finsert(mEntry) shouldBe FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry))
-        FBSTNode.of(true, mEntry).finsert(lEntry) shouldBe depthOneLeft
-        FBSTNode.of(true, mEntry).finsert(nEntry) shouldBe depthOneRight
+        com.xrpn.immutable.FBSTree.nul<Int, String>().finsertTkv(mEntry) shouldBe FBSTNode.of(true, mEntry)
+        FBSTNode.of(true, mEntry).finsertTkv(mEntry) shouldBe FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry))
+        FBSTNode.of(true, mEntry).finsertTkv(lEntry) shouldBe depthOneLeft
+        FBSTNode.of(true, mEntry).finsertTkv(nEntry) shouldBe depthOneRight
 
-        FBSTNode.of(true, mEntry).finsert(mEntry) shouldBe FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry))
-        depthOneLeft.finsert(nEntry) shouldBe depthOneFull
-        depthOneRight.finsert(lEntry) shouldBe depthOneFull
+        FBSTNode.of(true, mEntry).finsertTkv(mEntry) shouldBe FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry))
+        depthOneLeft.finsertTkv(nEntry) shouldBe depthOneFull
+        depthOneRight.finsertTkv(lEntry) shouldBe depthOneFull
 
         // dups right
-        depthOneLeft.toGeneric().finsert(mEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTNode.of(true, lEntry), FBSTNode.of(true, mEntry))
-        depthOneLeft.toGeneric().finsert(mEntry)
-            .finsert(mEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(mEntry)
+            .finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTNode.of(true, lEntry),
                                  FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry))
                 )
-        depthOneLeft.toGeneric().finsert(mEntry)
-            .finsert(mEntry)
-                .finsert(mEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(mEntry)
+            .finsertTkv(mEntry)
+                .finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTNode.of(true, lEntry),
                                  FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry)))
                 )
 
         // dups left
-        depthOneLeft.toGeneric().finsert(lEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(lEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTNode.of(true, lEntry, FBSTGeneric.empty, FBSTNode.of(true, lEntry)),
                                  FBSTGeneric.empty
                 )
-        depthOneLeft.toGeneric().finsert(lEntry)
-            .finsert(lEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(lEntry)
+            .finsertTkv(lEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTNode.of(true, lEntry, FBSTGeneric.empty, FBSTNode.of(true, lEntry, FBSTGeneric.empty, FBSTNode.of(true, lEntry))),
                                  FBSTGeneric.empty
                 )
-        depthOneLeft.toGeneric().finsert(lEntry)
-            .finsert(lEntry)
-                .finsert(lEntry) shouldBe
+        depthOneLeft.toGeneric().finsertTkv(lEntry)
+            .finsertTkv(lEntry)
+                .finsertTkv(lEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTNode.of(true, 
                         lEntry, FBSTGeneric.empty, FBSTNode.of(true,
@@ -121,25 +121,25 @@ class FBSTreeAlteringTest : FunSpec({
                 )
 
         // dups right
-        depthOneRight.toGeneric().finsert(mEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTGeneric.empty, depthOneRight.toGeneric())
-        depthOneRight.toGeneric().finsert(mEntry)
-            .finsert(mEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(mEntry)
+            .finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry, FBSTGeneric.empty, depthOneRight.toGeneric()))
-        depthOneRight.toGeneric().finsert(mEntry)
-            .finsert(mEntry)
-                .finsert(mEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(mEntry)
+            .finsertTkv(mEntry)
+                .finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, mEntry, FBSTGeneric.empty, depthOneRight.toGeneric())))
 
         // dups left
-        depthOneRight.toGeneric().finsert(nEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, nEntry, FBSTGeneric.empty, FBSTNode.of(true, nEntry)))
-        depthOneRight.toGeneric().finsert(nEntry)
-            .finsert(nEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(nEntry)
+            .finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, mEntry, FBSTGeneric.empty, FBSTNode.of(true, nEntry, FBSTGeneric.empty, FBSTNode.of(true, nEntry, FBSTGeneric.empty, FBSTNode.of(true, nEntry))))
-        depthOneRight.toGeneric().finsert(nEntry)
-            .finsert(nEntry)
-                .finsert(nEntry) shouldBe
+        depthOneRight.toGeneric().finsertTkv(nEntry)
+            .finsertTkv(nEntry)
+                .finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, 
                     mEntry, FBSTGeneric.empty,
                                  FBSTNode.of(true, 
@@ -154,12 +154,12 @@ class FBSTreeAlteringTest : FunSpec({
 
     test("finsertDup (B)") {
 
-        depthTwoLeftPartial.finsert(mEntry) shouldBe depthTwoLeftRight
-        depthTwoLeftPartial.finsert(eEntry) shouldBe depthTwoLeftLeft
-        depthTwoRightPartial.finsert(uEntry) shouldBe depthTwoRightRight
-        depthTwoRightPartial.finsert(rEntry) shouldBe depthTwoRightLeft
+        depthTwoLeftPartial.finsertTkv(mEntry) shouldBe depthTwoLeftRight
+        depthTwoLeftPartial.finsertTkv(eEntry) shouldBe depthTwoLeftLeft
+        depthTwoRightPartial.finsertTkv(uEntry) shouldBe depthTwoRightRight
+        depthTwoRightPartial.finsertTkv(rEntry) shouldBe depthTwoRightLeft
 
-        depthTwoLeftRight.toGeneric().finsert(nEntry) shouldBe
+        depthTwoLeftRight.toGeneric().finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -173,7 +173,7 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTNode.of(true, sEntry)
                     )
                 )
-        depthTwoLeftRight.toGeneric().finsert(lEntry) shouldBe
+        depthTwoLeftRight.toGeneric().finsertTkv(lEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -187,7 +187,7 @@ class FBSTreeAlteringTest : FunSpec({
                     ),
                     FBSTNode.of(true, sEntry)
                 )
-        depthTwoLeftRight.toGeneric().finsert(mEntry) shouldBe
+        depthTwoLeftRight.toGeneric().finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -201,7 +201,7 @@ class FBSTreeAlteringTest : FunSpec({
                     ),
                     FBSTNode.of(true, sEntry)
                 )
-        depthTwoLeftRight.toGeneric().finsert(sEntry) shouldBe
+        depthTwoLeftRight.toGeneric().finsertTkv(sEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -212,7 +212,7 @@ class FBSTreeAlteringTest : FunSpec({
                     FBSTNode.of(true, sEntry, FBSTGeneric.empty, FBSTNode.of(true, sEntry))
                 )
 
-        depthTwoLeftLeft.toGeneric().finsert(nEntry) shouldBe
+        depthTwoLeftLeft.toGeneric().finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -226,7 +226,7 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTNode.of(true, sEntry)
                     )
                 )
-        depthTwoLeftLeft.toGeneric().finsert(lEntry) shouldBe
+        depthTwoLeftLeft.toGeneric().finsertTkv(lEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -236,7 +236,7 @@ class FBSTreeAlteringTest : FunSpec({
                     ),
                     FBSTNode.of(true, sEntry)
                 )
-        depthTwoLeftLeft.toGeneric().finsert(eEntry) shouldBe
+        depthTwoLeftLeft.toGeneric().finsertTkv(eEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -250,7 +250,7 @@ class FBSTreeAlteringTest : FunSpec({
                     ),
                     FBSTNode.of(true, sEntry)
                 )
-        depthTwoLeftLeft.toGeneric().finsert(sEntry) shouldBe
+        depthTwoLeftLeft.toGeneric().finsertTkv(sEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -261,7 +261,7 @@ class FBSTreeAlteringTest : FunSpec({
                     FBSTNode.of(true, sEntry, FBSTGeneric.empty, FBSTNode.of(true, sEntry))
                 )
 
-        depthTwoRightRight.toGeneric().finsert(nEntry) shouldBe
+        depthTwoRightRight.toGeneric().finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -275,7 +275,7 @@ class FBSTreeAlteringTest : FunSpec({
                         )
                     )
                 )
-        depthTwoRightRight.toGeneric().finsert(mEntry) shouldBe
+        depthTwoRightRight.toGeneric().finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -289,7 +289,7 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTNode.of(true, uEntry)
                     )
                 )
-        depthTwoRightRight.toGeneric().finsert(sEntry) shouldBe
+        depthTwoRightRight.toGeneric().finsertTkv(sEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -303,7 +303,7 @@ class FBSTreeAlteringTest : FunSpec({
                         )
                     )
                 )
-        depthTwoRightRight.toGeneric().finsert(uEntry) shouldBe
+        depthTwoRightRight.toGeneric().finsertTkv(uEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -318,7 +318,7 @@ class FBSTreeAlteringTest : FunSpec({
                     )
                 )
 
-        depthTwoRightLeft.toGeneric().finsert(nEntry) shouldBe
+        depthTwoRightLeft.toGeneric().finsertTkv(nEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -332,7 +332,7 @@ class FBSTreeAlteringTest : FunSpec({
                         )
                     )
                 )
-        depthTwoRightLeft.toGeneric().finsert(mEntry) shouldBe
+        depthTwoRightLeft.toGeneric().finsertTkv(mEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, 
@@ -346,7 +346,7 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTGeneric.empty
                     )
                 )
-        depthTwoRightLeft.toGeneric().finsert(sEntry) shouldBe
+        depthTwoRightLeft.toGeneric().finsertTkv(sEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -356,7 +356,7 @@ class FBSTreeAlteringTest : FunSpec({
                         FBSTNode.of(true, sEntry)
                     )
                 )
-        depthTwoRightLeft.toGeneric().finsert(rEntry) shouldBe
+        depthTwoRightLeft.toGeneric().finsertTkv(rEntry) shouldBe
                 FBSTNode.of(true, 
                     nEntry,
                     FBSTNode.of(true, mEntry),
@@ -373,34 +373,34 @@ class FBSTreeAlteringTest : FunSpec({
     }
 
     test("finsertDup (B) rejection") {
-        depthTwoLeftPartial.finsert(mEntry) shouldBe depthTwoLeftRight
-        depthTwoLeftPartial.finsert(eEntry) shouldBe depthTwoLeftLeft
-        depthTwoRightPartial.finsert(uEntry) shouldBe depthTwoRightRight
-        depthTwoRightPartial.finsert(rEntry) shouldBe depthTwoRightLeft
+        depthTwoLeftPartial.finsertTkv(mEntry) shouldBe depthTwoLeftRight
+        depthTwoLeftPartial.finsertTkv(eEntry) shouldBe depthTwoLeftLeft
+        depthTwoRightPartial.finsertTkv(uEntry) shouldBe depthTwoRightRight
+        depthTwoRightPartial.finsertTkv(rEntry) shouldBe depthTwoRightLeft
 
-        (depthTwoLeftRight.finsert(nEntry) === depthTwoLeftRight) shouldBe true
-        (depthTwoLeftRight.finsert(lEntry) === depthTwoLeftRight) shouldBe true
-        (depthTwoLeftRight.finsert(mEntry) === depthTwoLeftRight) shouldBe true
-        (depthTwoLeftRight.finsert(sEntry) === depthTwoLeftRight) shouldBe true
-        (depthTwoLeftLeft.finsert(nEntry) === depthTwoLeftLeft) shouldBe true
-        (depthTwoLeftLeft.finsert(lEntry) === depthTwoLeftLeft) shouldBe true
-        (depthTwoLeftLeft.finsert(eEntry) === depthTwoLeftLeft) shouldBe true
-        (depthTwoLeftLeft.finsert(sEntry) === depthTwoLeftLeft) shouldBe true
-        (depthTwoRightRight.finsert(nEntry) === depthTwoRightRight) shouldBe true
-        (depthTwoRightRight.finsert(mEntry) === depthTwoRightRight) shouldBe true
-        (depthTwoRightRight.finsert(sEntry) === depthTwoRightRight) shouldBe true
-        (depthTwoRightRight.finsert(uEntry) === depthTwoRightRight) shouldBe true
-        (depthTwoRightLeft.finsert(nEntry) === depthTwoRightLeft) shouldBe true
-        (depthTwoRightLeft.finsert(mEntry) === depthTwoRightLeft) shouldBe true
-        (depthTwoRightLeft.finsert(sEntry) === depthTwoRightLeft) shouldBe true
-        (depthTwoRightLeft.finsert(rEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoLeftRight.finsertTkv(nEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsertTkv(lEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsertTkv(mEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftRight.finsertTkv(sEntry) === depthTwoLeftRight) shouldBe true
+        (depthTwoLeftLeft.finsertTkv(nEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsertTkv(lEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsertTkv(eEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoLeftLeft.finsertTkv(sEntry) === depthTwoLeftLeft) shouldBe true
+        (depthTwoRightRight.finsertTkv(nEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsertTkv(mEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsertTkv(sEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightRight.finsertTkv(uEntry) === depthTwoRightRight) shouldBe true
+        (depthTwoRightLeft.finsertTkv(nEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsertTkv(mEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsertTkv(sEntry) === depthTwoRightLeft) shouldBe true
+        (depthTwoRightLeft.finsertTkv(rEntry) === depthTwoRightLeft) shouldBe true
     }
 
     test("finserts, finsertt, finsertsDup (A)") {
-        nul<Int, Int>().finserts(FLNil) shouldBe emptyIMBTree<Int, Int>()
-        (nul<Int, Int>().finserts(FLNil) === emptyIMBTree<Int, Int>()) shouldBe true
-        nul<Int, Int>().finsertt(emptyIMBTree()) shouldBe emptyIMBTree<Int, Int>()
-        (nul<Int, Int>().finsertt(emptyIMBTree()) === emptyIMBTree<Int, Int>()) shouldBe true
+        nul<Int, Int>().finsertTkvs(FLNil) shouldBe emptyIMBTree<Int, Int>()
+        (nul<Int, Int>().finsertTkvs(FLNil) === emptyIMBTree<Int, Int>()) shouldBe true
+        nul<Int, Int>().finsertTkvs(emptyIMBTree()) shouldBe emptyIMBTree<Int, Int>()
+        (nul<Int, Int>().finsertTkvs(emptyIMBTree()) === emptyIMBTree<Int, Int>()) shouldBe true
     }
 
     test("finserts, finsertt, finsertsDup (B)") {
@@ -409,9 +409,9 @@ class FBSTreeAlteringTest : FunSpec({
             val flkv: FList<TKVEntry<String, Int>> = fl.fmap { it.toSAEntry() }
             val l = flkv.copyToMutableList()
             val s = l.toSet()
-            nul<String, Int>().finserts(flkv).inorder().softEqual(s.sorted()) shouldBe true
-            // TODO OOM_ERR nul<String, Int>().finsertt(tab).inorder() shouldBe s.sorted()
-            // TODO OOM_ERR tab.finsertt(FRBTree.nul()).inorder() shouldBe s.sorted()
+            nul<String, Int>().finsertTkvs(flkv).inorder().softEqual(s.sorted()) shouldBe true
+            // TODO OOM_ERR nul<String, Int>().finsertTkvs(tab).inorder() shouldBe s.sorted()
+            // TODO OOM_ERR tab.finsertTkvs(FRBTree.nul()).inorder() shouldBe s.sorted()
         }
     }
 

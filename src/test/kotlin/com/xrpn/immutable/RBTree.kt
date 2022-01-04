@@ -383,14 +383,6 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun finsert(item: TKVEntry<A, B>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun finserts(items: IMList<TKVEntry<A, B>>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
     override fun fcontains(item: TKVEntry<A, B>?): Boolean {
         TODO("Not yet implemented")
     }
@@ -539,6 +531,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     }
 
     override fun softEqual(rhs: Any?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun asCollection(): Collection<TKVEntry<A, B>> {
         TODO("Not yet implemented")
     }
 }

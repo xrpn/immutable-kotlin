@@ -58,7 +58,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.list
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fbsItree
 import kotlin.random.Random.Default.nextInt
@@ -94,12 +93,22 @@ class FBSTreeCompanionTest : FunSpec({
         emptyIMBTree<Int,Int>().equals(null) shouldBe false
         emptyIMBTree<Int,Int>().equals(emptyIMBTree<Int,Int>()) shouldBe true
         emptyIMBTree<Int,Int>().equals(1) shouldBe false
-        /* Sigh... */ intFbstOfNone.equals(strFbstOfNone) shouldBe true
+        /* Sigh... */ 
+        intFbstOfNone.equals(strFbstOfNone) shouldBe true
+
+        intFbstOfNone.equals(intFbstOfTwo.asCollection()) shouldBe false
+        intFbstOfTwo.asCollection().equals(intFbstOfNone) shouldBe false
+        intFbstOfNone.equals(intFbstOfNone.asCollection()) shouldBe true
+        intFbstOfNone.asCollection().equals(intFbstOfNone) shouldBe true
 
         intFbstOfTwo.equals(null) shouldBe false
         intFbstOfTwo.equals(intFbstOfNone) shouldBe false
         intFbstOfTwo.equals(intFbstOfOne) shouldBe false
         intFbstOfTwo.equals(intFbstOfTwo) shouldBe true
+        intFbstOfTwo.asCollection().equals(intFbstOfTwo) shouldBe true
+        intFbstOfTwo.equals(intFbstOfTwo.asCollection()) shouldBe true
+        strFbstOfTwo.asCollection().equals(intFbstOfTwo) shouldBe false
+        intFbstOfTwo.equals(strFbstOfTwo.asCollection()) shouldBe false
 
         intFbstOfTwo.equals(fbstOfOneX) shouldBe false
         intFbstOfTwo.equals(fbstOfOneY) shouldBe false

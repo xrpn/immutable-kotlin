@@ -1,5 +1,6 @@
-package com.xrpn.immutable
+package com.xrpn.immutable.misc
 
+import com.xrpn.immutable.*
 import com.xrpn.immutable.FBHeap.Companion.RULE
 import com.xrpn.immutable.FBHeap.Companion.add
 import com.xrpn.immutable.FBHeap.Companion.enumerate
@@ -11,6 +12,45 @@ import com.xrpn.immutable.FBHeap.Companion.minHeapNul
 import com.xrpn.immutable.FBHeap.Companion.minHeapOf
 import com.xrpn.immutable.FBHeap.Companion.of
 import com.xrpn.immutable.FList.Companion.toArray
+import com.xrpn.immutable.aEntry
+import com.xrpn.immutable.eEntry
+import com.xrpn.immutable.frbDepthOneFullBreadthFirst
+import com.xrpn.immutable.frbDepthOneFullInorder
+import com.xrpn.immutable.frbDepthOneFullPostorder
+import com.xrpn.immutable.frbDepthOneFullPreorder
+import com.xrpn.immutable.frbDepthTwoLeftLeftBreadthFirst
+import com.xrpn.immutable.frbDepthTwoLeftLeftInorder
+import com.xrpn.immutable.frbDepthTwoLeftLeftPostorder
+import com.xrpn.immutable.frbDepthTwoLeftLeftPreorder
+import com.xrpn.immutable.frbDepthTwoRightLeftBreadthFirst
+import com.xrpn.immutable.frbDepthTwoRightLeftInorder
+import com.xrpn.immutable.frbDepthTwoRightLeftPostorder
+import com.xrpn.immutable.frbDepthTwoRightLeftPreorder
+import com.xrpn.immutable.frbDepthTwoRightRightBreadthFirst
+import com.xrpn.immutable.frbDepthTwoRightRightInorder
+import com.xrpn.immutable.frbDepthTwoRightRightPostorder
+import com.xrpn.immutable.frbDepthTwoRightRightPreorder
+import com.xrpn.immutable.frbSlideShareBreadthFirst
+import com.xrpn.immutable.frbSlideShareInorder
+import com.xrpn.immutable.frbSlideSharePostorder
+import com.xrpn.immutable.frbSlideSharePreorder
+import com.xrpn.immutable.frbWikiBreadthFirst
+import com.xrpn.immutable.frbWikiInorder
+import com.xrpn.immutable.frbWikiPostorder
+import com.xrpn.immutable.frbWikiPreorder
+import com.xrpn.immutable.iEntry
+import com.xrpn.immutable.lEntry
+import com.xrpn.immutable.mEntry
+import com.xrpn.immutable.n17Entry
+import com.xrpn.immutable.n88Entry
+import com.xrpn.immutable.nEntry
+import com.xrpn.immutable.rEntry
+import com.xrpn.immutable.sEntry
+import com.xrpn.immutable.slideShareInorder
+import com.xrpn.immutable.slideSharePreorder
+import com.xrpn.immutable.uEntry
+import com.xrpn.immutable.wikiInorder
+import com.xrpn.immutable.wikiPreorder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -376,13 +416,13 @@ class FBHeapTest : FunSpec({
                 mEntry,
                 FBHMinNil,
                 FBHMinNil
-            ),nEntry, RULE.MIN)
+            ), nEntry, RULE.MIN)
         val b1 = insert(
             FBHBranch(
                 nEntry,
                 FBHMinNil,
                 FBHMinNil
-            ),mEntry, RULE.MIN)
+            ), mEntry, RULE.MIN)
         val c1 = of(ttDepthOneRight.postorder(), RULE.MIN)
         a1 shouldBe c1
         a1 shouldBe b1
@@ -392,13 +432,13 @@ class FBHeapTest : FunSpec({
                 mEntry,
                 FBHMaxNil,
                 FBHMaxNil
-            ),nEntry, RULE.MAX)
+            ), nEntry, RULE.MAX)
         val b2 = insert(
             FBHBranch(
                 nEntry,
                 FBHMaxNil,
                 FBHMaxNil
-            ),mEntry, RULE.MAX)
+            ), mEntry, RULE.MAX)
         val c2 = of(ttDepthOneRight.preorder(), RULE.MAX)
         a2 shouldBe c2
         a2 shouldBe b2
@@ -705,7 +745,7 @@ class FBHeapTest : FunSpec({
 
     test("co.(insert/add/pop) item (property) random, large, min max").config(enabled = true) {
         checkAll(repeatsLow.first, Arb.int(10000..repeatsLow.second)) { n ->
-            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i)}
+            val shuffled = Array(n) { i: Int -> TKVEntry.ofkk(i, i) }
             // shuffled.shuffle(Random(seed = 5792981224933522729))
             shuffled.shuffle()
             val oracle = (Array(n) { it })

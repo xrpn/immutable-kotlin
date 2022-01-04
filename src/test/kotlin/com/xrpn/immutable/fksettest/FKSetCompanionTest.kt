@@ -152,9 +152,17 @@ class FKSetCompanionTest : FunSpec({
         knSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
         ksSetOfNone.equals(intKKSetOfNone.asSet()) shouldBe true
 
-        // prefer "equal" (vs. equals)
         intKKSetOfNone.equals(strISetOfNone) shouldBe true
+        intKKSetOfNone.asSet().equals(strISetOfNone) shouldBe true
+        intKKSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
+        intKKSetOfOne.asSet().equals(strISetOfNone) shouldBe false
+        intKKSetOfOne.equals(strISetOfNone.asSet()) shouldBe false
+
         strISetOfNone.equals(intKKSetOfNone) shouldBe true
+        strISetOfNone.asSet().equals(intKKSetOfNone) shouldBe true
+        strISetOfNone.equals(intKKSetOfNone.asSet()) shouldBe true
+        strISetOfOne.asSet().equals(intKKSetOfNone) shouldBe false
+        strISetOfOne.equals(intKKSetOfNone.asSet()) shouldBe false
     }
 
     test("equals iSSet") {
@@ -209,9 +217,9 @@ class FKSetCompanionTest : FunSpec({
         knSetOfNone.equals(strISetOfNone) shouldBe false
         knSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
         ksSetOfTwo.equals(strISetOfTwo) shouldBe false
+
         ksSetOfTwo.equals(strISetOfTwo.asSet()) shouldBe true
-        val foo = strISetOfTwo.asSet()
-            foo.equals(ksSetOfTwo) shouldBe true
+        strISetOfTwo.asSet().equals(ksSetOfTwo) shouldBe true
 
         knSetOfNone.equals(strKKSetOfNone.asSet()) shouldBe true
         ksSetOfNone.equals(strISetOfNone.asSet()) shouldBe true
@@ -235,7 +243,10 @@ class FKSetCompanionTest : FunSpec({
         intKKSetOfTwoOfst1.equals(intSSetOfThree) shouldBe false
         intKKSetOfThree.equals(intSSetOfTwo) shouldBe false
         intKKSetOfThree.equals(intSSetOfTwoOfst1) shouldBe false
+
         intKKSetOfThree.equals(intSSetOfThree) shouldBe true
+        intKKSetOfThree.equals(intSSetOfThree.asSet()) shouldBe true
+        intKKSetOfThree.asSet().equals(intSSetOfThree) shouldBe true
 
         intSSetOfNone.equals(intKKSetOfNone) shouldBe true
         (intSSetOfNone === intKKSetOfNone) shouldBe false
@@ -251,7 +262,10 @@ class FKSetCompanionTest : FunSpec({
         intSSetOfTwoOfst1.equals(intKKSetOfThree) shouldBe false
         intSSetOfThree.equals(intKKSetOfTwo) shouldBe false
         intSSetOfThree.equals(intKKSetOfTwoOfst1) shouldBe false
+
         intSSetOfThree.equals(intKKSetOfThree) shouldBe true
+        intSSetOfThree.equals(intKKSetOfThree.asSet()) shouldBe true
+        intSSetOfThree.asSet().equals(intKKSetOfThree) shouldBe true
 
         intSSetOfNone.equals(strISetOfNone) shouldBe true
         ksSetOfNone.equals(intKKSetOfNone) shouldBe false
@@ -272,7 +286,10 @@ class FKSetCompanionTest : FunSpec({
         strKKSetOfTwoOfst1.equals(strISetOfThree) shouldBe false
         strKKSetOfThree.equals(strISetOfTwo) shouldBe false
         strKKSetOfThree.equals(strISetOfTwoOfst1) shouldBe false
+
         strKKSetOfThree.equals(strISetOfThree) shouldBe true
+        strKKSetOfThree.equals(strISetOfThree.asSet()) shouldBe true
+        strKKSetOfThree.asSet().equals(strISetOfThree.asSet()) shouldBe true
 
         strISetOfNone.equals(strKKSetOfNone) shouldBe true
         (strISetOfNone === strKKSetOfNone) shouldBe false
@@ -288,13 +305,16 @@ class FKSetCompanionTest : FunSpec({
         strISetOfTwoOfst1.equals(strKKSetOfThree) shouldBe false
         strISetOfThree.equals(strKKSetOfTwo) shouldBe false
         strISetOfThree.equals(strKKSetOfTwoOfst1) shouldBe false
+
         strISetOfThree.equals(strKKSetOfThree) shouldBe true
+        strISetOfThree.equals(strKKSetOfThree.asSet()) shouldBe true
+        strISetOfThree.asSet().equals(strKKSetOfThree) shouldBe true
 
         strISetOfNone.equals(strISetOfNone) shouldBe true
         ksSetOfNone.equals(strKKSetOfNone) shouldBe false
     }
 
-    test("equals KKSet ISet") {
+    test("not equals KKSet ISet") {
         intKKSetOfNone.equals(null) shouldBe false
 
         intKKSetOfOne.equals(strISetOfOne) shouldBe false
@@ -316,7 +336,7 @@ class FKSetCompanionTest : FunSpec({
         strISetOfOne.equals("a") shouldBe false
     }
 
-    test("equals KKSet SSet") {
+    test("not equals KKSet SSet") {
         intSSetOfNone.equals(null) shouldBe false
 
         intSSetOfOne.equals(strKKSetOfOne) shouldBe false
@@ -392,7 +412,8 @@ class FKSetCompanionTest : FunSpec({
 
     test("toString() hashCode() ISet SSet") {
         (emptyIMKSet<Int, Int>(IntKeyType).hashCode() == emptyIMKSet<String, Int>(StrKeyType).hashCode()) shouldBe true
-        (intSSetOfTwo.hashCode() != intKKSetOfTwo.hashCode()) shouldBe true
+        (intSSetOfTwo.hashCode() == intKKSetOfTwo.hashCode()) shouldBe true
+        (ofs(10,2,20).hashCode() == ofi(10,2,20).hashCode()) shouldBe true
     }
 
     // IMKSetCompanion

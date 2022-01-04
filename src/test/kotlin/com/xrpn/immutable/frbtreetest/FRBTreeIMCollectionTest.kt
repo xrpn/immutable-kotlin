@@ -23,10 +23,10 @@ private val iiTreeOfNone: IMCommon<TKVEntry<Int,Int>> = FRBTree.nul<Int,Int>()
 private val iiTreeOfTwo: IMCommon<TKVEntry<Int,Int>> = FRBTree.of(1.toIAEntry(), 2.toIAEntry())
 private val siTreeOfTwo: IMCommon<TKVEntry<String, Int>> = FRBTree.of(1.toSAEntry(), 2.toSAEntry())
 private val ixTreeOfTwo: IMCommon<TKVEntry<Int, FKSet<*, Int>>> =
-  FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(1).toIAEntry())
+  FRBTree.of(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry())
 private val ixxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
-  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofi(2).toIAEntry()).toIAEntry()
+  FKSet.ofi(FKSet.ofi(1).toIAEntry(), FKSet.ofi(3).toIAEntry()).toIAEntry()
 )
 private val iyxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   FKSet.ofi(FKSet.ofi(1).toIAEntry()).toIAEntry(),
@@ -34,7 +34,7 @@ private val iyxTreeOfTwo: FRBTree<Int, FKSet<Int, RTKVEntry<Int, FKSet<*, Int>>>
 )
 private val ixxsTreeOfTwo: FRBTree<Int, Set<RTKVEntry<Int, FKSet<*, Int>>>> = FRBTree.of(
   setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofs(2).toIAEntry()).toIAEntry(),
-  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofi(2).toIAEntry()).toIAEntry()
+  setOf(FKSet.ofi(1).toIAEntry(), FKSet.ofi(3).toIAEntry()).toIAEntry()
 )
 
 private val mmI2S = mutableMapOf((1 to "1"), (2 to "2"))
@@ -43,8 +43,8 @@ private val mmI2I = mutableMapOf((1 to 1), (2 to 2))
 
 private val imTreeOfTwoA = FRBTree.of(mmS2I.toIAEntry(),mmI2I.toIAEntry())
 private val imTreeOfTwoB = FRBTree.of(mmI2S.toIAEntry(), mmI2I.toIAEntry())
-private val imTreeOfTwoC = FRBTree.ofvi( emptyMap<Int, Int>() )
-private val imTreeOfOneOK =  FRBTree.of( mmI2I.toIAEntry() )
+private val imTreeOfOneC = FRBTree.ofvi( emptyMap<Int, Int>() )
+private val imTreeOfOneOK = FRBTree.of( mmI2I.toIAEntry() )
 
 private val imTreeOfTwoOK = run {
   val mm1 = mutableMapOf((1 to 1), (2 to 2))
@@ -75,6 +75,25 @@ class FRBTreeIMCollectionTest : FunSpec({
 
   beforeTest {}
 
+  test("sanity") {
+    iiTreeOfNone.fsize() shouldBe 0
+    iiTreeOfTwo.fsize() shouldBe 2
+    siTreeOfTwo.fsize() shouldBe 2
+    ixTreeOfTwo.fsize() shouldBe 2
+    ixxTreeOfTwo.fsize() shouldBe 2
+    iyxTreeOfTwo.fsize() shouldBe 2
+    ixxsTreeOfTwo.fsize() shouldBe 2
+
+    mmI2S.size shouldBe 2
+    mmS2I.size shouldBe 2
+    mmI2I.size shouldBe 2
+
+    imTreeOfTwoA.fsize() shouldBe 2
+    imTreeOfTwoB.fsize() shouldBe 2
+    imTreeOfOneC.fsize() shouldBe 1
+    imTreeOfOneOK.fsize() shouldBe 1
+  }
+  
   test("fall") {
     iiTreeOfNone.fall { true } shouldBe true
     iiTreeOfNone.fall { false } shouldBe true
@@ -523,7 +542,7 @@ class FRBTreeIMCollectionTest : FunSpec({
     siTreeOfTwo.fpickNotEmpty()?.let { it.getk()::class } shouldBe String::class
     siTreeOfTwo.fpickNotEmpty()?.let { it.getv()::class } shouldBe Int::class
     imTreeOfTwoB.fpickNotEmpty()?.equals(mmI2S.toIAEntry()) shouldBe true
-    imTreeOfTwoC.fpickNotEmpty() shouldBe null
+    imTreeOfOneC.fpickNotEmpty() shouldBe null
   }
 
   test("fpopAndRemainder") {
@@ -540,7 +559,7 @@ class FRBTreeIMCollectionTest : FunSpec({
     val res = frbSlideShareTree.ffold(Pair(nul<Int, Int>(), frbSlideShareTree.fpopAndRemainder())) { acc, _ ->
       val (rebuild, popAndStub) = acc
       val (pop, stub) = popAndStub
-      Pair(rebuild.finsert(pop!!), stub.fpopAndRemainder())
+      Pair(rebuild.finsertTkv(pop!!), stub.fpopAndRemainder())
     }
     res.first shouldBe frbSlideShareTree
     val (lastPopped, lastRemainder) = res.second

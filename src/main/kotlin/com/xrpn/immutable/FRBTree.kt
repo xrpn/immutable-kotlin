@@ -54,7 +54,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         override fun hashCode(): Int = this@FRBTree.hashCode()
     }}
 
-    fun asCollection(): Collection<TKVEntry<A, B>> = kollection
+    override fun asCollection(): Collection<TKVEntry<A, B>> = kollection
 
     /*
         A balanced Red-Black binary search tree shall not allow duplicate keys, but provides guarantees on the
@@ -126,21 +126,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     // TODO this cannot be lazy if tree contains mutable containers
     private val strictness: Boolean by lazy { when {
         fempty() -> true
-        fisNested()!! -> {
-            val maybeNotEmpty = fpickNotEmpty()
-            val tkvClass: KClass<*>? = maybeNotEmpty?.let { it::class }
-            val kc: KClass<out B>? = maybeNotEmpty?.getvKc()
-            kc?.let { valueKClass ->
-                val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
-                null == ffindAny { tkv -> !FT.entryStrictness(tkv, tkvClass!!, valueKClass, ucKc) }
-            } ?: /* nested, but all empty */ run {
-                val aux = fpick()!!::class
-                fall {
-                    check(it.toUCon()?.isEmpty() ?: false )
-                    it.isStrictly(aux) && it.fisStrict()
-                }
-            }
-        }
+        fisNested()!! -> FT.allNodeStrict(this)
         else -> {
             val aux = fpick()!!::class
             fall { tkv: TKVEntry<A, B> -> tkv.isStrictly(aux) && tkv.fisStrict() }
@@ -178,7 +164,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     override fun fdropKeys(keys: IMSet<@UnsafeVariance A>): FRBTree<A, B> = keys.ffold(nul()) { acc, key ->
         if (fcontainsKey(key)) acc else rbtFindKey(this, key)?.let {
-            finsert(it.froot()!!)
+            finsertTkv(it.froot()!!)
         } ?: acc
     }
 
@@ -231,7 +217,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     // =========== extras
 
     override operator fun set(k: @UnsafeVariance A, v: @UnsafeVariance B): FRBTree<A, B> =
-        finsert(TKVEntry.ofkv(k,v))
+        finsertTkv(TKVEntry.ofkv(k,v))
 
     override operator fun get(key: @UnsafeVariance A): B? =
         ffindValueOfKey(key)
@@ -247,7 +233,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     override fun toIMMap(): FKMap<A, B> = ofFKMapBody(this)
 
-    override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsert(tkv) }
+    override fun copy(): FRBTree<A, B> = this.ffold(nul()) { acc, tkv -> acc.finsertTkv(tkv) }
 
     // =========== traversable
 
@@ -397,7 +383,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
         is FRBTNil -> this
         is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) emptyIMBTree() else ffold(nul()) { acc, tkv ->
-            if (items.fcontainsKey(tkv.getk())) acc.finsert(tkv) else acc
+            if (items.fcontainsKey(tkv.getk())) acc.finsertTkv(tkv) else acc
         }
     }
 
@@ -410,7 +396,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             is FBSTree -> t.toFRBTree()
             else -> throw RuntimeException("internal error")
         }
-        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else finsertt(items.asIMBTree()) as FRBTree
+        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else finsertTkvs(items.asIMBTree())
     }
 
     override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
@@ -424,7 +410,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             is FRBTNode -> if (t.fempty()) this else {
                 fun f(container: IMBTree<A,B>): (acc: FRBTree<A, B>, item: TKVEntry<A,B>) -> FRBTree<A, B> = { acc, item ->
                     if (container.fcontains(item)) acc
-                    else acc.finsert(item)
+                    else acc.finsertTkv(item)
                 }
                 val partial = t.ffold(nul(), f(this))
                 ffold(partial, f(t))
@@ -490,7 +476,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     override fun <C, D: Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): FRBTree<C, D>
     where C: Any, C: Comparable<@UnsafeVariance C> = if (fempty()) nul() else {
-        ffold(nul()) { acc, tkv -> acc.finsert(f(tkv)) }
+        ffold(nul()) { acc, tkv -> acc.finsertTkv(f(tkv)) }
     }
 
     override fun freduce(f: (acc: TKVEntry<A, B>, TKVEntry<A, B>) -> TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): TKVEntry<A, B>? = when(this) {  // 	“Reduce” the elements of the list using the binary operator o, going from left to right
@@ -503,11 +489,14 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     // =========== altering
 
-    override fun finsert(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
+    internal fun finsertTkv(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
         rbtInsert(this, item)
 
-    override fun finserts(items: IMList<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> =
-        rbtInserts(this, items as FList<TKVEntry<A,B>>)
+    internal fun finsertTkvs(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): FRBTree<A, B> = when(items) {
+        is FList -> rbtInsertList(this, items)
+        else -> items.ffold(this) { fbst, tkv -> rbtInsert(fbst, tkv) }
+    }
+
 
     // =========== internals
 
@@ -536,7 +525,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
     internal fun toFBSTree(): FBSTree<A, B> = FBSTree.of(this.breadthFirst()) // will preserve the balance
 
-    companion object: IMBTreeCompanion {
+    companion object: IMBTreeUniqCompanion {
 
         internal const val unknownKeyType = "unknown frbtree key type "
 
@@ -627,8 +616,43 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         override fun <A, B: Any> Map<A, B>.toIMBTree(): FRBTree<A, B> where A: Any, A: Comparable<A> {
             var res: FRBTree<A, B> = nul()
-            for (entry in this) { res = res.finsert(TKVEntry.ofkv(entry.key, entry.value)) }
+            for (entry in this) { res = res.finsertTkv(TKVEntry.ofkv(entry.key, entry.value)) }
             return res
+        }
+
+        override fun <A, B : Any> fadd(
+            src: TKVEntry<A, B>,
+            dest: IMKeyedValue<A, B>
+        ): FRBTree<A, B>? where A:Any, A: Comparable<A> = when (dest) {
+            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
+            else -> null
+        }
+
+        override fun <A, B : Any> fadd(
+            src: TKVEntry<A, B>,
+            dest: IMBTree<A, B>
+        ): FRBTree<A, B> where A:Any, A: Comparable<A>  = when (dest) {
+            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
+            is FBSTree<A,B> -> IMKeyedValue.fadd(src,dest.toFRBTree()) as FRBTree<A,B>
+            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+
+        override fun <A, B : Any> faddAll(
+            src: IMCommon<TKVEntry<A, B>>,
+            dest: IMBTree<A, B>
+        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
+            is FRBTree<A,B> -> IMKeyedValue.faddAll(src,dest) as FRBTree<A,B>
+            is FBSTree<A,B> -> IMKeyedValue.faddAll(src,dest.toFRBTree()) as FRBTree<A,B>
+            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+
+        override fun <A, B : Any> finserts(
+            src: IMKeyedValue<A, B>,
+            dest: IMBTree<A, B>
+        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
+            is FRBTree<A,B> -> IMBTree.finserts(src,dest) as FRBTree<A,B>
+            is FBSTree<A,B> -> IMBTree.finserts(src,dest.toFRBTree()) as FRBTree<A,B>
+            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
         }
 
         // =============== top level type-specific implementation
@@ -740,10 +764,10 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             return aux
         }
 
-        internal tailrec fun <A, B: Any> rbtInserts(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
+        internal tailrec fun <A, B: Any> rbtInsertList(treeStub: FRBTree<A, B>, items: FList<TKVEntry<A,B>>): FRBTree<A, B>
         where A: Any, A: Comparable<A> = when (items) {
                 is FLNil -> treeStub
-                is FLCons -> rbtInserts(rbtInsert(treeStub, items.head), items.tail)
+                is FLCons -> rbtInsertList(rbtInsert(treeStub, items.head), items.tail)
             }
 
         internal fun <A, B: Any> rbtParent(treeStub: FRBTree<A, B>, childItem: TKVEntry<A, B>): FRBTree<A, B>?
@@ -807,35 +831,22 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         // ================= internals
 
-        private fun <A, B: Any> checkf(a: TKVEntry<A, B>, b: FRBTNode<A, B>, haze: Boolean): Boolean where A: Any, A: Comparable<A> {
-            val av = a.getv()
-            val bv = b.entry.getv()
-            val res = av.equals(bv)
-            val goodness = if (haze) !( res && ((av is FKSet<*,*> && bv is FKSet<*,*>) && av.fpickValue().isStrictlyNot(bv.fpickValue())) )
-                           else ( res || ((av is FKSet<*,*> && bv is FKSet<*,*>) && av.fpickValue().isStrictly(bv.fpickValue())) )
-            if (!goodness) {
-                val newEntry = "new entry: ${a.getv().hashCode()}:${a.getv()}, <$a>"
-                val treeData = "tree data: ${b.entry.getv().hashCode()}:${b.entry.getv()}, <${b.entry}>"
-                b.errLog().emitUnconditionally("failure with frbTree entry discrepancy, inserting $newEntry is inconsistent with $treeData for ${b::class} as\n\t$b")
-            }
-            return goodness
-        }
-
         // the sorting order
         private fun <A, B: Any> fit(a: TKVEntry<A, B>, b: FRBTNode<A, B>): FBTFIT where A: Any, A: Comparable<A> = when {
             a == b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(checkf(a, b, false))
+                val aux = FT.checkf(a, b, false)
+                check(aux)
                 FBTFIT.EQ
             }
             a < b.entry -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(checkf(a, b, true))
+                check(FT.checkf(a, b, true))
                 FBTFIT.LEFT
             }
             else -> {
                 // TODO remove later (hashcode conflict assertion)
-                check(checkf(a, b, true))
+                check(FT.checkf(a, b, true))
                 FBTFIT.RIGHT
             }
         }
@@ -1036,10 +1047,10 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             t2 is FRBTNil -> t1
             else -> if (t1.size < t2.size) {
                     val (entry, stub) = t1.fpopAndRemainder()
-                    mergeAppender(t2.finsert(entry!!), stub)
+                    mergeAppender(t2.finsertTkv(entry!!), stub)
                 } else {
                     val (entry, stub) = t2.fpopAndRemainder()
-                    mergeAppender(t1.finsert(entry!!), stub)
+                    mergeAppender(t1.finsertTkv(entry!!), stub)
                 }
             }
 
@@ -1059,11 +1070,11 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             (kType is StrKeyType) && (t.frestrictedKey()?.let { it.kc == kType.kc } ?: false ) -> @Suppress("UNCHECKED_CAST") (t as? FRBTree<K, B>)
             else ->  when (kType) {
                 is IntKeyType ->   {
-                    val res: FRBTree<Int, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toIAEntry()) }
+                    val res: FRBTree<Int, B> = t.ffold(nul()) { acc, tkv -> acc.finsertTkv(tkv.getv().toIAEntry()) }
                     @Suppress("UNCHECKED_CAST") (res as? FRBTree<K, B>)
                 }
                 is StrKeyType -> {
-                    val res: FRBTree<String, B> = t.ffold(nul()) { acc, tkv -> acc.finsert(tkv.getv().toSAEntry()) }
+                    val res: FRBTree<String, B> = t.ffold(nul()) { acc, tkv -> acc.finsertTkv(tkv.getv().toSAEntry()) }
                     @Suppress("UNCHECKED_CAST") (res as? FRBTree<K, B>)
                 }
                 is SymKeyType -> if (kType.kc != t.froot()!!.getvKc()) null else {
@@ -1071,7 +1082,7 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
                         val k = @Suppress("UNCHECKED_CAST") (tkv.getv() as? K)
                         k?.let {
                             val entry = TKVEntry.ofkv(it, tkv.getv())
-                            acc.finsert(entry)
+                            acc.finsertTkv(entry)
                         } ?: acc
                     }
                     check(aux.fsize() == t.fsize())
@@ -1091,6 +1102,10 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
         this === other -> true
         other == null -> false
         other is FRBTree<*, *> -> other.fempty()
+        other is Collection<*> -> when(val iter = other.iterator()) {
+            is FTreeIterator<*,*> -> !iter.hasNext()
+            else -> false
+        }
         else -> false
     }
 
@@ -1102,21 +1117,14 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
     }
 }
 
-internal interface FRBTRNode<out A: Any> {
-//    fun typedEqual(other: FRBTRNode<@UnsafeVariance A>): Boolean = when (this) {
-//        is FRBTINode<*> -> (other as? FRBTINode<A>)?.let { IMBTreeEqual2 (this, it) } ?: false
-//        is FRBTSNode<*> -> (other as? FRBTSNode<A>)?.let { IMBTreeEqual2 (this, it) } ?: false
-//        is FRBTKNode<*> -> (other as? FRBTKNode<Comparable<A>>)?.let { IMBTreeEqual2 (this, it) } ?: false
-//        else -> false
-//    }
-}
+internal interface FRBTRNode<out A: Any>
 
 internal open class FRBTNode<A, B: Any> protected constructor (
     val entry: TKVEntry<A, B>,
     val color: Boolean = RED,
     val bLeft: FRBTree<A, B> = FRBTNil,
     val bRight: FRBTree<A, B> = FRBTNil,
-): FRBTree<A, B>() where A: Any, A: Comparable<A> {
+): FRBTree<A, B>(), IMBTreeNotEmpty<A,B> where A: Any, A: Comparable<A> {
 
     internal fun leaf() = bLeft is FRBTNil && bRight is FRBTNil
 
@@ -1146,7 +1154,7 @@ internal open class FRBTNode<A, B: Any> protected constructor (
                     entry.getvKc().isStrictlyNot(other.entry.untype().getvKc()) -> false
                     entry.getkKc().isStrictlyNot(other.entry.untype().getkKc()) -> false
                     else -> (@Suppress("UNCHECKED_CAST") (other as? FRBTNode<A, B>))?.let {
-                        IMBTreeEqual2(this, it)
+                        IMBTreeEqual2(this, it) /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
                     } ?: false
                 }
             }
@@ -1162,17 +1170,9 @@ internal open class FRBTNode<A, B: Any> protected constructor (
         IMBTree.softEqual(this,rhs)
 
     val hash:Int by lazy {
-        val seed: Int = when (val rk = this.froot()?.getk()) {
-            is Int -> 1 // + color.hashCode()
-            is Long -> 1 // + color.hashCode()
-            else -> rk.hashCode() // + color.hashCode()
-        }
-        this.ffold(seed) { acc: Int, tkv -> when(val k = tkv.getk()) {
-                is Int -> 31 * acc + k
-                is Long -> 31 * acc + k.toInt()
-                else -> 31 * acc + k.hashCode()
-            }
-        }
+        check(!fempty())
+        val aux = ffold(31 * fsize()) { hash, tkv -> hash + tkv.hashCode() + 7 * tkv.getv().hashCode() }
+        11 * fsize() + aux
     }
 
     override fun hashCode(): Int = hash

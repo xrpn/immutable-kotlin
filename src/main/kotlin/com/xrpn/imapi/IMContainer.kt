@@ -8,6 +8,8 @@ import com.xrpn.immutable.FT
 import com.xrpn.immutable.toUCon
 import java.io.OutputStream
 import java.io.PrintStream
+import java.util.*
+import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 
 enum class IMSC {
@@ -53,6 +55,10 @@ interface IMSealed<out A:IMUniversalCommon>: IMUniversalCommon {
     fun softEqual(rhs: Any?): Boolean
 }
 
+interface IMReducible<out A: Any>: IMUniversalCommon {
+    fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A?
+}
+
 // One or more A
 interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
     fun fall(predicate: (A) -> Boolean): Boolean = fempty() || run {
@@ -94,7 +100,7 @@ interface IMCommon<out A: Any>: IMSealed<IMUniversalCommon> {
     companion object {
 
         // O(n^2)
-        fun <A: Any> cointainmentEquals(lhs: IMCommon<A>, rhs: Iterable<A>): Boolean {
+        private fun <A: Any> cointainmentEquals(lhs: IMCommon<A>, rhs: Iterable<A>): Boolean {
             val rhsIter = rhs.iterator()
             val rhsEmpty = ! rhsIter.hasNext()
             return when {
@@ -225,10 +231,17 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
     fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
     fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-}
 
-interface IMReducible<out A: Any>: IMUniversalCommon {
-    fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A?
+    companion object: IMKeyedValueAltering {
+
+        override fun <K, B : Any> fadd(src: TKVEntry<K, B>, dest: IMKeyedValue<K, B>): IMKeyedValue<K, B>? where K: Any, K:Comparable<K> = when (dest) {
+            is FBSTree<K,B> -> TODO()
+            is FRBTree<K,B> -> TODO()
+            is FKMap<K,B> -> TODO()
+            is FKSet<K,B> -> TODO()
+            else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+    }
 }
 
 interface IMOrdered<out A: Any>: IMCommon<A> {
@@ -247,10 +260,17 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
     override fun ffilter(isMatch: (A) -> Boolean): IMOrdered<A> // return all elements that match the predicate p
     override fun ffilterNot(isMatch: (A) -> Boolean): IMOrdered<A> // Return all elements that do not match the predicate p
 
-    companion object {
+    companion object: IMOrderedAltering {
+
+        override fun <A : Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>? = when (dest) {
+            is FList<A> -> TODO()
+            is FQueue<A> -> TODO()
+            is FStack<A> -> TODO()
+            else -> throw RuntimeException("internal error, unknown ${IMOrdered::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
 
         // O(n)
-        tailrec fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
+        private tailrec fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
             lhs.fempty() -> rhs.fempty()
             rhs.fempty() -> false
             !(lhs.fnext()!!.equals(rhs.fnext())) -> false
@@ -258,7 +278,7 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
         }
 
         // O(n)
-        fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: Iterable<A>): Boolean {
+        private fun <A: Any> pairwiseEquals(lhs: IMOrdered<A>, rhs: Iterable<A>): Boolean {
             val rhsIter = rhs.iterator()
             val rhsEmpty = ! rhsIter.hasNext()
             return when {
@@ -281,6 +301,19 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
             }
         }
 
+        private fun untypedScreen(lhs: IMOrdered<*>, rhs: Collection<*>?) : Boolean = rhs?.let { when {
+            lhs.fempty() -> rhs.isEmpty()
+            lhs.fsize() != rhs.size -> false
+            lhs.fpick()!!.isStrictlyNot(rhs.first()!!) -> false
+            else -> true
+        } } ?: false
+
+        private fun <A: Any> fullScreen(lhs: IMOrdered<A>, rhs: Collection<*>?) : Boolean = untypedScreen(lhs,rhs) && (
+            (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
+                pairwiseEquals(lhs, it)
+            } ?: false
+        )
+
         fun <A: Any> equal(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
             lhs.fempty() -> rhs.fempty()
             rhs.fempty() -> false
@@ -293,29 +326,24 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
             is IMOrdered<*> -> (@Suppress("UNCHECKED_CAST") (rhs as? IMOrdered<A>)?. let {
                     equal(lhs, it)
                 } ?: false)
-            is Iterable<*> -> {
-                val rhsIter = rhs.iterator()
-                val rhsEmpty = ! rhsIter.hasNext()
-                when {
-                    lhs.fempty() -> rhsEmpty
-                    rhsEmpty -> false
-                    lhs.fpick()!!.isStrictlyNot(rhs.first()!!) -> false
-                    else -> when (rhs) {
-                        is Collection<*> -> if(lhs.fsize() != rhs.size) false else {
-                            (@Suppress("UNCHECKED_CAST") (rhs as? Collection<A>))?.let {
-                                pairwiseEquals(lhs, it)
-                            } ?: false
-                        }
-                        else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
-                            pairwiseEquals(lhs, it)
-                        } ?: false
-                    }
-                }
+            is LinkedHashSet<*>, is SortedSet<*> -> {
+                rhs as Collection<*>
+                fullScreen(lhs,rhs)
             }
-            is IMCommon<*> -> IMCommon.softEqual(lhs, rhs)
+            is Set<*> -> false /* not ordered */
+            is Array<*> -> when {
+                lhs.fempty() -> 0 == rhs.size
+                lhs.fsize() != rhs.size -> false
+                lhs.fpick()!!.isStrictlyNot(rhs[0]) -> false
+                else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
+                    pairwiseEquals(lhs, it)
+                } ?: false
+            }
+            is Queue<*> -> fullScreen(lhs,rhs)
+            is List<*> -> fullScreen(lhs,rhs)
+            // is IMCommon<*> -> IMCommon.softEqual(lhs, rhs)
             else -> false
         }
-
     }
 }
 
@@ -743,7 +771,6 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     IMBTreeFiltering<A, B>,
     IMBTreeGrouping<A, B>,
     IMBTreeTransforming<A,B>,
-    IMBTreeAltering<A, B>,
     IMBTreeExtras<A, B>,
     IMKeyed<A>,
     IMKeyedValue<A, B>,
@@ -779,7 +806,8 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
 
-    companion object {
+    companion object: IMBTreeAltering {
+
         fun<A, B: Any> softEqual(lhs: IMBTree<A,B>, rhs: Any?): Boolean
         where A: Any, A: Comparable<@UnsafeVariance A> = lhs.equals(rhs) || when (rhs) {
             is IMBTree<*, *> -> when {
@@ -800,8 +828,35 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
             else -> false
         }
 
+        override fun <A, B : Any> fadd(src: TKVEntry<A, B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>?
+        where A: Any, A:Comparable<A> = try {
+            IMKeyedValue.fadd(src, dest)!!.asIMBTree()
+        } catch (ex: Exception) {
+            dest.reportException(ex, this)
+            null
+        }
+
+        override fun <A, B : Any> fadd(src: TKVEntry<A, B>, dest: IMBTree<A, B>): IMBTree<A, B>
+        where A: Any, A:Comparable<A> = when (dest) {
+            is FRBTree ->  dest.finsertTkv(src)
+            is FBSTree ->  dest.finsertTkv(src)
+            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+
+        override fun <A, B : Any> faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMBTree<A, B>): IMBTree<A, B>
+        where A: Any, A:Comparable<A> =
+            IMKeyedValue.faddAll(src,dest).asIMBTree()
+
+        override fun <A, B : Any> finserts(src: IMKeyedValue<A, B>, dest: IMBTree<A, B>): IMBTree<A, B>
+        where A: Any, A:Comparable<A> = when(dest) {
+            is FRBTree<A,B> -> src.asIMCommon<TKVEntry<A,B>>()!!.ffold(dest){frbt, tkv -> fadd(tkv, frbt) as FRBTree<A,B> }
+            is FBSTree<A,B> -> src.asIMCommon<TKVEntry<A,B>>()!!.ffold(dest){fbst, tkv -> fadd(tkv, fbst) as FBSTree<A,B> }
+            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
     }
 }
+
+interface IMBTreeNotEmpty<out A, out B: Any>: IMBTree<A,B> where A: Any, A: Comparable<@UnsafeVariance A>
 
 // Set derivatives
 

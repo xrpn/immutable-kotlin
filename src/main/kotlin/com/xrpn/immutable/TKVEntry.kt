@@ -128,8 +128,6 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
 
     override fun toString(): String = "[ $k:$v ]"
 
-    override fun hashCode(): Int = k.hashCode()
-
     protected val kClass: KClass<out A> by lazy { k::class }
     protected val vClass: KClass<out B> by lazy { v::class }
 
@@ -160,12 +158,15 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
             this === other -> true
             other == null -> false
             other !is TKVEntryType<*,*> -> false
-            kClass != other.kClass -> false
-            vClass != other.vClass -> false
+            kClass != other.kClass -> false // TODO maybe remove this this inequality
+            // vClass != other.vClass -> false // TODO remove this this inequality
             else -> 0 == @Suppress("UNCHECKED_CAST")(other as? TKVEntryType<A, B>)?.compareTo(this)
         }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)
+    val hash: Int by lazy { k.hashCode() }
+    override fun hashCode(): Int = hash
+
     override fun softEqual(rhs: Any?): Boolean = equals(rhs)
 
     override fun getk(): A = k
@@ -209,12 +210,12 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
     }
 }
 
-
+// TKVEntryK is an entry, the key of which is not Int, nor String, nor a value (when value is comparable)
 internal open class TKVEntryK<A: Comparable<A>, B:Any> constructor (
     rk: A, rv: B, vc: Comparator<@UnsafeVariance A>? = null
 ): TKVEntryType<A,B>(rk, rv, vc) {
     init {
-        check(k::class != v::class)
+        check(!((k is Int) || (k is String) || (k::class == v::class)))
     }
 }
 

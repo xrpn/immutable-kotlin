@@ -21,12 +21,12 @@ class FRBTreeTransformingTest : FunSpec({
 
     test("fflatMap (A)") {
         nul<Int,String>().fflatMap{ ttDepthOneRight } shouldBe nul()
-        nul<Int,String>().fflatMap{ tkv -> ttDepthOneRight.finsert(tkv) } shouldBe nul()
+        nul<Int,String>().fflatMap{ tkv -> ttDepthOneRight.finsertTkv(tkv) } shouldBe nul()
         ttDepthOneRight.fflatMap{ nul<Int,String>() } shouldBe nul()
-        ttDepthOneRight.fflatMap{ tkv -> nul<Int,String>().finsert(tkv) } shouldBe ttDepthOneRight
+        ttDepthOneRight.fflatMap{ tkv -> nul<Int,String>().finsertTkv(tkv) } shouldBe ttDepthOneRight
         FTreeIterator(nul<Int,String>()).flatMap{ FTreeIterator(ttDepthOneRight) } shouldBe FTreeIterator(nul<Int,String>()).toList()
         FTreeIterator(ttDepthOneRight).flatMap{ FTreeIterator(nul<Int,String>()) } shouldBe FTreeIterator(nul<Int,String>()).toList()
-        FTreeIterator(ttDepthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int,String>().finsert(tkv)) } shouldBe FTreeIterator(ttDepthOneRight).toList()
+        FTreeIterator(ttDepthOneRight).flatMap{ tkv -> FTreeIterator(nul<Int,String>().finsertTkv(tkv)) } shouldBe FTreeIterator(ttDepthOneRight).toList()
         FTreeIterator(ttDepthOneRight).flatMap{ emptySet<TKVEntry<Int,String>>() } shouldBe FTreeIterator(nul<Int,String>()).toList()
         val cheat1 = wikiTree.fflatMap { slideShareTree }
         cheat1 shouldBe slideShareTree
@@ -40,7 +40,7 @@ class FRBTreeTransformingTest : FunSpec({
             var counter = 0
             // there are no dups; this is a (very inefficient) set-union
             val res: FRBTree<Int, Int> = fbst1.fflatMap { tkv ->
-                val fbst: FRBTree<Int, Int> = fbst2.finsert(tkv)
+                val fbst: FRBTree<Int, Int> = fbst2.finsertTkv(tkv)
                 fbst.fhasDups() shouldBe false
                 counter += fbst.size
                 fbst

@@ -189,9 +189,9 @@ class FListIMCollectionTest : FunSpec({
     strListOfThree.fisStrict() shouldBe true
     intListOfThree.fisStrict() shouldBe true
     FList.of(FKSet.ofi("A"), FKSet.ofs("A")).fisStrict() shouldBe false
-    FList.of(setOf(FKSet.ofi("A"), FKSet.ofs("A"))).fisStrict() shouldBe false
-    FList.of(setOf(FKSet.ofi("A"), FKSet.ofi("A"), setOf(FKSet.ofi("A"), FKSet.ofs("A")))).fisStrict() shouldBe false
-    FList.of(FKSet.ofi(FKSet.ofi("A"), FKSet.ofi("A"), setOf(FKSet.ofi("A"), FKSet.ofs("A")))).fisStrict() shouldBe false
+    FList.of(setOf(FKSet.ofi("A"), FKSet.ofs("B"))).fisStrict() shouldBe false
+    FList.of(setOf(FKSet.ofi("A"), FKSet.ofi("B"), setOf(FKSet.ofi("A"), FKSet.ofs("C")))).fisStrict() shouldBe false
+    FList.of(FKSet.ofi(FKSet.ofi("A"), FKSet.ofi("B"), setOf(FKSet.ofi("A"), FKSet.ofs("C")))).fisStrict() shouldBe false
     FList.of(mutableMapOf(("1" to 1), ("2" to 2)), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe false
     FList.of(mutableMapOf((1 to "1"), (2 to "2")), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe false
     FList.of(mutableMapOf((1 to 1), (2 to 2)), mutableMapOf((1 to 1), (2 to 2))).fisStrict() shouldBe true

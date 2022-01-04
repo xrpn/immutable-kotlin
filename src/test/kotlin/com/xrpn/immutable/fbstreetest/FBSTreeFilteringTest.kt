@@ -300,12 +300,12 @@ class FBSTreeFilteringTest : FunSpec({
                     go(t, acc.tail)
                 }
             }
-        go(wikiTreeLoose.finsert(wikiTree.froot()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.fleftMost()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.frightMost()!!), wikiPreorder)
-        go(slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
-        go(slideShareTreeLoose.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst)
+        go(wikiTreeLoose.finsertTkv(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.froot()!!).finsertTkv(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.fleftMost()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.frightMost()!!), wikiPreorder)
+        go(slideShareTreeLoose.finsertTkv(slideShareTree.fleftMost()!!).finsertTkv(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
+        go(slideShareTreeLoose.finsertTkv(slideShareTree.frightMost()!!).finsertTkv(slideShareTree.frightMost()!!), slideShareBreadthFirst)
     }
 
     test("ffindLastKey no dups") {
@@ -345,12 +345,12 @@ class FBSTreeFilteringTest : FunSpec({
                     go(t, acc.tail)
                 }
             }
-        go(wikiTreeLoose.finsert(wikiTree.froot()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.froot()!!).finsert(wikiTree.froot()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.fleftMost()!!), wikiPreorder)
-        go(wikiTreeLoose.finsert(wikiTree.frightMost()!!), wikiPreorder)
-        go(slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!).finsert(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
-        go(slideShareTreeLoose.finsert(slideShareTree.frightMost()!!).finsert(slideShareTree.frightMost()!!), slideShareBreadthFirst)
+        go(wikiTreeLoose.finsertTkv(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.froot()!!).finsertTkv(wikiTree.froot()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.fleftMost()!!), wikiPreorder)
+        go(wikiTreeLoose.finsertTkv(wikiTree.frightMost()!!), wikiPreorder)
+        go(slideShareTreeLoose.finsertTkv(slideShareTree.fleftMost()!!).finsertTkv(slideShareTree.fleftMost()!!), slideShareBreadthFirst)
+        go(slideShareTreeLoose.finsertTkv(slideShareTree.frightMost()!!).finsertTkv(slideShareTree.frightMost()!!), slideShareBreadthFirst)
     }
 
     test("ffindValueOfKey") {
@@ -388,13 +388,13 @@ class FBSTreeFilteringTest : FunSpec({
     test("fisDup") {
         nul<Int, Int>().fisDup(1.toIAEntry()) shouldBe false
         slideShareTree.fisDup(slideShareTree.fleftMost()!!) shouldBe false
-        val aux5a = slideShareTreeLoose.finsert(slideShareTree.fleftMost()!!)
+        val aux5a = slideShareTreeLoose.finsertTkv(slideShareTree.fleftMost()!!)
         aux5a.fisDup(slideShareTree.fleftMost()!!) shouldBe true
         aux5a.fisDup(slideShareTree.froot()!!) shouldBe false
-        val aux5b = aux5a.finsert(slideShareTree.fleftMost()!!)
+        val aux5b = aux5a.finsertTkv(slideShareTree.fleftMost()!!)
         aux5b.fisDup(slideShareTree.fleftMost()!!) shouldBe true
         aux5b.fisDup(slideShareTree.froot()!!) shouldBe false
-        val aux5c = slideShareTreeLoose.finsert(slideShareTree.froot()!!)
+        val aux5c = slideShareTreeLoose.finsertTkv(slideShareTree.froot()!!)
         aux5c.fisDup(slideShareTree.fleftMost()!!) shouldBe false
         aux5c.fisDup(slideShareTree.froot()!!) shouldBe true
     }

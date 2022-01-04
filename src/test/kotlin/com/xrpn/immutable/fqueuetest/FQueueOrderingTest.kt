@@ -64,10 +64,10 @@ class FQueueOrderingTest : FunSpec({
     (intQueueOfOne1NR.fdrop(1) === emptyIMQueue<Int>()) shouldBe true
     (intQueueOfTwoNR.fdrop(0) === intQueueOfTwoNR) shouldBe true
     (intQueueOfTwoNR.fdrop(1) === intQueueOfTwoNR.fdiscardFront()) shouldBe false
-    intQueueOfTwoNR.fdrop(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
+    intQueueOfTwoNR.fdrop(1).fqStructuralEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
     (intQueueOfTwoNR.fdrop(2) === emptyIMQueue<Int>()) shouldBe true
     intQueueOfThreeNR.fdrop(0) shouldBe intQueueOfThreeNR
-    intQueueOfThreeNR.fdrop(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfThreeNR.fdrop(1).fqStructuralEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfThreeNR.fdrop(2) shouldBe intQueueOfOne2NR
     intQueueOfThreeNR.fdrop(3) shouldBe FQueue.emptyIMQueue()
   }
@@ -77,24 +77,24 @@ class FQueueOrderingTest : FunSpec({
     (intQueueOfOne1YR.fdrop(1) === emptyIMQueue<Int>()) shouldBe true
     (intQueueOfTwoYR.fdrop(0) === intQueueOfTwoYR) shouldBe true
     (intQueueOfTwoYR.fdrop(1) === intQueueOfTwoYR.fdiscardFront()) shouldBe false
-    intQueueOfTwoYR.fdrop(1).fqStrongEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
+    intQueueOfTwoYR.fdrop(1).fqStructuralEqual(intQueueOfTwoNR.fdiscardFront()) shouldBe true
     (intQueueOfTwoYR.fdrop(2) === emptyIMQueue<Int>()) shouldBe true
     intQueueOfThreeYR.fdrop(0) shouldBe intQueueOfThreeNR
-    intQueueOfThreeYR.fdrop(1).fqStrongEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfThreeYR.fdrop(1).fqStructuralEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfThreeYR.fdrop(2) shouldBe intQueueOfOne2NR
     intQueueOfThreeYR.fdrop(3) shouldBe FQueue.emptyIMQueue()
   }
 
   test("fdrop") {
-    intQueueOfThree2F.fdrop(1).fqSemanticEqual(intQueueOfTwoYR) shouldBe false
-    intQueueOfThree2F.fdrop(1).fqSemanticEqual(intQueueOfTwoNR) shouldBe false
+    intQueueOfThree2F.fdrop(1).fqStructuralEqual(intQueueOfTwoYR) shouldBe false
+    intQueueOfThree2F.fdrop(1).fqSemanticEqual(intQueueOfTwoYR) shouldBe true
     intQueueOfThree2F.fdrop(1).equal(intQueueOfTwoYR) shouldBe true
     intQueueOfThree2F.fdrop(1).equal(intQueueOfTwoNR) shouldBe true
-    intQueueOfThree2F.fdrop(2).fqStrongEqual(intQueueOfOne2NR) shouldBe true
+    intQueueOfThree2F.fdrop(2).fqStructuralEqual(intQueueOfOne2NR) shouldBe true
     (intQueueOfThree2F.fdrop(3) === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfThree2B.fdrop(1).fqStrongEqual(intQueueOfTwoNR) shouldBe true
+    intQueueOfThree2B.fdrop(1).fqStructuralEqual(intQueueOfTwoNR) shouldBe true
     intQueueOfThree2B.fdrop(1).equal(intQueueOfTwoYR) shouldBe true
-    intQueueOfThree2B.fdrop(2).fqStrongEqual(intQueueOfOne2YR) shouldBe true
+    intQueueOfThree2B.fdrop(2).fqStructuralEqual(intQueueOfOne2YR) shouldBe true
     (intQueueOfThree2B.fdrop(3) === emptyIMQueue<Int>()) shouldBe true
   }
 
@@ -127,32 +127,32 @@ class FQueueOrderingTest : FunSpec({
 
   test("freverse") {
     (intQueueOfNoneNR.freverse() === emptyIMQueue<Int>()) shouldBe true
-    intQueueOfOne1NR.freverse().fqStrongEqual(intQueueOfOne1YR) shouldBe true
-    intQueueOfOne1YR.freverse().fqStrongEqual(intQueueOfOne1NR) shouldBe true
+    intQueueOfOne1NR.freverse().fqStructuralEqual(intQueueOfOne1YR) shouldBe true
+    intQueueOfOne1YR.freverse().fqStructuralEqual(intQueueOfOne1NR) shouldBe true
 
-    intQueueOfTworNR.freverse().fqStrongEqual(intQueueOfTwoYR) shouldBe true
-    intQueueOfTwoYR.freverse().fqStrongEqual(intQueueOfTworNR) shouldBe true
+    intQueueOfTworNR.freverse().fqStructuralEqual(intQueueOfTwoYR) shouldBe true
+    intQueueOfTwoYR.freverse().fqStructuralEqual(intQueueOfTworNR) shouldBe true
     compare(intQueueOfTwoYR, prepare(intQueueOfTwoYR.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfTwoYR, prepare(intQueueOfTworNR, FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfTworNR, prepare(intQueueOfTworNR.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfTworNR, prepare(intQueueOfTwoYR, FStack.emptyIMStack()), true) shouldBe true
 
-    intQueueOfThreesYR.freverse().fqStrongEqual(intQueueOfThreesrNR) shouldBe true
-    intQueueOfThreesrNR.freverse().fqStrongEqual(intQueueOfThreesYR) shouldBe true
+    intQueueOfThreesYR.freverse().fqStructuralEqual(intQueueOfThreesrNR) shouldBe true
+    intQueueOfThreesrNR.freverse().fqStructuralEqual(intQueueOfThreesYR) shouldBe true
     compare(intQueueOfThreesYR, prepare(intQueueOfThreesYR.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreesYR, prepare(intQueueOfThreesrNR, FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreesrNR, prepare(intQueueOfThreesrNR.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreesrNR, prepare(intQueueOfThreesYR, FStack.emptyIMStack()), true) shouldBe true
 
-    intQueueOfThreer2F.freverse().fqStrongEqual(intQueueOfThree2F) shouldBe true
-    intQueueOfThree2F.freverse().fqStrongEqual(intQueueOfThreer2F) shouldBe true
+    intQueueOfThreer2F.freverse().fqStructuralEqual(intQueueOfThree2F) shouldBe true
+    intQueueOfThree2F.freverse().fqStructuralEqual(intQueueOfThreer2F) shouldBe true
     compare(intQueueOfThree2F, prepare(intQueueOfThree2F.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThree2F, prepare(intQueueOfThreer2F, FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreer2F, prepare(intQueueOfThreer2F.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreer2F, prepare(intQueueOfThree2F, FStack.emptyIMStack()), true) shouldBe true
 
-    intQueueOfThree2B.freverse().fqStrongEqual(intQueueOfThreer2B) shouldBe true
-    intQueueOfThreer2B.freverse().fqStrongEqual(intQueueOfThree2B) shouldBe true
+    intQueueOfThree2B.freverse().fqStructuralEqual(intQueueOfThreer2B) shouldBe true
+    intQueueOfThreer2B.freverse().fqStructuralEqual(intQueueOfThree2B) shouldBe true
     compare(intQueueOfThree2B, prepare(intQueueOfThree2B.freverse(), FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThree2B, prepare(intQueueOfThreer2B, FStack.emptyIMStack()), true) shouldBe true
     compare(intQueueOfThreer2B, prepare(intQueueOfThreer2B.freverse(), FStack.emptyIMStack()), true) shouldBe true

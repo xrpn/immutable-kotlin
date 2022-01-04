@@ -18,14 +18,12 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     val size: Int by lazy { this.fsize() }
 
-    /* TODO start
     private val iterable: Iterable<A> by lazy { object : Iterable<A>, FQueueRetrieval<A> {
         override fun iterator(): FQueueIterator<A> = FQueueIterator(this@FQueue)
         override fun original(): FQueue<A> = this@FQueue
     }}
 
-    fun asIterable(): Iterable<A> = iterable
-    TODO end */
+    override fun asIterable(): Iterable<A> = iterable
 
     // imcommon
 
@@ -61,8 +59,13 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     override fun ffindAny(isMatch: (A) -> Boolean): A? =
         fqGetBack().ffindAny(isMatch) ?: fqGetFront().ffindAny(isMatch)
 
-    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R =
-        TODO("Not yet implemented")
+    override fun <R> ffold(z: R, f: (acc: R, A) -> R): R {
+
+        tailrec fun go(q: FQueue<A>, r: R): Pair<FQueue<A>, R> =
+            if (q.fempty()) Pair(q, r) else go(q.fdrop(1), f(r, q.fnext()!!))
+
+        return go(this, z).second
+    }
 
     override fun fisStrict(): Boolean =
         fqGetBack().fisStrict() && fqGetFront().fisStrict()
@@ -254,9 +257,9 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         this === rhs -> true
         !fqSameSize(rhs) -> false
         rhs is FQueueBody -> {
-            val structural = fqStrongEqual(rhs)
-            val cheaperSemantic: Boolean by lazy { fqSemanticEqual(rhs) }
-            structural || (!strong && ( cheaperSemantic || IMListEqual2(toFList(), rhs.toIMList()) ))
+            val structural = fqStructuralEqual(rhs)
+            val semantic: Boolean by lazy { fqSemanticEqual(rhs) }
+            structural || (!strong && semantic)
         }
         else -> false
     }
@@ -282,11 +285,11 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     internal fun fqFrontMatch(isMatch: (A) -> Boolean): Boolean =
         ffirst()?.let { isMatch(it) } ?: false
 
-    internal val forceFrontYesMerge: FQueue<A> by lazy {
+    private val forceFrontYesMerge: FQueue<A> by lazy {
         this as FQueueBody
         FQueueBody.of(FList.flAppend(front, back.freverse()), FLNil)
     }
-    internal val forceFrontNoMerge: FQueue<A> by lazy {
+    private val forceFrontNoMerge: FQueue<A> by lazy {
         this as FQueueBody
         when (front) {
             is FLNil -> FQueueBody.of(back.freverse(), FLNil)
@@ -327,7 +330,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     }
 
     // identical
-    internal fun fqStrongEqual(rhs: FQueue<@UnsafeVariance A>): Boolean {
+    internal fun fqStructuralEqual(rhs: FQueue<@UnsafeVariance A>): Boolean {
         check(fqSameSize(rhs))
         val res = when {
             this === rhs -> true
@@ -335,7 +338,10 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
             fqGetFront().fempty() || rhs.fqGetFront().fempty() -> false
             fqGetBack().fempty() && rhs.fqGetBack().fempty() -> fqGetFront().equal(rhs.fqGetFront())
             fqGetBack().fempty() || rhs.fqGetBack().fempty() -> false
-            else -> IMListEqual2(fqGetFront(), rhs.fqGetFront()) && IMListEqual2(fqGetBack(), rhs.fqGetBack())
+            else -> fqGetFront().fsize() == rhs.fqGetFront().fsize()
+                    && fqGetBack().fsize() == rhs.fqGetBack().fsize()
+                    && IMListEqual2(fqGetFront(), rhs.fqGetFront())
+                    && IMListEqual2(fqGetBack(), rhs.fqGetBack())
         }
 
         return res
@@ -343,7 +349,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     internal fun fqSemanticEqual(rhs: IMQueue<@UnsafeVariance A>): Boolean = when {
         rhs is FQueueBody -> when {
-            fqStrongEqual(rhs) -> true
+            fqStructuralEqual(rhs) -> true
             else -> {
                 check(fqSameSize(rhs))
                 val thisFrontRhsBack = (fqGetBack().fempty() && rhs.fqGetFront().fempty())
@@ -352,7 +358,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
                     // items are in their entirety at opposite ends
                     thisFrontRhsBack -> IMListEqual2(fqGetFront(), rhs.fqGetBack().freverse())
                     thisBackRhsFront -> IMListEqual2(fqGetBack().freverse(), rhs.fqGetFront())
-                    else -> false
+                    else -> IMListEqual2(toFList(), rhs.toIMList())
                 }
             }
         }
@@ -367,10 +373,10 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         override fun <A: Any> emptyIMQueue(): FQueue<A> = empty
 
         override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMQueue<A>? =
-            (dest as? FQueue<A>)?.let { it.fenqueue(src) }
+            (dest as? FQueue<A>)?.fenqueue(src)
 
         override fun <A : Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>?  =
-            (dest as? FQueue<A>)?.let { it.fenqueue(back) }
+            (dest as? FQueue<A>)?.fenqueue(back)
 
         override fun <A : Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()
@@ -467,7 +473,7 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
 internal class FQueueBody<out A: Any> private constructor(
     val front: FList<A>, // the ordering is so, that "head" is the next item to be dequeued -- First Out
-    val back: FList<A>   // the ordering is so, that "head" is the last one enqueued -- Last In
+    val back: FList<A>,   // the ordering is so, that "head" is the last one enqueued -- Last In
 ) : FQueue<A>() {
 
     override fun equals(other: Any?): Boolean = if (fempty()) emptyEquals(other) else when {
@@ -475,10 +481,14 @@ internal class FQueueBody<out A: Any> private constructor(
         other == null -> false
         other is FQueueBody<*> -> (@Suppress("UNCHECKED_CAST") (other as? IMQueue<A>))?.let{ oth ->
             if (fqSameSize(oth)) when {
-                ffirst().isStrictly(other.ffirst()) -> equal(oth)
+                ffirst().isStrictly(other.ffirst()) -> equal(oth) /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
                 else -> false
             } else false
         } ?: false
+        other is Iterable<*> ->  when(val iter = other.iterator()) {
+            is FQueueIterator<*> -> equals(iter.retriever.original())
+            else -> false
+        }
         else -> false
     }
 
@@ -490,6 +500,7 @@ internal class FQueueBody<out A: Any> private constructor(
             fpick()!!.isStrictlyNot(rhs.peek()!!) -> false
             else -> rhs.equals(this)
         }
+        is IMOrdered<*> -> IMOrdered.softEqual(this,rhs)
         else -> false
     }
 
@@ -547,7 +558,6 @@ internal class FQueueBody<out A: Any> private constructor(
             }
             else -> throw RuntimeException("internal error")
         }
-
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }

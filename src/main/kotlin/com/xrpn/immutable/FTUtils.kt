@@ -75,7 +75,50 @@ internal object FT {
 
     fun <A> isEmpty(item: A): Boolean? = item?.let {
         if (!isContainer(it)) null else item.toUCon()?.let { it.isEmpty() } ?:
-        throw RuntimeException("internal error: unknown container $it:[${it::class}]")
+        throw RuntimeException("internal error, unknown container $it:[${it::class}]")
+    }
+
+    internal fun <A, B: Any> checkf(a: TKVEntry<A, B>, b: IMBTreeNotEmpty<A, B>, haze: Boolean): Boolean where A: Any, A: Comparable<A> {
+        val bentry = b.froot()!!
+        val av = a.getv()
+        val bv = bentry.getv()
+        val res = av.equals(bv)
+        val goodness = if (haze) !(
+                res
+                        && (FKSet.fksetUncomparable(av, bv)
+                        || FKSet.fksetSoftUncomparable(av, bv)
+                        )
+                )
+        else (
+                res
+                        || (FKSet.fksetComparable(av, bv)
+                        || FKSet.fksetSoftComparable(av, bv)
+                        )
+                )
+        if (!goodness) {
+            val newEntry = "new entry: ${a.getv().hashCode()}:${a.getv()}, <$a>"
+            val treeData = "tree data: ${bentry.getv().hashCode()}:${bentry.getv()}, <${bentry}>"
+            b.errLog().emitUnconditionally("failure with frbTree entry discrepancy, inserting $newEntry is inconsistent with $treeData for ${b::class} as\n\t$b")
+        }
+        return goodness
+    }
+
+    internal fun <A, B : Any> allNodeStrict(t: IMBTree<A,B>): Boolean where A : Any, A : Comparable<@UnsafeVariance A> {
+        val maybeNotEmpty: TKVEntry<A, B>? = t.fpickNotEmpty()
+        val tkvClass: KClass<*>? = maybeNotEmpty?.let { it::class }
+        val kc: KClass<out B>? = maybeNotEmpty?.getvKc()
+        return kc?.let { valueKClass ->
+            val ucKc = SingleInit<KeyedTypeSample< /* key */ KClass<Any>?, /* value */ KClass<Any>>>()
+            null == t.ffindAny { tkv ->
+                !entryStrictness(tkv, tkvClass!!, valueKClass, ucKc)
+            }
+        } ?: /* nested, but all empty */ run {
+            val aux = t.fpick()!!::class
+            t.fall {
+                check(it.toUCon()?.isEmpty() ?: false)
+                it.isStrictly(aux) && it.fisStrict()
+            }
+        }
     }
 
     internal fun <C : Any> filterNotEmpty(item: UniContainer<C>?): UniContainer<C>? = item?.let {
@@ -140,12 +183,12 @@ internal object FT {
         val strict = item.isStrictly(vKc)
         val stricture = strict && if (isContainer(item)) {
             item.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
-            throw RuntimeException("internal error: unknown nested $item:[${item::class}]")
+            throw RuntimeException("internal error, unknown nested $item:[${item::class}]")
         } else true
         return stricture
     }
 
-    internal fun <A, B:Any> entryStrictness(
+    private fun <A, B:Any> entryStrictness(
         tkv: TKVEntry<A, B>,
         tkvClass: KClass<*>,
         vKc: KClass<out B>,
@@ -155,12 +198,12 @@ internal object FT {
         val strictv = strictTkv && tkv.getvKc().isStrictly(vKc)
         val stricture = strictv && if (tkv.fisNested()!!) {
             tkv.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
-            throw RuntimeException("internal error: unknown nested $tkv:[${tkv.getv()::class}]")
+            throw RuntimeException("internal error, unknown nested $tkv:[${tkv.getv()::class}]")
         } else tkv.fisStrict()
         return stricture
     }
 
-    internal fun <A> strictly(item: A, kc: KClass<*>): Boolean = item?.let {
+    private fun <A> strictly(item: A, kc: KClass<*>): Boolean = item?.let {
         val predicate = when (it) {
             is IMKSet<*,*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
             is IMCommon<*> -> it.fempty() || (it.isStrictly(kc) && it.fisStrict())
@@ -180,7 +223,7 @@ internal object FT {
             val strict = strictly(item, kc)
             strict && (!isContainer(item as Any) ||
                 (item.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
-                throw RuntimeException("internal error: unknown nested $item:[$kc]"))
+                throw RuntimeException("internal error, unknown nested $item:[$kc]"))
             )
         } ?: false }
     }
@@ -192,7 +235,7 @@ internal object FT {
             val strict = strictly(item, cKc)
             strict && (!isContainer(item as Any) ||
                (item.toUCon()?.let { uc -> uc.stricture(ucKc) } ?:
-                throw RuntimeException("internal error: unknown nested $item:[$kc]"))
+                throw RuntimeException("internal error, unknown nested $item:[$kc]"))
             )
         } ?: false }
     }
@@ -211,7 +254,7 @@ internal object FT {
             v?.let {
                 strict && (!isContainer(v) || (v.toUCon()?.let { uc ->
                     uc.stricture(ucKc)
-                } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+                } ?: throw RuntimeException("internal error, unknown nested $item:[$kvc]")))
             } ?: false
         }
     }
@@ -229,7 +272,7 @@ internal object FT {
             v?.let {
                 strict && (!isContainer(v) || (v.toUCon()?.let { uc ->
                     uc.stricture(ucKc)
-                } ?: throw RuntimeException("internal error: unknown nested $item:[$kvc]")))
+                } ?: throw RuntimeException("internal error, unknown nested $item:[$kvc]")))
             } ?: false
         }
     }

@@ -57,7 +57,7 @@ sealed class FList<out A: Any>: IMList<A> {
 
     }}
 
-    fun asList(): List<A> = klist
+    override fun asList(): List<A> = klist
 
     /*
         Stack-safe implementation.  May run out of heap memory, will not run
@@ -836,6 +836,10 @@ object FLNil: FList<Nothing>() {
         this === other -> true
         other == null -> false
         other is IMList<*> -> other.fempty()
+        other is List<*> -> when(val iter = other.iterator()) {
+            is FListIteratorFwd<*>, is FListIteratorBkwd<*>, is FListIteratorBidi<*> -> !iter.hasNext()
+            else -> false
+        }
         else -> false
     }
 
@@ -859,10 +863,10 @@ data class FLCons<out A: Any>(
             other.fempty() -> false
             fhead()!!.isStrictlyNot(other.fhead()!!) -> false
             else -> (@Suppress("UNCHECKED_CAST")(other as? IMList<A>))?.let {
-                IMListEqual2(this, it)
+                IMListEqual2(this, it) /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
             } ?: false
         }
-        other is Collection<*> -> when(val iter = other.iterator()) {
+        other is List<*> -> when(val iter = other.iterator()) {
             is FListIteratorFwd<*> -> equals(iter.retriever.original())
             is FListIteratorBkwd<*> -> equals(iter.retriever.original())
             is FListIteratorBidi<*> -> equals(iter.retriever.original())
@@ -878,12 +882,6 @@ data class FLCons<out A: Any>(
             else -> IMOrdered.equal(this,rhs)
         }
         is List<*> -> IMOrdered.softEqual(this,rhs)
-        is Collection<*> -> when(val iter = rhs.iterator()) {
-            is FListIteratorFwd<*> -> softEqual(iter.retriever.original())
-            is FListIteratorBkwd<*> -> softEqual(iter.retriever.original())
-            is FListIteratorBidi<*> -> softEqual(iter.retriever.original())
-            else -> false
-        }
         else -> false
     }
 
