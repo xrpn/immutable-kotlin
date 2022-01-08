@@ -50,7 +50,7 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
         }
         is Valid -> TSDJValid(fr(right()!!))
         is TSDL -> when(l) {
-            is IMSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (TSDJValid(fl(l)) as TSDR<D>)
+            is IMVSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (TSDJValid(fl(l)) as TSDR<D>)
             else -> @Suppress("UNCHECKED_CAST") (TSDJInvalid(l) as TSDL<C>)
         }
         is TSDR -> TSDJValid(fr(r))
@@ -153,5 +153,5 @@ data class ErrorMsgTrap(override val l: String): Invalid<String>(l)
 data class ErrorReportTrap<out T>(override val l: ErrExReport<T>): Invalid<ErrExReport<T>>(l)
 data class TSDJValid<out A>(override val r: A): Valid<A>(r)
 
-data class IMSetDJL<out A: Any>(override val l: IMSetNotEmpty<A>): TSDL<IMSetNotEmpty<A>>(l)
-data class IMXSetDJR<out A>(override val r: IMXSetNotEmpty<A>): TSDR<IMXSetNotEmpty<A>>(r) where A: Any, A:Comparable<@UnsafeVariance A>
+data class IMSetDJL<out A: Any>(override val l: IMVSetNotEmpty<A>): TSDL<IMVSetNotEmpty<A>>(l)
+data class IMCVSetDJR<out A>(override val r: IMCVSetNotEmpty<A>): TSDR<IMCVSetNotEmpty<A>>(r) where A: Any, A:Comparable<@UnsafeVariance A>

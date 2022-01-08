@@ -10,7 +10,12 @@ val emptyTkv: IMCommonEmpty<TKVEntry<Nothing,Nothing>> = object: IMCommonEmpty<T
 internal fun <A, B:Any> TKVEntry<A, B>.fitKeyOnly(key: A): FBTFIT where A: Any, A: Comparable<A> = fitKeyToEntry(key,this)
 
 internal fun <A, B:Any> fitKeyToEntry(key: A, entry: TKVEntry<A, B>): FBTFIT where A: Any, A: Comparable<A> {
-    val outcome = entry.vc?.compare(key, entry.getk()) ?: key.compareTo(entry.getk())
+    val outcome = try {
+        entry.vc?.compare(key, entry.getk()) ?: key.compareTo(entry.getk())
+    } catch (ex: Exception) {
+        entry.reportException(ex, key, entry)
+        throw ex
+    }
     return when {
         outcome == 0 -> FBTFIT.EQ
         outcome < 0 -> FBTFIT.LEFT
@@ -18,7 +23,9 @@ internal fun <A, B:Any> fitKeyToEntry(key: A, entry: TKVEntry<A, B>): FBTFIT whe
     }
 }
 
-interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>, Map.Entry<A, B>, IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>
+interface TKVEntry<out A, out B: Any>: Comparable<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>,
+                                       Map.Entry<A, B>,
+                                       IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>
 where A: Any, A: Comparable<@UnsafeVariance A> {
 
     val vc: Comparator<@UnsafeVariance A>?

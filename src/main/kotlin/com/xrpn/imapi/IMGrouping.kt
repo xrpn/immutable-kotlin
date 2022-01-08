@@ -23,7 +23,7 @@ interface IMListGrouping<out A: Any>: IMCommon<A> {
 
 interface IMSetGrouping<out A: Any>: IMCommon<A> {
     fun <B: Any> fcartesian(rhs: IMSet<@UnsafeVariance B>): IMSet<Pair<A, B>> // cartesian product
-    fun fcombinations(maxSize: Int): IMSet<IMSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
+    fun fcombinations(maxSize: Int): IMList<IMSet<A>> // all unique, non-empty subsets up to "size" members from this set; order does not matter
     fun <B> fgroupBy(f: (A) -> B): IMMap<B, IMSet<@UnsafeVariance A>> where B: Any, B: Comparable<B> //	A map of collections created by the function f
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p

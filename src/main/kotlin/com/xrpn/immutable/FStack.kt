@@ -174,15 +174,12 @@ sealed class FStack<out A: Any>: IMStack<A> {
         return Pair(body.fhead()!!, FStackBody.of(body.ftail()))
     }
 
-    companion object: IMStackCompanion, IMStackWritable, IMWritable {
+    companion object: IMStackCompanion, IMStackWritable {
 
         override fun <A: Any> emptyIMStack(): FStack<A> = FStackBody.empty
 
-        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): FStack<A>? =
-            (dest as? FStack<A>)?.let { it.fpush(src) }
-
-        override fun <A : Any> fpush(top: A, dest: IMStack<A>): IMStack<A>?  =
-            (dest as? FStack<A>)?.let { it.fpush(top) }
+        override fun <A : Any> fpush(top: A, dest: IMStack<A>): IMStack<A>  =
+            (dest as FStack<A>).fpush(top)
 
         override fun <A : Any> of(vararg items: A): FStack<A> =
             FStackBody.of(FList.of(items.iterator()))

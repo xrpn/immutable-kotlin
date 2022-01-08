@@ -5,24 +5,24 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val longKKSetOfNone = FKSet.ofk(*arrayOf<Long>())
-private val longKKSetOfOne = FKSet.ofk(1L).nex<Long>()!!
-private val longKKSetOfOne3 = FKSet.ofk(3L).nex<Long>()!!
-private val longKKSetOfTwo = FKSet.ofk(1L, 2L).nex<Long>()!!
-private val longKKSetOfTwoOfst1 = FKSet.ofk(2L, 3L).nex<Long>()!!
-private val longKKSetOfTwoOfst2 = FKSet.ofk(3L, 4L).nex<Long>()!!
-private val longKKSetOfThree = FKSet.ofk(1L, 2L, 3L).nex<Long>()!!
-private val longKKSetOfFour = FKSet.ofk(1L, 2L, 3L, 4L).nex<Long>()!!
-private val longKKSetMaverick = FKSet.ofk(113L, 97L).nex<Long>()!!
+private val longKKSetOfOne = FKSet.ofk(1L).necvs<Long>()!!
+private val longKKSetOfOne3 = FKSet.ofk(3L).necvs<Long>()!!
+private val longKKSetOfTwo = FKSet.ofk(1L, 2L).necvs<Long>()!!
+private val longKKSetOfTwoOfst1 = FKSet.ofk(2L, 3L).necvs<Long>()!!
+private val longKKSetOfTwoOfst2 = FKSet.ofk(3L, 4L).necvs<Long>()!!
+private val longKKSetOfThree = FKSet.ofk(1L, 2L, 3L).necvs<Long>()!!
+private val longKKSetOfFour = FKSet.ofk(1L, 2L, 3L, 4L).necvs<Long>()!!
+private val longKKSetMaverick = FKSet.ofk(113L, 97L).necvs<Long>()!!
 
 private val longSSetOfNone = FKSet.ofs(*arrayOf<Long>())
-private val longSSetOfOne = FKSet.ofs(1L).ne()!!
-private val longSSetOfOne3 = FKSet.ofs(3L).ne()!!
-private val longSSetOfTwo = FKSet.ofs(1L, 2L).ne()!!
-private val longSSetOfTwoOfst1 = FKSet.ofs(2L, 3L).ne()!!
-private val longSSetOfTwoOfst2 = FKSet.ofs(3L, 4L).ne()!!
-private val longSSetOfThree = FKSet.ofs(1L, 2L, 3L).ne()!!
-private val longSSetOfFour = FKSet.ofs(1L, 2L, 3L, 4L).ne()!!
-private val longSSetMaverick = FKSet.ofs(113L, 97L).ne()!!
+private val longSSetOfOne = FKSet.ofs(1L).nevs()!!
+private val longSSetOfOne3 = FKSet.ofs(3L).nevs()!!
+private val longSSetOfTwo = FKSet.ofs(1L, 2L).nevs()!!
+private val longSSetOfTwoOfst1 = FKSet.ofs(2L, 3L).nevs()!!
+private val longSSetOfTwoOfst2 = FKSet.ofs(3L, 4L).nevs()!!
+private val longSSetOfThree = FKSet.ofs(1L, 2L, 3L).nevs()!!
+private val longSSetOfFour = FKSet.ofs(1L, 2L, 3L, 4L).nevs()!!
+private val longSSetMaverick = FKSet.ofs(113L, 97L).nevs()!!
 
 class FKSetFilteringLongKStrTest : FunSpec({
 

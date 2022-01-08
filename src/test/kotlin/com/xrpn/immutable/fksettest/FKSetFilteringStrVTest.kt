@@ -15,24 +15,24 @@ import io.kotest.xrpn.fiset
 import io.kotest.xrpn.fsset
 
 private val strKKSetOfNone = FKSet.ofs(*emptyArrayOfStr)
-private val strKKSetOfOne = FKSet.ofs("1").nex<String>()!!
-private val strKKSetOfOne3 = FKSet.ofs("3").nex<String>()!!
-private val strKKSetOfTwo = FKSet.ofs("1", "2").nex<String>()!!
-private val strKKSetOfTwoOfst1 = FKSet.ofs("2", "3").nex<String>()!!
-private val strKKSetOfTwoOfst2 = FKSet.ofs("3", "4").nex<String>()!!
-private val strKKSetOfThree = FKSet.ofs("1", "2", "3").nex<String>()!!
-private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").nex<String>()!!
-private val strKKSetMaverick = FKSet.ofs("113", "97").nex<String>()!!
+private val strKKSetOfOne = FKSet.ofs("1").necvs<String>()!!
+private val strKKSetOfOne3 = FKSet.ofs("3").necvs<String>()!!
+private val strKKSetOfTwo = FKSet.ofs("1", "2").necvs<String>()!!
+private val strKKSetOfTwoOfst1 = FKSet.ofs("2", "3").necvs<String>()!!
+private val strKKSetOfTwoOfst2 = FKSet.ofs("3", "4").necvs<String>()!!
+private val strKKSetOfThree = FKSet.ofs("1", "2", "3").necvs<String>()!!
+private val strKKSetOfFour = FKSet.ofs("1", "2", "3", "4").necvs<String>()!!
+private val strKKSetMaverick = FKSet.ofs("113", "97").necvs<String>()!!
 
 private val strISetOfNone = FKSet.ofi(*emptyArrayOfStr)
-private val strISetOfOne = FKSet.ofi("1").ne()!!
-private val strISetOfOne3 = FKSet.ofi("3").ne()!!
-private val strISetOfTwo = FKSet.ofi("1", "2").ne()!!
-private val strISetOfTwoOfst1 = FKSet.ofi("2", "3").ne()!!
-private val strISetOfTwoOfst2 = FKSet.ofi("3", "4").ne()!!
-private val strISetOfThree = FKSet.ofi("1", "2", "3").ne()!!
-private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").ne()!!
-private val strISetMaverick = FKSet.ofi("113", "97").ne()!!
+private val strISetOfOne = FKSet.ofi("1").nevs()!!
+private val strISetOfOne3 = FKSet.ofi("3").nevs()!!
+private val strISetOfTwo = FKSet.ofi("1", "2").nevs()!!
+private val strISetOfTwoOfst1 = FKSet.ofi("2", "3").nevs()!!
+private val strISetOfTwoOfst2 = FKSet.ofi("3", "4").nevs()!!
+private val strISetOfThree = FKSet.ofi("1", "2", "3").nevs()!!
+private val strISetOfFour = FKSet.ofi("1", "2", "3", "4").nevs()!!
+private val strISetMaverick = FKSet.ofi("113", "97").nevs()!!
 
 class FKSetFilteringStrVTest : FunSpec({
 

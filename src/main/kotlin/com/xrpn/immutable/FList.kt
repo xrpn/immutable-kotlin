@@ -647,20 +647,17 @@ sealed class FList<out A: Any>: IMList<A> {
 
         override fun <A: Any> emptyIMList(): FList<A> = FLNil
 
-        override fun <A: Any> fadd(src: A, dest: IMCommon<A>): FList<A>? =
-            (dest as? FList<A>)?.let { it.fappend(src) }
+        override fun <A : Any> fappend(src: A, dest: IMList<A>): FList<A> =
+            (dest as FList<A>).fappend(src)
 
-        override fun <A : Any> fappend(src: A, dest: IMList<A>): FList<A>? =
-            (dest as? FList<A>)?.let { it.fappend(src) }
+        override fun <A : Any> fappendAll(src: IMList<A>, dest: IMList<A>): FList<A> =
+            (dest as FList<A>).fappendAll(src)
 
-        override fun <A : Any> fappendAll(src: IMList<A>, dest: IMList<A>): FList<A>? =
-            (dest as? FList<A>)?.let { it.fappendAll(src) }
+        override fun <A : Any> fprepend(src: A, dest: IMList<A>): FList<A> =
+            (dest as FList<A>).fprepend(src)
 
-        override fun <A : Any> fprepend(src: A, dest: IMList<A>): FList<A>? =
-            (dest as? FList<A>)?.let { it.fprepend(src) }
-
-        override fun <A : Any> fprependAll(src: IMList<A>, dest: IMList<A>): FList<A>? =
-            (dest as? FList<A>)?.let { it.fprependAll(src) }
+        override fun <A : Any> fprependAll(src: IMList<A>, dest: IMList<A>): FList<A> =
+            (dest as FList<A>).fprependAll(src)
 
         override fun <A: Any> of(vararg items: A): FList<A> {
             var acc : FList<A> = FLNil

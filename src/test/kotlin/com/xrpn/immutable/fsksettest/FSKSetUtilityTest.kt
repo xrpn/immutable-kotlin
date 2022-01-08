@@ -129,22 +129,22 @@ class FSKSetUtilityTest : FunSpec({
     }
 
     test("toIMSetNonEmpty") {
-        intKKOfNone.asIMSetNotEmpty() shouldBe null
+        intKKOfNone.asIMVSetNotEmpty() shouldBe null
         checkAll(repeats, Arb.fiset<Int, Int>(Arb.int(),20..100)) { fs ->
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, Int> = FKSet.ofi(fbst)!!
-            (fs1.asIMSetNotEmpty() == null) shouldBe true
-            (fs1.asIMXSetNotEmpty<Int>() === fs1) shouldBe true
-            fs1.asIMXSetNotEmpty<Int>()?.equal(fs) shouldBe true
+            (fs1.asIMVSetNotEmpty() == null) shouldBe true
+            (fs1.asIMCVSetNotEmpty<Int>() === fs1) shouldBe true
+            fs1.asIMCVSetNotEmpty<Int>()?.equal(fs) shouldBe true
         }
         checkAll(repeats, Arb.fiset(Arb.string(),20..100)) { fs ->
             val frbt: IMBTree<Int, String> = fs.toIMBTree()
             val fbst: FBSTree<Int, String> = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, String> = FKSet.ofi(fbst)!!
-            (fs1.asIMSetNotEmpty() === fs1) shouldBe true
-            (fs1.asIMXSetNotEmpty<Int>() == null) shouldBe true
-            fs1.asIMSetNotEmpty()?.equal(fs) shouldBe true
+            (fs1.asIMVSetNotEmpty() === fs1) shouldBe true
+            (fs1.asIMCVSetNotEmpty<Int>() == null) shouldBe true
+            fs1.asIMVSetNotEmpty()?.equal(fs) shouldBe true
         }
     }
 

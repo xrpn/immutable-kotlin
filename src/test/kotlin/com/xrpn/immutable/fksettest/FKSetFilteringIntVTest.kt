@@ -15,24 +15,24 @@ import io.kotest.xrpn.fiset
 import io.kotest.xrpn.fsset
 
 private val intKKSetOfNone = FKSet.ofi(*emptyArrayOfInt)
-private val intKKSetOfOne = FKSet.ofi(1).nex<Int>()!!
-private val intKKSetOfOne3 = FKSet.ofi(3).nex<Int>()!!
-private val intKKSetOfTwo = FKSet.ofi(1, 2).nex<Int>()!!
-private val intKKSetOfTwoOfst1 = FKSet.ofi(2, 3).nex<Int>()!!
-private val intKKSetOfTwoOfst2 = FKSet.ofi(3, 4).nex<Int>()!!
-private val intKKSetOfThree = FKSet.ofi(1, 2, 3).nex<Int>()!!
-private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).nex<Int>()!!
-private val intKKSetMaverick = FKSet.ofi(113, 97).nex<Int>()!!
+private val intKKSetOfOne = FKSet.ofi(1).necvs<Int>()!!
+private val intKKSetOfOne3 = FKSet.ofi(3).necvs<Int>()!!
+private val intKKSetOfTwo = FKSet.ofi(1, 2).necvs<Int>()!!
+private val intKKSetOfTwoOfst1 = FKSet.ofi(2, 3).necvs<Int>()!!
+private val intKKSetOfTwoOfst2 = FKSet.ofi(3, 4).necvs<Int>()!!
+private val intKKSetOfThree = FKSet.ofi(1, 2, 3).necvs<Int>()!!
+private val intKKSetOfFour = FKSet.ofi(1, 2, 3, 4).necvs<Int>()!!
+private val intKKSetMaverick = FKSet.ofi(113, 97).necvs<Int>()!!
 
 private val intSSetOfNone = FKSet.ofs(*emptyArrayOfInt)
-private val intSSetOfOne = FKSet.ofs(1).ne()!!
-private val intSSetOfOne3 = FKSet.ofs(3).ne()!!
-private val intSSetOfTwo = FKSet.ofs(1, 2).ne()!!
-private val intSSetOfTwoOfst1 = FKSet.ofs(2, 3).ne()!!
-private val intSSetOfTwoOfst2 = FKSet.ofs(3, 4).ne()!!
-private val intSSetOfThree = FKSet.ofs(1, 2, 3).ne()!!
-private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).ne()!!
-private val intSSetMaverick = FKSet.ofs(113, 97).ne()!!
+private val intSSetOfOne = FKSet.ofs(1).nevs()!!
+private val intSSetOfOne3 = FKSet.ofs(3).nevs()!!
+private val intSSetOfTwo = FKSet.ofs(1, 2).nevs()!!
+private val intSSetOfTwoOfst1 = FKSet.ofs(2, 3).nevs()!!
+private val intSSetOfTwoOfst2 = FKSet.ofs(3, 4).nevs()!!
+private val intSSetOfThree = FKSet.ofs(1, 2, 3).nevs()!!
+private val intSSetOfFour = FKSet.ofs(1, 2, 3, 4).nevs()!!
+private val intSSetMaverick = FKSet.ofs(113, 97).nevs()!!
 
 class FKSetFilteringIntVTest : FunSpec({
 

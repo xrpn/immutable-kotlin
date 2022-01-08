@@ -12,46 +12,51 @@ interface IMSetExtras<out A: Any> {
     infix fun or(rhs: IMSet<@UnsafeVariance A>): IMSet<A> {
         this as IMSet<A>
         val f: (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
-            if(acc.fcontains(item)) acc
-            else @Suppress("UNCHECKED_CAST") (acc.faddItem(item) as IMSet<A>) }
+            if(item in acc) acc
+            else @Suppress("UNCHECKED_CAST") (IMSet.faddUniq(item, acc) as IMSet<A>) }
         return if (fempty()) rhs else rhs.ffold(this, f)
     }
 
     infix fun and(rhs: IMSet<@UnsafeVariance A>): IMSet<A> {
         this as IMSet<A>
         val f: (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
-            if(rhs.fcontains(item)) @Suppress("UNCHECKED_CAST") (acc.faddItem(item) as IMSet<A>)
-            else acc
+            print(item)
+            print(acc)
+            TODO()
+//            if(rhs.fcontains(item)) @Suppress("UNCHECKED_CAST") (IMSet.faddUniq(item, acc) as IMSet<A>)
+//            else acc
         }
         return if (rhs.fempty()) toEmpty() else ffold(toEmpty(), f)
     }
 
     infix fun xor(rhs: IMSet<@UnsafeVariance A>): IMSet<A> {
-        this as IMKSet<*, A>
-        rhs as IMKSet<*, A>
-        return when {
-            fempty() -> rhs
-            rhs.fempty() -> this
-            else -> isKeyedAlike(rhs)?.let { alike ->
-                if (alike) @Suppress("UNCHECKED_CAST") fXOR(rhs as IMKeyedValue<Nothing, A>)
-                else {
-                    fun f(container: IMSet<A>): (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
-                        if(container.fcontains(item)) acc
-                        else @Suppress("UNCHECKED_CAST") (acc.faddItem(item) as IMSet<A>)
-                    }
-                    val partial = if (fempty()) rhs else rhs.ffold(toEmpty(), f(this))
-                    ffold(partial, f(rhs))
-                }
-            } ?: toEmpty()
-        }
+        TODO()
+//        this as IMKSet<*, A>
+//        rhs as IMKSet<*, A>
+//        return when {
+//            fempty() -> rhs
+//            rhs.fempty() -> this
+//            else -> isKeyedAlike(rhs)?.let { alike ->
+//                if (alike) @Suppress("UNCHECKED_CAST") fXOR(rhs as IMKeyedValue<Nothing, A>)
+//                else {
+//                    fun f(container: IMSet<A>): (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
+//                        if(container.fcontains(item)) acc
+//                        else @Suppress("UNCHECKED_CAST") (IMSet.faddUniq(item, acc) as IMSet<A>)
+//                    }
+//                    val partial = if (fempty()) rhs else rhs.ffold(toEmpty(), f(this))
+//                    ffold(partial, f(rhs))
+//                }
+//            } ?: toEmpty()
+//        }
     }
 
     infix fun not(rhs: IMSet<@UnsafeVariance A>): IMSet<A> {
-        this as IMSet<A>
-        val f: (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
-            if(rhs.fcontains(item)) acc
-            else @Suppress("UNCHECKED_CAST") (acc.faddItem(item) as IMSet<A>) }
-        return if(fempty() || rhs.fempty()) this else ffold(toEmpty(), f)
+        TODO()
+//        this as IMSet<A>
+//        val f: (acc: IMSet<A>, item: A) -> IMSet<A> = { acc, item ->
+//            if(rhs.fcontains(item)) acc
+//            else @Suppress("UNCHECKED_CAST") (IMSet.faddUniq(item, acc).second as IMSet<A>) }
+//        return if(fempty() || rhs.fempty()) this else ffold(toEmpty(), f)
     }
 }
 

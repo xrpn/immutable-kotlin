@@ -1,6 +1,5 @@
 package com.xrpn.immutable
 
-import com.xrpn.bridge.FKSetIterator
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FKSet.Companion.NOT_FOUND
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
@@ -65,7 +64,7 @@ private val ksSetOfTwoOfst1 = setOf("2", "3")
 private val kiSetOfThree = setOf(1, 2, 3)
 private val ksSetOfThree = setOf("1", "2", "3")
 
-private val longISetOfThree: IMRSetNotEmpty<Long> = strISetOfThree.fmap { it.toLong() }.ner()!!
+private val longISetOfThree: IMSetNotEmpty<Long> = strISetOfThree.fmap { it.toLong() }.nes()!!
 
 inline fun <reified R, reified S> reifiedGenericIsSame(r: R, s: S): Boolean = (r is S) && (s is R)
 interface FooBar<out A: Any, out B: Any>

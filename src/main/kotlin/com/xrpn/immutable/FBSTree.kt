@@ -113,8 +113,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             if (acc.first) Pair(acc, emptyIMStack()) else {
                 val (node, shortStack) = stack.fpopOrThrow()
                 val newAcc: Pair<Boolean, TKVEntry<A, B>> = visitForFold(node, acc, f)
-                val auxStack = if (node.bRight is FBSTNode)  fpush(node.bRight, shortStack)!! else shortStack
-                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack)!! else auxStack
+                val auxStack = if (node.bRight is FBSTNode)  fpush(node.bRight, shortStack) else shortStack
+                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
                 Pair(newAcc, newStack)
             }
 
@@ -205,8 +205,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             val (node, shortStack) = stack.fpopOrThrow()
             val newAcc: Pair<Boolean, TKVEntry<A, B>> = visitForFold(node, acc, f)
             return if (newAcc.first) Pair(newAcc, emptyIMStack()) else {
-                val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack)!! else shortStack
-                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack)!! else auxStack
+                val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
+                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
                 Pair(newAcc, newStack)
             }
         }
@@ -261,7 +261,7 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         tailrec fun inoLeftDescent(t: FBSTree<A, B>, stack: IMStack<FBSTNode<A, B>>): IMStack<FBSTNode<A, B>> =
             when (t) {
                 is FBSTNil -> stack
-                is FBSTNode -> inoLeftDescent(t.bLeft, fpush(t, stack)!!)
+                is FBSTNode -> inoLeftDescent(t.bLeft, fpush(t, stack))
                 else -> throw RuntimeException("internal error")
             }
 
@@ -300,8 +300,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         fun accrue(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> {
             val (node, shortStack) = stack.fpopOrThrow()
-            val auxStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, shortStack)!! else shortStack
-            val newStack = if (node.bRight is FBSTNode) fpush(node.bRight, auxStack)!! else auxStack
+            val auxStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, shortStack) else shortStack
+            val newStack = if (node.bRight is FBSTNode) fpush(node.bRight, auxStack) else auxStack
             return Pair(visit(node,acc), newStack)
         }
 
@@ -506,8 +506,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: C): Pair<C, IMStack<FBSTNode<A, B>>> {
             val (node, shortStack) = stack.fpopOrThrow()
             val newAcc: C = visitForFold(node, acc, f)
-            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack)!! else shortStack
-            val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack)!! else auxStack
+            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
+            val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
             return Pair(newAcc, newStack)
         }
 
@@ -927,18 +927,18 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
                     val (newStack, newAcc) = when (isChildMatch(node, clipMatch, ::fit)) {
                         Pair(noLeftMatch, noRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack)!! else shortStack
-                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack)!! else auxStack
+                            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
                             Pair(ns, na)
                         }
                         Pair(haveLeftMatch,  noRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val ns = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack)!! else shortStack
+                            val ns = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
                             Pair(ns, na)
                         }
                         Pair(noLeftMatch,  haveRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft,shortStack)!! else shortStack
+                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft,shortStack) else shortStack
                             Pair(ns, na)
                         }
                         else -> throw RuntimeException("impossible code path")

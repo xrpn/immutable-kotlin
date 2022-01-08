@@ -1,12 +1,7 @@
 package com.xrpn.imapi
 
 import com.xrpn.immutable.*
-import mu.KLogger
-import mu.KotlinLogging
 import java.io.PrintStream
-import java.util.logging.Level
-import java.util.logging.Logger
-import java.util.logging.Logger.getLogger
 import kotlin.reflect.KClass
 
 private fun <A: Any, B: Any> isSameType(a: A?, b: B?): Boolean = a?.let{ outer: A -> outer::class == b?.let{ it::class } } ?: false
@@ -117,7 +112,7 @@ object IM {
 
     fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMapOp<B, IMCommon<B>>? = when(item) {
         is IMList -> item
-        is IMSet -> item.asIMRSetNotEmpty()?.let { it -> it.sdj().bireduce(
+        is IMSet -> item.asIMSetNotEmpty()?.let { it -> it.vcvdj().bireduce(
             { id -> id },
             { id -> @Suppress("UNCHECKED_CAST") (id as IMSet<B>) })
         } ?: item
@@ -153,7 +148,8 @@ object IM {
 
 interface IMLogging  {
     val logStream: PrintStream
-    val classId: String
-    fun emitUnconditionally(msg: String) = logStream.println("'$classId'#$msg")
+    val emitterClass: String
+    val emitterString: String?
+    fun emitUnconditionally(msg: String) = logStream.println("$emitterClass${emitterString?.let {"'$it'"}} : $msg")
     fun emitUnconditionally(e: Throwable) = e.printStackTrace(logStream)
 }

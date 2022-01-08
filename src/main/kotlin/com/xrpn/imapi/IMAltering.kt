@@ -27,49 +27,51 @@ interface IMKeyedValueAltering: IMKeyedValueWritable {
 }
 
 interface IMListWritable: IMWritable {
-    override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMList<A>?
-    fun <A: Any> fappend(src: A, dest: IMList<A>): IMList<A>?
-    fun <A: Any> fappendAll(src: IMList<A>, dest: IMList<A>): IMList<A>?
-    fun <A: Any> fprepend(src: A, dest: IMList<A>): IMList<A>?
-    fun <A: Any> fprependAll(src: IMList<A>, dest: IMList<A>): IMList<A>?
+    override fun <A: Any> fadd(src: A, dest: IMCommon<A>): FList<A>? =
+        (dest as? FList<A>)?.fappend(src)
+    fun <A: Any> fappend(src: A, dest: IMList<A>): IMList<A>
+    fun <A: Any> fappendAll(src: IMList<A>, dest: IMList<A>): IMList<A>
+    fun <A: Any> fprepend(src: A, dest: IMList<A>): IMList<A>
+    fun <A: Any> fprependAll(src: IMList<A>, dest: IMList<A>): IMList<A>
 }
 
-interface IMStackAltering<out A: Any> {
+interface IMStackAltering<out A: Any> { // specific names
     fun fpop(): Pair<A?, IMStack<A>>
     fun fpopOrThrow(): Pair<A, IMStack<A>>
 }
 
 interface IMStackWritable: IMWritable {
-    override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMStack<A>?
-    fun <A: Any> fpush(top: A, dest: IMStack<A>): IMStack<A>?
+    override fun <A : Any> fadd(src: A, dest: IMCommon<A>): FStack<A>? =
+        (dest as? FStack<A>)?.fpush(src)
+    fun <A: Any> fpush(top: A, dest: IMStack<A>): IMStack<A>
 }
 
-interface IMQueueAltering<out A: Any> {
+interface IMQueueAltering<out A: Any> { // specific names
     fun fdequeue(): Pair<A?, IMQueue<A>>
     fun fdequeueOrThrow(): Pair<A, IMQueue<A>>
 }
 
 interface IMQueueWritable: IMWritable {
-    override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMQueue<A>?
-    fun <A: Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>?
+    override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMQueue<A>? =
+        (dest as? FQueue<A>)?.fenqueue(src)
+    fun <A: Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>
 }
 
-interface IMRSetAltering<out A: Any> { // }: IMWritable<A> {
-    fun faddItem(item: @UnsafeVariance A): IMRSetNotEmpty<A>
-//    override fun fadd(item: @UnsafeVariance A): IMSet<A> = @Suppress("UNCHECKED_CAST") (faddItem(item) as IMSet<A>)
+interface IMSetWritable: IMWritable { // }: IMWritable<A> {
+    override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMSetNotEmpty<A>?
+    fun <A: Any> faddUniq(src: A, dest: IMSet<A>): Pair<Boolean, IMSetNotEmpty<A>>
+    fun <A: Any> faddUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?>
+    fun <A> faddcUniq(src: A, dest: IMSet<A>): Pair<Boolean, IMSetNotEmpty<A>> where A: Any, A: Comparable<@UnsafeVariance A>
+    fun <A> faddcUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?> where A: Any, A: Comparable<@UnsafeVariance A>
 }
 
-interface IMSetAltering<out A: Any>: IMRSetAltering<A> {
-    override fun faddItem(item: @UnsafeVariance A): IMRSetNotEmpty<A>
+internal interface IMKSetWritable: IMKeyedValueWritable {
+    override fun <K, A: Any> fadd(src: TKVEntry<K,A>, dest: IMKeyedValue<K, A>): IMKSetNotEmpty<K, A>? where K: Any, K: Comparable<K>
+    fun <K, A: Any> faddUniq(src: TKVEntry<K,A>, dest: IMKSet<K,A>): Pair<Boolean, IMKSetNotEmpty<K, A>> where K: Any, K: Comparable<K>
+    fun <K, A: Any> faddUniqs(src: IMCommon<TKVEntry<K,A>>, dest: IMKSet<K,A>): Pair<Int, IMKSetNotEmpty<K, A>?> where K: Any, K: Comparable<K>
+    fun <K> faddkUniq(src: TKVEntry<K,K>, dest: IMKSet<K,K>): Pair<Boolean, IMKSetNotEmpty<K,K>> where K: Any, K: Comparable<K>
+    fun <K> faddkUniqs(src: IMCommon<TKVEntry<K,K>>, dest: IMKSet<K,K>): Pair<Int, IMKSetNotEmpty<K,K>?> where K: Any, K: Comparable<K>
 }
-
-interface IMXSetAltering<out A>: IMRSetAltering<A> where A: Any, A: Comparable<@UnsafeVariance A> {
-    override fun faddItem(item: @UnsafeVariance A): IMRSetNotEmpty<A>
-}
-
-internal interface IMKASetAltering<out K, out A: Any>: IMSetAltering<A> where K: Any, K: Comparable<@UnsafeVariance K>
-
-internal interface IMKKSetAltering<out K>: IMSetAltering<K> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapAltering<out K, out V: Any> /* : IMWritable<TKVEntry<K,V>> */ where K: Any, K: Comparable<@UnsafeVariance K> {
     fun fputkv(key: @UnsafeVariance K, value: @UnsafeVariance V): IMMap<K, V>

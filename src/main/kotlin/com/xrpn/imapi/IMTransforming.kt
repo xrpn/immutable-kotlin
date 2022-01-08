@@ -11,19 +11,19 @@ interface IMListTransforming<out A: Any> {
     fun freduceRight(f: (A, acc: A) -> @UnsafeVariance A): A? // 	“Reduce” the elements of the list using the binary operator o, going from right to left
 }
 
-interface IMSetTransforming<out A: Any> {
+interface IMVSetTransforming<out A: Any> {
     fun <B: Any> fflatMap(f: (A) -> IMSet<@UnsafeVariance B>): IMSet<B>  // 	When working with sequences, it works like map followed by flatten
     fun <B: Any> fmapToList(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
-interface IMXSetTransforming<out A: Any> {
+interface IMCVSetTransforming<out A: Any> {
     fun <B> fflatMapKK(f: (A) -> IMSet<@UnsafeVariance B>): IMSet<B> where B: Any, B: Comparable<B>  // 	When working with sequences, it works like map followed by flatten
     fun <B> fmapKK(f: (A) -> B): IMSet<B> where B: Any, B: Comparable<B> // 	Return a new sequence by applying the function f to each element in the List
 }
 
-internal interface IMKSetTransforming<out K, out A: Any>: IMSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K>
+internal interface IMKSetTransforming<out K, out A: Any>: IMVSetTransforming<A> where K: Any, K: Comparable<@UnsafeVariance K>
 
-internal interface IMKKSetTransforming<out K>: IMSetTransforming<K>, IMXSetTransforming<K> where K: Any, K: Comparable<@UnsafeVariance K>
+internal interface IMKKSetTransforming<out K>: IMVSetTransforming<K>, IMCVSetTransforming<K> where K: Any, K: Comparable<@UnsafeVariance K>
 
 interface IMMapTransforming<out K, out V: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
     fun <C, D: Any> fflatMap(f: (TKVEntry<K, V>) -> IMMap<C, D>): IMMap<C, D> where C: Any, C: Comparable<@UnsafeVariance C>

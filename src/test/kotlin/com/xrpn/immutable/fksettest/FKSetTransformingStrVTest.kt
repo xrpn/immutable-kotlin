@@ -12,14 +12,14 @@ import io.kotest.matchers.shouldBe
 
 
 private val strKKSOfNone = FKSet.ofs(*emptyArrayOfStr)
-private val strKKSOfOne = FKSet.ofs("1").nex<String>()!!
-private val strKKSOfTwo = FKSet.ofs("1", "2").nex<String>()!!
-private val strKKSOfTwoOfst1 = FKSet.ofs("2", "3").nex<String>()!!
-private val strKKSOfThree = FKSet.ofs("1", "2", "3").nex<String>()!!
-private val intKKSOfThree = FKSet.ofk(1, 2, 3).nex<Int>()!!
-private val strKKSOfFour = FKSet.ofs("1", "2", "3", "4").nex<String>()!!
-private val strKKSOfFive = FKSet.ofs("1", "2", "3", "4", "5").nex<String>()!!
-private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).nex<Int>()!!
+private val strKKSOfOne = FKSet.ofs("1").necvs<String>()!!
+private val strKKSOfTwo = FKSet.ofs("1", "2").necvs<String>()!!
+private val strKKSOfTwoOfst1 = FKSet.ofs("2", "3").necvs<String>()!!
+private val strKKSOfThree = FKSet.ofs("1", "2", "3").necvs<String>()!!
+private val intKKSOfThree = FKSet.ofk(1, 2, 3).necvs<Int>()!!
+private val strKKSOfFour = FKSet.ofs("1", "2", "3", "4").necvs<String>()!!
+private val strKKSOfFive = FKSet.ofs("1", "2", "3", "4", "5").necvs<String>()!!
+private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).necvs<Int>()!!
 private val strKKSOfTwonc = FKSet.ofs("1", "2")
 
 private val strISOfNone = FKSet.ofi(*emptyArrayOfStr)

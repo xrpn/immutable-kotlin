@@ -34,7 +34,7 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVaria
     }
 
 
-    companion object: IMUniversalCommon {
+    companion object: IMUniversal {
         fun <S : Any, T : Any> of(item: IMOrdered<S>): IMCartesian<S, ITMap<S>, T, IMZPair<S, T>> = when (item) {
 //            is IMCommon<*> -> {
 //                val tmap = (@Suppress("UNCHECKED_CAST") (IMMapOp.flift2map(item) as ITMap<S>?))!!

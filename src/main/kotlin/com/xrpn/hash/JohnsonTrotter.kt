@@ -1,5 +1,8 @@
 package com.xrpn.hash
 
+// 13! == 6706022400 exceeds Int range; 12! == 479001600 is OK
+const val MAX_SIGNEDINT_FACTORIAL = 12
+
 object JohnsonTrotter {
 
     /*
@@ -83,7 +86,7 @@ object JohnsonTrotter {
     // NOT a general purpose factorial (range is way too limited.
     // 13! == 6706022400 exceeds Int range; 12! == 479001600 is probably
     // OK as a limit; larger can be accommodated by special request :)
-    fun smallFact(n: Int): Int { check (n < 13); var res = 1; for (i in (2..n)) res *= i; return res }
+    fun smallFact(n: Int): Int { check (n <= MAX_SIGNEDINT_FACTORIAL); var res = 1; for (i in (2..n)) res *= i; return res }
 
     // compute all permutations of input data "a"
     fun <A: Comparable<A>> jtPermutations(input: ArrayList<A>): List<ArrayList<A>> {

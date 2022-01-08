@@ -368,15 +368,12 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     // the head of the list is the first item out (i.e. the head of the queue)
     fun toFList(): FList<A> = fqForceFront(merge = true).fqGetFront()
 
-    companion object: IMQueueCompanion, IMQueueWritable, IMWritable {
+    companion object: IMQueueCompanion, IMQueueWritable {
 
         override fun <A: Any> emptyIMQueue(): FQueue<A> = empty
 
-        override fun <A : Any> fadd(src: A, dest: IMCommon<A>): IMQueue<A>? =
-            (dest as? FQueue<A>)?.fenqueue(src)
-
-        override fun <A : Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>?  =
-            (dest as? FQueue<A>)?.fenqueue(back)
+        override fun <A : Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>  =
+            (dest as FQueue<A>).fenqueue(back)
 
         override fun <A : Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()

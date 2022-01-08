@@ -12,14 +12,14 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 private val intKKSOfNone = FKSet.ofi(*emptyArrayOfInt)
-private val intKKSOfOne = FKSet.ofi(1).nex<Int>()!!
-private val intKKSOfTwo = FKSet.ofi(1, 2).nex<Int>()!!
-private val intKKSOfTwoOfst1 = FKSet.ofi(2, 3).nex<Int>()!!
-private val intKKSOfThree = FKSet.ofi(1, 2, 3).nex<Int>()!!
-private val strKKSOfThree = FKSet.ofk("1", "2", "3").nex<Int>()!!
-private val intKKSOfFour = FKSet.ofi(1, 2, 3, 4).nex<Int>()!!
-private val intKKSOfFive = FKSet.ofi(1, 2, 3, 4, 5).nex<Int>()!!
-private val strKKSOfFive = FKSet.ofk("1", "2", "3", "4", "5").nex<Int>()!!
+private val intKKSOfOne = FKSet.ofi(1).necvs<Int>()!!
+private val intKKSOfTwo = FKSet.ofi(1, 2).necvs<Int>()!!
+private val intKKSOfTwoOfst1 = FKSet.ofi(2, 3).necvs<Int>()!!
+private val intKKSOfThree = FKSet.ofi(1, 2, 3).necvs<Int>()!!
+private val strKKSOfThree = FKSet.ofk("1", "2", "3").necvs<Int>()!!
+private val intKKSOfFour = FKSet.ofi(1, 2, 3, 4).necvs<Int>()!!
+private val intKKSOfFive = FKSet.ofi(1, 2, 3, 4, 5).necvs<Int>()!!
+private val strKKSOfFive = FKSet.ofk("1", "2", "3", "4", "5").necvs<Int>()!!
 private val intKKSOfTwonc = FKSet.ofk(1, 2)
 
 private val intSSOfNone = FKSet.ofs(*emptyArrayOfInt)

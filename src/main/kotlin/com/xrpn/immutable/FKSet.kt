@@ -1,6 +1,7 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FKSetIterator
+import com.xrpn.hash.MAX_SIGNEDINT_FACTORIAL
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -17,6 +18,7 @@ import com.xrpn.immutable.TKVEntry.Companion.toEntry
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toKKEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
+import java.lang.IllegalStateException
 import kotlin.reflect.KClass
 
 internal interface FKSetRetrieval<out K, out A: Any> where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -60,9 +62,24 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         }
         other !is IMKeyedValue<*,*> -> false
         other.fpickKey() == null /* i.e.empty */ -> false
+        other.fpickValue() is IMKSetNotEmpty<*,*> && fpickValue() is IMKSetNotEmpty<*,*> -> /* nested sets */ {
+            other as IMKSetNotEmpty<*,*>
+            ffindAny { innerSet ->
+                innerSet as IMKSetNotEmpty<*,*>
+                other.ffindAny { outerSet ->
+                    innerSet.equals(outerSet)
+                } != null
+            } != null
+        }
         !(other.ftypeSample()?.isLikeValue(ftypeSample()?.vKc) ?: false) -> false
         else -> (other as? IMKSetNotEmpty<*,*>)?.let {
-            IMRSetEqual2(this, it ) /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
+            val same = IMRSetEqual2(this, it ) /* TODO remove in time */ && run { check(hashCode()==other.hashCode()); true }
+            if (!same && hashCode()==other.hashCode()) {
+                val ex = IllegalStateException("different sets with same hashCode ${hashCode()}")
+                reportException(ex,other,this)
+                throw ex
+            }
+            same
         } ?: false
     }} ?: throw RuntimeException("internal error, ${this::class} (size:${this.fsize()}) must not be empty")
 
@@ -78,8 +95,22 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     open val hash: Int by lazy {
         check(null != this.asIMKSetNotEmpty())
         // for set hash, only unordered A items (values) matter; the hash operation must be associative and commutative
-        val aux = this.body.ffold(131 * fsize()) { hash, tkv -> hash + tkv.getv().hashCode() }
-        17 * fsize() + aux
+        val salt = ArrayList<Int>(fsize())
+        this.body.ffold(0) { ix, tkv ->
+            salt.add(ix, tkv.getv().hashCode())
+            ix+1
+        }
+        val saltSum = salt.sum()
+        var ix = 0
+        val current = this.body.ffold(131 * fsize()) { hash, tkv ->
+            check(salt[ix] == tkv.getv().hashCode())
+            val vhash = salt[ix++]
+            val lvhash = if (vhash in 0 until SMALLHASH) vhash+SMALLHASH else if (vhash in -SMALLHASH until 0) vhash-SMALLHASH else vhash
+            val h2 = if (0 <= vhash) lvhash*lvhash else -(lvhash*lvhash)
+            hash + (h2 * (if(0!=vhash%2) 11 else 7)) + (h2 * (saltSum-vhash))
+        }
+        check(fsize()==ix)
+        17 * fsize() + current
     }
     
     override fun hashCode(): Int = hash
@@ -203,20 +234,19 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         is FKKSetNotEmpty<*> -> body
     }
 
-    override fun fcontainsValue(value: @UnsafeVariance A): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun fcontainsValue(value: @UnsafeVariance A): Boolean =
+        body.fcontainsKey(toKey(value))
 
-    override fun fcountValue(isMatch: (A) -> Boolean): Int {
-        TODO("Not yet implemented")
-    }
 
-    override fun ffilterValue(isMatch: (A) -> Boolean): FKSet<K, A> {
-        TODO("Not yet implemented")
-    }
+    override fun fcountValue(isMatch: (A) -> Boolean): Int =
+        body.fcountValue(isMatch)
 
-    override fun ffilterValueNot(isMatch: (A) -> Boolean): FKSet<K, A> {
-        TODO("Not yet implemented")
+    override fun ffilterValue(isMatch: (A) -> Boolean): FKSet<K, A>?  =
+        ofBody(body.ffilterValue(isMatch))
+
+    override fun ffilterValueNot(isMatch: (A) -> Boolean): FKSet<K, A>? {
+        val f: (A) -> Boolean = { a:A -> !isMatch(a) }
+        return ffilterValue(f)
     }
 
     override fun ffindAnyValue(isMatch: (A) -> Boolean): A? =
@@ -226,9 +256,8 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         TODO("Not yet implemented")
     }
 
-    override fun fpickValue(): A? {
-        TODO("Not yet implemented")
-    }
+    override fun fpickValue(): A? =
+        fpick()
 
     // IMMappable
 
@@ -256,11 +285,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         else -> body
     }
 
-    override fun ner(): IMRSetNotEmpty<A>? = asIMRSetNotEmpty()
+    override fun nes(): IMSetNotEmpty<A>? = asIMSetNotEmpty()
 
-    override fun ne(): IMSetNotEmpty<A>? = asIMSetNotEmpty()
+    override fun nevs(): IMVSetNotEmpty<A>? = asIMVSetNotEmpty()
 
-    override fun <K> nex(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = asIMXSetNotEmpty()
+    override fun <K> necvs(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> = asIMCVSetNotEmpty()
 
     override fun copy(): FKSet<K, A> = when (this) {
         is FKSetEmpty -> this
@@ -341,25 +370,26 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): FKSet<K, A> = when {
         null == items.fpickKey() /* i.e. items is empty */ -> this
         else -> when (this) {
-            is FIKSetEmpty -> {
-                val aux: IMSet<Any> = if (items.fpickKey() is Int && items is IMSet<*>) items
-                                      else items.asIMBTree().ffold(this) { acc: IMRSetAltering<A>, tkv -> acc.faddItem(tkv.getv()).sdj().left()!! }
-                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
-            }
-            is FSKSetEmpty -> {
-                val aux: IMSet<Any> = if (items.fpickKey() is String && items is IMSet<*>) items
-                else items.asIMBTree().ffold(this) { acc: IMRSetAltering<A>, tkv -> acc.faddItem(tkv.getv()).sdj().left()!! }
-                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
-            }
-            is FKKSetEmpty<*> -> {
-                val aux = if (items.ftypeSample()!!.isSymRkc() && items is IMSet<*>) items
-                else @Suppress("UNCHECKED_CAST") (items.asIMBTree().ffold(this as IMXSetAltering<K>) { acc: IMXSetAltering<K>, tkv ->
-                    check(tkv.getk().equals(tkv.getv()))
-                    acc.faddItem(tkv.getk()).sdj().right()!! as IMXSetAltering<K>
-                })
-                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A> )
-            }
-            is FKSetEmpty -> throw RuntimeException("internal error") //  rktWiseOR(rkt, items)?.toIMRSet(rkt)
+            is FIKSetEmpty -> TODO()
+//            is FIKSetEmpty -> {
+//                val aux: IMSet<Any> = if (items.fpickKey() is Int && items is IMSet<*>) items
+//                                      else items.asIMBTree().ffold(this) { acc: IMSetAltering<A>, tkv -> acc.faddUniq(tkv.getv()).vcvdj().left()!! }
+//                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
+//            }
+//            is FSKSetEmpty -> {
+//                val aux: IMSet<Any> = if (items.fpickKey() is String && items is IMSet<*>) items
+//                else items.asIMBTree().ffold(this) { acc: IMSetAltering<A>, tkv -> acc.faddUniq(tkv.getv()).vcvdj().left()!! }
+//                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A>)
+//            }
+//            is FKKSetEmpty<*> -> {
+//                val aux = if (items.ftypeSample()!!.isSymRkc() && items is IMSet<*>) items
+//                else @Suppress("UNCHECKED_CAST") (items.asIMBTree().ffold(this as IMXSetAltering<K>) { acc: IMXSetAltering<K>, tkv ->
+//                    check(tkv.getk().equals(tkv.getv()))
+//                    acc.faddUniq(tkv.getk()).sdj().right()!! as IMXSetAltering<K>
+//                })
+//                @Suppress("UNCHECKED_CAST") ( aux as FKSet<K, A> )
+//            }
+//            is FKSetEmpty -> throw RuntimeException("internal error") //  rktWiseOR(rkt, items)?.toIMRSet(rkt)
             else -> treeWiseOR(body as FRBTNode, items).toIMSet(fkeyTypeOrNull()!!)!!
         }
     }
@@ -411,49 +441,155 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     }
 
-    override fun fcombinations(maxSize: Int): FKSet<Nothing, FKSet<K, A>> {
+    override fun fcombinations(maxSize: Int): FList<FKSet<K, A>> {
+        check(fsize() <= MAX_SIGNEDINT_FACTORIAL)
+        val limit = if (fsize() < maxSize) fsize() else maxSize
+        return if (limit <= MAX_COMBINATION_CARDINALITY) fcombinationsSmall(limit)
+        else fcombinationsLarge(limit)
+    }
+
+    private fun fcombinationsSmall(maxSize: Int): FList<FKSet<K, A>> {
+
+//        val v = maxSize > 1
+//        println("maxSize: $maxSize")
+
+        check(maxSize <= MAX_COMBINATION_CARDINALITY)
 
         // all unique subsets up to "size" members from this set; order does not matter
 
-        tailrec fun <Z: Comparable<Z>> gogo(item: IMKSetNotEmpty<@UnsafeVariance K, @UnsafeVariance A>,
-                                            fat: IMBTree<Z, FKSet<K, A>>, acc: IMBTree<Z, FKSet<K, A>>,
-                                            setToEntry: (FKSet<K, A>) -> TKVEntry<Z, FKSet<K, A>>,
-                                            rkt: RestrictedKeyType<K>
+        tailrec fun <Z: Comparable<Z>> permuteSource(item: IMKSetNotEmpty<@UnsafeVariance K, @UnsafeVariance A>,
+                                                     source: IMBTree<Z, FKSet<K, A>>,
+                                                     acc: IMBTree<Z, FKSet<K, A>>,
+                                                     setToEntry: (FKSet<K, A>) -> TKVEntry<Z, FKSet<K, A>>
         ): IMBTree<Z, FKSet<K, A>> {
-            val (pop: TKVEntry<Z, FKSet<K, A>>?, remainder: IMBTree<Z, FKSet<K, A>>) = fat.fpopAndRemainder()
-            return if (pop == null) acc else {
-                if (pop.getv().fsize() < maxSize) {
-                    val aux: FKSet<K, A> = pop.getv().fOR(item)
-                    val newAcc: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(aux), acc)
-                    gogo(item, remainder, newAcc, setToEntry, rkt)
-                } else gogo(item, remainder, acc, setToEntry, rkt)
+            val (current: TKVEntry<Z, FKSet<K, A>>?, remainder: IMBTree<Z, FKSet<K, A>>) = source.fpopAndRemainder()
+            return if (current == null) acc else {
+                if (current.getv().fsize() < maxSize) {
+                    val maybeAugmented: FKSet<K, A> = current.getv().fOR(item)
+                    val newAcc: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(maybeAugmented), acc)
+                    permuteSource(item, remainder, newAcc, setToEntry)
+                } else permuteSource(item, remainder, acc, setToEntry)
             }
         }
 
-        tailrec fun <Z: Comparable<Z>> go(shrink: FKSet<K, A>, acc: IMBTree<Z, FKSet<K, A>>,
+        tailrec fun <Z: Comparable<Z>> go(shrinkSrc: FKSet<K, A>,
+                                          acc: IMBTree<Z, FKSet<K, A>>,
                                           setToEntry: (FKSet<K, A>) -> TKVEntry<Z, FKSet<K, A>>,
                                           aToEntry: (A) -> TKVEntry<K, A>,
                                           rkt: RestrictedKeyType<K>
         ): IMBTree<Z, FKSet<K, A>> {
-            val (pop: A?, remainder: FKSet<K, A>) = shrink.fpopAndRemainder()
-            return if(pop == null) acc else {
-                val newAcc: IMBTree<Z, FKSet<K, A>> = pop.let {
+            val (current: A?, remainder: FKSet<K, A>) = shrinkSrc.fpopAndRemainder()
+
+//            if (v) println("starting      ${shrinkSrc.fsize()} as ${shrinkSrc.body}")
+//            if (current == null)  println("go yielding   ${acc}")
+
+            return if(current == null) acc else {
+                val newAcc: IMBTree<Z, FKSet<K, A>> = current.let {
+//                    if (v) println("       current: $it")
                     val setOfIt: FKSet<K, A> = FRBTree.of(aToEntry(it)).toIMSet(null)!!
-                    val outer: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(setOfIt), acc)
+//                    if (v) println("current as set: ${setOfIt.body.inorder()}")
                     check(!setOfIt.fempty())
+                    val outer: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(setOfIt), acc)
+//                    check(acc.fsize() < outer.fsize())
                     @Suppress("UNCHECKED_CAST") (setOfIt as IMKSetNotEmpty<K, A>)
-                    gogo(setOfIt, outer, outer, setToEntry, rkt)
+//                    if (v) println("           acc: ${acc.inorder()}")
+//                    if (v) println("   acc+current: ${outer.inorder()}")
+//                    if (v) println("permuteSource processing acc+current")
+
+                    val foo = permuteSource(setOfIt, outer, outer, setToEntry)
+//                    if (v) println("      yielding: ${foo.inorder()}")
+                    foo
                 }
+//                if (v) println("go processing ${remainder.body}\n       acc is $acc")
+
                 go(remainder, newAcc, setToEntry, aToEntry, rkt)
             }
         }
 
-        return if ((maxSize < 1) || fempty()) @Suppress("UNCHECKED_CAST") (toEmptyRetyped<FKSet<K, A>>() as FKSet<Nothing, FKSet<K, A>>) else {
+        return if ((maxSize < 1) || fempty()) emptyIMList() else {
             val s2e: (p: FKSet<K,A>) -> TKVEntry<K, FKSet<K,A>> = kt2entry()
             val a2e: (p: A) -> TKVEntry<K, A> = kt2entry()
             val t: IMBTree<*, FKSet<K, A>> = go(this, nul<Nothing,FKSet<K, A>>(), s2e, a2e, this.fkeyTypeOrNull()!!)
-            val res = t.frestrictedKey()?.let { t.toIMSet(null) }
-            @Suppress("UNCHECKED_CAST") (res as FKSet<Nothing, FKSet<K, A>>)
+//            if (v) println("    result: $t")
+            val res: IMList<FKSet<K, A>> = t.inorderValues() // frestrictedKey()?.let { t.toIMSet(null) }
+//            if (v) println("set result: $res")
+//            @Suppress("UNCHECKED_CAST") (res as FKSet<Nothing, FKSet<K, A>>)
+            res as FList<FKSet<K,A>>
+        }
+    }
+
+    private fun fcombinationsLarge(maxSize: Int): FList<FKSet<K, A>> {
+
+//        val v = maxSize > 1
+//        println("maxSize: $maxSize")
+
+        check(maxSize <= MAX_SIGNEDINT_FACTORIAL)
+
+        // all unique subsets up to "size" members from this set; order does not matter
+
+        tailrec fun <Z: Comparable<Z>> permuteSource(item: IMKSetNotEmpty<@UnsafeVariance K, @UnsafeVariance A>,
+                                                     source: IMBTree<Z, FKSet<K, A>>,
+                                                     acc: FList<FKSet<K,A>>,
+                                                     setToEntry: (FKSet<K, A>) -> TKVEntry<Z, FKSet<K, A>>
+        ): FList<FKSet<K,A>> {
+            val (current: TKVEntry<Z, FKSet<K, A>>?, remainder: IMBTree<Z, FKSet<K, A>>) = source.fpopAndRemainder()
+            return if (current == null)
+                acc
+            else {
+                if (current.getv().fsize() < maxSize) {
+                    val maybeAugmented: FKSet<K, A> =  @Suppress("UNCHECKED_CAST") (IMBTree
+                        .finserts(item.asIMBTree(), current.getv().body)
+                        .toIMSet(current.getv().fkeyTypeOrNull()!!)!! as FKSet<K,A>)
+                    val newAcc: FList<FKSet<K,A>> = if (acc.fcontains(maybeAugmented)) acc else FList.fadd(maybeAugmented, acc)!!
+                    permuteSource(item, remainder, newAcc, setToEntry)
+                } else permuteSource(item, remainder, acc, setToEntry)
+            }
+        }
+
+        tailrec fun <Z: Comparable<Z>> go(shrinkSrc: FKSet<K, A>,
+                                          acc: FList<FKSet<K,A>>,
+                                          setToEntry: (FKSet<K, A>) -> TKVEntry<Z, FKSet<K, A>>,
+                                          aToEntry: (A) -> TKVEntry<K, A>,
+                                          rkt: RestrictedKeyType<K>
+        ): FList<FKSet<K,A>> {
+            val (current: A?, remainder: FKSet<K, A>) = shrinkSrc.fpopAndRemainder()
+
+//            if (v) println("starting      ${shrinkSrc.fsize()} as ${shrinkSrc.body}")
+//            if (current == null)  println("go yielding   ${acc}")
+
+            return if(current == null) acc else {
+                val newAcc: FList<FKSet<K,A>> = current.let {
+//                    if (v) println("       current: $it")
+                    val setOfIt: FKSet<K, A> = FRBTree.of(aToEntry(it)).toIMSet(null)!!
+//                    if (v) println("current as set: ${setOfIt.body.inorder()}")
+                    check(!setOfIt.fempty())
+                    val source: IMBTree<Z, FKSet<K, A>> = acc.ffold(nul<Z,FKSet<K, A>>()){ frbt, item -> frbt.finsertTkv(setToEntry(item)) }
+                    val pacc: FList<FKSet<K,A>> = FList.fadd(setOfIt, acc)!!
+//                    check(acc.fsize() < outer.fsize())
+                    @Suppress("UNCHECKED_CAST") (setOfIt as IMKSetNotEmpty<K, A>)
+//                    if (v) println("           acc: ${acc.inorder()}")
+//                    if (v) println("   acc+current: ${outer.inorder()}")
+//                    if (v) println("permuteSource processing acc+current")
+
+                    val foo: FList<FKSet<K, A>> = permuteSource(setOfIt, source, pacc, setToEntry)
+//                    if (v) println("      yielding: ${foo.inorder()}")
+                    foo
+                }
+//                if (v) println("go processing ${remainder.body}\n       acc is $acc")
+
+                go(remainder, newAcc, setToEntry, aToEntry, rkt)
+            }
+        }
+
+        return if ((maxSize < 1) || fempty()) @Suppress("UNCHECKED_CAST") (emptyIMList()) else {
+            val s2e: (p: FKSet<K,A>) -> TKVEntry<K, FKSet<K,A>> = kt2entry()
+            val a2e: (p: A) -> TKVEntry<K, A> = kt2entry()
+            val t: FList<FKSet<K,A>> = go(this, emptyIMList<FKSet<K,A>>(), s2e, a2e, this.fkeyTypeOrNull()!!)
+//            if (v) println("    result: $t")
+//            if (v) println("set result: $res")
+//            @Suppress("UNCHECKED_CAST") (res as? FKSet<Nothing, FKSet<K, A>>)
+//            TODO()
+            t
         }
     }
 
@@ -667,18 +803,32 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     // altering
 
-    override fun faddItem(item: @UnsafeVariance A): IMRSetNotEmpty<A> = when (this) {
-        is FIKSetEmpty, is FSKSetEmpty -> ofBody(FRBTree.of(TKVEntry.ofkv(toKey(item),item)) as FRBTNode)!!.ner()!!
-        is FIKSetNotEmpty, is FSKSetNotEmpty -> ofBody(body.finsertTkv(TKVEntry.ofkv(toKey(item),item)) as FRBTNode)!!.ner()!!
+    internal open fun faddUniq(item: @UnsafeVariance A): FKSet<K, A> = if (fcontainsValue(item)) this else when (this) {
+        is FIKSetEmpty, is FSKSetEmpty -> ofBody(FRBTree.of(TKVEntry.ofkv(toKey(item),item)) as FRBTNode)!!
+        is FIKSetNotEmpty, is FSKSetNotEmpty -> ofBody(body.finsertTkv(TKVEntry.ofkv(toKey(item),item)) as FRBTNode)!!
         is FKKSetEmpty<*> -> {
             check(compKc.isInstance(item))
             @Suppress("UNCHECKED_CAST") (item as Comparable<A>)
-            ofFKKSBody(FRBTree.of(TKVEntry.ofkv(item,item)) as FRBTNode).ner()!!
+            val aux = ofFKKSBody(FRBTree.of(TKVEntry.ofkv(item,item)) as FRBTNode)
+            @Suppress("UNCHECKED_CAST") (forceKey<K,Nothing,A>(aux)!! as FKSet<K,A>)
         }
         is FKKSetNotEmpty<*> -> {
             check(compKc.isInstance(item))
             @Suppress("UNCHECKED_CAST") (item as K)
-            ofBody(body.finsertTkv(TKVEntry.ofkv(item,item)) as FRBTNode<K, A>)!!.ner()!!
+            ofBody(body.finsertTkv(TKVEntry.ofkv(item,item)) as FRBTNode<K, A>)!!
+        }
+        else -> throw RuntimeException("internal error")
+    }
+
+    internal fun faddUniqTkv(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance A>): FKSet<K, A> = if (fcontainsKey(item.getk())) this else when (this) {
+        is FIKSetEmpty, is FSKSetEmpty -> ofBody(FRBTree.of(item) as FRBTNode)!!
+        is FIKSetNotEmpty, is FSKSetNotEmpty -> ofBody(body.finsertTkv(item) as FRBTNode)!!
+        is FKKSetEmpty<*> -> {
+            val aux = ofFKKSBody(FRBTree.of(TKVEntry.ofkk(item.getk(), item.getk())) as FRBTNode)
+            @Suppress("UNCHECKED_CAST") (forceKey<K,Nothing,K>(aux)!! as FKSet<K,A>)
+        }
+        is FKKSetNotEmpty<*> -> {
+            ofBody(body.finsertTkv(item) as FRBTNode<K, A>)!!
         }
         else -> throw RuntimeException("internal error")
     }
@@ -722,7 +872,33 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     }
 
 
-    companion object: IMKSetCompanion {
+    companion object: IMKSetCompanion, IMSetWritable {
+
+        // IMSetWritable
+
+        override fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMSetNotEmpty<A>? =
+            (dest as? FKSet<*,A>)?.faddUniq(src)?.nes()
+
+        override fun <A: Any> faddUniq(src: A, dest: IMSet<A>): Pair<Boolean, IMSetNotEmpty<A>> {
+            val aux = (dest as FKSet<*, A>).faddUniq(src)
+            return Pair(aux.fsize() > dest.fsize(), aux.nes()!!)
+        }
+
+        override fun <A: Any> faddUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?> =
+            if (src.fempty() && dest.fempty()) Pair(0, null)
+            else TODO()
+
+
+        override fun <A> faddcUniq(src: A, dest: IMSet<A>): Pair<Boolean, IMSetNotEmpty<A>> where A: Any, A: Comparable<A> {
+            val aux = (dest as FKSet<*, A>).faddUniq(src)
+            return Pair(aux.fsize() > dest.fsize(), aux.nes()!!)
+        }
+
+        override fun <A> faddcUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?> where A: Any, A: Comparable<A>  =
+            if (src.fempty() && dest.fempty()) Pair(0, null)
+            else TODO()
+
+        // ===================
 
         internal const val unknownSetType = "unknown set type "
 
@@ -1116,6 +1292,8 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         }
 
         private const val PERMUTATIONCARDLIMIT = 6 // 9
+        private const val MAX_COMBINATION_CARDINALITY = 11  // 13! exceed signed integer range
+        private const val SMALLHASH = 12289 // 11261 closest prime to 1024*12, //  closest prime to 1024*12, approx sqrt(2147483647) / 4
     }
 }
 
@@ -1156,8 +1334,8 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
 
     // IMSet
 
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
-    override fun <K> asIMXSetNotEmpty(): IMXSetNotEmpty<K>? where K: Any, K: Comparable<K> = null
+    override fun asIMVSetNotEmpty(): IMVSetNotEmpty<A>? = null
+    override fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> = null
 
     // IMKSet
 
@@ -1181,11 +1359,9 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
 
 private class FIKSetEmpty<out A: Any> private constructor (
     b: FRBTree<Int,A> = FRBTNil
-): FKSetEmpty<Int,@UnsafeVariance A>(b), IMSetAltering<A> {
+): FKSetEmpty<Int,@UnsafeVariance A>(b) {
     override val toKey: (value: @UnsafeVariance A) -> Int = { value -> TKVEntry.intKeyOf(value) }
     // IMSetAltering
-    override fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<A> =
-        super.faddItem(item) as IMSetNotEmpty<A>
     override fun <V : Any> toTKVEntry(v: V) = ofIntKey(v)
     companion object {
         private val singletonEmpty = FIKSetEmpty(FRBTNil)
@@ -1195,7 +1371,7 @@ private class FIKSetEmpty<out A: Any> private constructor (
 
 private class FIKSetNotEmpty<out A: Any> private constructor (
     b: FRBTINode<@UnsafeVariance A>
-): FKSet<Int, A>(b), IMKASetNotEmpty<Int, A>, IMSetAltering<A> {
+): FKSet<Int, A>(b), IMKASetNotEmpty<Int, A> {
     override fun fempty(): Boolean = false
     val show: String by lazy {
         val spacerOpen = "{"
@@ -1220,11 +1396,6 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
         TODO("Not yet implemented")
     }
 
-    // IMSetAltering
-
-    override fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<A> =
-        super.faddItem(item) as IMSetNotEmpty<A>
-    
     // IMKASEtTransforming
     
     override fun <B : Any> fmap(f: (A) -> B): FKSet<Int, B> {
@@ -1284,11 +1455,8 @@ internal fun <A: Any> ofFIKSNotEmpty(b: FRBTINode<A>): FKSet<Int, A> = FIKSetNot
 
 private class FSKSetEmpty<out A: Any> private constructor (
     b: FRBTree<String,A> = FRBTNil
-): FKSetEmpty<String,@UnsafeVariance A>(b), IMSetAltering<A> {
+): FKSetEmpty<String,@UnsafeVariance A>(b) {
     override val toKey: (value: @UnsafeVariance A) -> String = { value -> TKVEntry.strKeyOf(value) }
-    // IMSetAltering
-    override fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<A> =
-        super.faddItem(item) as IMSetNotEmpty<A>
     override fun <V : Any> toTKVEntry(v: V) = ofStrKey(v)
     companion object {
         private val singletonEmpty = FSKSetEmpty(FRBTNil)
@@ -1298,7 +1466,7 @@ private class FSKSetEmpty<out A: Any> private constructor (
 
 private class FSKSetNotEmpty<out A: Any> private constructor (
     b: FRBTSNode<@UnsafeVariance A>
-): FKSet<String, A>(b), IMKASetNotEmpty<String, A>, IMSetAltering<A> {
+): FKSet<String, A>(b), IMKASetNotEmpty<String, A> {
     override fun fempty(): Boolean = false
     val show: String by lazy {
         val spacerOpen = "{"
@@ -1330,11 +1498,6 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     override fun fdropAllEntries(items: IMCommon<TKVEntry<String, @UnsafeVariance A>>): FKSet<String, A> {
         TODO("Not yet implemented")
     }
-
-    // IMSetAltering
-
-    override fun faddItem(item: @UnsafeVariance A): IMSetNotEmpty<A> =
-        super.faddItem(item) as IMSetNotEmpty<A>
 
     // IMKASetUtility
 
@@ -1401,11 +1564,8 @@ internal fun <A: Any> ofFSKSNotEmpty(b: FRBTSNode<A>): FKSet<String, A> = FSKSet
 
 private class FKKSetEmpty<out A> private constructor (
     b: FRBTree<A,A> = FRBTNil
-): FKSetEmpty<@UnsafeVariance A, @UnsafeVariance A>(b), IMXSetAltering<A> where A: Any, A: Comparable<@UnsafeVariance A> {
+): FKSetEmpty<@UnsafeVariance A, @UnsafeVariance A>(b) where A: Any, A: Comparable<@UnsafeVariance A> {
     override val toKey: (value: @UnsafeVariance A) -> A = { value -> value }
-    // IMXSetAltering
-    override fun faddItem(item: @UnsafeVariance A): IMXSetNotEmpty<A> =
-        super.faddItem(item) as IMXSetNotEmpty<A>
     companion object {
         private val singletonEmpty = FKKSetEmpty(FRBTNil)
         internal fun <A> empty(): FKSet<A, A> where A: Any, A: Comparable<@UnsafeVariance A> = singletonEmpty
@@ -1418,7 +1578,7 @@ private class FKKSetEmpty<out A> private constructor (
 
 private class FKKSetNotEmpty<out A> private constructor (
     b: FRBTKNode<@UnsafeVariance A>
-): FKSet<A, A>(b), IMKKSetNotEmpty<A>, IMXSetAltering<A> where A: Any, A: Comparable<@UnsafeVariance A> {
+): FKSet<A, A>(b), IMKKSetNotEmpty<A> where A: Any, A: Comparable<@UnsafeVariance A> {
     override fun fempty(): Boolean = false
     val show: String by lazy {
         val spacerOpen = "{"
@@ -1480,11 +1640,6 @@ private class FKKSetNotEmpty<out A> private constructor (
     override fun fkeyType() = rkt
     override fun fdropAllEntries(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance A>>): FKSet<A, A> =
         ofk(this.body.fdropAll(items))
-
-    // IMXSetAltering
-    
-    override fun faddItem(item: @UnsafeVariance A): IMXSetNotEmpty<A> =
-        super.faddItem(item) as IMXSetNotEmpty<A>
 
     // IMKKSetTransforming
 

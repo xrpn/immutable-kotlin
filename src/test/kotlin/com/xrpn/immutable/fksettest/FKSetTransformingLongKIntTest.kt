@@ -11,14 +11,14 @@ import io.kotest.matchers.shouldBe
 
 
 private val longKKSOfNone = FKSet.ofk(*arrayOf<Long>())
-private val longKKSOfOne = FKSet.ofk(1L).nex<Long>()!!
-private val longKKSOfTwo = FKSet.ofk(1L, 2L).nex<Long>()!!
-private val longKKSOfTwoOfst1 = FKSet.ofk(2L, 3L).nex<Long>()!!
-private val longKKSOfThree = FKSet.ofk(1L, 2L, 3L).nex<Long>()!!
-private val intKKSOfThree = FKSet.ofk(1, 2, 3).nex<Long>()!!
-private val longKKSOfFour = FKSet.ofk(1L, 2L, 3L, 4L).nex<Long>()!!
-private val longKKSOfFive = FKSet.ofk(1L, 2L, 3L, 4L, 5L).nex<Long>()!!
-private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).nex<Long>()!!
+private val longKKSOfOne = FKSet.ofk(1L).necvs<Long>()!!
+private val longKKSOfTwo = FKSet.ofk(1L, 2L).necvs<Long>()!!
+private val longKKSOfTwoOfst1 = FKSet.ofk(2L, 3L).necvs<Long>()!!
+private val longKKSOfThree = FKSet.ofk(1L, 2L, 3L).necvs<Long>()!!
+private val intKKSOfThree = FKSet.ofk(1, 2, 3).necvs<Long>()!!
+private val longKKSOfFour = FKSet.ofk(1L, 2L, 3L, 4L).necvs<Long>()!!
+private val longKKSOfFive = FKSet.ofk(1L, 2L, 3L, 4L, 5L).necvs<Long>()!!
+private val intKKSOfFive = FKSet.ofk(1, 2, 3, 4, 5).necvs<Long>()!!
 private val longKKSOfTwonc = FKSet.ofs(1L, 2L)
 
 private val longISOfNone = FKSet.ofi(*arrayOf<Long>())

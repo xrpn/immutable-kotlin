@@ -1,8 +1,10 @@
 package com.xrpn.immutable.fsksettest
 
 import com.xrpn.imapi.IMKASetNotEmpty
-import com.xrpn.imapi.IMXSetNotEmpty
+import com.xrpn.imapi.IMCVSetNotEmpty
 import com.xrpn.immutable.FKSet
+import com.xrpn.imapi.IMSet.Companion.faddUniq
+import com.xrpn.imapi.IMVSetNotEmpty
 import com.xrpn.immutable.emptyArrayOfInt
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -10,38 +12,58 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
 private val intSSetOfNone = FKSet.ofs(*emptyArrayOfInt)
-private val intSSetOfOne = FKSet.ofs(1).ne()!!
-private val intSSetOfTwo = FKSet.ofs(1, 2).ne()!!
-private val intSSetOfThree = FKSet.ofs(1, 2, 3).ne()!!
+private val intSSetOfOne: IMVSetNotEmpty<Int> = FKSet.ofs(1).nevs()!!
+private val intSSetOfTwo: IMVSetNotEmpty<Int> = FKSet.ofs(1, 2).nevs()!!
+private val intSSetOfThree: IMVSetNotEmpty<Int> = FKSet.ofs(1, 2, 3).nevs()!!
 
-private val intKKSetOfOne: IMXSetNotEmpty<Int> = FKSet.ofk(1).nex()!!
-private val intKKSetOfTwo: IMXSetNotEmpty<Int> = FKSet.ofk(1, 2).nex()!!
+private val intKKSetOfOne: IMCVSetNotEmpty<Int> = FKSet.ofk(1).necvs()!!
+private val intKKSetOfTwo: IMCVSetNotEmpty<Int> = FKSet.ofk(1, 2).necvs()!!
 
 class FSKSetAlteringTest : FunSpec({
 
     beforeTest {}
 
-    test("faddItem") {
+    test("faddUniq") {
         shouldThrow<ClassCastException> {
             @Suppress("UNCHECKED_CAST") (intSSetOfNone as IMKASetNotEmpty<String, Int>)
         }
-        (@Suppress("UNCHECKED_CAST") (intSSetOfOne.faddItem(2) as IMKASetNotEmpty<String, Int>)).equal(intSSetOfTwo) shouldBe true
-        (@Suppress("UNCHECKED_CAST") (intSSetOfTwo.faddItem(3) as IMKASetNotEmpty<String, Int>)).equal(intSSetOfThree) shouldBe true
-        intSSetOfOne.faddItem(2).equal(intSSetOfTwo) shouldBe true
-        intSSetOfTwo.faddItem(3).equal(intSSetOfThree) shouldBe true
-        intSSetOfThree.faddItem(4).fsize() shouldBe 4
 
-        intKKSetOfOne.faddItem(2).equal(intSSetOfTwo) shouldBe true
-        intKKSetOfTwo.faddItem(3).equal(intSSetOfThree) shouldBe true
+        faddUniq(1, intSSetOfOne).first shouldBe false
+        (faddUniq(1, intSSetOfOne).second === intSSetOfOne) shouldBe true
+
+        shouldThrow<IllegalStateException> {
+            // this should not compile, but it does
+            faddUniq("2", intSSetOfOne).first shouldBe true
+        }
+
+        faddUniq(2, intSSetOfOne).first shouldBe true
+        (@Suppress("UNCHECKED_CAST") (faddUniq(2, intSSetOfOne).second.vcvdj().left() as IMKASetNotEmpty<String, Int>)).equal(intSSetOfTwo.asIMSet()) shouldBe true
+        faddUniq(3, intSSetOfTwo).first shouldBe true
+        (@Suppress("UNCHECKED_CAST") (faddUniq(3, intSSetOfTwo).second.vcvdj().left() as IMKASetNotEmpty<String, Int>)).equal(intSSetOfThree.asIMSet()) shouldBe true
+        faddUniq(2, intSSetOfOne).second.equal(intSSetOfTwo) shouldBe true
+        faddUniq(3, intSSetOfTwo).second.equal(intSSetOfThree) shouldBe true
+        faddUniq(4, intSSetOfThree).second.fsize() shouldBe 4
+
+        faddUniq(2, intKKSetOfOne).second.equal(intSSetOfTwo) shouldBe true
+        faddUniq(3, intKKSetOfTwo).second.equal(intSSetOfThree) shouldBe true
     }
 
-    test("faddItem on empty") {
-        val aux1 = intSSetOfNone.faddItem(1)
-        aux1.equals(intSSetOfOne) shouldBe true
+    test("faddcUniq") {
+        TODO()
+    }
+
+    test("faddUniq on empty") {
+
+        faddUniq(1, intSSetOfNone).first shouldBe true
+        faddUniq(1, intSSetOfNone).second.equal(intSSetOfOne) shouldBe true
+
+
+        val aux1: FKSet<String, Int> = intSSetOfNone.faddUniq(1)
+        aux1.equal(intSSetOfOne)  shouldBe true
         (aux1 === intSSetOfOne) shouldBe false
-        aux1.ner() shouldNotBe null
-        aux1.ne() shouldNotBe null
-        aux1.nex<String>() shouldBe null
-
+        aux1.nes() shouldNotBe null
+        aux1.nevs() shouldNotBe null
+        aux1.necvs<String>() shouldBe null
     }
+    
 })

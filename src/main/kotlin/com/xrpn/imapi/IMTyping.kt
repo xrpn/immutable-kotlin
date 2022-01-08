@@ -109,8 +109,8 @@ internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, 
     // IMKeyedValue
     override fun asIMBTree(): IMBTree<K,A>
     override fun asIMMap(): IMMap<K,A>
-    override fun ffilterValue(isMatch: (A) -> Boolean): IMKSet<K,A>
-    override fun ffilterValueNot(isMatch: (A) -> Boolean): IMKSet<K,A>
+    override fun ffilterValue(isMatch: (A) -> Boolean): IMKSet<K,A>?
+    override fun ffilterValueNot(isMatch: (A) -> Boolean): IMKSet<K,A>?
     override fun ffindAnyValue(isMatch: (A) -> Boolean): A?
     override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
     override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
