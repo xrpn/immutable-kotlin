@@ -61,6 +61,7 @@ where A: Any, A: Comparable<@UnsafeVariance A> {
     fun equal(other: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>?): Boolean
     fun isSelfKeyed(): Boolean = getkKc().isStrictly(getvKc())
     fun isStronglySelfKeyed(): Pair<Boolean,TKVEntry<A,A>?> = if (getkKc().isStrictly(getvKc()) && getk().equals(getv())) Pair(true, @Suppress("UNCHECKED_CAST") (this as TKVEntry<A,A>)) else Pair(false, null)
+    fun strictlyKey(other: TKVEntry<Comparable<Any>, Any>?): Boolean
     fun strictly(other: TKVEntry<Comparable<Any>, Any>?): Boolean
     fun strictlyNot(other: TKVEntry<Comparable<Any>, Any>?): Boolean = !strictly(other)
     fun strictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean
@@ -145,12 +146,17 @@ internal sealed class TKVEntryType <A: Comparable<A>, B:Any> constructor (val k:
         else -> 0 == other.compareTo(this)
     }
 
-    override fun strictly(other: TKVEntry<Comparable<Any>,Any>?): Boolean = when {
+    override fun strictlyKey(other: TKVEntry<Comparable<Any>,Any>?): Boolean = when {
         this === other -> true
         other == null -> false
         other !is TKVEntryType<*,*> -> false
         kClass.isStrictlyNot(other.getkKc()) -> false
-        vClass.isStrictlyNot(other.getvKc()) -> false
+        else -> true
+    }
+
+    override fun strictly(other: TKVEntry<Comparable<Any>,Any>?): Boolean = when {
+        !strictlyKey(other) -> false
+        vClass.isStrictlyNot(other!!.getvKc()) -> false
         else -> true
     }
 

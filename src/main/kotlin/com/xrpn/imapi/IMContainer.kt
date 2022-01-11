@@ -45,7 +45,15 @@ interface IMUniversal {
     }
 }
 
-fun <T: Any> IMUniversal.asIMCommon(): IMCommon<T>? = @Suppress("UNCHECKED_CAST") (this as? IMCommon<T>) ?: run {
+fun <T: Any> IMUniversal.asIMCommon(): IMCommon<T>? =
+    @Suppress("UNCHECKED_CAST") (this as? IMCommon<T>) ?: run {
+        val aux = this.errLog()
+        aux.emitUnconditionally("is-not-a ${IMCommon::class.simpleName}")
+        null
+    }
+
+fun <K, T: Any> IMUniversal.asIMKCommon(): IMCommon<TKVEntry<K,T>>? where K: Any, K: Comparable<K> =
+    @Suppress("UNCHECKED_CAST") (this as? IMCommon<TKVEntry<K,T>>) ?: run {
         val aux = this.errLog()
         aux.emitUnconditionally("is-not-a ${IMCommon::class.simpleName}")
         null
@@ -215,6 +223,8 @@ interface IMKeyed<out K>: IMUniversal where K: Any, K: Comparable<@UnsafeVarianc
     fun ffilterKey(isMatch: (K) -> Boolean): IMKeyed<K>
     fun ffilterKeyNot(isMatch: (K) -> Boolean): IMKeyed<K>
     fun fpickKey(): K?  // peekk at one random key
+    // fun fisStrictlyKeyed(rhs: IMKeyed<@UnsafeVariance K>?): Boolean?
+    fun fisStrictlyKeyed(rhs: IMKeyed<@UnsafeVariance K>?): Boolean? = rhs?.let { it.fpickKey().isStrictly(fpickKey()) }
     fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?,KClass<Any>>?): Boolean?
 }
 
@@ -233,19 +243,30 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     }
     fun fpickValue(): A?  // peek at one random value
 
-    fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-    fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-    fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-    fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKeyedValue<K, A>
-
     companion object: IMKeyedValueAltering {
 
-        override fun <K, B : Any> fadd(src: TKVEntry<K, B>, dest: IMKeyedValue<K, B>): IMKeyedValue<K, B>? where K: Any, K:Comparable<K> = when (dest) {
-            is FBSTree<K,B> -> TODO()
-            is FRBTree<K,B> -> TODO()
-            is FKMap<K,B> -> TODO()
-            is FKSet<K,B> -> TODO()
+        override fun <K, B : Any> fadd(src: TKVEntry<K, B>, dest: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K:Comparable<K> = when (dest) {
+            is FBSTree<K,B> -> dest.finsertTkv(src)
+            is FRBTree<K,B> -> dest.finsertTkv(src)
+            is FKMap<K,B> -> dest.fadd(src)
+            is FKSet<K,B> -> dest.faddUniqTkv(src)
             else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+
+        override fun <K, B : Any> fAND(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
+            TODO("Not yet implemented")
+        }
+
+        override fun <K, B : Any> fNOT(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
+            TODO("Not yet implemented")
+        }
+
+        override fun <K, B : Any> fOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
+            TODO("Not yet implemented")
+        }
+
+        override fun <K, B : Any> fXOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
+            TODO("Not yet implemented")
         }
     }
 }
@@ -839,7 +860,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     fun <C: Any> fmapvToList(f: (B) -> C): IMList<C> = // 	Return a new sequence by applying the function f to each element in the List
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
 
-    companion object: IMBTreeAltering {
+    companion object: IMBTreeAltering, IMBTreeLogic {
 
         fun<A, B: Any> softEqual(lhs: IMBTree<A,B>, rhs: Any?): Boolean
         where A: Any, A: Comparable<@UnsafeVariance A> = lhs.equals(rhs) || when (rhs) {
@@ -863,7 +884,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
 
         override fun <A, B : Any> fadd(src: TKVEntry<A, B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>?
         where A: Any, A:Comparable<A> = try {
-            IMKeyedValue.fadd(src, dest)!!.asIMBTree()
+            IMKeyedValue.fadd(src, dest).asIMBTree()
         } catch (ex: Exception) {
             dest.reportException(ex, this)
             null
@@ -885,6 +906,29 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
             is FRBTree<A,B> -> src.asIMCommon<TKVEntry<A,B>>()!!.ffold(dest){frbt, tkv -> fadd(tkv, frbt) as FRBTree<A,B> }
             is FBSTree<A,B> -> src.asIMCommon<TKVEntry<A,B>>()!!.ffold(dest){fbst, tkv -> fadd(tkv, fbst) as FBSTree<A,B> }
             else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+        }
+
+        override fun <A, B : Any> fAND(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A:Any, A: Comparable<A> = when(origin) {
+            is FRBTree<A,B> -> origin.fAND(src)
+            is FBSTree<A,B> -> origin.fAND(src)
+            else -> throw RuntimeException("internal error, cannot fAND ${src::class} to ${this::class}")
+        }
+
+        override fun <A, B : Any> fNOT(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A:Any, A: Comparable<A> = when(origin) {
+            is FRBTree<A,B> -> origin.fNOT(src)
+            is FBSTree<A,B> -> origin.fNOT(src)
+            else -> throw RuntimeException("internal error, cannot fNOT ${src::class} to ${this::class}")
+        }
+
+        override fun <A, B : Any> fOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A:Any, A: Comparable<A> = when(origin) {
+            is FRBTree<A,B> -> origin.fOR(src)
+            is FBSTree<A,B> -> origin.fOR(src)
+            else -> throw RuntimeException("internal error, cannot fOR ${src::class} to ${this::class}")
+        }
+        override fun <A, B : Any> fXOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A:Any, A: Comparable<A> = when(origin) {
+            is FRBTree<A,B> -> origin.fXOR(src)
+            is FBSTree<A,B> -> origin.fXOR(src)
+            else -> throw RuntimeException("internal error, cannot fXOR ${src::class} to ${this::class}")
         }
     }
 }
@@ -939,12 +983,12 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
     fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = null
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
-
+    // Keyed
     override fun fisStrictlyLike(sample: KeyedTypeSample<KClass<Any>?, KClass<Any>>?): Boolean? = sample?.let {
         this.asIMKSetNotEmpty()?.let { null == it.toIMBTree().ffindAny { tkv -> tkv.strictlyLike(sample) } }
     }
 
-    companion object: IMKSetWritable {
+    companion object: IMKSetWritable, IMKSetLogic {
 
         override fun <K, A: Any> fadd(src: TKVEntry<K, A>, dest: IMKeyedValue<K, A>): IMKSetNotEmpty<K, A>? where K: Any, K: Comparable<K> =
             (dest as? FKSet<K,A>)?.faddUniqTkv(src)?.asIMKASetNotEmpty()
@@ -967,8 +1011,27 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
             if (src.fempty() && dest.fempty()) Pair(0, null)
             else TODO()
 
+        override fun <K, A : Any> fAND(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K, A> where K:Any, K: Comparable<K> = when(origin) {
+            is FKSet<K,A> -> origin.fAND(src)
+            else -> throw RuntimeException("internal error, cannot fAND ${src::class} to ${this::class}")
+        }
+
+        override fun <K, A : Any> fNOT(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K, A> where K:Any, K: Comparable<K> = when(origin) {
+            is FKSet<K,A> -> origin.fNOT(src)
+            else -> throw RuntimeException("internal error, cannot fNOT ${src::class} to ${this::class}")
+        }
+
+        override fun <K, A : Any> fOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K, A> where K:Any, K: Comparable<K> = when(origin) {
+            is FKSet<K,A> -> origin.fOR(src)
+            else -> throw RuntimeException("internal error, cannot fOR ${src::class} to ${this::class}")
+        }
+
+        override fun <K, A : Any> fXOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K, A> where K:Any, K: Comparable<K> = when(origin) {
+            is FKSet<K,A> -> origin.fXOR(src)
+            else -> throw RuntimeException("internal error, cannot fXOR ${src::class} to ${this::class}")
+        }
     }
- }
+}
 
 internal interface IMKSetNotEmpty<out K, out A:Any>: IMKSet<K,A>,
     IMKSetFiltering<K,A>,

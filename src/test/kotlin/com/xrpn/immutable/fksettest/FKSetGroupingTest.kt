@@ -349,56 +349,60 @@ class FKSetGroupingTest : FunSpec({
 
     test("fpermutations coverage, empty") {
 
-        intKKSetOfNone.fpermutations(-1).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfNone.fpermutations(0).equals(intKKSetOfNone) shouldBe true
-        intKKSetOfNone.fpermutations(1).equals(intKKSetOfNone) shouldBe true
+        intKKSetOfNone.fpermutations(-1).equals(emptyIMList<FList<Int>>()) shouldBe true
+        (intKKSetOfNone.fpermutations(-1) === emptyIMList<FList<Int>>()) shouldBe true
+        intKKSetOfNone.fpermutations(0).equals(emptyIMList<FList<Int>>()) shouldBe true
+        (intKKSetOfNone.fpermutations(0) === emptyIMList<FList<Int>>()) shouldBe true
+        intKKSetOfNone.fpermutations(1).equals(emptyIMList<FList<Int>>()) shouldBe true
+        (intKKSetOfNone.fpermutations(1) === emptyIMList<FList<Int>>()) shouldBe true
 
     }
 
     test("fpermutations coverage") {
-        intKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        intKKSetOfThree.fpermutations(0) shouldBe emptyIMList()
+        (intKKSetOfThree.fpermutations(0) === emptyIMList<FList<Int>>()) shouldBe true
         val threeByOneKK = intKKSetOfThree.fpermutations(1)
         threeByOneKK.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKI = intKKSetOfThree.fpermutations(2)
-        threeByTwoKKI.equals(ofi(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
+        unorderedEqual(threeByTwoKKI,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
         threeByTwoKKI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKI = intKKSetOfThree.fpermutations(3)
-        threeByThreeKKI.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
+        unorderedEqual(threeByThreeKKI,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeKKI.fsize() shouldBe 6 // 3! / (3-3)!
-        intKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        intKKSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
-        intSSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        intSSetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneS = intSSetOfThree.fpermutations(1)
         threeByOneS.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoS = intSSetOfThree.fpermutations(2)
-        threeByTwoS.equals(ofi(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
+        unorderedEqual(threeByTwoS,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
         threeByTwoS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeS = intSSetOfThree.fpermutations(3)
-        threeByThreeS.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
+        unorderedEqual(threeByThreeS,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeS.fsize() shouldBe 6 // 3! / (3-3)!
-        intSSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        intSSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
-        strKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
+        strKKSetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneKKS = strKKSetOfThree.fpermutations(1)
         threeByOneKKS.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKS = strKKSetOfThree.fpermutations(2)
-        threeByTwoKKS.equals(ofi(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
+        unorderedEqual(threeByTwoKKS,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
         threeByTwoKKS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKS = strKKSetOfThree.fpermutations(3)
-        threeByThreeKKS.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
+        unorderedEqual(threeByThreeKKS,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeKKS.fsize() shouldBe 6 // 3! / (3-3)!
-        strKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        strKKSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
-        strISetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
+        strISetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneI = strISetOfThree.fpermutations(1)
         threeByOneI.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoI = strISetOfThree.fpermutations(2)
-        threeByTwoI.equals(ofi(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
+        unorderedEqual(threeByTwoI,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
         threeByTwoI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeI = strISetOfThree.fpermutations(3)
-        threeByThreeI.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
+        unorderedEqual(threeByThreeI,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeI.fsize() shouldBe 6 // 3! / (3-3)!
-        strISetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        strISetOfThree.fpermutations(4) shouldBe emptyIMList()
     }
 
     test("fpermutations") {

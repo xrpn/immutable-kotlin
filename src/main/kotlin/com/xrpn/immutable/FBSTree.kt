@@ -410,18 +410,32 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         else -> null
     }
 
-    override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
-        TODO("Not yet implemented")
+    internal fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = when (this) {
+        is FBSTGeneric, is FBSTUnique -> this
+        is FBSTNode -> FT.treeWiseAND(this,items) as FBSTree<A,B>
+        else -> throw RuntimeException("internal error, unknown ${this::class.simpleName ?: this::class}")
     }
 
-    override fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B> = TODO()
-
-    override fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
-        TODO("Not yet implemented")
+    internal fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>  = when (this) {
+        is FBSTGeneric, is FBSTUnique -> this
+        is FBSTNode -> FT.treeWiseNOT(this,items) as FBSTree<A,B>
+        else -> throw RuntimeException("internal error, unknown ${this::class.simpleName ?: this::class}")
     }
 
-    override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> {
-        TODO("Not yet implemented")
+    internal fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B>  = when(this) {
+        is FBSTGeneric, is FBSTUnique -> when(val t = items.asIMBTree()) {
+            is FRBTree -> t.toFBSTree()
+            is FBSTree -> t
+            else -> throw RuntimeException("internal error")
+        }
+        is FBSTNode -> FT.treeWiseOR(this,items) as FBSTree<A,B>
+        else -> throw RuntimeException("internal error, unknown ${this::class.simpleName ?: this::class}")
+    }
+
+    internal fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FBSTree<A, B> = when(this) {
+        is FBSTGeneric, is FBSTUnique -> fOR(items)
+        is FBSTNode -> items.fpickKey()?.let { FT.treeWiseXOR(this,items) as FBSTree<A,B> } ?: this
+        else -> throw RuntimeException("internal error, unknown ${this::class.simpleName ?: this::class}")
     }
 
     // =========== grouping

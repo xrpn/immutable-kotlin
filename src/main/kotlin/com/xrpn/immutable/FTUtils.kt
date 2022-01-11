@@ -287,6 +287,54 @@ internal object FT {
 
     fun <A> isNestedArray(a: Array<A>): Boolean? = isNestedCollection(a.asList())
 
+    fun <K, A: Any> treeWiseXOR(tn: IMBTreeNotEmpty<K, A>, items: IMKeyedValue<K, A>): IMBTree<K, A> where K: Any, K: Comparable<K> = when {
+        null == items.fpickKey() /* i.e. empty */ -> tn
+        else -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            val orred = treeWiseOR(tn,items)
+            when (orred) {
+                is IMBTreeNotEmpty<K,A> -> {
+                    val anded = treeWiseAND(tn, items)
+                    if (anded.fempty()) orred else treeWiseNOT(orred, anded)
+                }
+                else -> tn.toEmpty()
+            }
+        }
+    }
+
+    fun <K, A: Any> treeWiseOR(tn: IMBTreeNotEmpty<K, A>, items: IMKeyedValue<K, A>): IMBTree<K, A> where K: Any, K: Comparable<K> = when {
+        null == items.fpickKey() /* i.e. empty */ -> tn
+        else -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            items.asIMBTree().ffold(tn) { stub, tkv -> IMBTree.fadd(tkv, stub) as IMBTreeNotEmpty<K, A> }
+        }
+    }
+
+    fun <K, A: Any> treeWiseAND(tn: IMBTreeNotEmpty<K, A>, items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMBTree<K, A> where K: Any, K: Comparable<K> = when {
+        null == items.fpickKey() /* i.e. empty */ -> tn
+        tn is FRBTNode<K,A> -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            tn.ffold(FRBTree.nul()) { stub, tkv -> if (items.fcontainsKey(tkv.getk())) stub.finsertTkv(tkv) else stub }
+        }
+        tn is FBSTNode<K,A> -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            tn.ffold(FBSTree.nul()) { stub, tkv -> if (items.fcontainsKey(tkv.getk())) stub.finsertTkv(tkv) else stub }
+        }
+        else -> throw RuntimeException("internal error: unknown ${tn::class.simpleName ?: tn::class}")
+    }
+
+    fun <K, A: Any> treeWiseNOT(tn: IMBTreeNotEmpty<K, A>, items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMBTree<K, A> where K: Any, K: Comparable<K> = when {
+        null == items.fpickKey() /* i.e. empty */ -> tn
+        tn is FRBTNode<K,A> -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            tn.ffold(FRBTree.nul()) { stub, tkv -> if (items.fcontainsKey(tkv.getk())) stub else stub.finsertTkv(tkv) }
+        }
+        tn is FBSTNode<K,A> -> {
+            check(tn.fisStrictlyKeyed(items)!!)
+            tn.ffold(FBSTree.nul()) { stub, tkv -> if (items.fcontainsKey(tkv.getk())) stub else stub.finsertTkv(tkv) }
+        }
+        else -> throw RuntimeException("internal error: unknown ${tn::class.simpleName ?: tn::class}")
+    }
 }
 
 fun interface EqualsProxy {

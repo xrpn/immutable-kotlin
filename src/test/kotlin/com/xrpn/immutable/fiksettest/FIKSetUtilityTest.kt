@@ -137,6 +137,7 @@ class FIKSetUtilityTest : FunSpec({
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<String, Int> = FKSet.ofs(fbst)!!
             (fs1.asIMCVSetNotEmpty<String>() == null) shouldBe true
+            (fs1.asIMVSetNotEmpty() == null) shouldBe false
             (fs1.asIMVSetNotEmpty() === fs1) shouldBe true
             fs1.asIMVSetNotEmpty()?.equals(fs) shouldBe true
         }
@@ -145,7 +146,8 @@ class FIKSetUtilityTest : FunSpec({
             val fbst: FBSTree<String, String> = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<String, String> = FKSet.ofs(fbst)!!
             (fs1.asIMCVSetNotEmpty<String>() === fs1) shouldBe true
-            (fs1.asIMVSetNotEmpty() == null) shouldBe true
+            (fs1.asIMVSetNotEmpty() == null) shouldBe false
+            (fs1.asIMVSetNotEmpty() === fs1) shouldBe true
             fs1.asIMCVSetNotEmpty<String>()?.equals(fs) shouldBe true
         }
     }

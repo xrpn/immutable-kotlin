@@ -502,27 +502,11 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 
-    override fun fAND(items: IMKeyedValue<A, B>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fOR(items: IMKeyedValue<A, B>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fXOR(items: IMKeyedValue<A, B>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
     override fun get(key: A): B? {
         TODO("Not yet implemented")
     }
 
     override fun fdropKeys(keys: IMSet<A>): IMBTree<A, B> {
-        TODO("Not yet implemented")
-    }
-
-    override fun fNOT(items: IMKeyedValue<A, B>): IMBTree<A, B> {
         TODO("Not yet implemented")
     }
 

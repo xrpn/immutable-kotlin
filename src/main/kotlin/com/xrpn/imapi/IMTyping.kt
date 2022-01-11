@@ -112,10 +112,6 @@ internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, 
     override fun ffilterValue(isMatch: (A) -> Boolean): IMKSet<K,A>?
     override fun ffilterValueNot(isMatch: (A) -> Boolean): IMKSet<K,A>?
     override fun ffindAnyValue(isMatch: (A) -> Boolean): A?
-    override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
-    override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
-    override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
-    override fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance A>): IMKSet<K,A>
 }
 
 interface IMMapTyping<out K, out V: Any>:
@@ -140,10 +136,10 @@ interface IMMapTyping<out K, out V: Any>:
     override fun ffilterValue(isMatch: (V) -> Boolean): IMMap<K,V>
     override fun ffilterValueNot(isMatch: (V) -> Boolean): IMMap<K,V>
     override fun fpickValue(): V? = fpick()?.getv()
-    override fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
-    override fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
-    override fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
-    override fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fAND(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fNOT(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
+    fun fXOR(items: IMKeyedValue<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K, V>
     //IMKMappable
     override fun <C, D: Any> fmap(f: (TKVEntry<K,V>) -> TKVEntry<C,D>): IMMap<C,D> where C: Any, C: Comparable<@UnsafeVariance C>
 }
@@ -173,10 +169,6 @@ interface IMBTreeTyping<out A, out B: Any>:
     override fun ffilterValueNot(isMatch: (B) -> Boolean): IMBTree<A, B>
     override fun ffindAnyValue(isMatch: (B) -> Boolean): B?
     override fun fpickValue(): B? = fpick()?.getv()
-    override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    override fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    override fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
-    override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): IMBTree<A, B>
     //IMKMappable
     override fun <C, D : Any> fmap(f: (TKVEntry<A, B>) -> TKVEntry<C, D>): IMBTree<C, D> where C : Any, C : Comparable<@UnsafeVariance C>
 }

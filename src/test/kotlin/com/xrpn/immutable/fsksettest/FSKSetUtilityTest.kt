@@ -134,7 +134,8 @@ class FSKSetUtilityTest : FunSpec({
             val frbt: IMBTree<Int, Int> = fs.toIMBTree()
             val fbst = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, Int> = FKSet.ofi(fbst)!!
-            (fs1.asIMVSetNotEmpty() == null) shouldBe true
+            (fs1.asIMVSetNotEmpty() == null) shouldBe false
+            (fs1.asIMVSetNotEmpty() === fs1) shouldBe true
             (fs1.asIMCVSetNotEmpty<Int>() === fs1) shouldBe true
             fs1.asIMCVSetNotEmpty<Int>()?.equal(fs) shouldBe true
         }
@@ -142,6 +143,7 @@ class FSKSetUtilityTest : FunSpec({
             val frbt: IMBTree<Int, String> = fs.toIMBTree()
             val fbst: FBSTree<Int, String> = FBSTree.of(frbt.breadthFirst())
             val fs1: FKSet<Int, String> = FKSet.ofi(fbst)!!
+            (fs1.asIMVSetNotEmpty() == null) shouldBe false
             (fs1.asIMVSetNotEmpty() === fs1) shouldBe true
             (fs1.asIMCVSetNotEmpty<Int>() == null) shouldBe true
             fs1.asIMVSetNotEmpty()?.equal(fs) shouldBe true

@@ -380,42 +380,28 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         is FRBTNode -> this.entry
     }
 
-    override fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
+    internal fun fAND(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
         is FRBTNil -> this
-        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) emptyIMBTree() else ffold(nul()) { acc, tkv ->
-            if (items.fcontainsKey(tkv.getk())) acc.finsertTkv(tkv) else acc
-        }
+        is FRBTNode -> FT.treeWiseAND(this,items) as FRBTree<A,B>
     }
 
-    override fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
-        fdropAlt(items.asIMBTree()) as FRBTree<A, B>
+    internal fun fNOT(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when (this) {
+        is FRBTNil -> this
+        is FRBTNode -> FT.treeWiseNOT(this,items) as FRBTree<A,B>
+    }
 
-    override fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when(this) {
+    internal fun fOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when(this) {
         is FRBTNil -> when(val t = items.asIMBTree()) {
             is FRBTree -> t
             is FBSTree -> t.toFRBTree()
             else -> throw RuntimeException("internal error")
         }
-        is FRBTNode -> if (items.asIMCommon<TKVEntry<A,B>>()!!.fempty()) this else finsertTkvs(items.asIMBTree())
+        is FRBTNode -> FT.treeWiseOR(this,items) as FRBTree<A,B>
     }
 
-    override fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> {
-        val t: IMBTree<A, B> = items.asIMBTree()
-        return when(this) {
-            is FRBTNil -> when(t) {
-                is FRBTree -> t
-                is FBSTree -> t.toFRBTree()
-                else -> throw RuntimeException("internal error")
-            }
-            is FRBTNode -> if (t.fempty()) this else {
-                fun f(container: IMBTree<A,B>): (acc: FRBTree<A, B>, item: TKVEntry<A,B>) -> FRBTree<A, B> = { acc, item ->
-                    if (container.fcontains(item)) acc
-                    else acc.finsertTkv(item)
-                }
-                val partial = t.ffold(nul(), f(this))
-                ffold(partial, f(t))
-            }
-        }
+    internal fun fXOR(items: IMKeyedValue<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> = when(this) {
+        is FRBTNil -> fOR(items)
+        is FRBTNode -> items.fpickKey()?.let { FT.treeWiseXOR(this,items) as FRBTree<A,B> } ?: this
     }
 
     // =========== grouping

@@ -498,6 +498,8 @@ class FKSetFilteringIntVTest : FunSpec({
 
         (intKKSetOfOne xor intKKSetOfNone).equals(intKKSetOfOne) shouldBe true
         (intKKSetOfOne xor intKKSetOfOne).equals(intKKSetOfNone) shouldBe true
+        val foo = intKKSetOfOne xor intKKSetOfThree
+        print(foo)
         (intKKSetOfOne xor intKKSetOfThree).equals(FKSet.ofi(2,3)) shouldBe true
         (intKKSetOfThree xor intKKSetOfOne).equals(FKSet.ofi(2,3)) shouldBe true
 
