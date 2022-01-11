@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 
 interface IMListUtility<out A: Any> {

@@ -14,9 +14,9 @@ object JohnsonTrotter {
         https://www.geeksforgeeks.org/johnson-trotter-algorithm/
      */
 
-    // also, 1 represents left to right.
+    // left to right.
     private const val L2R = true
-    // also, 0 represents right to left
+    // right to left
     private const val R2L = false
 
     private fun<A: Comparable<A>> swap (i: Int, j: Int, a: ArrayList<A>, aIx: Array<Int>) {
@@ -38,6 +38,48 @@ object JohnsonTrotter {
         for (i in (0 until n)) if (aIx[i] == mobile) return i + 1
         return 0
     }
+
+    /*
+    public static int getMobile(int a[],
+                   boolean dir[], int n)
+    {
+        int mobile_prev = 0, mobile = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            // direction 0 represents
+            // RIGHT TO LEFT.
+            if (dir[a[i] - 1] == RIGHT_TO_LEFT &&
+                                          i != 0)
+            {
+                if (a[i] > a[i - 1] &&
+                            a[i] > mobile_prev)
+                {
+                    mobile = a[i];
+                    mobile_prev = mobile;
+                }
+            }
+
+            // direction 1 represents
+            // LEFT TO RIGHT.
+            if (dir[a[i] - 1] == LEFT_TO_RIGHT &&
+                                      i ! =n - 1)
+            {
+                if (a[i] > a[i + 1] &&
+                            a[i] > mobile_prev)
+                {
+                    mobile = a[i];
+                    mobile_prev = mobile;
+                }
+            }
+        }
+
+        if (mobile == 0 && mobile_prev == 0)
+            return 0;
+        else
+            return mobile;
+    }
+     */
 
     // An item is "mobile" if it is greater than its immediate neighbor in the direction it is looking at.
     private fun<A: Comparable<A>> findMobile(a: ArrayList<A>, aIx: Array<Int>, dir: Array<Boolean>, n: Int): Int {
@@ -68,7 +110,9 @@ object JohnsonTrotter {
         val mobIx: Int = getMobileIx (alIx, n, mobile)
 
         // swap according to direction
-        if (R2L == dir[alIx[mobIx - 1] - 1]) swap(mobIx-1, mobIx-2, al, alIx)
+        if (0==mobIx && R2L == dir[0]) swap(n-1, 0, al, alIx)
+        else if (0==mobIx && L2R == dir[0]) swap(0, n-1, al, alIx)
+        else if (R2L == dir[alIx[mobIx - 1] - 1]) swap(mobIx-1, mobIx-2, al, alIx)
         else if (L2R == dir[alIx[mobIx - 1] - 1]) swap(mobIx, mobIx-1, al, alIx)
 
         // toggle directions for elements greater than mobile
@@ -112,9 +156,10 @@ object JohnsonTrotter {
         check( 1 == smallFact(1))
         check( 6 == smallFact(3))
         // example of driver
-        val n: Int = 4
+        val n: Int = 2
+
         val items: ArrayList<String> = ArrayList(n)
-        val a: Array<String> = Array(n){('a'+it).toString()}
+        val a: Array<String> = Array(n){('z'-it).toString()}
         for (item in a) items.add(item)
         val res: List<ArrayList<String>> = jtPermutations(items)
         var count = 0

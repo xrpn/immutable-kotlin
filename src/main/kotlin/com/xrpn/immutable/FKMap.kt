@@ -182,7 +182,7 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
     override fun fentries(): IMSet<TKVEntry<K,V>> = fkmapEntries
 
     val fkmapKeys: FKSet<K,K> by lazy { when(this) {
-        is FKMapEmpty -> emptyIMKSet(null)
+        is FKMapEmpty -> TODO() // emptyIMKSet(null)
         is FKMapNotEmpty -> {
             val newBody = this.body.ffold(nul<K,K>()) { acc, tkv -> acc.finsertTkv( ofk(tkv.getk()) ) }
             newBody as FRBTNode<K,K>

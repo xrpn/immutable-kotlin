@@ -842,7 +842,7 @@ object FLNil: FList<Nothing>() {
 
     override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when {
         rhs is List<*> -> rhs.isEmpty()
-        rhs is IMCommon<*> -> IMCommonEmpty.equal(rhs)
+        rhs is IMOrdered<*> -> IMCommonEmpty.equal(rhs)
         else -> false
     }
 }

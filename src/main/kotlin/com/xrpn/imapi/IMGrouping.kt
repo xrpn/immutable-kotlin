@@ -28,9 +28,9 @@ interface IMSetGrouping<out A: Any>: IMCommon<A> {
     fun findexed(offset: Int = 0): IMSet<Pair<A, Int>> // Each and all element contained in a tuple along with an offset-based index
     fun fpartition(isMatch: (A) -> Boolean): Pair</* true */ IMSet<A>, /* false */ IMSet<A>> // Two collections created by the predicate p
     // Collection is a set (small(er) size) or a list (large(r) size)
-    fun fpermutations(maxSize: Int): Collection<IMList<A>> // all unique, non-empty collections of "size" members from this set, caution suggested, O(size!) algorithm.
+    fun fpermutations(maxSize: Int): IMList<IMList<A>> // all unique, non-empty collections of "size" members from this set, caution suggested, O(size!) algorithm.
     // Collection is a set (small(er) size -- less than 9) or a list (large(r) size -- 9 through 12)
-    fun fpermute(): Collection<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
+    fun fpermute(): IMList<IMList<A>> // the permutations of this (whole) set; there are n! of them, caution suggested, O(size!) algorithm.
 
     override fun fpopAndRemainder(): Pair<A?, IMSet<A>>
 }

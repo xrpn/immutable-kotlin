@@ -1,5 +1,6 @@
 package com.xrpn.immutable.fksettest
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.hash.JohnsonTrotter
 import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.imapi.*
@@ -8,7 +9,7 @@ import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FKSet.Companion.ofi
 import com.xrpn.immutable.FKSet.Companion.ofs
-import com.xrpn.immutable.FKSet.Companion.toIMISet
+import com.xrpn.immutable.FList.Companion.emptyIMList
 import com.xrpn.immutable.FList.Companion.of
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import io.kotest.assertions.fail
@@ -20,12 +21,11 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.xrpn.fiset
 import io.kotest.xrpn.fsset
-import java.lang.IllegalStateException
 
 private val intKKSetOfNone = FKSet.ofi(*emptyArrayOfInt)
 
-private val intKKSetOfOne = FKSet.ofi(1).necvs<Int>()!!
-private val strKKSetOfOne = FKSet.ofs("1").necvs<String>()!!
+private val intKKSetOfOne = FKSet.ofi(1) // .necvs<Int>()!!
+private val strKKSetOfOne = FKSet.ofs("1") // .necvs<String>()!!
 private val intSSetOfOne = FKSet.ofs(1).nevs()!!
 private val strISetOfOne = FKSet.ofi("1").nevs()!!
 
@@ -94,8 +94,7 @@ private val oracleG: FKSet<Int, FList<Int>> = ofi(FList.of(1, 2), FList.of(1, 3)
 
 class FKSetGroupingTest : FunSpec({
 
-    val longTest = false
-    val verbose = false
+    val verbose = true
     val repeats = 50
 
     beforeTest {}
@@ -129,85 +128,63 @@ class FKSetGroupingTest : FunSpec({
         intKKSetOfTwo.fcartesian(intKKSetOfThree).equals(ofi(Pair(1,1), Pair(2,1), Pair(1,2), Pair(2,2), Pair(1,3), Pair(2,3))) shouldBe true
     }
 
+    test("fcombinations. coverage empty") {
+        intKKSetOfNone.fcombinations(-1).equal(emptyIMList()) shouldBe true
+        intKKSetOfNone.fcombinations(0).equal(emptyIMList()) shouldBe true
+        intKKSetOfNone.fcombinations(1).equal(emptyIMList()) shouldBe true
+        intKKSetOfOne.fcombinations(-1).equal(emptyIMList()) shouldBe true
+        intKKSetOfOne.fcombinations(0).equal(emptyIMList()) shouldBe true
+    }
+
     test("fcombinations coverage") {
-//        intKKSetOfNone.fcombinations(-1).equals(intKKSetOfNone) shouldBe true
-//        intKKSetOfNone.fcombinations(0).equals(intKKSetOfNone) shouldBe true
-//        intKKSetOfNone.fcombinations(1).equals(intKKSetOfNone) shouldBe true
-//        intKKSetOfOne.fcombinations(-1).equals(intKKSetOfNone) shouldBe true
-//        intKKSetOfOne.fcombinations(0).equals(intKKSetOfNone) shouldBe true
-//
-//        (intKKSetOfOne.fcombinations(1) == ofi(intKKSetOfOne)) shouldBe true
-//        (intKKSetOfOne.fcombinations(2) == ofi(intKKSetOfOne)) shouldBe true
-//        (strISetOfOne.fcombinations(1) == ofi(strISetOfOne)) shouldBe true
-//        (strISetOfOne.fcombinations(2) == ofi(strISetOfOne)) shouldBe true
-//        (strISetOfOne.fcombinations(2) == ofs(strISetOfOne)) shouldBe true
-//        intKKSetOfOne.fcombinations(1).equal(ofs(intKKSetOfOne)) shouldBe true
-//        intKKSetOfOne.fcombinations(2).equal(ofs(intKKSetOfOne)) shouldBe true
-//        strISetOfOne.fcombinations(1).equal(ofs(strISetOfOne)) shouldBe true
-//        strISetOfOne.fcombinations(2).equal(ofs(strISetOfOne)) shouldBe true
-//
-//        (strKKSetOfOne.fcombinations(1) == ofs(strKKSetOfOne)) shouldBe true
-//        (strKKSetOfOne.fcombinations(2) == ofs(strKKSetOfOne)) shouldBe true
-//        (intSSetOfOne.fcombinations(1) == ofs(intSSetOfOne)) shouldBe true
-//        (intSSetOfOne.fcombinations(2) == ofs(intSSetOfOne)) shouldBe true
-//        (intSSetOfOne.fcombinations(2) == ofi(intSSetOfOne)) shouldBe true
-//        strKKSetOfOne.fcombinations(1).equal(ofi(strKKSetOfOne)) shouldBe true
-//        strKKSetOfOne.fcombinations(2).equal(ofi(strKKSetOfOne)) shouldBe true
-//        intSSetOfOne.fcombinations(1).equal(ofi(intSSetOfOne)) shouldBe true
-//        intSSetOfOne.fcombinations(2).equal(ofi(intSSetOfOne)) shouldBe true
-//
-//        val iorai2ii = ofi(ofi(1), ofi(2))
-//        val iorai2si = ofi(ofs(1), ofi(2)) // this is a variance abomination
-//        val ioras2ss = ofs(ofs(1), ofs(2))
-//        val ioras2si = ofs(ofs(1), ofi(2))
-//        val iorai3iii = ofi(ofi(1), ofi(2), ofi(1, 2))
-//        val iorai3isi = ofi(ofi(1), ofs(2), ofi(1, 2))
-//        val ioras3sss = ofs(ofs(1), ofs(2), ofs(1, 2))
-//        val ioras3isi = ofi(ofi(1), ofs(2), ofi(1, 2))
-//        val sorai2ii = ofi(ofi("1"), ofi("2"))
-//        val sorai2si = ofi(ofs("1"), ofi("2"))
-//        val soras2ss = ofs(ofs("1"), ofs("2"))
-//        val soras2si = ofs(ofs("1"), ofi("2"))
-//        val sorai3iii = ofi(ofi("1"), ofi("2"), ofi("1", "2"))
-//        val sorai3isi = ofi(ofi("1"), ofs("2"), ofi("1", "2"))
-//        val soras3sss = ofs(ofs("1"), ofs("2"), ofs("1", "2"))
-//        val soras3isi = ofi(ofi("1"), ofs("2"), ofi("1", "2"))
-//
-//        intKKSetOfTwo.fcombinations(1).equals(iorai2ii) shouldBe true
-//        intKKSetOfTwo.fcombinations(1).equals(iorai2si) shouldBe true
-//        intKKSetOfTwo.fcombinations(1).equal(iorai2si) shouldBe true
-//        intKKSetOfTwo.fcombinations(1).equal(ioras2si) shouldBe true
-//        intKKSetOfTwo.fcombinations(2).equals(iorai3iii) shouldBe true
-//        intKKSetOfTwo.fcombinations(2).equals(iorai3isi) shouldBe true
-//        intKKSetOfTwo.fcombinations(2).equal(iorai3isi) shouldBe true
-//        intKKSetOfTwo.fcombinations(3).equals(iorai3iii) shouldBe true
-//
-//        strISetOfTwo.fcombinations(1).equals(sorai2ii) shouldBe true
-//        strISetOfTwo.fcombinations(1).equals(sorai2si) shouldBe true
-//        strISetOfTwo.fcombinations(1).equal(sorai2si) shouldBe true
-//        strISetOfTwo.fcombinations(1).equal(soras2si) shouldBe true
-//        strISetOfTwo.fcombinations(2).equals(sorai3iii) shouldBe true
-//        strISetOfTwo.fcombinations(2).equals(sorai3isi) shouldBe true
-//        strISetOfTwo.fcombinations(2).equal(sorai3isi) shouldBe true
-//        strISetOfTwo.fcombinations(3).equals(sorai3iii) shouldBe true
-//
-//        intSSetOfTwo.fcombinations(1).equals(ioras2ss) shouldBe true
-//        intSSetOfTwo.fcombinations(1).equals(ioras2si) shouldBe true
-//        intSSetOfTwo.fcombinations(1).equal(iorai2si) shouldBe true
-//        intSSetOfTwo.fcombinations(1).equal(ioras2si) shouldBe true
-//        intSSetOfTwo.fcombinations(2).equals(ioras3sss) shouldBe true
-//        intSSetOfTwo.fcombinations(2).equals(ioras3isi) shouldBe true
-//        intSSetOfTwo.fcombinations(2).equal(ioras3isi) shouldBe true
-//        intSSetOfTwo.fcombinations(3).equals(ioras3sss) shouldBe true
-//
-//        strKKSetOfTwo.fcombinations(1).equals(soras2ss) shouldBe true
-//        strKKSetOfTwo.fcombinations(1).equals(soras2si) shouldBe true
-//        strKKSetOfTwo.fcombinations(1).equal(sorai2si) shouldBe true
-//        strKKSetOfTwo.fcombinations(1).equal(soras2si) shouldBe true
-//        strKKSetOfTwo.fcombinations(2).equals(soras3sss) shouldBe true
-//        strKKSetOfTwo.fcombinations(2).equals(soras3isi) shouldBe true
-//        strKKSetOfTwo.fcombinations(2).equal(soras3isi) shouldBe true
-//        strKKSetOfTwo.fcombinations(3).equals(soras3sss) shouldBe true
+        (intKKSetOfOne.fcombinations(1) == of(intKKSetOfOne)) shouldBe true
+        (intKKSetOfOne.fcombinations(2) == of(intKKSetOfOne)) shouldBe true
+        (strISetOfOne.fcombinations(1) == of(strISetOfOne)) shouldBe true
+        (strISetOfOne.fcombinations(2) == of(strISetOfOne)) shouldBe true
+        (strISetOfOne.fcombinations(2) == of(strISetOfOne)) shouldBe true
+        intKKSetOfOne.fcombinations(1).equal(of(intKKSetOfOne)) shouldBe true
+        intKKSetOfOne.fcombinations(2).equal(of(intKKSetOfOne)) shouldBe true
+        strISetOfOne.fcombinations(1).equal(of(strISetOfOne)) shouldBe true
+        strISetOfOne.fcombinations(2).equal(of(strISetOfOne)) shouldBe true
+
+        (strKKSetOfOne.fcombinations(1) == of(strKKSetOfOne)) shouldBe true
+        (strKKSetOfOne.fcombinations(2) == of(strKKSetOfOne)) shouldBe true
+        (intSSetOfOne.fcombinations(1) == of(intSSetOfOne)) shouldBe true
+        (intSSetOfOne.fcombinations(2) == of(intSSetOfOne)) shouldBe true
+        (intSSetOfOne.fcombinations(2) == of(intSSetOfOne)) shouldBe true
+        strKKSetOfOne.fcombinations(1).equal(of(strKKSetOfOne)) shouldBe true
+        strKKSetOfOne.fcombinations(2).equal(of(strKKSetOfOne)) shouldBe true
+        intSSetOfOne.fcombinations(1).equal(of(intSSetOfOne)) shouldBe true
+        intSSetOfOne.fcombinations(2).equal(of(intSSetOfOne)) shouldBe true
+
+        val iorai2ii = of(ofi(1), ofi(2))
+        val iorai2si = of(ofs(1), ofi(2)) // this is a variance abomination
+        val iorai3iii = of(ofi(1), ofi(2), ofi(1, 2))
+        val iorai3isi = of(ofi(1), ofs(2), ofi(1, 2))
+        val sorai2ii = of(ofi("1"), ofi("2"))
+        val sorai2si = of(ofs("1"), ofi("2"))
+        val sorai3iii = of(ofi("1"), ofi("2"), ofi("1", "2"))
+        val sorai3isi = of(ofi("1"), ofs("2"), ofi("1", "2"))
+
+        unorderedEqual(intKKSetOfTwo.fcombinations(1), iorai2ii) shouldBe true
+        unorderedEqual(intKKSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3iii) shouldBe true
+        unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+
+        unorderedEqual(strISetOfTwo.fcombinations(1),sorai2ii) shouldBe true
+        unorderedEqual(strISetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        unorderedEqual(strISetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        unorderedEqual(strISetOfTwo.fcombinations(3),sorai3iii) shouldBe true
+
+        unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2ii) shouldBe true
+        unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        unorderedEqual(intSSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+        unorderedEqual(intSSetOfTwo.fcombinations(3),iorai3iii) shouldBe true
+
+        unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        unorderedEqual(strKKSetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        unorderedEqual(strKKSetOfTwo.fcombinations(3),sorai3iii) shouldBe true
     }
 
     test("fcombinations") {
@@ -223,6 +200,8 @@ class FKSetGroupingTest : FunSpec({
         unorderedEqual(intKKSetOfFour.fcombinations(3), oracleD.asSet()) shouldBe true
         unorderedEqual(intKKSetOfFour.fcombinations(4), oracleE.asSet()) shouldBe true
         unorderedEqual(intKKSetOfFour.fcombinations(5), oracleE.asSet()) shouldBe true
+
+        intKKSetOfFive.fcombinations(0).fsize() shouldBe 0
 
         intKKSetOfFive.fcombinations(1).fsize() shouldBe 5 // 5! / (5-1)! 1!
         // intKKSetOfFive.fcombinations(2).fsize() shouldBe 15
@@ -266,17 +245,35 @@ class FKSetGroupingTest : FunSpec({
             return acc
         }
 
+        fun subTot(n: Int, i: Int): Int = (smallFact(n) / (smallFact(n - i) * smallFact(i)))
+
         intKKSetOfEight.fcombinations(8).fsize() shouldBe tot(8)
         intKKSetOfEight.fcombinations(8).ffilter { it.fsize() == 8 }.fsize() shouldBe 1
+        for (i in 1..9) {
+            intKKSetOfEight.fcombinations(i).ffilter { it.fsize() == i }.fsize() shouldBe subTot(8, i)
+        }
         intKKSetOfNine.fcombinations(9).fsize() shouldBe tot(9)
         intKKSetOfNine.fcombinations(9).ffilter { it.fsize() == 9 }.fsize() shouldBe 1
+        for (i in 1..10) {
+            intKKSetOfNine.fcombinations(i).ffilter { it.fsize() == i }.fsize() shouldBe subTot(9, i)
+        }
         intKKSetOfTen.fcombinations(10).fsize() shouldBe tot(10)
         intKKSetOfTen.fcombinations(10).ffilter { it.fsize() == 10 }.fsize() shouldBe 1
+        for (i in 1..11) {
+            intKKSetOfTen.fcombinations(i).ffilter { it.fsize() == i }.fsize() shouldBe subTot(10, i)
+        }
         intKKSetOfEleven.fcombinations(11).fsize() shouldBe tot(11)
         intKKSetOfEleven.fcombinations(11).ffilter { it.fsize() == 11 }.fsize() shouldBe 1
+        for (i in 1..12) {
+            intKKSetOfEleven.fcombinations(i).ffilter { it.fsize() == i }.fsize() shouldBe subTot(11, i)
+        }
+        intKKSetOfTwelve.fcombinations(0).fsize() shouldBe 0
         intKKSetOfTwelve.fcombinations(12).fsize() shouldBe tot(12)
         intKKSetOfTwelve.fcombinations(12).ffilter { it.fsize() == 12 }.fsize() shouldBe 1
-        intKKSetOfTwelve.fcombinations(13).fsize() shouldBe tot(12)
+        for (i in 1..12) {
+            intKKSetOfTwelve.fcombinations(i).ffilter { it.fsize() == i }.fsize() shouldBe subTot(12, i)
+        }
+        intKKSetOfTwelve.fcombinations(13).ffilter { it.fsize() == 12 }.fsize() shouldBe 1
 
         shouldThrow<IllegalStateException> {
             intKKSetOfThirteen.fcombinations(12).fsize()
@@ -350,54 +347,57 @@ class FKSetGroupingTest : FunSpec({
         pf2kks.equals(strKKSetOfFour) shouldBe true
     }
 
-    test("fpermutations coverage") {
+    test("fpermutations coverage, empty") {
 
         intKKSetOfNone.fpermutations(-1).equals(intKKSetOfNone) shouldBe true
         intKKSetOfNone.fpermutations(0).equals(intKKSetOfNone) shouldBe true
         intKKSetOfNone.fpermutations(1).equals(intKKSetOfNone) shouldBe true
 
+    }
+
+    test("fpermutations coverage") {
         intKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         val threeByOneKK = intKKSetOfThree.fpermutations(1)
-        threeByOneKK.size shouldBe 3 // 3! / (3-1)!
+        threeByOneKK.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKI = intKKSetOfThree.fpermutations(2)
         threeByTwoKKI.equals(ofi(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
-        threeByTwoKKI.size shouldBe 6 // 3! / (3-2)!
+        threeByTwoKKI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKI = intKKSetOfThree.fpermutations(3)
         threeByThreeKKI.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
-        threeByThreeKKI.size shouldBe 6 // 3! / (3-3)!
+        threeByThreeKKI.fsize() shouldBe 6 // 3! / (3-3)!
         intKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         intSSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
         val threeByOneS = intSSetOfThree.fpermutations(1)
-        threeByOneS.size shouldBe 3 // 3! / (3-1)!
+        threeByOneS.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoS = intSSetOfThree.fpermutations(2)
         threeByTwoS.equals(ofi(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
-        threeByTwoS.size shouldBe 6 // 3! / (3-2)!
+        threeByTwoS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeS = intSSetOfThree.fpermutations(3)
         threeByThreeS.equals(ofi(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
-        threeByThreeS.size shouldBe 6 // 3! / (3-3)!
+        threeByThreeS.fsize() shouldBe 6 // 3! / (3-3)!
         intSSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         strKKSetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
         val threeByOneKKS = strKKSetOfThree.fpermutations(1)
-        threeByOneKKS.size shouldBe 3 // 3! / (3-1)!
+        threeByOneKKS.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoKKS = strKKSetOfThree.fpermutations(2)
         threeByTwoKKS.equals(ofi(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
-        threeByTwoKKS.size shouldBe 6 // 3! / (3-2)!
+        threeByTwoKKS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKS = strKKSetOfThree.fpermutations(3)
         threeByThreeKKS.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
-        threeByThreeKKS.size shouldBe 6 // 3! / (3-3)!
+        threeByThreeKKS.fsize() shouldBe 6 // 3! / (3-3)!
         strKKSetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
 
         strISetOfThree.fpermutations(0) shouldBe emptyIMKSet<Int, String>(IntKeyType)
         val threeByOneI = strISetOfThree.fpermutations(1)
-        threeByOneI.size shouldBe 3 // 3! / (3-1)!
+        threeByOneI.fsize() shouldBe 3 // 3! / (3-1)!
         val threeByTwoI = strISetOfThree.fpermutations(2)
         threeByTwoI.equals(ofi(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
-        threeByTwoI.size shouldBe 6 // 3! / (3-2)!
+        threeByTwoI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeI = strISetOfThree.fpermutations(3)
         threeByThreeI.equals(ofi(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
-        threeByThreeI.size shouldBe 6 // 3! / (3-3)!
+        threeByThreeI.fsize() shouldBe 6 // 3! / (3-3)!
         strISetOfThree.fpermutations(4) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
     }
 
@@ -405,104 +405,107 @@ class FKSetGroupingTest : FunSpec({
 
         val permutationsNow = System.currentTimeMillis()
 
-        intKKSetOfFour.fpermutations(0) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        intKKSetOfFour.fpermutations(0) shouldBe emptyIMList()
+        (intKKSetOfFour.fpermutations(0) === emptyIMList<FList<Int>>()) shouldBe true
         val fourByOne = intKKSetOfFour.fpermutations(1)
-        fourByOne.size shouldBe 4 // 4! / (4-1)!
+        fourByOne.fsize() shouldBe 4 // 4! / (4-1)!
         val fourByTwo = intKKSetOfFour.fpermutations(2)
-        fourByTwo.toIMISet()?.equals(oracleF) shouldBe true
-        fourByTwo.size shouldBe 12 // 4! / (4-2)!
+        unorderedEqual(fourByTwo,oracleF.asSet()) shouldBe true
+        fourByTwo.fsize() shouldBe 12 // 4! / (4-2)!
         val fourByThree = intKKSetOfFour.fpermutations(3)
-        fourByThree.size shouldBe 24 // 4! / (4-3)!
+        fourByThree.fsize() shouldBe 24 // 4! / (4-3)!
         val fourByFour = intKKSetOfFour.fpermutations(4)
-        fourByFour.size shouldBe 24 // 4! / (4-4)! == 4!
-        intKKSetOfFour.fpermutations(5) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        fourByFour.fsize() shouldBe 24 // 4! / (4-4)! == 4!
+        intKKSetOfFour.fpermutations(5) shouldBe emptyIMList()
+        (intKKSetOfFour.fpermutations(5) === emptyIMList<FList<Int>>()) shouldBe true
 
         val fiveByOne = intKKSetOfFive.fpermutations(1)
-        fiveByOne.size shouldBe 5 // 5! / (5-1)!
+        fiveByOne.fsize() shouldBe 5 // 5! / (5-1)!
         val fiveByTwo = intKKSetOfFive.fpermutations(2)
-        fiveByTwo.size shouldBe 20 // 5! / (5-2)!
-        fiveByTwo.toIMISet()?.equals(oracleG) shouldBe true
+        fiveByTwo.fsize() shouldBe 20 // 5! / (5-2)!
+        unorderedEqual(fiveByTwo,oracleG.asSet()) shouldBe true
         val fiveByThree = intKKSetOfFive.fpermutations(3)
-        fiveByThree.size shouldBe 60 // 5! / (5-3)!
+        fiveByThree.fsize() shouldBe 60 // 5! / (5-3)!
         val fiveByfour = intKKSetOfFive.fpermutations(4)
-        fiveByfour.size shouldBe 120 // 5! / (5-4)!
+        fiveByfour.fsize() shouldBe 120 // 5! / (5-4)!
         val fiveByfive = intKKSetOfFive.fpermutations(5)
-        fiveByfive.size shouldBe 120 // 5! / (5-5)!
-        intKKSetOfFive.fpermutations(6) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        fiveByfive.fsize() shouldBe 120 // 5! / (5-5)!
+        intKKSetOfFive.fpermutations(6) shouldBe emptyIMList()
 
         val sixByOne = intKKSetOfSix.fpermutations(1)
-        sixByOne.size shouldBe 6 // 6! / (6-1)!
+        sixByOne.fsize() shouldBe 6 // 6! / (6-1)!
         val sixByTwo = intKKSetOfSix.fpermutations(2)
-        sixByTwo.size shouldBe 30 // 6! / (6-2)!
+        sixByTwo.fsize() shouldBe 30 // 6! / (6-2)!
         val sixByThree = intKKSetOfSix.fpermutations(3)
-        sixByThree.size shouldBe 120 // 6! / (6-3)!
+        sixByThree.fsize() shouldBe 120 // 6! / (6-3)!
         val sixByFour = intKKSetOfSix.fpermutations(4)
-        sixByFour.size shouldBe 360 // 6! / (6-4)!
+        sixByFour.fsize() shouldBe 360 // 6! / (6-4)!
         val sixByFive = intKKSetOfSix.fpermutations(5)
-        sixByFive.size shouldBe 720 // 6! / (6-5)!
+        sixByFive.fsize() shouldBe 720 // 6! / (6-5)!
         val sixBySix = intKKSetOfSix.fpermutations(6)
-        sixBySix.size shouldBe 720 // 6! / (6-6)! = 6!
-        intKKSetOfSix.fpermutations(7) shouldBe emptyIMKSet<Int, Int>(IntKeyType)
+        sixBySix.fsize() shouldBe 720 // 6! / (6-6)! = 6!
+        intKKSetOfSix.fpermutations(7) shouldBe emptyIMList()
 
         if (verbose) println("permutations in ${System.currentTimeMillis() - permutationsNow}")
     }
 
     test("fpermute") {
-        intKKSetOfNone.fpermute() shouldBe emptyIMKSet<Int, Int>(IntKeyType)
-        intKKSetOfOne.fpermute() shouldBe ofi(intKKSetOfOne)
-        intKKSetOfTwo.fpermute() shouldBe ofi(FList.of(1,2),FList.of(2, 1))
-        intKKSetOfThree.fpermute().size shouldBe 6 // 3!
+        val foo = intKKSetOfNone.fpermute()
+        print(foo)
+        intKKSetOfNone.fpermute().equals(emptyIMList<Int>()) shouldBe true
+        (intKKSetOfNone.fpermute() === emptyIMList<Int>()) shouldBe true
+        IMCommon.equal(intKKSetOfOne.fpermute(), of(*arrayOf(of(FKSetIterator(intKKSetOfOne))))) shouldBe true
+        intKKSetOfTwo.fpermute().equals(of(of(1,2),of(2, 1))) shouldBe true
+        intKKSetOfThree.fpermute().fsize() shouldBe 6 // 3!
 
-        val fourp = intKKSetOfFour.fpermute()
-        fourp.size shouldBe 24 // 3!
+        val fourp: IMList<IMList<Int>> = intKKSetOfFour.fpermute()
+        fourp.fsize() shouldBe 24 // 3!
         val aryls4: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfFour)!!
-        val p4jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
-            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
+        val p4jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
+            lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        fourp.toIMISet()?.equals(p4jt) shouldBe true
+        unorderedEqual(fourp, p4jt) shouldBe true
 
         val fivep = intKKSetOfFive.fpermute()
-        fivep.size shouldBe 120 // 5!
+        fivep.fsize() shouldBe 120 // 5!
         val aryls5: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfFive)!!
-        val p5jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
-            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
+        val p5jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
+            lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        fivep.toIMISet()?.equals(p5jt) shouldBe true
+        unorderedEqual(fivep, p5jt) shouldBe true
 
         val sixpNow = System.currentTimeMillis()
         val sixp = intKKSetOfSix.fpermute()
         if (verbose) println("sixp in ${System.currentTimeMillis() - sixpNow}")
-        sixp.size shouldBe 720 // 6!
+        sixp.fsize() shouldBe 720 // 6!
         val aryls6: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfSix)!!
-        val p6jt: FKSet<Int, FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
-            s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
+        val p6jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
+            lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        sixp.toIMISet()?.equals(p6jt) shouldBe true
+        unorderedEqual(sixp,p6jt) shouldBe true
 
         val sevenpNow = System.currentTimeMillis()
         val sevenp = intKKSetOfSeven.fpermute()
         if (verbose) println("sevenp in ${System.currentTimeMillis() - sevenpNow}")
-        sevenp.size shouldBe 5040 // 7!
+        sevenp.fsize() shouldBe 5040 // 7!
         val aryls7: ArrayList<TKVEntry<Int, Int>> = FT.fset2listary(intKKSetOfSeven)!!
-        val p7jt: FKSet<Int, FList<Int>> =
-            JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMKSet<Int, FList<Int>>(IntKeyType)) { s, aryl ->
-                s.fOR(ofi(*arrayOf(FList.ofMap(aryl) { tkv -> tkv.getv() })))
+        val p7jt: FList<FList<Int>> =
+            JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
+                lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
             }
-        sevenp.toIMISet()?.equals(p7jt) shouldBe true
+        unorderedEqual(sevenp,p7jt) shouldBe true
 
-        if (longTest) {
-            // ~1.5 s on machine Avogadro
-            val eightpNow = System.currentTimeMillis()
-            val eightp = intKKSetOfEight.fpermute()
-            if (verbose) println("eightp in ${System.currentTimeMillis() - eightpNow}")
-            eightp.size shouldBe 40320 // 8!
+        // ~1.5 s on machine Avogadro
+        val eightpNow = System.currentTimeMillis()
+        val eightp = intKKSetOfEight.fpermute()
+        if (verbose) println("eightp in ${System.currentTimeMillis() - eightpNow}")
+        eightp.fsize() shouldBe 40320 // 8!
 
-            // ~2 or 3 s on machine Avogadro
-            val ninepNow = System.currentTimeMillis()
-            val ninep = intKKSetOfNine.fpermute()
-            if (verbose) println("ninep in ${System.currentTimeMillis() - ninepNow}")
-            ninep.size shouldBe 362880 // 9!
-        }
+        // ~2 s on machine Avogadro
+        val ninepNow = System.currentTimeMillis()
+        val ninep = intKKSetOfNine.fpermute()
+        if (verbose) println("ninep in ${System.currentTimeMillis() - ninepNow}")
+        ninep.fsize() shouldBe 362880 // 9!
     }
 
     test("fpopAndRemainder simple") {
