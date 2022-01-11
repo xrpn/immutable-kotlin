@@ -15,10 +15,7 @@ interface IMListFiltering<out A: Any> {
     fun fhead(): A? // 	Returns the first element as a nullable
     fun finit(): IMList<A> // All elements except the last one
     fun flast(): A? // 	The last element as a nullable
-    fun fslice(
-        fromIndex: Int,
-        toIndex: Int
-    ): /* [fromIndex, toIndex) */ IMList<A> // 	A sequence of elements from index f (from) to index u (until)
+    fun fslice(fromIndex: Int, toIndex: Int): /* [fromIndex, toIndex) */ IMList<A> // 	A sequence of elements from index f (from) to index u (until)
 
     fun fselect(atIxs: IMList<Int>): IMList<A> // 	A sequence of elements
     fun ftail(): IMList<A> // 	All elements after the first element

@@ -253,20 +253,36 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
             else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
         }
 
-        override fun <K, B : Any> fAND(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
-            TODO("Not yet implemented")
+        override fun <K, B : Any> fAND(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> = when (origin) {
+            is FBSTree<K,B> -> origin.fAND(src)
+            is FRBTree<K,B> -> origin.fAND(src)
+            is FKMap<K,B> -> origin.fAND(src)
+            is FKSet<K,B> -> origin.fAND(src)
+            else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${origin::class.simpleName ?: origin::class}")
         }
 
-        override fun <K, B : Any> fNOT(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
-            TODO("Not yet implemented")
+        override fun <K, B : Any> fNOT(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> = when (origin) {
+            is FBSTree<K,B> -> origin.fNOT(src)
+            is FRBTree<K,B> -> origin.fNOT(src)
+            is FKMap<K,B> -> origin.fNOT(src)
+            is FKSet<K,B> -> origin.fNOT(src)
+            else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${origin::class.simpleName ?: origin::class}")
         }
 
-        override fun <K, B : Any> fOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
-            TODO("Not yet implemented")
+        override fun <K, B : Any> fOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> = when (origin) {
+            is FBSTree<K,B> -> origin.fOR(src)
+            is FRBTree<K,B> -> origin.fOR(src)
+            is FKMap<K,B> -> origin.fOR(src)
+            is FKSet<K,B> -> origin.fOR(src)
+            else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${origin::class.simpleName ?: origin::class}")
         }
 
-        override fun <K, B : Any> fXOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> {
-            TODO("Not yet implemented")
+        override fun <K, B : Any> fXOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K> = when (origin) {
+            is FBSTree<K,B> -> origin.fXOR(src)
+            is FRBTree<K,B> -> origin.fXOR(src)
+            is FKMap<K,B> -> origin.fXOR(src)
+            is FKSet<K,B> -> origin.fXOR(src)
+            else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${origin::class.simpleName ?: origin::class}")
         }
     }
 }
@@ -290,9 +306,9 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
     companion object: IMOrderedAltering {
 
         override fun <A : Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>? = when (dest) {
-            is FList<A> -> TODO()
-            is FQueue<A> -> TODO()
-            is FStack<A> -> TODO()
+            is FList<A> -> dest.fprepend(src)
+            is FQueue<A> -> dest.fenqueue(src)
+            is FStack<A> -> dest.fpush(src)
             else -> throw RuntimeException("internal error, unknown ${IMOrdered::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
         }
 

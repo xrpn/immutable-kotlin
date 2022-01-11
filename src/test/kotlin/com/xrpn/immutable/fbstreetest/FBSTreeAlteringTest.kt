@@ -425,4 +425,21 @@ class FBSTreeAlteringTest : FunSpec({
         slideShareTree.toGeneric().postorder() shouldBe slideShareTreeLoose.postorder()
     }
 
+
+    test("fAND") {
+        TODO()
+    }
+
+    test("fNOT") {
+        TODO()
+    }
+
+    test("fOR") {
+        TODO()
+    }
+
+    test("fXOR") {
+        TODO()
+    }
+
 })

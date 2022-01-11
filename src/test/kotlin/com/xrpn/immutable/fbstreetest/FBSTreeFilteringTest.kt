@@ -475,21 +475,4 @@ class FBSTreeFilteringTest : FunSpec({
         }
     }
 
-
-    test("fAND") {
-        TODO()
-    }
-
-    test("fNOT") {
-        TODO()
-    }
-
-    test("fOR") {
-        TODO()
-    }
-
-    test("fXOR") {
-        TODO()
-    }
-
 })

@@ -75,4 +75,11 @@ class FKSetNISKTest : FunSpec({
         (FKSetIterator(copaSSetOf3).toIMKSet(StrKeyType) === copaSSetOf3) shouldBe true
     }
 
+    test ("logic") {
+        copaISetOf3.fNOT(copaISetOf4).fempty() shouldBe true
+        copaISetOf3.fOR(copaISetOf4).equals(copaKKSetOf4) shouldBe true
+        copaKKSetOf3.fXOR(copaKKSetOf4).fsize() shouldBe 1
+        copaISetOf4.fAND(copaISetOf3).equals(copaISetOf3) shouldBe true
+    }
+
 })
