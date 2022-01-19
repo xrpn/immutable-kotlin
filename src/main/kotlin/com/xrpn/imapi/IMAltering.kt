@@ -6,31 +6,31 @@ interface IMWritable {
     fun <A: Any> fadd(src: A, dest: IMCommon<A>): IMCommon<A>?
 }
 
-interface IMOrderedWritable {
-    fun <A: Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
+interface IMOrderedWritable<A: Any> {
+    fun fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
 }
 
-interface IMOrderedAltering: IMOrderedWritable {
-    override fun <A: Any> fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
-    fun <A: Any> faddAll(src: IMCommon<A>, dest: IMOrdered<A>): IMOrdered<A> =
+interface IMOrderedAltering<A: Any>: IMOrderedWritable<A> {
+    override fun fadd(src: A, dest: IMOrdered<A>): IMOrdered<A>?
+    fun faddAll(src: IMCommon<A>, dest: IMOrdered<A>): IMOrdered<A> =
         src.ffold(dest) { imkv, tkv -> fadd(tkv, imkv)?.let { it } ?: imkv }
 }
 
-interface IMKeyedValueWritable {
-    fun <K, B: Any> fadd(src: TKVEntry<K,B>, dest: IMKeyedValue<K, B>): IMKeyedValue<K, B>? where K: Any, K: Comparable<K>
+interface IMKeyedValueWritable<K, V: Any> where K: Any, K: Comparable<K> {
+    fun fadd(src: TKVEntry<K,V>, dest: IMKeyedValue<K, V>): IMKeyedValue<K, V>? 
 }
 
-interface IMKeyedValueLogic {
-    fun <K, B: Any> fAND(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K>
-    fun <K, B: Any> fNOT(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K>
-    fun <K, B: Any> fOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K>
-    fun <K, B: Any> fXOR(src: IMKeyedValue<K, B>, origin: IMKeyedValue<K, B>): IMKeyedValue<K, B> where K: Any, K: Comparable<K>
+interface IMKeyedValueLogic<K, V: Any> where K: Any, K: Comparable<K> {
+    fun fAND(src: IMKeyedValue<K, V>, origin: IMKeyedValue<K, V>): IMKeyedValue<K, V>
+    fun fNOT(src: IMKeyedValue<K, V>, origin: IMKeyedValue<K, V>): IMKeyedValue<K, V>
+    fun fOR(src: IMKeyedValue<K, V>, origin: IMKeyedValue<K, V>): IMKeyedValue<K, V>
+    fun fXOR(src: IMKeyedValue<K, V>, origin: IMKeyedValue<K, V>): IMKeyedValue<K, V>
 }
 
-interface IMKeyedValueAltering: IMKeyedValueWritable, IMKeyedValueLogic  {
-    override fun <A, B: Any> fadd(src: TKVEntry<A, B>, dest: IMKeyedValue<A, B>): IMKeyedValue<A, B>? where A: Any, A: Comparable<A>
-    fun <A, B: Any> faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMKeyedValue<A, B>): IMKeyedValue<A, B> where A: Any, A: Comparable<A> =
-        src.ffold(dest) { imkv, tkv -> fadd(tkv, imkv)?.let { it } ?: imkv }
+interface IMKeyedValueAltering<K, V: Any>: IMKeyedValueWritable<K,V>, IMKeyedValueLogic<K,V> where K: Any, K: Comparable<K> {
+    override fun fadd(src: TKVEntry<K, V>, dest: IMKeyedValue<K, V>): IMKeyedValue<K, V>?
+    fun faddAll(src: IMCommon<TKVEntry<K, V>>, dest: IMKeyedValue<K, V>): IMKeyedValue<K, V> =
+        src.ffold(dest) { imkv, tkv -> fadd(tkv, imkv) ?: imkv }
 }
 
 interface IMListWritable: IMWritable {
@@ -72,19 +72,19 @@ interface IMSetWritable: IMWritable { // }: IMWritable<A> {
     fun <A> faddcUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?> where A: Any, A: Comparable<@UnsafeVariance A>
 }
 
-internal interface IMKSetLogic {
-    fun <K, A: Any> fAND(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A> where K: Any, K: Comparable<K>
-    fun <K, A: Any> fNOT(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A> where K: Any, K: Comparable<K>
-    fun <K, A: Any> fOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A> where K: Any, K: Comparable<K>
-    fun <K, A: Any> fXOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A> where K: Any, K: Comparable<K>
+internal interface IMKSetLogic<K,A:Any> where K: Any, K: Comparable<K> {
+    fun fAND(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A>
+    fun fNOT(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A>
+    fun fOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A>
+    fun fXOR(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K,A>
 }
 
-internal interface IMKSetWritable: IMKeyedValueWritable {
-    override fun <K, A: Any> fadd(src: TKVEntry<K,A>, dest: IMKeyedValue<K, A>): IMKSetNotEmpty<K, A>? where K: Any, K: Comparable<K>
-    fun <K, A: Any> faddUniq(src: TKVEntry<K,A>, dest: IMKSet<K,A>): Pair<Boolean, IMKSetNotEmpty<K, A>> where K: Any, K: Comparable<K>
-    fun <K, A: Any> faddUniqs(src: IMCommon<TKVEntry<K,A>>, dest: IMKSet<K,A>): Pair<Int, IMKSetNotEmpty<K, A>?> where K: Any, K: Comparable<K>
-    fun <K> faddkUniq(src: TKVEntry<K,K>, dest: IMKSet<K,K>): Pair<Boolean, IMKSetNotEmpty<K,K>> where K: Any, K: Comparable<K>
-    fun <K> faddkUniqs(src: IMCommon<TKVEntry<K,K>>, dest: IMKSet<K,K>): Pair<Int, IMKSetNotEmpty<K,K>?> where K: Any, K: Comparable<K>
+internal interface IMKSetAltering<K,A:Any>: IMKeyedValueWritable<K,A> where K: Any, K: Comparable<K> {
+    override fun fadd(src: TKVEntry<K,A>, dest: IMKeyedValue<K, A>): IMKSetNotEmpty<K, A>?
+    fun faddUniq(src: TKVEntry<K,A>, dest: IMKSet<K,A>): Pair<Boolean, IMKSetNotEmpty<K, A>>
+    fun faddUniqs(src: IMCommon<TKVEntry<K,A>>, dest: IMKSet<K,A>): Pair<Int, IMKSetNotEmpty<K, A>?>
+    fun faddkUniq(src: TKVEntry<K,K>, dest: IMKSet<K,K>): Pair<Boolean, IMKSetNotEmpty<K,K>>
+    fun faddkUniqs(src: IMCommon<TKVEntry<K,K>>, dest: IMKSet<K,K>): Pair<Int, IMKSetNotEmpty<K,K>?>
 }
 
 interface IMMapAltering<out K, out V: Any> /* : IMWritable<TKVEntry<K,V>> */ where K: Any, K: Comparable<@UnsafeVariance K> {
@@ -96,16 +96,16 @@ interface IMMapAltering<out K, out V: Any> /* : IMWritable<TKVEntry<K,V>> */ whe
 //    override fun fadd(item: TKVEntry<@UnsafeVariance K, @UnsafeVariance V>): IMMap<K,V>
 }
 
-interface IMBTreeLogic {
-    fun <A, B : Any> fAND(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A : Any, A : Comparable<A>
-    fun <A, B : Any> fNOT(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A : Any, A : Comparable<A>
-    fun <A, B : Any> fOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A : Any, A : Comparable<A>
-    fun <A, B : Any> fXOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B> where A : Any, A : Comparable<A>
+interface IMBTreeLogic<A,B: Any>  where A: Any, A: Comparable<A> {
+    fun fAND(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B>
+    fun fNOT(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B>
+    fun fOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B>
+    fun fXOR(src: IMKeyedValue<A, B>, origin: IMBTree<A, B>): IMBTree<A, B>
 }
 
-interface IMBTreeAltering: IMKeyedValueWritable {
-    override fun <A, B: Any> fadd(src: TKVEntry<A,B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>? where A: Any, A: Comparable<A>
-    fun <A, B: Any> fadd(src: TKVEntry<A, B>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
-    fun <A, B: Any> finserts(src: IMKeyedValue<A, B>, dest: IMBTree<A, B>): IMBTree<A, B> where A: Any, A: Comparable<A>
+interface IMBTreeAltering<A,B:Any>: IMKeyedValueWritable<A,B> where A: Any, A: Comparable<A> {
+    override fun fadd(src: TKVEntry<A,B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>?
+    fun fadd(src: TKVEntry<A, B>, dest: IMBTree<A, B>): IMBTree<A, B>
+    fun faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMBTree<A, B>): IMBTree<A, B>
+    fun finserts(src: IMKeyedValue<A, B>, dest: IMBTree<A, B>): IMBTree<A, B>
 }

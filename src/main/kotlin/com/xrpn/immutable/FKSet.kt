@@ -480,7 +480,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
                 val (pop, remainder) = shrink.fpopAndRemainder()
                 val newAcc: IMBTree<Z, Pair<A, B>> = pop?.let{
                     val aux: IMBTree<Z, Pair<A, B>> = if(stay.fempty()) acc
-                        else IMBTree.finserts ( stay.ffold(nul()) { frb: FRBTree<Z, Pair<A, B>>, a -> frb.finsertTkv(toEntry(Pair(it, a))) }, acc)
+                        else acc.tibBTree<Z, Pair<A, B>>()!!.finserts ( stay.ffold(nul()) { frb: FRBTree<Z, Pair<A, B>>, a -> frb.finsertTkv(toEntry(Pair(it, a))) }, acc)
                     aux
                 } ?: acc
                 go(remainder, stay, newAcc, toEntry)
@@ -519,7 +519,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
                 current == null -> acc
                 current.getv().fsize() < maxSize -> {
                     val maybeAugmented: FKSet<K, A> = current.getv().fOR(item)
-                    val newAcc: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(maybeAugmented), acc)
+                    val newAcc: IMBTree<Z, FKSet<K, A>> = acc.tibBTree<Z, FKSet<K, A>>()!!.fadd(setToEntry(maybeAugmented), acc)
                     permuteSource(item, remainder, newAcc, setToEntry)
                 }
                 else -> permuteSource(item, remainder, acc, setToEntry)
@@ -537,7 +537,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
                 val newAcc: IMBTree<Z, FKSet<K, A>> = current.let {
                     val setOfIt: FKSet<K, A> = FRBTree.of(aToEntry(it)).toIMSet(null)!!
                     check(!setOfIt.fempty())
-                    val outer: IMBTree<Z, FKSet<K, A>> = IMBTree.fadd(setToEntry(setOfIt), acc)
+                    val outer: IMBTree<Z, FKSet<K, A>> = acc.tibBTree<Z, FKSet<K, A>>()!!.fadd(setToEntry(setOfIt), acc)
                     @Suppress("UNCHECKED_CAST") (setOfIt as IMKSetNotEmpty<K, A>)
                     permuteSource(setOfIt, outer, outer, setToEntry)
                 }
@@ -568,7 +568,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
             return when {
                 current == null -> acc
                 current.getv().fsize() < maxSize -> {
-                    val maybeAugmented: FKSet<K, A> =  @Suppress("UNCHECKED_CAST") (IMBTree
+                    val maybeAugmented: FKSet<K, A> =  @Suppress("UNCHECKED_CAST") (current.getv().body.tibBTree<K,A>()!!
                         .finserts(item.asIMBTree(), current.getv().body)
                         .toIMSet(current.getv().fkeyTypeOrNull()!!)!! as FKSet<K,A>)
                     val newAcc: FList<FKSet<K,A>> = if (acc.fcontains(maybeAugmented)) acc else FList.fadd(maybeAugmented, acc)!!
@@ -748,7 +748,7 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
 
     override fun <B: Any> fflatMap(f: (A) -> IMSet<B>): IMSet<B> {
 
-        fun <J, T: Any> flatten(acc: IMKeyedValue<J, T>, item: IMKeyedValue<Nothing, T>): IMKeyedValue<J, T> where J: Comparable<J> = IMKeyedValue.fOR(item, acc)
+        fun <J, T: Any> flatten(acc: IMKeyedValue<J, T>, item: IMKeyedValue<Nothing, T>): IMKeyedValue<J, T> where J: Comparable<J> = acc.tibKv<J,T>()!!.fOR(item, acc)
 
         val notEmpties: FList<IMKSet<*, B>> = body.ffold(emptyIMList<IMKSet<*,B>>()) { acc: FList<IMKSet<*, B>>, tkv: TKVEntry<K, A> ->
             val newItem: IMKSet<*, B> = f(tkv.getv()) as IMKSet<*, B>
@@ -1279,6 +1279,15 @@ internal abstract class FKSetEmpty<K, A: Any> protected constructor (
     override fun fsize() = 0
     override operator fun contains(element: @UnsafeVariance A): Boolean = false
 
+    // type invariant functionality
+    internal val tif: IMKSetInvariant<@UnsafeVariance K, @UnsafeVariance A> by lazy {
+        IMKSet.typeInvariantBuilder()
+    }
+
+    override fun <KK, AA: Any> tibKSet(): IMKSetInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tif as? IMKSetInvariant<KK,AA>)
+
+
     companion object {
         const val msg = "never to be implemented (internal error)"
     }
@@ -1366,6 +1375,15 @@ private class FIKSetNotEmpty<out A: Any> private constructor (
 
     fun toFSKSetNotEmpty(): FKSet<String, A> =
         ofFSKSBody(this.ffold(nul()) { acc, item -> acc.finsertTkv(ofStrKey(item)) })
+
+    // type invariant functionality
+    val tif: IMKSetInvariant<Int, @UnsafeVariance A> by lazy {
+        IMKSet.typeInvariantBuilder()
+    }
+
+    override fun <KK, AA: Any> tibKSet(): IMKSetInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tif as? IMKSetInvariant<KK,AA>)
+
 
     companion object {
         internal fun <A: Any> of(b: FRBTINode<A>): FKSet<Int, A> = FIKSetNotEmpty(b)
@@ -1462,6 +1480,14 @@ private class FSKSetNotEmpty<out A: Any> private constructor (
     fun toFIKSetNotEmpty(): FKSet<Int, A> =
         ofFIKSBody(this.ffold(nul()) { acc, item -> acc.finsertTkv(ofIntKey(item)) })
 
+    // type invariant functionality
+    val tif: IMKSetInvariant<String, @UnsafeVariance A> by lazy {
+        IMKSet.typeInvariantBuilder()
+    }
+
+    override fun <KK, AA: Any> tibKSet(): IMKSetInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tif as? IMKSetInvariant<KK,AA>)
+
     companion object {
         internal fun <A: Any> of(b: FRBTSNode<A>): FKSet<String, A> = FSKSetNotEmpty(b)
     }
@@ -1502,9 +1528,8 @@ private class FKKSetEmpty<out A> private constructor (
         internal fun <A> empty(): FKSet<A, A> where A: Any, A: Comparable<@UnsafeVariance A> = singletonEmpty
     }
 
-    override fun <V : Any> toTKVEntry(v: V): TKVEntry<A, V>? {
-        TODO("Not yet implemented")
-    }
+    override fun <V : Any> toTKVEntry(v: V): TKVEntry<A, V>? =
+        null
 }
 
 private class FKKSetNotEmpty<out A> private constructor (
@@ -1606,9 +1631,9 @@ private class FKKSetNotEmpty<out A> private constructor (
         get() = { v -> v }
     override fun <V : Any> toTKVEntry(v: V): TKVEntry<A, V>? {
         val aux: RTKVEntry<A,A>? = when {
-            v is Int && rkt.kc == intKc -> (@Suppress("UNCHECKED_CAST") (v as? A))?.let{ it.toKKEntry() }
-            v is String && rkt.kc == strKc -> (@Suppress("UNCHECKED_CAST") (v as? A))?.let { it.toKKEntry() }
-            DeratedCustomKeyType(v::class).sameAs(rkt) -> (@Suppress("UNCHECKED_CAST") (v as? A))?.let { it.toKKEntry() }
+            v is Int && rkt.kc == intKc -> (@Suppress("UNCHECKED_CAST") (v as? A))?.toKKEntry()
+            v is String && rkt.kc == strKc -> (@Suppress("UNCHECKED_CAST") (v as? A))?.toKKEntry()
+            DeratedCustomKeyType(v::class).sameAs(rkt) -> (@Suppress("UNCHECKED_CAST") (v as? A))?.toKKEntry()
             v is RKTKVEntry<*, *> -> {
                 check(v.getrk() == rkt)
                 @Suppress("UNCHECKED_CAST") (v as? RTKVEntry<A, A>)
@@ -1628,6 +1653,14 @@ private class FKKSetNotEmpty<out A> private constructor (
 
     fun toFSKSetNotEmpty(): FKSet<String, A> = if (fpick()!! is String) @Suppress("UNCHECKED_CAST") (this as FKSet<String, A>)
         else ofFSKSBody(this.ffold(nul()) { acc, item -> acc.finsertTkv(ofStrKey(item)) })
+
+    // type invariant functionality
+    val tif: IMKSetInvariant<@UnsafeVariance A, @UnsafeVariance A> by lazy {
+        IMKSet.typeInvariantBuilder()
+    }
+
+    override fun <KK, AA: Any> tibKSet(): IMKSetInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tif as? IMKSetInvariant<KK,AA>)
 
     companion object {
         internal fun <A> of(b: FRBTKNode<A>): FKSet<A, A> where A: Any, A: Comparable<@UnsafeVariance A> = FKKSetNotEmpty(b)

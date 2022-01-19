@@ -74,6 +74,8 @@ fun <T: Any> IMCommon<T>?.toIMMapplicable(): ITMapp<T>? =
 
 inline infix fun <B, C, A> ((B) -> C).fKompose(crossinline f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
 
+fun <T> curry(a: T, bifunction: (T, T) -> T): (T) -> T = { b -> bifunction(a, b) }
+
 //infix fun <B : Any, C : Any, A : Any> (FMapp<A>).fmappKompose(fmapp: FMapp<B>): ((FMap<A>) -> FMap<B>) -> FMapp<C> {
 //    fun foo (arg1: ((FMap<B>) -> FMap<C>) -> FMapp<C>, arg2: ((FMap<A>) -> FMap<B>) -> FMapp<B>): ((FMap<A>) -> FMap<B>) -> FMapp<C> = { op: (FMap<A>) -> FMap<B> ->
 //        fmapp.fapp(this.fapp(op).asFMap())

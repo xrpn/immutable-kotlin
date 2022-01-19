@@ -521,6 +521,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     override fun asCollection(): Collection<TKVEntry<A, B>> {
         TODO("Not yet implemented")
     }
+
+    override fun <KK, AA : Any> tibBTree(): IMBTreeInvariant<KK, AA>? where KK: Any, KK : Comparable<KK> {
+        TODO("Not yet implemented")
+    }
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

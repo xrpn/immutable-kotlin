@@ -1,7 +1,6 @@
 package com.xrpn.immutable
 
 import com.xrpn.bridge.FStackIterator
-import com.xrpn.bridge.FTreeIterator
 import com.xrpn.imapi.*
 import com.xrpn.imapi.IMStackEqual2
 import com.xrpn.immutable.FList.Companion.toIMList
@@ -230,9 +229,12 @@ internal class FStackBody<out A: Any> private constructor (
             rhs.isEmpty() -> fempty()
             fsize() != rhs.size -> false
             fpick()!!.isStrictly(rhs.peek()!!) -> false
-            else -> rhs.equals(this)
+            else -> rhs.equals(this.asIterable())
         }
-        is IMOrdered<*> -> IMOrdered.softEqual(this,rhs)
+        is IMOrdered<*> -> {
+            val rhsAux = @Suppress("UNCHECKED_CAST") (rhs as? IMOrdered<A>)
+            rhsAux?.tibOrdered<A>()?.equal(this, rhs) ?: false
+        }
         else -> false
     }
 

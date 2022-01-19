@@ -132,7 +132,7 @@ internal fun <A, B: Any> IMBTreeEqual2(rhs: IMBTree<A, B>, lhs: IMBTree<A, B>) :
 
 }
 
-interface IMBTreeCompanion: IMBTreeAltering {
+interface IMBTreeCompanion {
 
     fun <A, B: Any> Map<A, B>.toIMBTree(): IMBTree<A, B> where A: Any, A: Comparable<A>
 
@@ -140,13 +140,13 @@ interface IMBTreeCompanion: IMBTreeAltering {
     fun <B: Any> fdeleteIK(t: IMBTree<Int,B>, item: B): IMBTree<Int,B> = t.fdropItem(TKVEntry.ofIntKey(item))
     fun <B: Any> ffindIK(t: IMBTree<Int,B>, item: B): IMBTree<Int,B>? = t.ffindItem(TKVEntry.ofIntKey(item))
     fun <B: Any> ffindLastIK(t: IMBTree<Int,B>, item: B): IMBTree<Int,B>? = t.ffindLastItem(TKVEntry.ofIntKey(item))
-    fun <B: Any> finsertIK(t: IMBTree<Int,B>, item: B): IMBTree<Int, B> = IMBTree.fadd(TKVEntry.ofIntKey(item),t)
+    fun <B: Any> finsertIK(t: IMBTree<Int,B>, item: B): IMBTree<Int, B> = t.tibBTree<Int,B>()!!.fadd(TKVEntry.ofIntKey(item),t)
 
     fun <B: Any> fcontainsSK(t: IMBTree<String,B>, item: B): Boolean = t.ffindItem(TKVEntry.ofStrKey(item)) != null
     fun <B: Any> fdeleteSK(t: IMBTree<String,B>, item: B): IMBTree<String,B> = t.fdropItem(TKVEntry.ofStrKey(item))
     fun <B: Any> ffindSK(t: IMBTree<String,B>, item: B): IMBTree<String,B>? = t.ffindItem(TKVEntry.ofStrKey(item))
     fun <B: Any> ffindLastSK(t: IMBTree<String,B>, item: B): IMBTree<String,B>? = t.ffindLastItem(TKVEntry.ofStrKey(item))
-    fun <B: Any> finsertSK(t: IMBTree<String,B>, item: B): IMBTree<String, B> = IMBTree.fadd(TKVEntry.ofStrKey(item),t)
+    fun <B: Any> finsertSK(t: IMBTree<String,B>, item: B): IMBTree<String, B> = t.tibBTree<String,B>()!!.fadd(TKVEntry.ofStrKey(item),t)
 }
 
 interface IMBTreeUniqCompanion: IMBTreeCompanion {

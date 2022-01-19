@@ -306,7 +306,7 @@ internal object FT {
         null == items.fpickKey() /* i.e. empty */ -> tn
         else -> {
             check(tn.fisStrictlyKeyed(items)!!)
-            items.asIMBTree().ffold(tn) { stub, tkv -> IMBTree.fadd(tkv, stub) as IMBTreeNotEmpty<K, A> }
+            items.asIMBTree().ffold(tn) { stub, tkv -> stub.tibBTree<K,A>()!!.fadd(tkv, stub) as IMBTreeNotEmpty<K, A> }
         }
     }
 
@@ -335,14 +335,6 @@ internal object FT {
         }
         else -> throw RuntimeException("internal error: unknown ${tn::class.simpleName ?: tn::class}")
     }
-}
-
-fun interface EqualsProxy {
-    override fun equals(other: Any?): Boolean
-}
-
-fun interface HashCodeProxy {
-    override fun hashCode(): Int
 }
 
 internal enum class FBTFIT {

@@ -212,6 +212,14 @@ sealed class FList<out A: Any>: IMList<A> {
         return go(this, items, emptyIMList()).freverse()
     }
 
+    // type invariant functionality
+    internal val tif: IMOrderedInvariant<@UnsafeVariance A> by lazy {
+        IMOrdered.typeInvariantBuilder()
+    }
+
+    override fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tif as? IMOrderedInvariant<B>)
+
     // IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): FList<B> {
@@ -876,9 +884,12 @@ data class FLCons<out A: Any>(
         is IMOrdered<*> -> when {
             rhs.fempty() -> false
             fsize() != rhs.fsize() -> false
-            else -> IMOrdered.equal(this,rhs)
+            else -> {
+                val aux = @Suppress("UNCHECKED_CAST") (tif as? IMOrdered<A>)
+                aux?.let{ tif.equal(this, it) } ?: false
+            }
         }
-        is List<*> -> IMOrdered.softEqual(this,rhs)
+        is List<*> -> rhs.equals(asList())
         else -> false
     }
 

@@ -495,9 +495,12 @@ internal class FQueueBody<out A: Any> private constructor(
             rhs.isEmpty() -> fempty()
             fsize() != rhs.size -> false
             fpick()!!.isStrictlyNot(rhs.peek()!!) -> false
-            else -> rhs.equals(this)
+            else -> rhs.equals(this.asIterable())
         }
-        is IMOrdered<*> -> IMOrdered.softEqual(this,rhs)
+        is IMOrdered<*> -> {
+            val rhsAux = @Suppress("UNCHECKED_CAST") (rhs as? IMOrdered<A>)
+            rhsAux?.tibOrdered<A>()?.equal(this, rhs) ?: false
+        }
         else -> false
     }
 

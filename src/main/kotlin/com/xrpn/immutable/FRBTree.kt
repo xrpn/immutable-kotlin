@@ -473,6 +473,14 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         }
     }
 
+    // type invariant functionality
+    internal val tif: IMBTreeInvariant<@UnsafeVariance A, @UnsafeVariance B> by lazy {
+        IMBTree.typeInvariantBuilder()
+    }
+
+    override fun <KK, AA: Any> tibBTree(): IMBTreeInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tif as? IMBTreeInvariant<KK,AA>)
+
     // =========== altering
 
     internal fun finsertTkv(item: TKVEntry<@UnsafeVariance A, @UnsafeVariance B>): FRBTree<A, B> =
@@ -606,40 +614,40 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
             return res
         }
 
-        override fun <A, B : Any> fadd(
-            src: TKVEntry<A, B>,
-            dest: IMKeyedValue<A, B>
-        ): FRBTree<A, B>? where A:Any, A: Comparable<A> = when (dest) {
-            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
-            else -> null
-        }
-
-        override fun <A, B : Any> fadd(
-            src: TKVEntry<A, B>,
-            dest: IMBTree<A, B>
-        ): FRBTree<A, B> where A:Any, A: Comparable<A>  = when (dest) {
-            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
-            is FBSTree<A,B> -> IMKeyedValue.fadd(src,dest.toFRBTree()) as FRBTree<A,B>
-            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
-        }
-
-        override fun <A, B : Any> faddAll(
-            src: IMCommon<TKVEntry<A, B>>,
-            dest: IMBTree<A, B>
-        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
-            is FRBTree<A,B> -> IMKeyedValue.faddAll(src,dest) as FRBTree<A,B>
-            is FBSTree<A,B> -> IMKeyedValue.faddAll(src,dest.toFRBTree()) as FRBTree<A,B>
-            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
-        }
-
-        override fun <A, B : Any> finserts(
-            src: IMKeyedValue<A, B>,
-            dest: IMBTree<A, B>
-        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
-            is FRBTree<A,B> -> IMBTree.finserts(src,dest) as FRBTree<A,B>
-            is FBSTree<A,B> -> IMBTree.finserts(src,dest.toFRBTree()) as FRBTree<A,B>
-            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
-        }
+//        override fun <A, B : Any> fadd(
+//            src: TKVEntry<A, B>,
+//            dest: IMKeyedValue<A, B>
+//        ): FRBTree<A, B>? where A:Any, A: Comparable<A> = when (dest) {
+//            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
+//            else -> null
+//        }
+//
+//        override fun <A, B : Any> fadd(
+//            src: TKVEntry<A, B>,
+//            dest: IMBTree<A, B>
+//        ): FRBTree<A, B> where A:Any, A: Comparable<A>  = when (dest) {
+//            is FRBTree<A,B> -> IMKeyedValue.fadd(src,dest) as FRBTree<A,B>
+//            is FBSTree<A,B> -> IMKeyedValue.fadd(src,dest.toFRBTree()) as FRBTree<A,B>
+//            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+//        }
+//
+//        override fun <A, B : Any> faddAll(
+//            src: IMCommon<TKVEntry<A, B>>,
+//            dest: IMBTree<A, B>
+//        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
+//            is FRBTree<A,B> -> IMKeyedValue.faddAll(src,dest) as FRBTree<A,B>
+//            is FBSTree<A,B> -> IMKeyedValue.faddAll(src,dest.toFRBTree()) as FRBTree<A,B>
+//            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+//        }
+//
+//        override fun <A, B : Any> finserts(
+//            src: IMKeyedValue<A, B>,
+//            dest: IMBTree<A, B>
+//        ): FRBTree<A, B> where A:Any, A: Comparable<A> = when (dest) {
+//            is FRBTree<A,B> -> IMBTree.finserts(src,dest) as FRBTree<A,B>
+//            is FBSTree<A,B> -> IMBTree.finserts(src,dest.toFRBTree()) as FRBTree<A,B>
+//            else -> throw RuntimeException("internal error, unknown ${IMBTree::class.simpleName}: ${dest::class.simpleName ?: dest::class}")
+//        }
 
         // =============== top level type-specific implementation
 
@@ -1098,7 +1106,7 @@ internal object FRBTNil: FRBTree<Nothing, Nothing>() {
     override fun softEqual(rhs: Any?): Boolean = equals(rhs) || when (rhs) {
         is IMBTree<*, *> -> rhs.fempty()
         // is IMCommon<*> -> IMCommonEmpty.equal(rhs)
-        is Collection<*> -> IMBTree.softEqual(this, rhs)
+        // is Collection<*> -> IMBTree.softEqual(this, rhs)
         else -> false
     }
 }
@@ -1153,7 +1161,7 @@ internal open class FRBTNode<A, B: Any> protected constructor (
     }
 
     override fun softEqual(rhs: Any?): Boolean =
-        IMBTree.softEqual(this,rhs)
+        tif.softEqual(this,rhs)
 
     val hash:Int by lazy {
         check(!fempty())

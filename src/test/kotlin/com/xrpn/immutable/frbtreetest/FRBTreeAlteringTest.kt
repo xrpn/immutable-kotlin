@@ -24,12 +24,12 @@ class FRBTreeAlteringTest : FunSpec({
     val repeatsMid = Pair(25, 500)
     val repeatsLow = Pair(2, 40000)
 
-    val verbose = true
+    val verbose = false
 
     fun displayRbOnVerbose(rbTree: IMBTree<Int, Int>, n: Int, force: Boolean = false) {
         if (verbose || !FRBTree.rbRootInvariant(rbTree as FRBTree<Int, Int>) || force) {
             print("FF size " + n)
-            print(", expected depth ${FRBTree.rbMaxDepth(n)}")
+            print(", expected greatest depth ${FRBTree.rbMaxDepth(n)}")
             print(", max depth " + rbTree.fmaxDepth())
             println(", min depth " + rbTree.fminDepth())
             // println("$rbTree")

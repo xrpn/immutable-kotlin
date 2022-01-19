@@ -4,7 +4,6 @@ import com.xrpn.bridge.FKSetIterator
 import com.xrpn.hash.JohnsonTrotter
 import com.xrpn.hash.JohnsonTrotter.smallFact
 import com.xrpn.imapi.*
-import com.xrpn.imapi.IMOrdered.Companion.unorderedEqual
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FKSet.Companion.ofi
@@ -157,49 +156,52 @@ class FKSetGroupingTest : FunSpec({
         intSSetOfOne.fcombinations(1).equal(of(intSSetOfOne)) shouldBe true
         intSSetOfOne.fcombinations(2).equal(of(intSSetOfOne)) shouldBe true
 
-        val iorai2ii = of(ofi(1), ofi(2))
-        val iorai2si = of(ofs(1), ofi(2)) // this is a variance abomination
-        val iorai3iii = of(ofi(1), ofi(2), ofi(1, 2))
-        val iorai3isi = of(ofi(1), ofs(2), ofi(1, 2))
-        val sorai2ii = of(ofi("1"), ofi("2"))
-        val sorai2si = of(ofs("1"), ofi("2"))
-        val sorai3iii = of(ofi("1"), ofi("2"), ofi("1", "2"))
-        val sorai3isi = of(ofi("1"), ofs("2"), ofi("1", "2"))
+        val iorai2ii: FList<IMSet<Int>> = of(ofi(1), ofi(2))
+        val iorai2si: FList<IMSet<Int>> = of(ofs(1), ofi(2)) // this is a variance abomination
+        val iorai3iii: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(1, 2))
+        val iorai3isi: FList<IMSet<Int>> = of(ofi(1), ofs(2), ofi(1, 2))
+        val sorai2ii: FList<IMSet<String>> = of(ofi("1"), ofi("2"))
+        val sorai2si: FList<IMSet<String>> = of(ofs("1"), ofi("2"))
+        val sorai3iii: FList<IMSet<String>> = of(ofi("1"), ofi("2"), ofi("1", "2"))
+        val sorai3isi: FList<IMSet<String>> = of(ofi("1"), ofs("2"), ofi("1", "2"))
 
-        unorderedEqual(intKKSetOfTwo.fcombinations(1), iorai2ii) shouldBe true
-        unorderedEqual(intKKSetOfTwo.fcombinations(1),iorai2si) shouldBe true
-        unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3iii) shouldBe true
-        unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+        iorai2ii.tif. unorderedEqual(intKKSetOfTwo.fcombinations(1), iorai2ii) shouldBe true
+        iorai2si.tif. unorderedEqual(intKKSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        iorai3iii.tif.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3iii) shouldBe true
+        iorai3isi.tif.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
 
-        unorderedEqual(strISetOfTwo.fcombinations(1),sorai2ii) shouldBe true
-        unorderedEqual(strISetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        unorderedEqual(strISetOfTwo.fcombinations(2),sorai3isi) shouldBe true
-        unorderedEqual(strISetOfTwo.fcombinations(3),sorai3iii) shouldBe true
+        sorai2ii.tif. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2ii) shouldBe true
+        sorai2si.tif. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai3iii.tif.unorderedEqual(strISetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        sorai3isi.tif.unorderedEqual(strISetOfTwo.fcombinations(3),sorai3iii) shouldBe true
 
-        unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2ii) shouldBe true
-        unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2si) shouldBe true
-        unorderedEqual(intSSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
-        unorderedEqual(intSSetOfTwo.fcombinations(3),iorai3iii) shouldBe true
+        iorai2ii.tif. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2ii) shouldBe true
+        iorai2si.tif. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        iorai3iii.tif.unorderedEqual(intSSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+        iorai3isi.tif.unorderedEqual(intSSetOfTwo.fcombinations(3),iorai3iii) shouldBe true
 
-        unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        unorderedEqual(strKKSetOfTwo.fcombinations(2),sorai3isi) shouldBe true
-        unorderedEqual(strKKSetOfTwo.fcombinations(3),sorai3iii) shouldBe true
+        sorai2ii.tif. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai2si.tif. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai3iii.tif.unorderedEqual(strKKSetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        sorai3isi.tif.unorderedEqual(strKKSetOfTwo.fcombinations(3),sorai3iii) shouldBe true
     }
 
     test("fcombinations") {
-        unorderedEqual(intKKSetOfThree.fcombinations(1),of(ofi(1), ofi(2), ofi(3))) shouldBe true
-        val oracleA = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2))
-        unorderedEqual(intKKSetOfThree.fcombinations(2),oracleA) shouldBe true
-        val oracleB = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2), ofi(3, 1, 2))
-        unorderedEqual(intKKSetOfThree.fcombinations(3), oracleB) shouldBe true
-        unorderedEqual(intKKSetOfThree.fcombinations(4), oracleB) shouldBe true
+        val oracleA: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2))
+        oracleA.tif.unorderedEqual(intKKSetOfThree.fcombinations(2),oracleA) shouldBe true
+        val oracleB: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2), ofi(3, 1, 2))
+        oracleB.tif.unorderedEqual(intKKSetOfThree.fcombinations(3), oracleB) shouldBe true
+        oracleB.tif.unorderedEqual(intKKSetOfThree.fcombinations(4), oracleB) shouldBe true
+        val oracleX: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3))
+        oracleX.tif.unorderedEqual(intKKSetOfThree.fcombinations(1),oracleX) shouldBe true
 
-        unorderedEqual(intKKSetOfFour.fcombinations(1),of(ofi(1), ofi(2), ofi(3), ofi(4))) shouldBe true
-        unorderedEqual(intKKSetOfFour.fcombinations(2), oracleC.asSet()) shouldBe true
-        unorderedEqual(intKKSetOfFour.fcombinations(3), oracleD.asSet()) shouldBe true
-        unorderedEqual(intKKSetOfFour.fcombinations(4), oracleE.asSet()) shouldBe true
-        unorderedEqual(intKKSetOfFour.fcombinations(5), oracleE.asSet()) shouldBe true
+        val oracleY: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(4))
+        oracleY.tif.unorderedEqual(intKKSetOfFour.fcombinations(1),oracleY) shouldBe true
+        val archetype: IMList<IMSet<Int>> = intKKSetOfFour.fcombinations(2)
+        archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(2), oracleC.asSet()) shouldBe true
+        archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(3), oracleD.asSet()) shouldBe true
+        archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(4), oracleE.asSet()) shouldBe true
+        archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(5), oracleE.asSet()) shouldBe true
 
         intKKSetOfFive.fcombinations(0).fsize() shouldBe 0
 
@@ -363,44 +365,44 @@ class FKSetGroupingTest : FunSpec({
         (intKKSetOfThree.fpermutations(0) === emptyIMList<FList<Int>>()) shouldBe true
         val threeByOneKK = intKKSetOfThree.fpermutations(1)
         threeByOneKK.fsize() shouldBe 3 // 3! / (3-1)!
-        val threeByTwoKKI = intKKSetOfThree.fpermutations(2)
-        unorderedEqual(threeByTwoKKI,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
+        val threeByTwoKKI: IMList<IMList<Int>> = intKKSetOfThree.fpermutations(2)
+        threeByTwoKKI.tibOrdered<IMList<Int>>()!!.unorderedEqual(threeByTwoKKI,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
         threeByTwoKKI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKI = intKKSetOfThree.fpermutations(3)
-        unorderedEqual(threeByThreeKKI,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
+        threeByTwoKKI.tibOrdered<IMList<Int>>()!!.unorderedEqual(threeByThreeKKI,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeKKI.fsize() shouldBe 6 // 3! / (3-3)!
         intKKSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
         intSSetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneS = intSSetOfThree.fpermutations(1)
         threeByOneS.fsize() shouldBe 3 // 3! / (3-1)!
-        val threeByTwoS = intSSetOfThree.fpermutations(2)
-        unorderedEqual(threeByTwoS,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
+        val threeByTwoS: IMList<IMList<Int>> = intSSetOfThree.fpermutations(2)
+        threeByTwoS.tibOrdered<IMList<Int>>()!!.unorderedEqual(threeByTwoS,of(FList.of(1,2),FList.of(1,3),FList.of(2,3),FList.of(2,1),FList.of(3,1),FList.of(3,2))) shouldBe true
         threeByTwoS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeS = intSSetOfThree.fpermutations(3)
-        unorderedEqual(threeByThreeS,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
+        threeByTwoS.tibOrdered<IMList<Int>>()!!.unorderedEqual(threeByThreeS,of(FList.of(1,2,3),FList.of(1,3,2),FList.of(2,3,1),FList.of(2,1,3),FList.of(3,1,2),FList.of(3,2,1))) shouldBe true
         threeByThreeS.fsize() shouldBe 6 // 3! / (3-3)!
         intSSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
         strKKSetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneKKS = strKKSetOfThree.fpermutations(1)
         threeByOneKKS.fsize() shouldBe 3 // 3! / (3-1)!
-        val threeByTwoKKS = strKKSetOfThree.fpermutations(2)
-        unorderedEqual(threeByTwoKKS,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
+        val threeByTwoKKS: IMList<IMList<String>> = strKKSetOfThree.fpermutations(2)
+        threeByTwoKKS.tibOrdered<IMList<String>>()!!.unorderedEqual(threeByTwoKKS,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
         threeByTwoKKS.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeKKS = strKKSetOfThree.fpermutations(3)
-        unorderedEqual(threeByThreeKKS,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
+        threeByTwoKKS.tibOrdered<IMList<String>>()!!.unorderedEqual(threeByThreeKKS,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeKKS.fsize() shouldBe 6 // 3! / (3-3)!
         strKKSetOfThree.fpermutations(4) shouldBe emptyIMList()
 
         strISetOfThree.fpermutations(0) shouldBe emptyIMList()
         val threeByOneI = strISetOfThree.fpermutations(1)
         threeByOneI.fsize() shouldBe 3 // 3! / (3-1)!
-        val threeByTwoI = strISetOfThree.fpermutations(2)
-        unorderedEqual(threeByTwoI,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
+        val threeByTwoI: IMList<IMList<String>> = strISetOfThree.fpermutations(2)
+        threeByTwoI.tibOrdered<IMList<String>>()!!.unorderedEqual(threeByTwoI,of(FList.of("1","2"),FList.of("1","3"),FList.of("2","3"),FList.of("2","1"),FList.of("3","1"),FList.of("3","2"))) shouldBe true
         threeByTwoI.fsize() shouldBe 6 // 3! / (3-2)!
         val threeByThreeI = strISetOfThree.fpermutations(3)
-        unorderedEqual(threeByThreeI,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
+        threeByTwoI.tibOrdered<IMList<String>>()!!.unorderedEqual(threeByThreeI,of(FList.of("1","2","3"),FList.of("1","3","2"),FList.of("2","3","1"),FList.of("2","1","3"),FList.of("3","1","2"),FList.of("3","2","1"))) shouldBe true
         threeByThreeI.fsize() shouldBe 6 // 3! / (3-3)!
         strISetOfThree.fpermutations(4) shouldBe emptyIMList()
     }
@@ -413,8 +415,8 @@ class FKSetGroupingTest : FunSpec({
         (intKKSetOfFour.fpermutations(0) === emptyIMList<FList<Int>>()) shouldBe true
         val fourByOne = intKKSetOfFour.fpermutations(1)
         fourByOne.fsize() shouldBe 4 // 4! / (4-1)!
-        val fourByTwo = intKKSetOfFour.fpermutations(2)
-        unorderedEqual(fourByTwo,oracleF.asSet()) shouldBe true
+        val fourByTwo: IMList<IMList<Int>> = intKKSetOfFour.fpermutations(2)
+        fourByTwo.tibOrdered<IMList<Int>>()!!.unorderedEqual(fourByTwo,oracleF.asSet()) shouldBe true
         fourByTwo.fsize() shouldBe 12 // 4! / (4-2)!
         val fourByThree = intKKSetOfFour.fpermutations(3)
         fourByThree.fsize() shouldBe 24 // 4! / (4-3)!
@@ -427,7 +429,7 @@ class FKSetGroupingTest : FunSpec({
         fiveByOne.fsize() shouldBe 5 // 5! / (5-1)!
         val fiveByTwo = intKKSetOfFive.fpermutations(2)
         fiveByTwo.fsize() shouldBe 20 // 5! / (5-2)!
-        unorderedEqual(fiveByTwo,oracleG.asSet()) shouldBe true
+        fiveByTwo.tibOrdered<IMList<Int>>()!!.unorderedEqual(fiveByTwo,oracleG.asSet()) shouldBe true
         val fiveByThree = intKKSetOfFive.fpermutations(3)
         fiveByThree.fsize() shouldBe 60 // 5! / (5-3)!
         val fiveByfour = intKKSetOfFive.fpermutations(4)
@@ -468,7 +470,7 @@ class FKSetGroupingTest : FunSpec({
         val p4jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls4).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
             lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        unorderedEqual(fourp, p4jt) shouldBe true
+        fourp.tibOrdered<IMList<Int>>()!!.unorderedEqual(fourp, p4jt) shouldBe true
 
         val fivep = intKKSetOfFive.fpermute()
         fivep.fsize() shouldBe 120 // 5!
@@ -476,7 +478,7 @@ class FKSetGroupingTest : FunSpec({
         val p5jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls5).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
             lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        unorderedEqual(fivep, p5jt) shouldBe true
+        fivep.tibOrdered<IMList<Int>>()!!.unorderedEqual(fivep, p5jt) shouldBe true
 
         val sixpNow = System.currentTimeMillis()
         val sixp = intKKSetOfSix.fpermute()
@@ -486,7 +488,7 @@ class FKSetGroupingTest : FunSpec({
         val p6jt: FList<FList<Int>> = JohnsonTrotter.jtPermutations(aryls6).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
             lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
         }
-        unorderedEqual(sixp,p6jt) shouldBe true
+        sixp.tibOrdered<IMList<Int>>()!!.unorderedEqual(sixp,p6jt) shouldBe true
 
         val sevenpNow = System.currentTimeMillis()
         val sevenp = intKKSetOfSeven.fpermute()
@@ -497,7 +499,7 @@ class FKSetGroupingTest : FunSpec({
             JohnsonTrotter.jtPermutations(aryls7).fold(emptyIMList()) { lol: FList<FList<Int>>, aryl ->
                 lol.fprepend(FList.ofMap(aryl) { tkv -> tkv.getv() })
             }
-        unorderedEqual(sevenp,p7jt) shouldBe true
+        sevenp.tibOrdered<IMList<Int>>()!!.unorderedEqual(sevenp,p7jt) shouldBe true
 
         // ~1.5 s on machine Avogadro
         val eightpNow = System.currentTimeMillis()

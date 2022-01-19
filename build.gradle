@@ -1,6 +1,6 @@
 
 buildscript {
-    ext.kotestVersion = '5.0.3'
+    ext.kotestVersion = '5.1.0'
     ext.jvmTarget = '1.8'
 }
 
