@@ -205,20 +205,26 @@ sealed class FList<out A: Any>: IMList<A> {
             val itn = items.fnext()
             return when {
                 xsn == null || itn == null -> acc
-                else -> go(xs.ftail(), items.fpopAndRemainder().second, acc.fprepend(Pair(xsn,itn)))
+                else -> go(xs.ftail(), items.fdrop(1), acc.fprepend(Pair(xsn,itn)))
             }
         }
 
         return go(this, items, emptyIMList()).freverse()
     }
 
-    // type invariant functionality
-    internal val tif: IMOrderedInvariant<@UnsafeVariance A> by lazy {
-        IMOrdered.typeInvariantBuilder()
-    }
+    override fun <B : Any> fzipMap(fs: IMOrdered<(A) -> B>): FList<B> {
 
-    override fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? =
-        @Suppress("UNCHECKED_CAST") (tif as? IMOrderedInvariant<B>)
+        tailrec fun go(xs: FList<A>, fs: IMOrdered<(A) -> B>, acc: FList<B>): FList<B> {
+            val xsn = xs.fhead()
+            val itn = fs.fnext()
+            return when {
+                xsn == null || itn == null -> acc
+                else -> go(xs.ftail(), fs.fdrop(1), acc.fprepend(itn(xsn)))
+            }
+        }
+
+        return go(this, fs, emptyIMList()).freverse()
+    }
 
     // IMMappable
 
@@ -235,9 +241,23 @@ sealed class FList<out A: Any>: IMList<A> {
 
     // IMApplicable
 
-    override fun <T : Any> fapp(op: (IMList<A>) -> ITMap<T>): ITMapp<T> =
-        IMMappOp.flift2mapp(op(this))!!
+    override fun <T : Any> fapp(op: (IMList<A>) -> ITMap<T>): ITApp<T> =
+        IMAppOp.flift2App(op(this))!!
 
+    override fun <B : Any, T : Any> fmap2(v: ITApp<B>, f: (A, B) -> T): ITApp<T> {
+//        val f_a_b: (A) -> (B) -> T = { a: A -> { b: B -> f(a, b) } }
+//        val aux: ITMap<(B) -> T> = asITMap().fmap(f_a_b)
+//        when {
+//            v is IMOrdered<*> && aux is IMOrdered<*> -> {
+//                @Suppress("UNCHECKED_CAST") (v as IMOrdered<B>)
+//                @Suppress("UNCHECKED_CAST") (aux as IMOrdered<(B) -> T>)
+//                v.ftraverse(aux)
+//                TODO()
+//            }
+//            else -> TODO()
+//        }
+        TODO()
+    }
     // filtering
 
     override fun fdropFirst(isMatch: (A) -> Boolean): FList<A> {
@@ -569,6 +589,30 @@ sealed class FList<out A: Any>: IMList<A> {
         return freduceLeft(xsar, ::g)
     }
 
+    // type invariant functionality
+    internal val tifc: IMCommonInvariant<@UnsafeVariance A> by lazy {
+        IMCommon.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifo: IMOrderedInvariant<@UnsafeVariance A> by lazy {
+        IMOrdered.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifl: IMListInvariant<@UnsafeVariance A> by lazy {
+        IMList.typeInvariantBuilder()
+    }
+
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifc as? IMCommonInvariant<B>)
+
+    override fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifo as? IMOrderedInvariant<B>)
+
+    override fun <B : Any> tibList(): IMListInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifl as? IMListInvariant<B>)
+
     // ===== altering
 
     internal fun fappend(item: @UnsafeVariance A): FList<A> = flSetLast(this, item)
@@ -649,23 +693,26 @@ sealed class FList<out A: Any>: IMList<A> {
         }
     }
 
-    companion object: IMListCompanion, IMListWritable {
+    companion object: IMListCompanion {
 
         val NOT_FOUND: Int = -1
 
         override fun <A: Any> emptyIMList(): FList<A> = FLNil
 
-        override fun <A : Any> fappend(src: A, dest: IMList<A>): FList<A> =
-            (dest as FList<A>).fappend(src)
+        internal fun <A: Any> typeInvariantBuilder(): IMListInvariant<A> = object : IMListInvariant<A> {
 
-        override fun <A : Any> fappendAll(src: IMList<A>, dest: IMList<A>): FList<A> =
-            (dest as FList<A>).fappendAll(src)
+            override fun fappend(src: A, dest: IMList<A>): FList<A> =
+                (dest as FList<A>).fappend(src)
 
-        override fun <A : Any> fprepend(src: A, dest: IMList<A>): FList<A> =
-            (dest as FList<A>).fprepend(src)
+            override fun fappendAll(src: IMList<A>, dest: IMList<A>): FList<A> =
+                (dest as FList<A>).fappendAll(src)
 
-        override fun <A : Any> fprependAll(src: IMList<A>, dest: IMList<A>): FList<A> =
-            (dest as FList<A>).fprependAll(src)
+            override fun fprepend(src: A, dest: IMList<A>): FList<A> =
+                (dest as FList<A>).fprepend(src)
+
+            override fun fprependAll(src: IMList<A>, dest: IMList<A>): FList<A> =
+                (dest as FList<A>).fprependAll(src)
+        }
 
         override fun <A: Any> of(vararg items: A): FList<A> {
             var acc : FList<A> = FLNil
@@ -853,6 +900,7 @@ object FLNil: FList<Nothing>() {
         rhs is IMOrdered<*> -> IMCommonEmpty.equal(rhs)
         else -> false
     }
+
 }
 
 data class FLCons<out A: Any>(
@@ -885,8 +933,8 @@ data class FLCons<out A: Any>(
             rhs.fempty() -> false
             fsize() != rhs.fsize() -> false
             else -> {
-                val aux = @Suppress("UNCHECKED_CAST") (tif as? IMOrdered<A>)
-                aux?.let{ tif.equal(this, it) } ?: false
+                val aux = @Suppress("UNCHECKED_CAST") (tifo as? IMOrdered<A>)
+                aux?.let{ tifo.equal(this, it) } ?: false
             }
         }
         is List<*> -> rhs.equals(asList())
@@ -943,5 +991,4 @@ data class FLCons<out A: Any>(
         //
         fun <A: Any> hashCode(cons: FLCons<A>) = cons.hash
     }
-
 }

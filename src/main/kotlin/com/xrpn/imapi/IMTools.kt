@@ -69,8 +69,8 @@ data class KeyedTypeSample<K: KClass<*>?, V: KClass<*>>(val kKc: K, val vKc: V) 
     fun isLikeValue(vClass: KClass<*>?): Boolean = vKc == vClass
 }
 
-fun <T: Any> IMCommon<T>?.toIMMapplicable(): ITMapp<T>? =
-    this?.let { IMMappOp.flift2mapp(it) }
+fun <T: Any> IMCommon<T>?.toIMMapplicable(): ITApp<T>? =
+    this?.let { IMAppOp.flift2App(it) }
 
 inline infix fun <B, C, A> ((B) -> C).fKompose(crossinline f: (A) -> B): (A) -> C = { a: A -> this(f(a)) }
 
@@ -123,7 +123,7 @@ object IM {
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
         is IMHeap -> item
-        is IMDisw<B, IMCommon<B>> -> DWFMap.of(item)
+        is IMDicw<B, IMCommon<B>> -> DWFMap.of(item)
         is IMDimw<B, IMCommon<B>> -> item
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMapOp<B, IMCommon<B>>)
         is IMZipMap<*,*,*> -> @Suppress("UNCHECKED_CAST") (item.asMap() as IMMapOp<B, IMCommon<B>>)
@@ -132,18 +132,18 @@ object IM {
 
     }
 
-    fun <A: Any> liftToIMMapplicable(item: IMMapOp<A, IMCommon<A>>): IMMappOp<A, IMMapOp<A, IMCommon<A>>>? = when(item) {
-        is IMList -> item
+    fun <A: Any> liftToIMApplicable(item: IMMapOp<A, IMCommon<A>>): IMAppOp<A, IMMapOp<A, IMCommon<A>>>? = when(item) {
+        is IMList /* IMOrdered */ -> item
+        is IMStack /* IMOrdered */ -> item
+        is IMQueue /* IMOrdered */ -> item
         is IMSet -> item
-        is IMStack -> item
-        is IMQueue -> item
-        is IMHeap -> item
-        is IMBTree<*, *> -> TODO()
-        is IMMap<*, *> -> TODO()
-        is IMDimw<A, IMCommon<A>> -> DWFMapp.of(item)
+        is IMHeap -> TODO()
+        is IMBTree<*, *> /* IMKeyedValue */ -> TODO()
+        is IMMap<*, *>  /* IMKeyedValue */ -> TODO()
+        is IMDimw<A, IMCommon<A>> -> DWFApp.of(item)
         is IMDiaw<A, IMCommon<A>> -> item
-        is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMappOp<A, IMMapOp<A, IMCommon<A>>>)
-        else -> if (!(IMMappOp::class.isInstance(item))) null
+        is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMAppOp<A, IMMapOp<A, IMCommon<A>>>)
+        else -> if (!(IMAppOp::class.isInstance(item))) null
                 else throw RuntimeException("internal error, unknown IMMappable:'${item::class}'")
     }
 }

@@ -112,7 +112,7 @@ internal sealed class /* UniContainer */ UCon<out A, out B, out C, out D, out E,
             is TSDJ<*,*> -> item.left()?.let { of(it) } ?: of(item.right()!!)
             is DWCommon<*> -> TODO()
             is DWFMap<*,*> -> TODO()
-            is DWFMapp<*,*> -> TODO()
+            is DWFApp<*,*> -> TODO()
             is IMKSet<*, *> -> ofIMKSet(item).asUC()
             is IMOrdered<*> -> ofIMOrdered(item).asUC()
             is IMCommon<*> -> ofIMCommon(item).asUC()

@@ -16,15 +16,18 @@ private val itemA = "A"
 private val itemB = "B"
 private val itemC = "C"
 private val strStackOfNone = FStack.of(*emptyArrayOfStr)
+private val strStackOfFNone = FStack.of(*arrayOf<(String) -> Int>())
 private val strStackOfOneA = FStack.of(*arrayOf<String>(itemA))
+private val strStackOfFOneA = FStack.of(*arrayOf<(String) -> Int>({s: String -> s.hashCode()}))
 private val strStackOfOneB = FStack.of(*arrayOf<String>(itemB))
 private val strStackOfTwoAB = FStack.of(*arrayOf<String>(itemA, itemB))
+private val strStackOfFTwoAB = FStack.of(*arrayOf<(String) -> Int>({s: String -> s.hashCode()},{s: String -> s.hashCode()+1}))
 private val strStackOfTwoBA = FStack.of(*arrayOf<String>(itemB, itemA))
+private val strStackOfFTwoBA = FStack.of(*arrayOf<(String) -> Int>({s: String -> s.hashCode()+1},{s: String -> s.hashCode()}))
 private val strStackOfTwoBC = FStack.of(*arrayOf<String>(itemB, itemC))
 private val strStackOfThree = FStack.of(*arrayOf<String>(itemA, itemB, itemC))
 private val strStackOfThreer = FStack.of(*arrayOf<String>(itemC, itemB, itemA))
 private val intListOfThree: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,3,2))
-
 
 
 class FStackOrderingTest : FunSpec({
@@ -180,5 +183,15 @@ class FStackOrderingTest : FunSpec({
     strStackOfThree.fzip(intListOfThree) shouldBe FStack.of(Pair(itemA, 1), Pair(itemB, 3), Pair(itemC, 2))
   }
 
-
+  test("fzipMap") {
+    (strStackOfNone.fzipMap(strStackOfFNone) === strStackOfNone) shouldBe true
+    (strStackOfNone.fzipMap(strStackOfFOneA) === strStackOfNone) shouldBe true
+    (strStackOfOneA.fzipMap(strStackOfFNone) === strStackOfNone) shouldBe true
+    strStackOfOneB.fzipMap(strStackOfFOneA) shouldBe FStack.of(itemB.hashCode())
+    (strStackOfTwoAB.fzipMap(strStackOfFNone) === strStackOfNone) shouldBe true
+    strStackOfTwoAB.fzipMap(strStackOfFTwoAB) shouldBe FStack.of(itemA.hashCode(),itemB.hashCode()+1)
+    strStackOfTwoAB.fzipMap(strStackOfFTwoBA) shouldBe FStack.of(itemA.hashCode()+1,itemB.hashCode())
+    strStackOfTwoBA.fzipMap(strStackOfFTwoAB) shouldBe FStack.of(itemB.hashCode(), itemA.hashCode()+1)
+    strStackOfThree.fzipMap(strStackOfFTwoBA) shouldBe FStack.of(itemA.hashCode()+1,itemB.hashCode())
+  }
 })

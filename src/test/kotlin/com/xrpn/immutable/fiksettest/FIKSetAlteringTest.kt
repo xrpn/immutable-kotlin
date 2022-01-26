@@ -3,9 +3,6 @@ package com.xrpn.immutable.fiksettest
 import com.xrpn.imapi.IMKASetNotEmpty
 import com.xrpn.immutable.emptyArrayOfStr
 import com.xrpn.immutable.FKSet
-import com.xrpn.imapi.IMSet.Companion.faddUniq
-import com.xrpn.imapi.IMUniversal
-import com.xrpn.immutable.fkksettest.FKKSetAlteringTest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -28,24 +25,25 @@ class FIKSetAlteringTest : FunSpec({
             @Suppress("UNCHECKED_CAST") (strISetOfNone as IMKASetNotEmpty<Int, String>)
         }
 
-        shouldThrow<IllegalStateException> {
-            // this should not compile, but it does
-            faddUniq(2, strISetOfOne).first shouldBe true
-        }
+// TODO
+//        shouldThrow<IllegalStateException> {
+//            // this should not compile, but it does
+//            strISetOfOne.tibSet<String>()!!.faddUniq(2, strISetOfOne).first shouldBe true
+//        }
 
-        faddUniq("1",strISetOfOne).first shouldBe false
-        (faddUniq("1",strISetOfOne).second === strISetOfOne) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("1",strISetOfOne).first shouldBe false
+        (strISetOfOne.tibSet<String>()!!.faddUniq("1",strISetOfOne).second === strISetOfOne) shouldBe true
 
-        faddUniq("2",strISetOfOne).first shouldBe true
-        (@Suppress("UNCHECKED_CAST") (faddUniq("2",strISetOfOne).second.vcvdj().left() as IMKASetNotEmpty<Int, String>)).equal(strISetOfTwo.asIMSet()) shouldBe true
-        faddUniq("3",strISetOfTwo).first shouldBe true
-        (@Suppress("UNCHECKED_CAST") (faddUniq("3",strISetOfTwo).second.vcvdj().left() as IMKASetNotEmpty<Int, String>)).equal(strISetOfThree.asIMSet()) shouldBe true
-        faddUniq("2", strISetOfOne).second.equal(strISetOfTwo) shouldBe true
-        faddUniq("3", strISetOfTwo).second.equal(strISetOfThree) shouldBe true
-        faddUniq("4",strISetOfThree).second.fsize() shouldBe 4
+        strISetOfOne.tibSet<String>()!!.faddUniq("2",strISetOfOne).first shouldBe true
+        (@Suppress("UNCHECKED_CAST") (strISetOfOne.tibSet<String>()!!.faddUniq("2",strISetOfOne).second.vcvdj().left() as IMKASetNotEmpty<Int, String>)).equal(strISetOfTwo.asIMSet()) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("3",strISetOfTwo).first shouldBe true
+        (@Suppress("UNCHECKED_CAST") (strISetOfOne.tibSet<String>()!!.faddUniq("3",strISetOfTwo).second.vcvdj().left() as IMKASetNotEmpty<Int, String>)).equal(strISetOfThree.asIMSet()) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("2", strISetOfOne).second.equal(strISetOfTwo) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("3", strISetOfTwo).second.equal(strISetOfThree) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("4",strISetOfThree).second.fsize() shouldBe 4
 
-        faddUniq("2",strKKSetOfOne).second.equal(strISetOfTwo) shouldBe true
-        faddUniq("3",strKKSetOfTwo).second.equal(strISetOfThree) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("2",strKKSetOfOne).second.equal(strISetOfTwo) shouldBe true
+        strISetOfOne.tibSet<String>()!!.faddUniq("3",strKKSetOfTwo).second.equal(strISetOfThree) shouldBe true
     }
 
     test("faddcUniq") {
@@ -54,8 +52,8 @@ class FIKSetAlteringTest : FunSpec({
 
     test("faddUniq on empty") {
 
-        faddUniq("1",strISetOfNone).first shouldBe true
-        faddUniq("1",strISetOfNone).second.equal(strISetOfOne) shouldBe true
+        strISetOfNone.tibSet<String>()!!.faddUniq("1",strISetOfNone).first shouldBe true
+        strISetOfNone.tibSet<String>()!!.faddUniq("1",strISetOfNone).second.equal(strISetOfOne) shouldBe true
 
 
         val aux1: FKSet<Int, String> = strISetOfNone.faddUniq("1")

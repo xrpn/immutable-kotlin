@@ -474,9 +474,17 @@ sealed class FRBTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     }
 
     // type invariant functionality
+    internal val tifk: IMKeyedValueInvariant<@UnsafeVariance A, @UnsafeVariance B> by lazy {
+        IMKeyedValue.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
     internal val tif: IMBTreeInvariant<@UnsafeVariance A, @UnsafeVariance B> by lazy {
         IMBTree.typeInvariantBuilder()
     }
+
+    override fun <KK, AA: Any> tibKCommon(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK,AA>)
 
     override fun <KK, AA: Any> tibBTree(): IMBTreeInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
         @Suppress("UNCHECKED_CAST") (tif as? IMBTreeInvariant<KK,AA>)

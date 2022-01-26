@@ -63,6 +63,14 @@ class FListFMappingTest : FunSpec({
     intListOfThree.fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLCons(4,FLNil)))
   }
 
+//  test("fkartMap") {
+//    intListOfNone.f(strListOfNone) { i: Int, s: String -> i.toString()+s } shouldBe FLNil
+//    intListOfOne.fkartMap(strListOfNone) { i: Int, s: String -> i.toString()+s } shouldBe FLNil // FLCons(2,FLNil)
+//    intListOfNone.fkartMap(strListOfOne) { i: Int, s: String -> i.toString()+s } shouldBe FLNil
+//    intListOfTwo.fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLNil))
+//    intListOfThree.fmap { it + 1} shouldBe FLCons(2,FLCons(3,FLCons(4,FLNil)))
+//  }
+
   test("fmapp") {
     intListOfNone.fmapp { it + 1} shouldBe FLNil
     intListOfOne.fmapp { it + 1} shouldBe FLCons(2,FLNil)

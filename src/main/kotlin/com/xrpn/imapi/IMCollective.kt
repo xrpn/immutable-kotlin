@@ -4,6 +4,7 @@ import com.xrpn.bridge.FTreeIterator
 import com.xrpn.immutable.*
 import kotlin.reflect.KClass
 
+interface IMListInvariant<A:Any>: IMListWritable<A>
 
 interface IMList<out A:Any>: IMOrdered<A>,
     IMListFiltering<A>,
@@ -12,16 +13,21 @@ interface IMList<out A:Any>: IMOrdered<A>,
     IMListUtility<A>,
     IMListExtras<A>,
     IMReducible<A>,
-    IMMapOp<A, IMList<A>>,
-    IMMappOp<A, IMList<A>>,
+    IMOrderedMapOp<A, IMList<A>>,
+    IMOrderedAppOp<A, IMList<A>>,
     IMListTyping<A> {
     override fun <R> ffold(z: R, f: (acc: R, A) -> R): R = ffoldLeft(z, f)
     override fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A? = freduceLeft(f)
+    fun <B: Any> tibList(): IMListInvariant<B>?
+    override fun <B: Any> tibWritable() = tibList<B>()
 
-    companion object: IMListWritable by FList.Companion {
-
+    companion object {
+        internal fun <A: Any> typeInvariantBuilder(): IMListInvariant<A> =
+            FList.typeInvariantBuilder()
     }
 }
+
+interface IMStackInvariant<A:Any>: IMStackWritable<A>
 
 interface IMStack<out A:Any>: IMOrdered<A>,
     IMStackFiltering<A>,
@@ -29,12 +35,22 @@ interface IMStack<out A:Any>: IMOrdered<A>,
     IMStackTransforming<A>,
     IMStackAltering<A>,
     IMStackUtility<A>,
-    IMMapOp<A, IMStack<Nothing>>,
-    IMMappOp<A, IMStack<A>>,
+    IMOrderedMapOp<A, IMStack<Nothing>>,
+    IMOrderedAppOp<A, IMStack<A>>,
     IMStackTyping<A> {
+    fun <B: Any> tibStack(): IMStackInvariant<B>?
+    override fun <B: Any> tibWritable() = tibStack<B>()
 
-    companion object: IMStackWritable by FStack.Companion {}
+    companion object {
+
+        private val tibNone = FStack.typeInvariantBuilder<Any>()
+
+        internal fun <A: Any> typeInvariantBuilder(): IMStackInvariant<A> =
+            @Suppress("UNCHECKED_CAST") (tibNone as IMStackInvariant<A>) // FStack.typeInvariantBuilder()
+    }
 }
+
+interface IMQueueInvariant<A:Any>: IMQueueWritable<A>
 
 interface IMQueue<out A:Any>: IMOrdered<A>,
     IMQueueFiltering<A>,
@@ -42,12 +58,24 @@ interface IMQueue<out A:Any>: IMOrdered<A>,
     IMQueueTransforming<A>,
     IMQueueAltering<A>,
     IMQueueUtility<A>,
-    IMMapOp<A, IMQueue<Nothing>>,
-    IMMappOp<A, IMQueue<A>>,
+    IMOrderedMapOp<A, IMQueue<Nothing>>,
+    IMOrderedAppOp<A, IMQueue<A>>,
     IMQueueTyping<A> {
+    fun <B: Any> tibQueue(): IMQueueInvariant<B>?
+    override fun <B: Any> tibWritable() = tibQueue<B>()
 
-    companion object: IMQueueWritable by FQueue.Companion {}
+    companion object {
+        private val tibNone = FQueue.typeInvariantBuilder<Any>()
+
+        internal fun <A: Any> typeInvariantBuilder(): IMQueueInvariant<A> =
+            @Suppress("UNCHECKED_CAST") (tibNone as IMQueueInvariant<A>) // FQueue.typeInvariantBuilder()
+    }
 }
+
+interface IMSetInvariant<A:Any>:
+    IMSetWritable<A>,
+    IMSetEquality<A>,
+    IMSetLogic<A>
 
 interface IMSet<out A: Any>: IMCommon<A>,
     IMSetFiltering<A>,
@@ -57,19 +85,109 @@ interface IMSet<out A: Any>: IMCommon<A>,
     IMSetExtras<A>,
     IMReducible<A>,
     IMMapOp<A, IMSet<Nothing>>,
-    IMMappOp<A, IMSet<A>>,
+    IMAppOp<A, IMSet<A>>,
     IMSetTyping<A> {
     fun asIMVSetNotEmpty(): IMVSetNotEmpty<A>?
     fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K>
-    fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = null
+    fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = if (fempty()) null else (@Suppress("UNCHECKED_CAST") (this as? IMSetNotEmpty<A>))
+    fun <B: Any> tibCommon(): IMCommonInvariant<B>?
+    fun <B: Any> tibSet(): IMSetInvariant<B>?
+    fun <B: Any> tibWritable(): IMWritable<B>? = tibSet()
 
-    companion object: IMSetWritable by FKSet.Companion
+    companion object {
 
+        internal fun <A: Any> typeInvariantBuilder(): IMSetInvariant<A> = object : IMSetInvariant<A> {
+
+            override fun fAND(src: IMSet<A>, origin: IMSet<A>): IMSet<A> {
+                origin as FKSet<*,A>
+                src as FKSet<*,A>
+                return origin.fAND(src)
+            }
+
+            override fun fNOT(src: IMSet<A>, origin: IMSet<A>): IMSet<A> {
+                origin as FKSet<*,A>
+                src as FKSet<*,A>
+                return origin.fNOT(src)
+            }
+
+            override fun fOR(src: IMSet<A>, origin: IMSet<A>): IMSet<A> {
+                origin as FKSet<*,A>
+                src as FKSet<*,A>
+                return origin.fOR(src)
+            }
+
+            override fun fXOR(src: IMSet<A>, origin: IMSet<A>): IMSet<A> {
+                origin as FKSet<*,A>
+                src as FKSet<*,A>
+                return origin.fXOR(src)
+            }
+
+            override fun fadd(src: A, dest: IMCommon<A>): IMSetNotEmpty<A>? {
+                val aux = (dest as? FKSet<*, A>)?.faddUniq(src)
+                return aux?.let { if (it.fempty()) null else it.asIMSetNotEmpty() }
+            }
+
+            override fun faddUniq(src: A, dest: IMSet<A>): Pair<Boolean, IMSetNotEmpty<A>> {
+                val aux = dest.fsize()
+                val added = (dest as FKSet<*, A>).faddUniq(src)
+                return Pair(aux < added.fsize(), added.asIMSetNotEmpty()!!)
+            }
+
+            override fun faddUniqs(src: IMCommon<A>, dest: IMSet<A>): Pair<Int, IMSetNotEmpty<A>?> {
+                val aux = src.ffold (dest as FKSet<*, A>) { acc, a -> acc.faddUniq(a) }
+                return Pair(aux.fsize() - dest.fsize(), aux.asIMSetNotEmpty())
+            }
+
+//            override fun <C:A> faddcUniq(srck: Comparable<A>, srcv: A, dest: IMSet<C>): Pair<Boolean, IMSetNotEmpty<C>> = when {
+//                dest.fempty() -> FRBTree.of(srcv.toKKEntry(srck) )
+//            }
+//
+//            override fun <C> faddcUniqs(src: IMCommon<C>, dest: IMSet<C>): Pair<Int, IMSetNotEmpty<C>?> where C: Comparable<A> {
+//                val aux = src.ffold (dest as FKSet<*, C>) { acc, a -> acc.faddcUniq(a) }
+//                return Pair(aux.fsize() - dest.fsize(), aux.asIMSetNotEmpty()!!)
+//            }
+
+            override fun equal(lhs: IMSet<A>, rhs: IMSet<A>): Boolean =
+                lhs.equal(rhs)
+
+            override fun softEqual(lhs: IMSet<A>, rhs: Any?): Boolean {
+                val aux = @Suppress("UNCHECKED_CAST") (lhs.asIMKCommon<Nothing,A>()!! as? FKSet<*,A>)
+                return aux!!.softEqual(rhs)
+            }
+        }
+    }
+}
+
+interface IMSetNotEmpty<out A: Any>: IMCommon<A>,
+    IMSetFiltering<A>,
+    IMSetGrouping<A>,
+    IMSetUtility<A>,
+    IMSetExtras<A>,
+    IMSetTyping<A> {
+    fun <KK> xcvdj(): TSDJ<ErrorMsgTrap, IMCVSetNotEmpty<KK>> where KK : Any, KK : Comparable<KK>
+    fun vcvdj(): TSDJ<IMVSetNotEmpty<@UnsafeVariance A>, IMCVSetNotEmpty<*>>
+    fun <B: Any> tibSet(): IMSetInvariant<B>?
+}
+
+interface IMVSetNotEmpty<out A:Any>: IMSet<A>, IMSetNotEmpty<A>,
+    IMVSetTransforming<A> {
+    override fun asIMVSetNotEmpty(): IMVSetNotEmpty<A> = vcvdj().left()!!
+    override fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> = xcvdj<K>().right()
+    override fun asIMSetNotEmpty(): IMSetNotEmpty<A> = this
+}
+
+interface IMCVSetNotEmpty<out A>: IMSet<A>, IMVSetNotEmpty<A>,
+    IMCVSetTransforming<A>
+        where A: Any, A: Comparable<@UnsafeVariance A> {
+    override fun asIMVSetNotEmpty(): IMVSetNotEmpty<A> = this
+    override fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> =
+        @Suppress("UNCHECKED_CAST") (this as? IMCVSetNotEmpty<K>)
+    override fun asIMSetNotEmpty(): IMSetNotEmpty<A> = this
 }
 
 interface IMHeap<out A: Any>: IMCommon<A>,
     IMMapOp<A, IMHeap<Nothing>>,
-    IMMappOp<A, IMHeap<A>>,
+    IMAppOp<A, IMHeap<A>>,
     IMHeapTyping<A>
 
 interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
@@ -83,7 +201,7 @@ interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
     IMKeyedValue<K, V>,
     IMReducible<V>,
 //    IMFoldable<TKVEntry<K,V>>,
-    IMKMappable<K, V, IMMap<Nothing,Nothing>>,
+    IMKMapOp<K, V, IMMap<Nothing,Nothing>>,
     IMMapTyping<K, V>
         where K: Any, K: Comparable<@UnsafeVariance K> {
 
@@ -110,7 +228,7 @@ interface IMMap<out K, out V: Any>: IMCommon<TKVEntry<K,V>>,
 }
 
 interface IMBTreeInvariant<A,B:Any>:
-    IMBTreeAltering<A,B>,
+    IMBTreeWritable<A,B>,
     IMBTreeLogic<A,B>,
     IMBTreeEquality<A, B> where A: Any, A:Comparable<A>
 
@@ -124,7 +242,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
     IMKeyed<A>,
     IMKeyedValue<A, B>,
     IMReducible<TKVEntry<A,B>>,
-    IMKMappable<A, B, IMBTree<Nothing,Nothing>>,
+    IMKMapOp<A, B, IMBTree<Nothing,Nothing>>,
     IMBTreeTyping<A, B>
         where A: Any, A: Comparable<@UnsafeVariance A> {
 
@@ -156,6 +274,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
         ffold(FList.emptyIMList()) { acc, tkv -> acc.fprepend(f(tkv.getv())) }
 
     fun <KK, AA: Any> tibBTree(): IMBTreeInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
+    override fun <KK, AA: Any> tibKWritable(): IMBTreeWritable<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = tibBTree()
 
     companion object {
 
@@ -187,7 +306,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
             }
 
             override fun fadd(src: TKVEntry<A, B>, dest: IMKeyedValue<A, B>): IMBTree<A, B>? = try {
-                dest.tibKv<A,B>()?.fadd(src, dest)?.asIMBTree()
+                dest.tibKCommon<A,B>()?.fadd(src, dest)?.asIMBTree()
             } catch (ex: Exception) {
                 dest.reportException(ex, this)
                 null
@@ -200,7 +319,7 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
             }
 
             override fun faddAll(src: IMCommon<TKVEntry<A, B>>, dest: IMBTree<A, B>): IMBTree<A, B> =
-                dest.tibKv<A,B>()?.faddAll(src, dest)?.asIMBTree() ?: dest
+                dest.tibKCommon<A,B>()?.faddAll(src, dest)?.asIMBTree() ?: dest
 
             override fun finserts(src: IMKeyedValue<A, B>, dest: IMBTree<A, B>): IMBTree<A, B> = when (dest) {
                 is FRBTree<A, B> -> src.asIMCommon<TKVEntry<A, B>>()!!
@@ -239,40 +358,10 @@ interface IMBTree<out A, out B: Any>: IMCommon<TKVEntry<A,B>>,
 
 interface IMBTreeNotEmpty<out A, out B: Any>: IMBTree<A,B> where A: Any, A: Comparable<@UnsafeVariance A>
 
-// Set derivatives
-
-interface IMSetNotEmpty<out A: Any>: IMCommon<A>,
-    IMSetFiltering<A>,
-    IMSetGrouping<A>,
-    IMSetUtility<A>,
-    IMSetExtras<A>,
-    IMSetTyping<A> {
-    fun <KK> xcvdj(): TSDJ<ErrorMsgTrap, IMCVSetNotEmpty<KK>> where KK: Any, KK: Comparable<KK>
-    fun vcvdj(): TSDJ<IMVSetNotEmpty<@UnsafeVariance A>, IMCVSetNotEmpty<*>>
-
-    companion object: IMSetWritable by FKSet.Companion
-}
-
-interface IMVSetNotEmpty<out A:Any>: IMSet<A>, IMSetNotEmpty<A>,
-    IMVSetTransforming<A> {
-    override fun asIMVSetNotEmpty(): IMVSetNotEmpty<A> = vcvdj().left()!!
-    override fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> = xcvdj<K>().right()
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A> = this
-}
-
-interface IMCVSetNotEmpty<out A>: IMSet<A>, IMVSetNotEmpty<A>,
-    IMCVSetTransforming<A>
-        where A: Any, A: Comparable<@UnsafeVariance A> {
-    override fun asIMVSetNotEmpty(): IMVSetNotEmpty<A> = this
-    override fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K> =
-        @Suppress("UNCHECKED_CAST") (this as? IMCVSetNotEmpty<K>)
-    override fun asIMSetNotEmpty(): IMSetNotEmpty<A> = this
-}
-
 // ============ INTERNAL
 
 internal interface IMKSetInvariant<K,A:Any>:
-    IMKSetAltering<K,A>,
+    IMKSetWritable<K,A>,
     IMKSetLogic<K,A>
         where K: Any, K:Comparable<K>
 
@@ -289,7 +378,7 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
         rhs as IMKSet<*, A>
         if (rhs.fempty()) null else fpickKey().isStrictly(rhs.fpickKey())
     }
-    fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = null
+    fun asIMKSetNotEmpty(): IMKSetNotEmpty<K, A>? = if (fempty()) null else (@Suppress("UNCHECKED_CAST") (this as IMKSetNotEmpty<K,A>))
     fun asIMKASetNotEmpty(): IMKASetNotEmpty<K, A>?
     fun asIMKKSetNotEmpty(): IMKKSetNotEmpty<K>?
     // Keyed
@@ -312,8 +401,11 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
             }
 
             override fun faddUniqs(src: IMCommon<TKVEntry<K,A>>, dest: IMKSet<K, A>): Pair<Int, IMKSetNotEmpty<K, A>?> =
-                if (src.fempty() && dest.fempty()) Pair(0, null)
-                else TODO()
+                if (src.fempty() && dest.fempty()) Pair(0, null) else {
+                    val prior = dest.fsize()
+                    val res = src.ffold(dest){ kset, tkv -> (kset as FKSet<K,A>).faddUniqTkv(tkv) }
+                    Pair(res.fsize() - prior, res.asIMKSetNotEmpty())
+                }
 
             override fun faddkUniq(src: TKVEntry<K,K>, dest: IMKSet<K, K>): Pair<Boolean, IMKSetNotEmpty<K, K>> {
                 val aux = (dest as FKSet<K, K>).faddUniqTkv(src)
@@ -322,7 +414,11 @@ internal interface IMKSet<out K, out A:Any>: IMSet<A>,
 
             override fun faddkUniqs(src: IMCommon<TKVEntry<K,K>>, dest: IMKSet<K, K>): Pair<Int, IMKSetNotEmpty<K, K>?> =
                 if (src.fempty() && dest.fempty()) Pair(0, null)
-                else TODO()
+                else {
+                    val prior = dest.fsize()
+                    val res = src.ffold(dest){ kset, tkv -> (kset as FKSet<K,K>).faddcUniq(tkv.getv()) }
+                    Pair(res.fsize() - prior, res.asIMKSetNotEmpty())
+                }
 
             override fun fAND(src: IMKeyedValue<K, A>, origin: IMKSet<K, A>): IMKSet<K, A> = when(origin) {
                 is FKSet<K,A> -> origin.fAND(src)

@@ -55,14 +55,14 @@ val flistFunctorLaw = object: FunctorLaw {}
 val fksetFunctorLaw = object: FunctorLaw {}
 
 interface FunctorKLaw {
-    fun <K, T: Any, L, V: Any> isMappableEqual(lhs: IMKMappable<L,V,IMCommon<TKVEntry<L,V>>>, rhs: IMKMappable<K,T,IMCommon<TKVEntry<K,T>>>): Boolean
+    fun <K, T: Any, L, V: Any> isMappableEqual(lhs: IMKMapOp<L,V,IMCommon<TKVEntry<L,V>>>, rhs: IMKMapOp<K,T,IMCommon<TKVEntry<K,T>>>): Boolean
     where K: Any, K: Comparable<K>, L: Any, L: Comparable<L> =
         lhs.equals(rhs)
     fun <T> idOp(v: T) = v
-    fun <L, V: Any> identityLaw(mappable: IMKMappable<L,V,IMCommon<TKVEntry<L,V>>>): Boolean where L: Any, L: Comparable<L> =
+    fun <L, V: Any> identityLaw(mappable: IMKMapOp<L,V,IMCommon<TKVEntry<L,V>>>): Boolean where L: Any, L: Comparable<L> =
         isMappableEqual(mappable, mappable.fmap(::idOp))
     fun <J, S: Any, K, T: Any, L, V: Any, M, W: Any> associativeLaw(
-        mappable: IMKMappable<L,V,IMCommon<TKVEntry<L,V>>>,
+        mappable: IMKMapOp<L,V,IMCommon<TKVEntry<L,V>>>,
         f1: (TKVEntry<L,V>) -> TKVEntry<J,S>,
         f2: (TKVEntry<J,S>) -> TKVEntry<K,T>,
         f3: (TKVEntry<K,T>) -> TKVEntry<M,W>): Boolean
@@ -182,8 +182,8 @@ interface ApplicativeLaw  {
     // mostly after http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf
     //
     fun <T: Any, V: Any> isMapplicativeEqual(
-        lhs: ITMapp<V>,
-        rhs: ITMapp<T>
+        lhs: ITApp<V>,
+        rhs: ITApp<T>
     ): Boolean =
         rhs.equals(lhs)
 
@@ -198,7 +198,7 @@ interface ApplicativeLaw  {
     fun <V: Any> identityLaw(
         value: ITMap<V>
     ): Boolean {
-        val ref: ITMapp<V>? = IMMappOp.flift2mapp(value)
+        val ref: ITApp<V>? = IMAppOp.flift2App(value)
         return ref?.fapp(::idOp)?.equals(ref) ?: false
     }
     /*
@@ -209,11 +209,11 @@ interface ApplicativeLaw  {
         op: (ITMap<V>) -> ITMap<W>
     ): Boolean {
         // lift and apply
-        val aux1: ITMapp<V> = IMMappOp.flift2mapp(value)!!
-        val aut: ITMapp<W> = aux1.fapp(op)
+        val aux1: ITApp<V> = IMAppOp.flift2App(value)!!
+        val aut: ITApp<W> = aux1.fapp(op)
         // op and lift
         val aux2: ITMap<W> = op(value)
-        val ref: ITMapp<W> = IMMappOp.flift2mapp(aux2)!!
+        val ref: ITApp<W> = IMAppOp.flift2App(aux2)!!
         return isMapplicativeEqual(aut, ref)
     }
     /*
@@ -224,10 +224,10 @@ interface ApplicativeLaw  {
         walue: ITMap<W>,
         aplyOp: (ITMap<W>) -> ITMap<X>
     ): Boolean {
-        val aux1: ITMapp<W> = IMMappOp.flift2mapp(walue)!!
-        val aut: ITMapp<X> = aux1.fapp(aplyOp)
-        val aux2: (ITMap<W>) -> ITMapp<X> = { vv: ITMap<W> -> IMMappOp.flift2mapp(aplyOp(vv))!! }
-        val ref: ITMapp<X> = aux2(walue)
+        val aux1: ITApp<W> = IMAppOp.flift2App(walue)!!
+        val aut: ITApp<X> = aux1.fapp(aplyOp)
+        val aux2: (ITMap<W>) -> ITApp<X> = { vv: ITMap<W> -> IMAppOp.flift2App(aplyOp(vv))!! }
+        val ref: ITApp<X> = aux2(walue)
         return isMapplicativeEqual(aut, ref)
     }
     /*
@@ -237,8 +237,8 @@ interface ApplicativeLaw  {
         value: ITMap<V>,
         mapOp: (V) -> W
     ): Boolean {
-        val ref: ITMapp<W> =  IMMappOp.flift2mapp(value)!!.fmapp(mapOp)
-        val aut: ITMapp<W> = IMMappOp.flift2mapp(value.fmap(mapOp))!!
+        val ref: ITApp<W> =  IMAppOp.flift2App(value)!!.fmapp(mapOp)
+        val aut: ITApp<W> = IMAppOp.flift2App(value.fmap(mapOp))!!
         return isMapplicativeEqual(aut, ref)
     }
 
@@ -248,9 +248,9 @@ interface ApplicativeLaw  {
         value: ITMap<V>,
         aplyV2W: (ITMap<V>) -> ITMap<W>,
     ): Boolean  {
-        val ref: ITMapp<X> = IMMappOp.flift2mapp(value)!!.fapp(aplyV2W).fapp(aplyW2X)
+        val ref: ITApp<X> = IMAppOp.flift2App(value)!!.fapp(aplyV2W).fapp(aplyW2X)
         fun k(wx: (ITMap<W>) -> ITMap<X>, vw: (ITMap<V>) -> ITMap<W>): (ITMap<V>) -> ITMap<X> = wx fKompose vw
-        val aut: ITMapp<X> = IMMappOp.flift2mapp(value)!!.fapp(k(aplyW2X, aplyV2W))
+        val aut: ITApp<X> = IMAppOp.flift2App(value)!!.fapp(k(aplyW2X, aplyV2W))
         return isMapplicativeEqual(aut, ref)
     }
 
@@ -281,7 +281,7 @@ val fmapLong2StrangeInt: (ITMap<Long>) -> ITMap<Int> = { fx -> fx.fmap(mapLong2S
 
 // ============
 
-val fmapmInt2String_I: (ITMapp<Int>) -> ITMapp<String> = { fx: ITMapp<Int> -> fx.fapp(fmapInt2String_I) }
+val fmapmInt2String_I: (ITApp<Int>) -> ITApp<String> = { fx: ITApp<Int> -> fx.fapp(fmapInt2String_I) }
 // val fmapmInt2String_I: (FMapp<Int>) -> FMapp<String> = {fz: (Int) -> String -> { fy: (FMap<Int>) -> FMap<String> -> { fx: FMapp<Int> -> fx.fapp(fy.map(fz) ) }}
 
 // ============

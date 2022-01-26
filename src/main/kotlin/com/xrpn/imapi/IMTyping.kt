@@ -6,7 +6,7 @@ interface IMListTyping<out A: Any>:
     IMCommon<A>,
     IMOrdered<A>,
     IMMapOp<A, IMList<A>>,
-    IMMappOp<A, IMList<A>> {
+    IMAppOp<A, IMList<A>> {
     // IMCommon
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMList<A>
     override fun fdropItem(item: @UnsafeVariance A): IMList<A>
@@ -22,6 +22,7 @@ interface IMListTyping<out A: Any>:
     override fun frotl(): IMList<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
     override fun fswaph(): IMList<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     override fun <B: Any> fzip(items: IMOrdered<@UnsafeVariance B>): IMList<Pair<A,B>>
+    override fun <B: Any> fzipMap(fs: IMOrdered<(A) -> B>): IMList<B>
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMList<B> // 	Return a new sequence by applying the function f to each element in the List
 }
@@ -45,6 +46,7 @@ interface IMStackTyping<out A: Any>:
     override fun frotl(): IMStack<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
     override fun fswaph(): IMStack<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     override fun <B: Any> fzip(items: IMOrdered<@UnsafeVariance B>): IMStack<Pair<A,B>>
+    override fun <B: Any> fzipMap(fs: IMOrdered<(A) -> B>): IMStack<B>
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMStack<B> // 	Return a new sequence by applying the function f to each element in the List
 }
@@ -68,6 +70,7 @@ interface IMQueueTyping<out A: Any>:
     override fun frotl(): IMQueue<A> // rotate left (A, B, C).frotl() becomes (B, C, A)
     override fun fswaph(): IMQueue<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     override fun <B: Any> fzip(items: IMOrdered<@UnsafeVariance B>): IMQueue<Pair<A,B>>
+    override fun <B: Any> fzipMap(fs: IMOrdered<(A) -> B>): IMQueue<B>
     // IMMappable
     override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> // 	Return a new sequence by applying the function f to each element in the List
 }
@@ -102,6 +105,8 @@ interface IMHeapTyping<out A: Any>:
 }
 
 internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, IMKeyedValue<K,A> where K: Any, K: Comparable<@UnsafeVariance K> {
+
+    fun asIMKSet(): IMKSet<K,A> = @Suppress("UNCHECHED_CAST") (this as IMKSet<K, A>)
     // IMKeyed
     override fun fdropKeys(keys: IMSet<@UnsafeVariance K>): IMKSet<K, A>
     override fun ffilterKey(isMatch: (K) -> Boolean): IMKSet<K,A>
@@ -117,7 +122,7 @@ internal interface IMKSetTyping<out K, out A: Any>: IMSetTyping<A>, IMKeyed<K>, 
 interface IMMapTyping<out K, out V: Any>:
     IMCommon<TKVEntry<K,V>>,
     IMKeyed<K>, IMKeyedValue<K,V>,
-    IMKMappable<K, V, IMMap<Nothing,Nothing>>
+    IMKMapOp<K, V, IMMap<Nothing,Nothing>>
         where K: Any, K: Comparable<@UnsafeVariance K> {
     // IMCommon
     override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance K, @UnsafeVariance V>>): IMMap<K, V>
@@ -148,7 +153,7 @@ interface IMBTreeTyping<out A, out B: Any>:
     IMCommon<TKVEntry<A,B>>,
     IMKeyed<A>,
     IMKeyedValue<A,B>,
-    IMKMappable<A, B, IMBTree<Nothing,Nothing>>
+    IMKMapOp<A, B, IMBTree<Nothing,Nothing>>
         where A: Any, A: Comparable<@UnsafeVariance A> {
     // IMCommon
     override fun fdropAll(items: IMCommon<TKVEntry<@UnsafeVariance A, @UnsafeVariance B>>): IMBTree<A, B>

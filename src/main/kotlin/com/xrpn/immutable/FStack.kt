@@ -92,6 +92,10 @@ sealed class FStack<out A: Any>: IMStack<A> {
         if (fempty()) FStackBody.empty
         else items.fnext()?.let { FStackBody.of(toFList().fzip(items)) } ?: FStackBody.empty
 
+    override fun <B : Any> fzipMap(fs: IMOrdered<(A) -> B>): IMStack<B> =
+        if (fempty()) FStackBody.empty
+        else fs.fnext()?.let { FStackBody.of(toFList().fzipMap(fs)) } ?: FStackBody.empty
+
     // ============ IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): IMStack<B> =
@@ -99,8 +103,8 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     // ============ IMMapplicable
 
-    override fun <T : Any> fapp(op: (IMStack<A>) -> ITMap<T>): ITMapp<T> =
-        IMMappOp.flift2mapp(op(this))!!
+    override fun <T : Any> fapp(op: (IMStack<A>) -> ITMap<T>): ITApp<T> =
+        IMAppOp.flift2App(op(this))!!
 
     // ============ filtering
 
@@ -134,6 +138,30 @@ sealed class FStack<out A: Any>: IMStack<A> {
 
     override fun <B : Any> ftopMap(f: (A) -> B): B? =
         ftop()?.let{ f(it) }
+
+    // type invariant functionality
+    internal val tifc: IMCommonInvariant<@UnsafeVariance A> by lazy {
+        IMCommon.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifo: IMOrderedInvariant<@UnsafeVariance A> by lazy {
+        IMOrdered.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifs: IMStackInvariant<@UnsafeVariance A> by lazy {
+        IMStack.typeInvariantBuilder()
+    }
+
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifc as? IMCommonInvariant<B>)
+
+    override fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifo as? IMOrderedInvariant<B>)
+
+    override fun <B : Any> tibStack(): IMStackInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifs as? IMStackInvariant<B>)
 
     // ============ altering
 
@@ -173,12 +201,15 @@ sealed class FStack<out A: Any>: IMStack<A> {
         return Pair(body.fhead()!!, FStackBody.of(body.ftail()))
     }
 
-    companion object: IMStackCompanion, IMStackWritable {
+    companion object: IMStackCompanion {
 
         override fun <A: Any> emptyIMStack(): FStack<A> = FStackBody.empty
 
-        override fun <A : Any> fpush(top: A, dest: IMStack<A>): IMStack<A>  =
-            (dest as FStack<A>).fpush(top)
+        internal fun <A: Any> typeInvariantBuilder(): IMStackInvariant<A> = object : IMStackInvariant<A> {
+
+            override fun fpush(top: A, dest: IMStack<A>): IMStack<A> =
+                (dest as FStack<A>).fpush(top)
+        }
 
         override fun <A : Any> of(vararg items: A): FStack<A> =
             FStackBody.of(FList.of(items.iterator()))
@@ -260,4 +291,5 @@ internal class FStackBody<out A: Any> private constructor (
         }
         fun <A: Any> hashCode(s: FStackBody<A>) = s.hashCode()
     }
+
 }

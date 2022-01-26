@@ -165,38 +165,38 @@ class FKSetGroupingTest : FunSpec({
         val sorai3iii: FList<IMSet<String>> = of(ofi("1"), ofi("2"), ofi("1", "2"))
         val sorai3isi: FList<IMSet<String>> = of(ofi("1"), ofs("2"), ofi("1", "2"))
 
-        iorai2ii.tif. unorderedEqual(intKKSetOfTwo.fcombinations(1), iorai2ii) shouldBe true
-        iorai2si.tif. unorderedEqual(intKKSetOfTwo.fcombinations(1),iorai2si) shouldBe true
-        iorai3iii.tif.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3iii) shouldBe true
-        iorai3isi.tif.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+        iorai2ii.tifo. unorderedEqual(intKKSetOfTwo.fcombinations(1), iorai2ii) shouldBe true
+        iorai2si.tifo. unorderedEqual(intKKSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        iorai3iii.tifo.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3iii) shouldBe true
+        iorai3isi.tifo.unorderedEqual(intKKSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
 
-        sorai2ii.tif. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2ii) shouldBe true
-        sorai2si.tif. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        sorai3iii.tif.unorderedEqual(strISetOfTwo.fcombinations(2),sorai3isi) shouldBe true
-        sorai3isi.tif.unorderedEqual(strISetOfTwo.fcombinations(3),sorai3iii) shouldBe true
+        sorai2ii.tifo. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2ii) shouldBe true
+        sorai2si.tifo. unorderedEqual(strISetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai3iii.tifo.unorderedEqual(strISetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        sorai3isi.tifo.unorderedEqual(strISetOfTwo.fcombinations(3),sorai3iii) shouldBe true
 
-        iorai2ii.tif. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2ii) shouldBe true
-        iorai2si.tif. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2si) shouldBe true
-        iorai3iii.tif.unorderedEqual(intSSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
-        iorai3isi.tif.unorderedEqual(intSSetOfTwo.fcombinations(3),iorai3iii) shouldBe true
+        iorai2ii.tifo. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2ii) shouldBe true
+        iorai2si.tifo. unorderedEqual(intSSetOfTwo.fcombinations(1),iorai2si) shouldBe true
+        iorai3iii.tifo.unorderedEqual(intSSetOfTwo.fcombinations(2),iorai3isi) shouldBe true
+        iorai3isi.tifo.unorderedEqual(intSSetOfTwo.fcombinations(3),iorai3iii) shouldBe true
 
-        sorai2ii.tif. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        sorai2si.tif. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
-        sorai3iii.tif.unorderedEqual(strKKSetOfTwo.fcombinations(2),sorai3isi) shouldBe true
-        sorai3isi.tif.unorderedEqual(strKKSetOfTwo.fcombinations(3),sorai3iii) shouldBe true
+        sorai2ii.tifo. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai2si.tifo. unorderedEqual(strKKSetOfTwo.fcombinations(1),sorai2si) shouldBe true
+        sorai3iii.tifo.unorderedEqual(strKKSetOfTwo.fcombinations(2),sorai3isi) shouldBe true
+        sorai3isi.tifo.unorderedEqual(strKKSetOfTwo.fcombinations(3),sorai3iii) shouldBe true
     }
 
     test("fcombinations") {
         val oracleA: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2))
-        oracleA.tif.unorderedEqual(intKKSetOfThree.fcombinations(2),oracleA) shouldBe true
+        oracleA.tifo.unorderedEqual(intKKSetOfThree.fcombinations(2),oracleA) shouldBe true
         val oracleB: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(1, 2), ofi(1, 3), ofi(3, 2), ofi(3, 1, 2))
-        oracleB.tif.unorderedEqual(intKKSetOfThree.fcombinations(3), oracleB) shouldBe true
-        oracleB.tif.unorderedEqual(intKKSetOfThree.fcombinations(4), oracleB) shouldBe true
+        oracleB.tifo.unorderedEqual(intKKSetOfThree.fcombinations(3), oracleB) shouldBe true
+        oracleB.tifo.unorderedEqual(intKKSetOfThree.fcombinations(4), oracleB) shouldBe true
         val oracleX: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3))
-        oracleX.tif.unorderedEqual(intKKSetOfThree.fcombinations(1),oracleX) shouldBe true
+        oracleX.tifo.unorderedEqual(intKKSetOfThree.fcombinations(1),oracleX) shouldBe true
 
         val oracleY: FList<IMSet<Int>> = of(ofi(1), ofi(2), ofi(3), ofi(4))
-        oracleY.tif.unorderedEqual(intKKSetOfFour.fcombinations(1),oracleY) shouldBe true
+        oracleY.tifo.unorderedEqual(intKKSetOfFour.fcombinations(1),oracleY) shouldBe true
         val archetype: IMList<IMSet<Int>> = intKKSetOfFour.fcombinations(2)
         archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(2), oracleC.asSet()) shouldBe true
         archetype.tibOrdered<IMSet<Int>>()!!.unorderedEqual(intKKSetOfFour.fcombinations(3), oracleD.asSet()) shouldBe true
@@ -456,11 +456,11 @@ class FKSetGroupingTest : FunSpec({
     }
 
     test("fpermute") {
-        val foo = intKKSetOfNone.fpermute()
-        print(foo)
         intKKSetOfNone.fpermute().equals(emptyIMList<Int>()) shouldBe true
         (intKKSetOfNone.fpermute() === emptyIMList<Int>()) shouldBe true
-        IMCommon.equal(intKKSetOfOne.fpermute(), of(*arrayOf(of(FKSetIterator(intKKSetOfOne))))) shouldBe true
+        val ora1: FList<FList<Int>> = of(*arrayOf(of(FKSetIterator(intKKSetOfOne))))
+        ora1.tibOrdered<FList<Int>>()!!.equal(intKKSetOfOne.fpermute(), ora1) shouldBe true
+        ora1.tibCommon<FList<Int>>()!!.equal(intKKSetOfOne.fpermute(), ora1) shouldBe true
         intKKSetOfTwo.fpermute().equals(of(of(1,2),of(2, 1))) shouldBe true
         intKKSetOfThree.fpermute().fsize() shouldBe 6 // 3!
 

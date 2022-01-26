@@ -63,6 +63,8 @@ interface IMReducible<out A: Any>: IMUniversal {
     fun freduce(f: (acc: A, A) -> @UnsafeVariance A): A?
 }
 
+interface IMCommonInvariant<A: Any>: IMCommonEquality<A>
+
 // One or more A
 interface IMCommon<out A: Any>: IMSealed<IMUniversal> {
     fun fall(predicate: (A) -> Boolean): Boolean = fempty() || run {
@@ -106,14 +108,14 @@ interface IMCommon<out A: Any>: IMSealed<IMUniversal> {
         // O(n^2)
         internal fun <A: Any> containmentEquals(lhs: IMCommon<A>, rhs: Iterable<A>): Boolean {
             val rhsIter = rhs.iterator()
-            val rhsEmpty = ! rhsIter.hasNext()
+            val rhsEmpty = !rhsIter.hasNext()
             return when {
                 lhs.fempty() -> rhsEmpty
                 rhsEmpty -> false
                 !(lhs.fpick()!!.isStrictly(rhs.first())) -> false
                 else -> {
                     var match = false
-                    for(item in rhs) {
+                    for (item in rhs) {
                         match = lhs.fcontains(item)
                         if (!match) break
                     }
@@ -130,37 +132,41 @@ interface IMCommon<out A: Any>: IMSealed<IMUniversal> {
             }
         }
 
-        fun <T: Any> equal(lhs: IMCommon<T>, rhs: IMCommon<T>): Boolean = lhs === rhs || (lhs.fempty() && rhs.fempty()) || when {
-            lhs.fempty() || rhs.fempty() -> false
-            lhs.fsize() != rhs.fsize() -> false
-            lhs.isStrictly(rhs) -> /* TODO consider taint from mutable content */ lhs.fisStrict() && rhs.fisStrict() && lhs.equals(rhs)
-            else -> containmentEquals(lhs, rhs)
-        }
+        internal fun <A: Any> typeInvariantBuilder(): IMCommonInvariant<A> = object : IMCommonInvariant<A> {
 
-        fun <T: Any> softEqual(lhs: IMCommon<T>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
-            is IMCommon<*> ->(@Suppress("UNCHECKED_CAST") (rhs as? IMCommon<T>))?.let { equal(lhs, it) } ?: false
-            is Iterable<*> -> {
-                val rhsIter = rhs.iterator()
-                val rhsEmpty = ! rhsIter.hasNext()
-                when {
-                    lhs.fempty() -> rhsEmpty
-                    rhsEmpty -> false
-                    lhs.fpick()!!.isStrictlyNot(rhs.first()!!) -> false
-                    else -> when (rhs) {
-                        is Collection<*> -> if(lhs.fsize() != rhs.size) false else {
-                            (@Suppress("UNCHECKED_CAST") (rhs as? Collection<T>))?.let {
+            override fun equal(lhs: IMCommon<A>, rhs: IMCommon<A>): Boolean =
+                lhs === rhs || (lhs.fempty() && rhs.fempty()) || when {
+                    lhs.fempty() || rhs.fempty() -> false
+                    lhs.fsize() != rhs.fsize() -> false
+                    lhs.isStrictly(rhs) -> /* TODO consider taint from mutable content */ lhs.fisStrict() && rhs.fisStrict() && lhs.equals(rhs)
+                    lhs is IMSet<A> && rhs is IMSet<A> -> lhs.equal(rhs)
+                    else -> containmentEquals(lhs, rhs)
+                }
+
+            override fun softEqual(lhs: IMCommon<A>, rhs: Any?): Boolean = lhs.equals(rhs) || when (rhs) {
+                is IMCommon<*> -> (@Suppress("UNCHECKED_CAST") (rhs as? IMCommon<A>))?.let { equal(lhs, it) } ?: false
+                is Iterable<*> -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
+                    val rhsIter = rhs.iterator()
+                    val rhsEmpty = !rhsIter.hasNext()
+                    when {
+                        lhs.fempty() -> rhsEmpty
+                        rhsEmpty -> false
+                        lhs.fpick()!!.isStrictlyNot(rhs.first()) -> false
+                        else -> when (rhs) {
+                            is Collection<*> -> if (lhs.fsize() != rhs.size) false else {
+                                (@Suppress("UNCHECKED_CAST") (rhs as? Collection<A>))?.let {
+                                    containmentEquals(lhs, it)
+                                } ?: false
+                            }
+                            else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
                                 containmentEquals(lhs, it)
                             } ?: false
                         }
-                        else -> (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<T>))?.let {
-                            containmentEquals(lhs, it)
-                        } ?: false
                     }
-                }
+                } ?: false
+                else -> false
             }
-            else -> false
         }
-
 //        internal open class IMCommonEquality: EqualsProxy, HashCodeProxy {
 //            override fun equals(other: Any?): Boolean = other?.let { when(it) {
 //                is IMCommon<*> -> equal(it)
@@ -225,7 +231,8 @@ interface IMKeyed<out K>: IMUniversal where K: Any, K: Comparable<@UnsafeVarianc
 }
 
 interface IMKeyedValueInvariant<K, A: Any>:
-    IMKeyedValueAltering<K,A>,
+    IMKeyedValueWritable<K,A>,
+    IMKeyedValueEquality<K,A>,
     IMKeyedValueLogic<K,A>
         where K: Any, K: Comparable<@UnsafeVariance K>
 
@@ -243,7 +250,8 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
         (@Suppress("UNCHECKED_CAST") (KeyedTypeSample(fpickKey()!!::class, value::class) as? KeyedTypeSample<KClass<Any>?,KClass<Any>>))
     }
     fun fpickValue(): A?  // peek at one random value
-    fun <KK, AA: Any> tibKv(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = TODO()
+    fun <KK, AA: Any> tibKCommon(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
+    fun <KK, AA: Any> tibKWritable(): IMKeyedValueWritable<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = tibKCommon()
 
     companion object {
 
@@ -288,11 +296,23 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
                 is FKSet<K, A> -> origin.fXOR(src)
                 else -> throw RuntimeException("internal error, unknown ${IMKeyedValue::class.simpleName}: ${origin::class.simpleName ?: origin::class}")
             }
+
+            override fun equal(lhs: IMKeyedValue<K, A>, rhs: IMKeyedValue<K, A>): Boolean = when {
+                lhs is FBSTree<K, A> && rhs is FBSTree<K, A> -> lhs.equal(rhs)
+                lhs is FRBTree<K, A> && rhs is FRBTree<K, A> -> lhs.equal(rhs)
+                lhs is FKMap<K, A> && rhs is FKMap<K, A> -> lhs.equal(rhs)
+                lhs is FKSet<K, A> && rhs is FKSet<K, A> -> lhs.equal(rhs)
+                else -> false
+            }
+
+            override fun softEqual(lhs: IMKeyedValue<K, A>, rhs: Any?): Boolean {
+                return lhs.asIMBTree().softEqual(rhs) // TODO wanting!
+            }
         }
     }
 }
 
-interface IMOrderedInvariant<A: Any>: IMOrderedAltering<A>, IMOrderedEquality<A>
+interface IMOrderedInvariant<A: Any>: IMOrderedWritable<A>, IMOrderedEquality<A>
 
 interface IMOrdered<out A: Any>: IMCommon<A> {
     fun fdrop(n: Int): IMOrdered<A> // Return all elements after the first n elements
@@ -302,7 +322,10 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
     fun frotr(): IMOrdered<A> // rotate right (A, B, C).frotr() becomes (C, A, B)
     fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Pair<A,B>>
-    fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? = TODO()
+    fun <B: Any> fzipMap(fs: IMOrdered<(A) -> B>): IMOrdered<B>
+    fun <B: Any> tibCommon(): IMCommonInvariant<B>?
+    fun <B: Any> tibWritable(): IMWritable<B>? = tibOrdered()
+    fun <B: Any> tibOrdered(): IMOrderedInvariant<B>?
     // return value retyped
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A>
     override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A>
@@ -315,7 +338,12 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
 
         internal fun <A: Any> typeInvariantBuilder(): IMOrderedInvariant<A> = object : IMOrderedInvariant<A> {
 
-            override fun fadd(src: A, dest: IMOrdered<A>): IMOrdered<A> = when (dest) {
+            override fun fadd(src: A, dest: IMCommon<A>): IMOrdered<A>? = when (dest) {
+                is IMOrdered<A> -> faddOrdered(src, dest)
+                else -> null
+            }
+
+            override fun faddOrdered(src: A, dest: IMOrdered<A>): IMOrdered<A> = when (dest) {
                 is FList<A> -> dest.fprepend(src)
                 is FQueue<A> -> dest.fenqueue(src)
                 is FStack<A> -> dest.fpush(src)

@@ -134,6 +134,10 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
         if (fempty()) empty
         else items.fnext()?.let { FQueueBody.of(toFList().fzip(items),emptyIMList()) } ?: empty
 
+    override fun <B : Any> fzipMap(fs: IMOrdered<(A) -> B>): IMQueue<B> =
+        if (fempty()) empty
+        else fs.fnext()?.let { FQueueBody.of(toFList().fzipMap(fs),emptyIMList()) } ?: empty
+
     // ============ IMMappable
 
     override fun <B: Any> fmap(f: (A) -> B): IMQueue<B> =
@@ -141,8 +145,8 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     // ============ IMMapplicable
 
-    override fun <T: Any> fapp(op: (IMQueue<A>) -> ITMap<T>): ITMapp<T> =
-        IMMappOp.flift2mapp(op(this))!!
+    override fun <T: Any> fapp(op: (IMQueue<A>) -> ITMap<T>): ITApp<T> =
+        IMAppOp.flift2App(op(this))!!
 
     // ============ filtering
 
@@ -228,6 +232,30 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
 
     override fun <B : Any> fpeekMap(f: (A) -> B): B? =
         ffirst()?.let { f(it) }
+
+    // type invariant functionality
+    internal val tifc: IMCommonInvariant<@UnsafeVariance A> by lazy {
+        IMCommon.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifo: IMOrderedInvariant<@UnsafeVariance A> by lazy {
+        IMOrdered.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
+    internal val tifq: IMQueueInvariant<@UnsafeVariance A> by lazy {
+        IMQueue.typeInvariantBuilder()
+    }
+
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifc as? IMCommonInvariant<B>)
+
+    override fun <B: Any> tibOrdered(): IMOrderedInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifo as? IMOrderedInvariant<B>)
+
+    override fun <B : Any> tibQueue(): IMQueueInvariant<B>? =
+        @Suppress("UNCHECKED_CAST") (tifq as? IMQueueInvariant<B>)
 
     // ============ altering
 
@@ -368,12 +396,15 @@ sealed class FQueue<out A: Any> : IMQueue<A> {
     // the head of the list is the first item out (i.e. the head of the queue)
     fun toFList(): FList<A> = fqForceFront(merge = true).fqGetFront()
 
-    companion object: IMQueueCompanion, IMQueueWritable {
+    companion object: IMQueueCompanion {
 
         override fun <A: Any> emptyIMQueue(): FQueue<A> = empty
 
-        override fun <A : Any> fenqueue(back: A, dest: IMQueue<A>): IMQueue<A>  =
-            (dest as FQueue<A>).fenqueue(back)
+        internal fun <A: Any> typeInvariantBuilder(): IMQueueInvariant<A> = object : IMQueueInvariant<A> {
+
+            override fun fenqueue(back: A, dest: IMQueue<A>): IMQueue<A> =
+                (dest as FQueue<A>).fenqueue(back)
+        }
 
         override fun <A : Any> of(vararg items: A, readyToDequeue: Boolean): FQueue<A> {
             if (items.isEmpty()) return emptyIMQueue()
@@ -561,6 +592,5 @@ internal class FQueueBody<out A: Any> private constructor(
 
         fun <A: Any> hashCode(qb: FQueueBody<A>) = qb.hashCode()
     }
-
 }
 

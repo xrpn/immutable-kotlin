@@ -14,6 +14,7 @@ import io.kotest.xrpn.fqueue
 private val intQueueOfNoneNR = FQueue.of(*emptyArrayOfInt)
 private val intQueueOfNoneYR = FQueue.of(*emptyArrayOfInt, readyToDequeue = true)
 private val intQueueOfOne1NR = FQueue.of(*arrayOf<Int>(1))
+private val intQueueOfFOne1NR = FQueue.of(*arrayOf<(Int) -> String>({i: Int -> i.toString()}))
 private val intQueueOfOne2NR = FQueue.of(*arrayOf<Int>(2))
 private val intQueueOfOne2YR = FQueue.of(*arrayOf<Int>(2), readyToDequeue = true)
 private val intQueueOfTwoNR = FQueue.of(*arrayOf<Int>(1, 2))
@@ -31,13 +32,29 @@ private val intQueueOfThree2B = FQueueBody.of(FLCons(3, FLNil), FLCons(2,FLCons(
 private val intQueueOfThreer2B = FQueueBody.of(FLCons(2,FLCons(1, FLNil)), FLCons(3, FLNil))
 private val intQueueOfThree2F = FQueueBody.of(FLCons(3, FLCons(1, FLNil)), FLCons(2,FLNil))
 private val intQueueOfFour2F = FQueueBody.of(FLCons(3, FLCons(1, FLNil)), FLCons(4, FLCons(2,FLNil)))
+private val intQueueOfFFour2F = FQueueBody.of(FLCons({i:Int -> (i+3).toString()}, FLCons({i:Int -> (i+1).toString()}, FLNil)), FLCons({i:Int -> (i+4).toString()}, FLCons({i:Int -> (i+2).toString()},FLNil)))
 private val intQueueOfThreer2F = FQueueBody.of(FLCons(2,FLNil), FLCons(3, FLCons(1, FLNil)))
 private val intListOfNone: IMOrdered<Int> = FList.of(*emptyArrayOfInt)
+private val intListOfFNone: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>())
 private val intListOfOne: IMOrdered<Int> = FList.of(*arrayOf<Int>(1))
+private val intListOfFOne: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>({i: Int -> i.toString()}))
 private val intListOfOneB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2))
 private val intListOfTwo: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2))
+private val intListOfFTwo: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+1).toString()}
+))
 private val intListOfTwoB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2,3))
+private val intListOfFTwoB: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+5).toString()}
+))
 private val intListOfThree: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFThree: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+1).toString()},
+  {i: Int -> (i+2).toString()}
+))
 
 
 class FQueueOrderingTest : FunSpec({
@@ -261,5 +278,34 @@ class FQueueOrderingTest : FunSpec({
     (intQueueOfFourNR.fzip(intQueueOfFour2F).equal(FQueue.of(Pair(3,3), Pair(1,1), Pair(2,2), Pair(4,4), readyToDequeue = true), strong = true)) shouldBe true
   }
 
+  test("fzipMap") {
+    (intQueueOfNoneNR.fzipMap(intListOfFNone) === intQueueOfNoneNR) shouldBe true
+    (intQueueOfNoneNR.fzipMap(intListOfFOne) === intQueueOfNoneYR) shouldBe true
+    (intQueueOfOne1NR.fzipMap(intListOfFNone) === intQueueOfNoneNR) shouldBe true
+    (intQueueOfOne1NR.fzipMap(intQueueOfFOne1NR).equals(FQueue.of("1", readyToDequeue = false))) shouldBe true
+    (intQueueOfOne1NR.fzipMap(intListOfFOne).equals(FQueue.of("1", readyToDequeue = false))) shouldBe true
+    (intQueueOfOne1NR.fzipMap(intListOfFOne).equals(FQueue.of("1", readyToDequeue = true))) shouldBe true
+    (intQueueOfOne1NR.fzipMap(intListOfFTwo).equals(FQueue.of("1", readyToDequeue = true))) shouldBe true
+
+    (intQueueOfTwoNR.fzipMap(intListOfFNone) === intQueueOfNoneNR) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intQueueOfFOne1NR).equals(FQueue.of("1", readyToDequeue = false))) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intQueueOfFOne1NR).equal(FQueue.of("1", readyToDequeue = false), strong = true)) shouldBe false
+    (intQueueOfTwoNR.fzipMap(intListOfFOne).equals(FQueue.of("1", readyToDequeue = false))) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intListOfFOne).equals(FQueue.of("1", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intListOfFOne).equal(FQueue.of("1", readyToDequeue = true), strong = true)) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intListOfFTwo).equals(FQueue.of("1", "3", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intListOfFTwoB).equals(FQueue.of("1", "7", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwoNR.fzipMap(intListOfFThree).equals(FQueue.of("1", "3", readyToDequeue = true))) shouldBe true
+
+    (intQueueOfTwoYR.fzipMap(intListOfFNone) === intQueueOfNoneNR) shouldBe true
+    (intQueueOfTwoYR.fzipMap(intQueueOfFOne1NR).equals(FQueue.of("1"))) shouldBe true
+    (intQueueOfTwoYR.fzipMap(intListOfFOne).equals(FQueue.of("1"))) shouldBe true
+    (intQueueOfTwoYR.fzipMap(intListOfFTwo).equals(FQueue.of("1", "3", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwo23YR.fzipMap(intListOfFTwo).equals(FQueue.of("2", "4", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwoYR.fzipMap(intListOfFTwoB).equals(FQueue.of("1", "7", readyToDequeue = true))) shouldBe true
+    (intQueueOfTwoYR.fzipMap(intListOfFThree).equals(FQueue.of("1", "3", readyToDequeue = true))) shouldBe true
+
+    (intQueueOfFourNR.fzipMap(intQueueOfFFour2F).equal(FQueue.of("6", "2", "4", "8", readyToDequeue = true), strong = true)) shouldBe true
+  }
 
 })

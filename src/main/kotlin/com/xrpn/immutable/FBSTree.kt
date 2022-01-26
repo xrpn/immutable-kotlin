@@ -6,7 +6,6 @@ import com.xrpn.immutable.FKSet.Companion.emptyIMKSet
 import com.xrpn.immutable.FQueue.Companion.emptyIMQueue
 import com.xrpn.immutable.FRBTree.Companion.rbtInsert
 import com.xrpn.immutable.FStack.Companion.emptyIMStack
-import com.xrpn.immutable.FStack.Companion.fpush
 import com.xrpn.immutable.TKVEntry.Companion.toIAEntry
 import com.xrpn.immutable.TKVEntry.Companion.toSAEntry
 import kotlin.reflect.KClass
@@ -111,10 +110,10 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         val f: (previous: Pair<Boolean, TKVEntry<A, B>>, entry: TKVEntry<A, B>) -> Pair<Boolean, TKVEntry<A, B>> = { previous, entry -> if (previous.first) previous else Pair(isMatch(entry), entry) }
         fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: Pair<Boolean, TKVEntry<A, B>>): Pair<Pair<Boolean, TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> =
             if (acc.first) Pair(acc, emptyIMStack()) else {
-                val (node, shortStack) = stack.fpopOrThrow()
+                val (node, shortStack: IMStack<FBSTNode<A, B>>) = stack.fpopOrThrow()
                 val newAcc: Pair<Boolean, TKVEntry<A, B>> = visitForFold(node, acc, f)
-                val auxStack = if (node.bRight is FBSTNode)  fpush(node.bRight, shortStack) else shortStack
-                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
+                val auxStack = if (node.bRight is FBSTNode)  stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, shortStack) else shortStack
+                val newStack = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft, auxStack) else auxStack
                 Pair(newAcc, newStack)
             }
 
@@ -202,11 +201,11 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         // this is a generic preorder
         fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: Pair<Boolean, TKVEntry<A, B>>): Pair<Pair<Boolean, TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> {
-            val (node, shortStack) = stack.fpopOrThrow()
+            val (node, shortStack: IMStack<FBSTNode<A, B>>) = stack.fpopOrThrow()
             val newAcc: Pair<Boolean, TKVEntry<A, B>> = visitForFold(node, acc, f)
             return if (newAcc.first) Pair(newAcc, emptyIMStack()) else {
-                val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
-                val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
+                val auxStack = if (node.bRight is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, shortStack) else shortStack
+                val newStack = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft, auxStack) else auxStack
                 Pair(newAcc, newStack)
             }
         }
@@ -261,7 +260,7 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         tailrec fun inoLeftDescent(t: FBSTree<A, B>, stack: IMStack<FBSTNode<A, B>>): IMStack<FBSTNode<A, B>> =
             when (t) {
                 is FBSTNil -> stack
-                is FBSTNode -> inoLeftDescent(t.bLeft, fpush(t, stack))
+                is FBSTNode -> inoLeftDescent(t.bLeft, stack.tibStack<FBSTNode<A, B>>()!!.fpush(t, stack))
                 else -> throw RuntimeException("internal error")
             }
 
@@ -300,8 +299,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
 
         fun accrue(stack: IMStack<FBSTNode<A, B>>, acc: FList<TKVEntry<A, B>>): Pair<FList<TKVEntry<A, B>>, IMStack<FBSTNode<A, B>>> {
             val (node, shortStack) = stack.fpopOrThrow()
-            val auxStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, shortStack) else shortStack
-            val newStack = if (node.bRight is FBSTNode) fpush(node.bRight, auxStack) else auxStack
+            val auxStack = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft, shortStack) else shortStack
+            val newStack = if (node.bRight is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, auxStack) else auxStack
             return Pair(visit(node,acc), newStack)
         }
 
@@ -520,8 +519,8 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
         fun accrueForFold(stack: IMStack<FBSTNode<A, B>>, acc: C): Pair<C, IMStack<FBSTNode<A, B>>> {
             val (node, shortStack) = stack.fpopOrThrow()
             val newAcc: C = visitForFold(node, acc, f)
-            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
-            val newStack = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
+            val auxStack = if (node.bRight is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, shortStack) else shortStack
+            val newStack = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft, auxStack) else auxStack
             return Pair(newAcc, newStack)
         }
 
@@ -546,9 +545,17 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     }
 
     // type invariant functionality
+    internal val tifk: IMKeyedValueInvariant<@UnsafeVariance A, @UnsafeVariance B> by lazy {
+        IMKeyedValue.typeInvariantBuilder()
+    }
+
+    // type invariant functionality
     internal val tif: IMBTreeInvariant<@UnsafeVariance A, @UnsafeVariance B> by lazy {
         IMBTree.typeInvariantBuilder()
     }
+
+    override fun <KK, AA: Any> tibKCommon(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
+        @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK,AA>)
 
     override fun <KK, AA: Any> tibBTree(): IMBTreeInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
         @Suppress("UNCHECKED_CAST") (tif as? IMBTreeInvariant<KK,AA>)
@@ -949,18 +956,18 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
                     val (newStack, newAcc) = when (isChildMatch(node, clipMatch, ::fit)) {
                         Pair(noLeftMatch, noRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val auxStack = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
-                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft, auxStack) else auxStack
+                            val auxStack = if (node.bRight is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, shortStack) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft, auxStack) else auxStack
                             Pair(ns, na)
                         }
                         Pair(haveLeftMatch,  noRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val ns = if (node.bRight is FBSTNode) fpush(node.bRight, shortStack) else shortStack
+                            val ns = if (node.bRight is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bRight, shortStack) else shortStack
                             Pair(ns, na)
                         }
                         Pair(noLeftMatch,  haveRightMatch) -> {
                             val na = bstInsert(acc, node.entry)
-                            val ns = if (node.bLeft is FBSTNode) fpush(node.bLeft,shortStack) else shortStack
+                            val ns = if (node.bLeft is FBSTNode) stack.tibStack<FBSTNode<A, B>>()!!.fpush(node.bLeft,shortStack) else shortStack
                             Pair(ns, na)
                         }
                         else -> throw RuntimeException("impossible code path")
@@ -1407,6 +1414,7 @@ internal class FBSTNodeGeneric<out A, out B: Any> private constructor (
             //FBSTNodeGeneric(entry, bLeft, bRight)
             fbtAssertNodeInvariant(FBSTNodeGeneric(entry, bLeft, bRight)) // TODO remove check in time
     }
+
 }
 
 internal class FBSTNodeUnique<out A, out B: Any> private constructor (

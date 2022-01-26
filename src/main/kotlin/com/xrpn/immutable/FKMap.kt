@@ -297,6 +297,10 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
         is FKMapNotEmpty -> body.ffold(mutableMapOf()) { acc, tkv -> acc[tkv.getk()] = tkv.getv(); acc }
     }
 
+    override fun <KK, AA : Any> tibKCommon(): IMKeyedValueInvariant<KK, AA>? where KK:Any, KK: Comparable<KK> {
+        TODO("Not yet implemented")
+    }
+
     //
     // ========= implementation
     //

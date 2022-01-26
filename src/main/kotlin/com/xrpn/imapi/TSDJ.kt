@@ -7,11 +7,15 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private interface EmptyIMDj<out L: Any, out R: Any>: IMOrderedEmpty<IMDj<L,R>>, IMDj<L,R>  {
     override fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
+    override fun <B: Any> fzipMap(fs: IMOrdered<(IMDj<L, R>) -> B>): IMOrdered<B> = TODO("internal error")
+    // TODO add lazy
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B> = IMCommon.typeInvariantBuilder()
+    override fun <B : Any> tibOrdered(): IMOrderedInvariant<B> = IMOrdered.typeInvariantBuilder()
 }
 
 private val emptyIMDj: EmptyIMDj<Any, Any> =
     object: EmptyIMDj<Any, Any>, IMCommonEmpty.Companion.IMCommonEmptyEquality() {
-    override val seal: IMSC = IMSC.IMTSDJ
+        override val seal: IMSC = IMSC.IMTSDJ
         override fun left(): Nothing? = null
         override fun right(): Nothing? = null
         override fun isLeft(): Boolean = false
@@ -86,6 +90,9 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
     override fun <C: Any> fzip(items: IMOrdered<C>): IMOrdered<Pair<IMDj<A, B>, C>> =
         if (items.fempty()) @Suppress("UNCHECKED_CAST") (items.toEmpty() as IMOrdered<Pair<IMDj<A, B>, C>>)
         else DWCommon.of(Pair(this,items.fnext()!!))
+    override fun <C: Any> fzipMap(fs: IMOrdered<(IMDj<A, B>) -> C>): IMOrdered<C> =
+        if (fs.fempty()) @Suppress("UNCHECKED_CAST") (fs.toEmpty() as IMOrdered<C>)
+        else DWCommon.of(fs.fnext()!!(this))
 
     // IMMapOp
 
@@ -96,9 +103,9 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
 
     // IMMappOp
 
-    override fun <T : Any> fapp(op: (ITMap<IMDj<A, B>>) -> ITMap<T>): ITMapp<T> {
+    override fun <T : Any> fapp(op: (ITMap<IMDj<A, B>>) -> ITMap<T>): ITApp<T> {
         val arg = op(this)
-        return IMMappOp.flift2mapp(arg) ?: DWFMapp.of(arg)
+        return IMAppOp.flift2App(arg) ?: DWFApp.of(arg)
     }
 
     override fun equals(other: Any?): Boolean = when {
@@ -119,6 +126,10 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
 
     override fun hashCode(): Int =
         left()?.hashCode() ?: right()!!.hashCode()
+
+    // TODO add lazy
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B> = IMCommon.typeInvariantBuilder()
+    override fun <B : Any> tibOrdered(): IMOrderedInvariant<B> = IMOrdered.typeInvariantBuilder()
 
     companion object {
         fun <L: Any, R: Any> empty(): IMDj<L,R> = @Suppress("UNCHECKED_CAST") (emptyIMDj as IMDj<L,R>)

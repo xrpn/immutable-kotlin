@@ -53,4 +53,5 @@ class ExperimentalSandbox : FunSpec({
 //        val i2 = object: I2<Int>{}
 //        I3.f1("s", i2)
 //    }
+
 })

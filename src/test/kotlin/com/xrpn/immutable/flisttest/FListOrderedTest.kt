@@ -13,18 +13,33 @@ import io.kotest.property.checkAll
 import io.kotest.xrpn.flist
 
 private val intListOfNone: IMOrdered<Int> = FList.of(*emptyArrayOfInt)
+private val intListOfFNone: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>())
 private val intListOfOne: IMOrdered<Int> = FList.of(*arrayOf<Int>(1))
+private val intListOfFOne: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>({i: Int -> i.toString()}))
 private val intListOfOneB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2))
 private val intListOfTwo: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2))
+private val intListOfFTwo: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+1).toString()}
+))
 private val intListOfTwoB: IMOrdered<Int> = FList.of(*arrayOf<Int>(2,3))
+private val intListOfFTwoB: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+5).toString()}
+))
 private val intListOfThree: IMOrdered<Int> = FList.of(*arrayOf<Int>(1,2,3))
+private val intListOfFThree: IMOrdered<(Int) -> String> = FList.of(*arrayOf<(Int) -> String>(
+  {i: Int -> i.toString()},
+  {i: Int -> (i+1).toString()},
+  {i: Int -> (i+2).toString()}
+))
 
 class FListOrderedTest : FunSpec({
 
   val repeats = Triple(5, 3, 10)
 
   beforeTest {}
-
+Pair(3,2)
   test("fdrop 0") {
     intListOfNone.fdrop(0) shouldBe FLNil
     intListOfOne.fdrop(0) shouldBe intListOfOne
@@ -159,6 +174,20 @@ class FListOrderedTest : FunSpec({
     intListOfTwo.fzip(intListOfTwoB) shouldBe FLCons(Pair(1,2), FLCons(Pair(2,3), FLNil))
     intListOfTwoB.fzip(intListOfTwo) shouldBe FLCons(Pair(2,1), FLCons(Pair(3,2), FLNil))
     intListOfTwoB.fzip(intListOfThree) shouldBe FLCons(Pair(2,1), FLCons(Pair(3,2), FLNil))
+  }
+
+  test("fzipMap") {
+    (intListOfNone.fzipMap(intListOfFNone) === intListOfNone) shouldBe true
+    (intListOfNone.fzipMap(intListOfFOne) === intListOfNone) shouldBe true
+    (intListOfOne.fzipMap(intListOfFNone) === intListOfNone) shouldBe true
+    intListOfOne.fzipMap(intListOfFOne) shouldBe FLCons("1", FLNil)
+    intListOfOne.fzipMap(intListOfFTwo) shouldBe FLCons("1", FLNil)
+    (intListOfTwo.fzipMap(intListOfFNone) === intListOfNone) shouldBe true
+    intListOfTwo.fzipMap(intListOfFOne) shouldBe FLCons("1", FLNil)
+    intListOfTwo.fzipMap(intListOfFTwo) shouldBe FLCons("1", FLCons("3", FLNil))
+    intListOfTwo.fzipMap(intListOfFTwoB) shouldBe FLCons("1", FLCons("7", FLNil))
+    intListOfTwoB.fzipMap(intListOfFTwo) shouldBe FLCons("2", FLCons("4", FLNil))
+    intListOfTwoB.fzipMap(intListOfFThree) shouldBe FLCons("2", FLCons("4", FLNil))
   }
 
 })
