@@ -557,6 +557,9 @@ sealed class FBSTree<out A, out B: Any>: IMBTree<A, B> where A: Any, A: Comparab
     override fun <KK, AA: Any> tibKCommon(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
         @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK,AA>)
 
+    override fun <KK, AA: Any> tibKeyedValue(): IMKeyedValueInvariant<KK, AA>? where KK: Any, KK : Comparable<KK> =
+        @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK,AA>)
+
     override fun <KK, AA: Any> tibBTree(): IMBTreeInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> =
         @Suppress("UNCHECKED_CAST") (tif as? IMBTreeInvariant<KK,AA>)
 

@@ -15,22 +15,22 @@ class FValidationTest : FunSpec({
     beforeTest {}
 
     test("sanity, pass") {
-        val sInt = FSingleMappValidation(tpIntNumValidation(1..2), ::onError).validation(FList.of(TestProduct(1, "DD")))
+        val sInt = FSingleApplicativeValidation(tpIntNumValidation(1..2), ::onError).validation(FList.of(TestProduct(1, "DD")))
         sInt.right()?.fsize() shouldBe 1
-        val sStr = FSingleMappValidation(tpStrMsgValidation(1..2), ::onError).validation(FList.of(TestProduct(1, "DD")))
+        val sStr = FSingleApplicativeValidation(tpStrMsgValidation(1..2), ::onError).validation(FList.of(TestProduct(1, "DD")))
         sStr.right()?.fsize() shouldBe 1
     }
 
     test("sanity, fail") {
-        val s1 = FSingleMappValidation(tpIntNumValidation(1..2), ::onError).validation(FList.of(TestProduct(0, "DDD")))
+        val s1 = FSingleApplicativeValidation(tpIntNumValidation(1..2), ::onError).validation(FList.of(TestProduct(0, "DDD")))
         s1.left()?.fsize() shouldBe 1
-        val s2 = FSingleMappValidation(tpStrMsgValidation(1..2), ::onError).validation(FList.of(TestProduct(0, "DDD")))
+        val s2 = FSingleApplicativeValidation(tpStrMsgValidation(1..2), ::onError).validation(FList.of(TestProduct(0, "DDD")))
         s2.left()?.fsize() shouldBe 1
-        val m1a = FMultiMappValidation(multipleTests, ::onError).validation(FList.of(TestProduct(0, "DD")))
+        val m1a = FMultiApplicativeValidation(multipleTests, ::onError).validation(FList.of(TestProduct(0, "DD")))
         m1a.left()?.fsize() shouldBe 1
-        val m1b = FMultiMappValidation(multipleTests, ::onError).validation(FList.of(TestProduct(1, "DDD")))
+        val m1b = FMultiApplicativeValidation(multipleTests, ::onError).validation(FList.of(TestProduct(1, "DDD")))
         m1b.left()?.fsize() shouldBe 1
-        val m2 = FMultiMappValidation(multipleTests, ::onError).validation(FList.of(TestProduct(0, "DDD")))
+        val m2 = FMultiApplicativeValidation(multipleTests, ::onError).validation(FList.of(TestProduct(0, "DDD")))
         m2.left()?.fsize() shouldBe 2
     }
 

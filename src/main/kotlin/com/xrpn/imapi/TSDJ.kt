@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.atomic.AtomicBoolean
 
-private interface EmptyIMDj<out L: Any, out R: Any>: IMOrderedEmpty<IMDj<L,R>>, IMDj<L,R>  {
+private interface EmptyIMDj<out L: Any, out R: Any>: IMOrderedEmpty<IMDj<L,R>>, IMOdj<L,R>  {
     override fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Nothing> = TODO("internal error")
     override fun <B: Any> fzipMap(fs: IMOrdered<(IMDj<L, R>) -> B>): IMOrdered<B> = TODO("internal error")
     // TODO add lazy
@@ -22,17 +22,21 @@ private val emptyIMDj: EmptyIMDj<Any, Any> =
         override fun isRight(): Boolean = false
         override fun <C> bireduce(fl: (Any) -> C, fr: (Any) -> C): Nothing = TODO("internal error")
         override fun <C: Any, D: Any> bimap(fl: (Any) -> C, fr: (Any) -> D): IMDj<C, D> = TODO("internal error")
+        override fun <T : Any> fmap(f: (IMDj<Any, Any>) -> T): ITOMap<T> = TODO("internal error")
+        override fun <T : Any> fapp(op: (ITOMap<IMDj<Any, Any>>) -> ITMap<T>): ITApp<T> = TODO("internal error")
     }
 
-sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, IMSdj<A,B> {
+sealed class /* Trivially Simple DisJunction */ TDJ<out A, out B>: IMDj<A,B> {
 
     override fun left(): A? = when (this) {
-        is TSDL -> l
+        is TSDL-> l
+        is TODL-> l
         else -> null
     }
 
     override fun right(): B? = when (this) {
         is TSDR -> r
+        is TODR -> r
         else -> null
     }
 
@@ -41,11 +45,12 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
     override fun isRight(): Boolean = this is TSDR
 
     override fun <C> bireduce(fl: (A) -> C, fr: (B) -> C): C = when (this) {
-        is TSDL -> fl(left()!!)
-        is TSDR -> fr(right()!!)
+        is TSDL, is TODL -> fl(left()!!)
+        is TSDR, is TODR -> fr(right()!!)
+        else -> throw RuntimeException("cannot bireduce unknown ${TDJ::class.simpleName}: '${this::class.simpleName ?: this::class}' ")
     }
 
-    override fun <C:Any, D:Any> bimap(fl: (A) -> C, fr: (B) -> D): TSDJ<C,D> = when (this) {
+    override fun <C:Any, D:Any> bimap(fl: (A) -> C, fr: (B) -> D): TDJ<C,D> = when (this) {
         is Invalid -> when (val aux = fl(left()!!)) {
             is Exception -> @Suppress("UNCHECKED_CAST") (ErrorTrap(aux) as TSDL<C>)
             is String -> @Suppress("UNCHECKED_CAST") (ErrorMsgTrap(aux) as TSDL<C>)
@@ -58,6 +63,19 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
             else -> @Suppress("UNCHECKED_CAST") (TSDJInvalid(l) as TSDL<C>)
         }
         is TSDR -> TSDJValid(fr(r))
+        is OInvalid -> when (val aux = fl(left()!!)) {
+            is Exception -> @Suppress("UNCHECKED_CAST") (ErrorOTrap(aux) as TODL<C>)
+            is String -> @Suppress("UNCHECKED_CAST") (ErrorOMsgTrap(aux) as TODL<C>)
+            is ErrExReport<*> -> @Suppress("UNCHECKED_CAST") (ErrorOReportTrap(aux) as TODL<C>)
+            else -> @Suppress("UNCHECKED_CAST") (TODJInvalid(l) as TODL<C>)
+        }
+        is OValid -> TODJValid(fr(right()!!))
+        is TODL -> when(l) {
+            is IMVSetNotEmpty<*> -> @Suppress("UNCHECKED_CAST") (TODJValid(fl(l)) as TODR<D>)
+            else -> @Suppress("UNCHECKED_CAST") (TODJInvalid(l) as TODL<C>)
+        }
+        is TODR -> TODJValid(fr(r))
+        else -> throw RuntimeException("cannot bimap unknown '${this::class.simpleName ?: this::class}'")
     }
 
     // IMCommon
@@ -75,39 +93,10 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
     override fun <R> ffold(z: R, f: (acc: R, IMDj<A,B>) -> R): R = f(z,this)
     override fun fisStrict(): Boolean = strictness
     override fun fpick(): IMDj<A, B>? = this
-    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMOrdered<IMDj<A, B>>> = Pair(this, empty())
+    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMCommon<IMDj<A, B>>> = Pair(this, empty())
     override fun fsize(): Int = 1
     override fun toEmpty(): IMCommon<IMDj<A, B>> = empty()
     
-    // IMOrdered
-
-    override fun fdrop(n: Int): IMOrdered<IMDj<A, B>> = if ( n < 1) this else empty()
-    override fun fnext(): IMDj<A, B> = this
-    override fun freverse(): IMOrdered<IMDj<A, B>> = this
-    override fun frotl(): IMOrdered<IMDj<A, B>> = this
-    override fun frotr(): IMOrdered<IMDj<A, B>> = this
-    override fun fswaph(): IMOrdered<IMDj<A, B>> = this
-    override fun <C: Any> fzip(items: IMOrdered<C>): IMOrdered<Pair<IMDj<A, B>, C>> =
-        if (items.fempty()) @Suppress("UNCHECKED_CAST") (items.toEmpty() as IMOrdered<Pair<IMDj<A, B>, C>>)
-        else DWCommon.of(Pair(this,items.fnext()!!))
-    override fun <C: Any> fzipMap(fs: IMOrdered<(IMDj<A, B>) -> C>): IMOrdered<C> =
-        if (fs.fempty()) @Suppress("UNCHECKED_CAST") (fs.toEmpty() as IMOrdered<C>)
-        else DWCommon.of(fs.fnext()!!(this))
-
-    // IMMapOp
-
-    override fun <T: Any> fmap(f: (IMDj<A,B>) -> T): ITMap<T> = when(val tValue = f(this)) {
-        is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as ITMap<T>)
-        else -> DWFMap.of(tValue)
-    }
-
-    // IMMappOp
-
-    override fun <T : Any> fapp(op: (ITMap<IMDj<A, B>>) -> ITMap<T>): ITApp<T> {
-        val arg = op(this)
-        return IMAppOp.flift2App(arg) ?: DWFApp.of(arg)
-    }
-
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
         other !is TSDJ<*, *> -> false
@@ -128,19 +117,92 @@ sealed class /* Trivially Simple DisJunction */ TSDJ<out A, out B>: IMDj<A,B>, I
         left()?.hashCode() ?: right()!!.hashCode()
 
     // TODO add lazy
-    override fun <B : Any> tibCommon(): IMCommonInvariant<B> = IMCommon.typeInvariantBuilder()
-    override fun <B : Any> tibOrdered(): IMOrderedInvariant<B> = IMOrdered.typeInvariantBuilder()
+    // override fun <B : Any> tibCommon(): IMCommonInvariant<B> = IMCommon.typeInvariantBuilder()
 
     companion object {
         fun <L: Any, R: Any> empty(): IMDj<L,R> = @Suppress("UNCHECKED_CAST") (emptyIMDj as IMDj<L,R>)
     }
 }
 
+abstract class TSDJ<out A, out B> : TDJ<A,B>(), IMSdj<A,B> {
+
+    // IMMapOp
+
+    override fun <T: Any> fmap(f: (IMDj<A,B>) -> T): ITMap<T> = when(val tValue = f(this)) {
+        is IMMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as ITMap<T>)
+        else -> DWFMap.of(tValue)
+    }
+
+    // IMMappOp
+
+    override fun <T : Any> fapp(op: (ITMap<IMDj<A, B>>) -> ITMap<T>): ITApp<T> {
+        val arg = op(this)
+        return IMAppOp.flift2App(arg) ?: DWFApp.of(arg)
+    }
+}
+
+abstract class TODJ<out A, out B> : TDJ<A,B>(), IMOdj<A,B> {
+
+    override fun ffilter(isMatch: (IMDj<A, B>) -> Boolean): IMOdj<A, B> = if (isMatch(this)) this else empty()
+    override fun ffilterNot(isMatch: (IMDj<A, B>) -> Boolean): IMOdj<A, B> = if (isMatch(this)) empty() else this
+    override fun ffindAny(isMatch: (IMDj<A, B>) -> Boolean): IMOdj<A, B>? = if (isMatch(this)) this else null
+    override fun fpick(): IMOdj<A, B>? = this
+    override fun fpopAndRemainder(): Pair<IMDj<A, B>?, IMOrdered<IMDj<A, B>>> = Pair(this, empty())
+
+    // IMOrdered
+
+    override fun fdrop(n: Int): IMOrdered<IMDj<A, B>> = if ( n < 1) this else empty()
+    override fun fdropAll(items: IMCommon<IMDj<@UnsafeVariance A, @UnsafeVariance B>>): IMOdj<A, B> = if (items.fcontains((this))) empty() else this
+    override fun fdropItem(item: IMDj<@UnsafeVariance A, @UnsafeVariance B>): IMOdj<A, B> = if (this.equals(item)) empty() else this
+    override fun fdropWhen(isMatch: (IMDj<A, B>) -> Boolean): IMOdj<A, B> = ffilterNot(isMatch)
+    override fun fnext(): IMDj<A, B> = this
+    override fun freverse(): IMOrdered<IMDj<A, B>> = this
+    override fun frotl(): IMOrdered<IMDj<A, B>> = this
+    override fun frotr(): IMOrdered<IMDj<A, B>> = this
+    override fun fswaph(): IMOrdered<IMDj<A, B>> = this
+    override fun <C: Any> fzip(items: IMOrdered<C>): IMOrdered<Pair<IMDj<A, B>, C>> =
+        if (items.fempty()) @Suppress("UNCHECKED_CAST") (items.toEmpty() as IMOrdered<Pair<IMDj<A, B>, C>>)
+        else DWCommon.of(Pair(this,items.fnext()!!))
+    override fun <C: Any> fzipMap(fs: IMOrdered<(IMDj<A, B>) -> C>): IMOrdered<C> =
+        if (fs.fempty()) @Suppress("UNCHECKED_CAST") (fs.toEmpty() as IMOrdered<C>)
+        else DWCommon.of(fs.fnext()!!(this))
+
+    // TODO add lazy
+    override fun <B : Any> tibCommon(): IMCommonInvariant<B> = IMCommon.typeInvariantBuilder()
+    override fun <B : Any> tibOrdered(): IMOrderedInvariant<B> = IMOrdered.typeInvariantBuilder()
+
+    // IMMapOp
+
+    override fun <T: Any> fmap(f: (IMDj<A,B>) -> T): ITOMap<T> = when(val tValue: T = f(this)) {
+        is IMOrderedMapOp<*,*> -> @Suppress("UNCHECKED_CAST") (tValue as ITOMap<T>)
+        else -> DWFOMap.of(tValue)
+    }
+
+    // IMMappOp
+
+    override fun <T : Any> fapp(op: (ITOMap<IMDj<A, B>>) -> ITMap<T>): ITOApp<T> = when(val arg: ITMap<T> = op(this)) {
+        is IMOrderedMapOp<T,*> -> IMOrderedAppOp.flift2OApp(arg) ?: DWFOApp.of(arg)
+        else -> TODO("what do I do with ${arg::class.simpleName ?: arg::class}")
+    }
+
+    companion object {
+        fun <L: Any, R: Any> empty(): IMOdj<L,R> = @Suppress("UNCHECKED_CAST") (emptyIMDj as IMOdj<L,R>)
+    }
+
+}
+
+
 abstract class TSDL<out A>(open val l: A): TSDJ<A, Nothing>()
 abstract class TSDR<out B>(open val r: B): TSDJ<Nothing, B>()
 
+abstract class TODL<out A>(open val l: A): TODJ<A, Nothing>()
+abstract class TODR<out B>(open val r: B): TODJ<Nothing, B>()
+
 abstract class Invalid<out A>(override val l: A): TSDL<A>(l)
 abstract class Valid<out B>(override val r: B): TSDR<B>(r)
+
+abstract class OInvalid<out A>(override val l: A): TODL<A>(l)
+abstract class OValid<out B>(override val r: B): TODR<B>(r)
 
 data class ErrExReport<out T>(val errData:T?, val ex:Exception?, val separator: String = " :: ") {
     private var verbose: AtomicBoolean = AtomicBoolean(false)
@@ -163,6 +225,13 @@ data class ErrorTrap(override val l: Exception): Invalid<Exception>(l)
 data class ErrorMsgTrap(override val l: String): Invalid<String>(l)
 data class ErrorReportTrap<out T>(override val l: ErrExReport<T>): Invalid<ErrExReport<T>>(l)
 data class TSDJValid<out A>(override val r: A): Valid<A>(r)
+
+
+data class TODJInvalid<out A>(override val l: A): OInvalid<A>(l)
+data class ErrorOTrap(override val l: Exception): OInvalid<Exception>(l)
+data class ErrorOMsgTrap(override val l: String): OInvalid<String>(l)
+data class ErrorOReportTrap<out T>(override val l: ErrExReport<T>): OInvalid<ErrExReport<T>>(l)
+data class TODJValid<out A>(override val r: A): OValid<A>(r)
 
 data class IMSetDJL<out A: Any>(override val l: IMVSetNotEmpty<A>): TSDL<IMVSetNotEmpty<A>>(l)
 data class IMCVSetDJR<out A>(override val r: IMCVSetNotEmpty<A>): TSDR<IMCVSetNotEmpty<A>>(r) where A: Any, A:Comparable<@UnsafeVariance A>

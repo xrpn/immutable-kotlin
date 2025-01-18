@@ -6,11 +6,7 @@ import com.xrpn.immutable.FList
 //import com.xrpn.immutable.FList
 import com.xrpn.immutable.TKVEntry
 import com.xrpn.immutable.TraversalImpl
-
-interface SEq<T> {
-    fun equal(actual: T, expected: T): Throwable?
-    fun softEqual(actual: T, expected: Any?): Throwable?
-}
+import com.xrpn.immutable.ZipTraversalImpl
 
 typealias ITKart<S, T> = IMCartesian<S, ITMap<S>, T, IMZPair<S,T>>
 
@@ -20,7 +16,7 @@ interface IMCartesian<out S: Any, out U: ITMap<S>, out T: Any, out W:IMZPair<S,T
     infix fun opro(t: IMOrdered<@UnsafeVariance T>): ITMap<W>?
 
     companion object {
-        fun <S: Any, T: Any, W:IMZPair<S,T>> asZMap(k: ITMap<W>?): ITZMap<S,T>? = try {
+        internal fun <S: Any, T: Any, W:IMZPair<S,T>> asZMap(k: ITMap<W>?): ITZMap<S,T>? = try {
             k?.let { try {
                 FCartesian.asZMap(it as ITMap<IMZPair<S, T>>) as ITZMap<S, T>
             } catch (ex: NullPointerException) {
@@ -45,13 +41,13 @@ interface IMZPair<out A: Any, out B: Any> {
     fun equal(rhs: IMZPair<@UnsafeVariance A, @UnsafeVariance B>) = (_1().equals(rhs._1()) && _2().equals(rhs._2()))
 }
 
-typealias ITZMap<S,T> = IMZipMap<S,T,IMZPair<S,T>>
+internal typealias ITZMap<S,T> = IMZipMap<S,T,IMZPair<S,T>>
 
-interface IMZipWrap<out S: Any, out T: Any> {
+internal interface IMZipWrap<out S: Any, out T: Any> {
     fun asZMap(): ITZMap<S,T>
 }
 
-interface IMZipMap<out S: Any, out T: Any, out W: IMZPair<S,T>>: IMZipWrap<S,T> {
+internal interface IMZipMap<out S: Any, out T: Any, out W: IMZPair<S,T>>: IMZipWrap<S,T> {
 
     fun <X: Any> fzipMap(f: (S) -> (T) -> X): ITMap<X>
     fun <X: Any> fzippMap(f: (S, T) -> X): ITMap<X> {
@@ -169,17 +165,29 @@ interface IMMapOp<out S: Any, out U: IMCommon<S>>: IMCommon<S> {
 
 typealias ITOMap<S> = IMOrderedMapOp<S, IMOrdered<S>>
 
-interface IMOrderedMapOp<out S: Any, out U: IMOrdered<S>>: IMOrdered<S>, IMMapOp<S,U>
+interface IMOrderedMapOp<out S: Any, out U: IMOrdered<S>>: IMOrdered<S>, IMMapOp<S,U> {
+
+    override fun <T: Any> fmap(f: (S) -> T): ITOMap<T>
+
+    companion object {
+        fun <T: Any> flift2OMap(item: IMOrdered<T>): ITOMap<T>? = IM.liftToIMOrderedMappable(item)
+        fun <T: Any> flift2OMap(item: T): ITOMap<T> {
+            check(item !is IMCommon<*>)
+            check(item !is IMOrdered<*>)
+            return DWFOMap.of(item)
+        }
+    }
+}
 
 // ========================== KMap
 
-typealias ITKZMap<S,T> = IMKZipMap<S,T,TKVEntry<S,T>>
+internal typealias ITKZMap<S,T> = IMKZipMap<S,T,TKVEntry<S,T>>
 
-interface IMKZipWrap<out S, out T: Any> where S: Any, S: Comparable<@UnsafeVariance S> {
+internal interface IMKZipWrap<out S, out T: Any> where S: Any, S: Comparable<@UnsafeVariance S> {
     fun asZMap(): ITKZMap<S,T>
 }
 
-interface IMKZipMap<out S, out T: Any, out W: TKVEntry<S,T>>: IMKZipWrap<S,T> where S: Any, S: Comparable<@UnsafeVariance S> {
+internal interface IMKZipMap<out S, out T: Any, out W: TKVEntry<S,T>>: IMKZipWrap<S,T> where S: Any, S: Comparable<@UnsafeVariance S> {
 
     fun <X, Y: Any> fkzipMap(f: (S) -> (T) -> X): ITKMap<X,Y> where X: Any, X: Comparable<X>
     fun <X, Y: Any> fkzippMap(f: (S, T) -> X): ITKMap<X,Y> where X: Any, X: Comparable<X> {
@@ -248,8 +256,8 @@ interface IMAppOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
         return faux(f)
     }
 
-    // will return: success, if all succeed; xor: only errors (all errors), if any
-    fun <R: Any> ftraverse(op: (S) -> R): IMSdj<IMCommon<String>, IMCommon<R>> {
+    // will return: success, if all succeed; xor only errors (all errors), if any
+    fun <R: Any> ftraverse(op: (S) -> R): IMDj<IMCommon<String>, IMCommon<R>> {
         val fail: (S?) -> String = { v:S? -> "op error during traversal, ${v?.let{ it::class }} item $v" }
         val impl: TraversalImpl<S, String> = TraversalImpl(fail, this)
         return impl.traverse<R, String>(op)
@@ -262,7 +270,7 @@ interface IMAppOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
         return impl.grossTraverse<R, String>(op)
     }
 
-    fun <R: Any, E: Any> ftraverseWithError(op: (S) -> R, toError: ((String) -> E)): TSDJ<IMCommon<E>, IMCommon<R>> {
+    fun <R: Any, E: Any> ftraverseWithError(op: (S) -> R, toError: ((String) -> E)): IMDj<IMCommon<E>, IMCommon<R>> {
         val fail: (S?) -> E = { v:S? -> toError("for:${v?.let{ it::class }} item $v") }
         val impl: TraversalImpl<S, E> = TraversalImpl(fail, this)
         return impl.traverse<R,E>(op)
@@ -313,9 +321,46 @@ interface IMAppOp<out S: Any, out U: ITMap<S>>: IMCommon<S> {
     }
 }
 
-typealias ITOApp<S> = IMOrderedAppOp<S, IMMapOp<S, IMOrdered<S>>>
+typealias ITOApp<S> = IMOrderedAppOp<S, ITOMap<S>>
 
-interface IMOrderedAppOp<out S: Any, out U: IMMapOp<S, IMOrdered<S>>>: IMOrdered<S>, IMAppOp<S,U> { }
+interface IMOrderedAppOp<out S: Any, out U: ITOMap<S>>: IMOrdered<S>, IMAppOp<S,U> {
+
+    fun asITOMap(): ITOMap<S> = (@Suppress("UNCHECKED_CAST") (this as ITOMap<S>))
+
+    // TODO this needs be protected under type invariance
+    override fun <T: Any, X: Any> fmap2(v: ITApp<@UnsafeVariance T>, f:(S, T) -> X): ITApp<X> = when {
+        v is IMOrdered<*> -> {
+            @Suppress("UNCHECKED_CAST") (v as ITOApp<T>)
+            val f_s_t = {s:S -> { t:T -> f(s,t)}}
+            val aux: ITOMap<(T) -> X> = asITOMap().fmap(f_s_t)
+            val ord: IMOrdered<X> = v.asITOMap().fzipMap(aux)
+            flift2OApp(ord)!!
+        }
+        else -> super.fmap2(v,f)
+    }
+
+    // will return: success, if all succeed; xor only errors (all errors), if any
+    fun <R: Any> fzipTraverse(zipOps: IMOrdered<(S) -> R>): IMSdj<IMOrdered<String>, IMOrdered<R>> {
+        val fail: (S?) -> String = { v:S? -> "op error during traversal, ${v?.let{ it::class }} item $v" }
+        val impl: ZipTraversalImpl<S, String> = ZipTraversalImpl(fail, this)
+        return impl.zipTraverse<R, String>(zipOps)
+    }
+
+    // will return any and all success, and any and all failures
+    fun <R: Any> fzipGrossTraverse(op: IMOrdered<(S) -> R>): Pair<IMOrdered<String>, IMOrdered<R>> {
+        val fail: (S?) -> String = { v:S? -> "op error during traversal, ${v?.let{ it::class }} item $v" }
+        val impl: ZipTraversalImpl<S, String> = ZipTraversalImpl(fail, this)
+        return impl.zipGrossTraverse<R, String>(op)
+    }
+
+    companion object {
+        fun <T: Any> flift2OApp(item: ITOMap<T>) = IM.liftToIMOrderedApplicable(item)
+        fun <T: Any> flift2OApp(item: IMOrdered<T>): ITOApp<T>? {
+            check (item !is IMOrderedMapOp<*,*>)
+            return IMOrderedMapOp.flift2OMap(item)?.let { omappable -> flift2OApp(omappable) }
+        }
+    }
+}
 
 
 /*
@@ -332,9 +377,10 @@ interface IMCartesian<out S: Any, out U: FMap<S>, out T: Any, out V: FMap<T>, ou
 
  */
 
-// simple disjunction
-interface IMDj<out L, out R>: IMOrdered<IMDj<L,R>>,
+// disjunction
+interface IMDj<out L, out R>: IMCommon<IMDj<L,R>>,
     IMDjFiltering<L, R> {
+
     companion object {
         fun <A, B, L:Any, R: Any> bifold(djs: IMCommon<IMDj<A,B>>, acc:Pair<IMList<L>, IMList<R>>? = null): ((A) -> L, (B) -> R) -> Pair<IMList<L>, IMList<R>> = { fl: (A) -> L, fr: (B) -> R ->
             val biAcc = acc ?: Pair(FList.emptyIMList(),FList.emptyIMList())
@@ -347,11 +393,13 @@ interface IMDj<out L, out R>: IMOrdered<IMDj<L,R>>,
     }
 }
 
-// higher kind disjunction
 interface IMSdj<out L, out R>: IMDj<L,R>,
     ITMap<IMDj<L,R>>,
-    ITApp<IMDj<L,R>> {
-}
+    ITApp<IMDj<L,R>>
+
+interface IMOdj<out L, out R>: IMDj<L,R>, IMOrdered<IMDj<L,R>>,
+    ITOMap<IMDj<L,R>>,
+    ITOApp<IMDj<L,R>>
 
 typealias ITDcw<A> = IMDicw<A, IMCommon<A>>
 
@@ -361,10 +409,22 @@ interface IMDicw<out A: Any, out B: IMCommon<A>>:
     IMCommon<A>,
     IMOrdered<A>
 
+typealias ITODcw<A> = IMDiOcw<A, IMOrdered<A>>
+
+interface IMDiOcw<out A: Any, out B: IMOrdered<A>>:
+    IMCommon<A>,
+    IMOrdered<A>
+
 typealias ITDmw<A> = IMDimw<A, IMCommon<A>>
 
 interface IMDimw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDimw<A,B>>,
+    IMOrdered<A>
+
+typealias ITODmw<A> = IMDiOmw<A, IMOrdered<A>>
+
+interface IMDiOmw<out A: Any, out B: IMOrdered<A>>:
+    IMOrderedMapOp<A, IMDimw<A,B>>,
     IMOrdered<A>
 
 typealias ITDaw<A> = IMDiaw<A, IMCommon<A>>
@@ -372,6 +432,13 @@ typealias ITDaw<A> = IMDiaw<A, IMCommon<A>>
 interface IMDiaw<out A: Any, out B: IMCommon<A>>:
     IMMapOp<A, IMDiaw<A,B>>,
     IMAppOp<A, ITMap<A>>,
+    IMOrdered<A>
+
+typealias ITODaw<A> = IMDiOaw<A, IMOrdered<A>>
+
+interface IMDiOaw<out A: Any, out B: IMOrdered<A>>:
+    IMOrderedMapOp<A, IMDiOaw<A,B>>,
+    IMOrderedAppOp<A, ITOMap<A>>,
     IMOrdered<A>
 
 fun interface EqualsProxy {

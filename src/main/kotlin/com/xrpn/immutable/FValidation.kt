@@ -3,26 +3,26 @@ package com.xrpn.immutable
 import com.xrpn.imapi.*
 import com.xrpn.immutable.FList.Companion.emptyIMList
 
-interface MappValidation<T: Any, E: Any> {
+interface ApplicativeValidation<T: Any, E: Any> {
     fun validation(candidates: ITApp<T>): IMSdj<IMList<E>, IMList<T>>
 }
 
-interface IM_Validation<V: Any, U: ITApp<V>, D: Any>: IM_Traversal<V,U,D> {
-    fun <E: Any> validate (
-        criterium: (V) -> TSDJ<E,V>,
-        fail: (E?) -> D
-    ): TSDJ<IMCommon<D>, IMCommon<V>> = traverse(criterium, fail) { it!! }
-}
+//interface IM_Validation<V: Any, U: ITApp<V>, D: Any>: IM_Traversal<V,U,D> {
+//    fun <E: Any> validate (
+//        criterium: (V) -> TSDJ<E,V>,
+//        fail: (E?) -> D
+//    ): TSDJ<IMCommon<D>, IMCommon<V>> = traverse(criterium, fail) { it!! }
+//}
 
-data class FSingleMappValidation<T: Any, E: Any> (
+data class FSingleApplicativeValidation<T: Any, E: Any> (
     val criterium: (T) -> TSDJ<E,T>,
     val fail: (E?) -> E
-): MappValidation<T, E> by FMultiMappValidation(FList.of(criterium), fail)
+): ApplicativeValidation<T, E> by FMultiApplicativeValidation(FList.of(criterium), fail)
 
-data class FMultiMappValidation<T: Any, E: Any> (
+data class FMultiApplicativeValidation<T: Any, E: Any> (
     val criteria: IMCommon<(T) -> IMSdj<E,T>>,
     val fail: (e: E?) -> E
-): MappValidation<T,E> {
+): ApplicativeValidation<T,E> {
 
     private fun assess(candidate: T): IMList<IMSdj<E, T>> = criteria.ffold(emptyIMList()) { resAcc, test ->
         resAcc.fprepend(test(candidate).bimap(fail) { id -> id } as IMSdj<E, T>)

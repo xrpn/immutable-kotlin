@@ -114,12 +114,12 @@ object IM {
 
     fun <B: Any> liftToIMMappable(item: IMCommon<B>): IMMapOp<B, IMCommon<B>>? = when(item) {
         is IMList -> item
+        is IMStack -> item
+        is IMQueue -> item
         is IMSet -> item.asIMSetNotEmpty()?.let { it -> it.vcvdj().bireduce(
             { id -> id },
             { id -> @Suppress("UNCHECKED_CAST") (id as IMSet<B>) })
         } ?: item
-        is IMStack -> item
-        is IMQueue -> item
         is IMBTree<*, *> -> TODO()
         is IMMap<*, *> -> TODO()
         is IMHeap -> item
@@ -128,11 +128,20 @@ object IM {
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMMapOp<B, IMCommon<B>>)
         is IMZipMap<*,*,*> -> @Suppress("UNCHECKED_CAST") (item.asMap() as IMMapOp<B, IMCommon<B>>)
         else -> if (!(IMMapOp::class.isInstance(item))) null
-                else throw RuntimeException("internal error, unknown IMCommon:'${item::class}'")
+                else throw RuntimeException("internal error, unknown ${IMCommon::class.simpleName}:'${item::class}'")
 
     }
 
-    fun <A: Any> liftToIMApplicable(item: IMMapOp<A, IMCommon<A>>): IMAppOp<A, IMMapOp<A, IMCommon<A>>>? = when(item) {
+    fun <B: Any> liftToIMOrderedMappable(item: IMOrdered<B>): IMOrderedMapOp<B, IMOrdered<B>>? = when(item) {
+        is IMList -> item
+        is IMStack -> item
+        is IMQueue -> item
+        else -> if (!(IMOrderedMapOp::class.isInstance(item))) null
+        else throw RuntimeException("internal error, unknown ${IMOrdered::class.simpleName}:'${item::class}'")
+
+    }
+
+    fun <A: Any> liftToIMApplicable(item: IMMapOp<A, IMCommon<A>>): IMAppOp<A, ITMap<A>>? = when(item) {
         is IMList /* IMOrdered */ -> item
         is IMStack /* IMOrdered */ -> item
         is IMQueue /* IMOrdered */ -> item
@@ -144,8 +153,17 @@ object IM {
         is IMDiaw<A, IMCommon<A>> -> item
         is IMSdj<*,*> -> @Suppress("UNCHECKED_CAST") (item as IMAppOp<A, IMMapOp<A, IMCommon<A>>>)
         else -> if (!(IMAppOp::class.isInstance(item))) null
-                else throw RuntimeException("internal error, unknown IMMappable:'${item::class}'")
+                else throw RuntimeException("internal error, unknown ${IMMapOp::class.simpleName}:'${item::class}'")
     }
+
+    fun <A: Any> liftToIMOrderedApplicable(item: IMOrderedMapOp<A, IMOrdered<A>>): IMOrderedAppOp<A, ITOMap<A>>? = when (item) {
+        is IMList /* IMOrdered */ -> item
+        is IMStack /* IMOrdered */ -> item
+        is IMQueue /* IMOrdered */ -> item
+        else -> if (!(IMOrderedAppOp::class.isInstance(item))) null
+        else throw RuntimeException("internal error, unknown ${IMOrderedMapOp::class.simpleName}:'${item::class}'")
+    }
+
 }
 
 interface IMLogging  {

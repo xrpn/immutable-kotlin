@@ -301,6 +301,10 @@ sealed class FKMap<out K, out V: Any>: IMMap<K, V> where K: Any, K: Comparable<@
         TODO("Not yet implemented")
     }
 
+    override fun <KK, AA: Any> tibKeyedValue(): IMKeyedValueInvariant<KK, AA>? where KK: Any, KK : Comparable<KK>  {
+        TODO("Not yet implemented")
+    }
+
     //
     // ========= implementation
     //

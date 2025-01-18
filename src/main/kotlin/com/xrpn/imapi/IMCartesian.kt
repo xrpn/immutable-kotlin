@@ -71,9 +71,9 @@ class FCartesian<out S: Any, out U: ITMap<S>, out T: Any, W:IMZPair<@UnsafeVaria
         fun <S: Any, T: Any, W: IMZPair<S,T>> emptyZipMap(): ITMap<W> =
             (@Suppress("UNCHECKED_CAST") (defaultEmptyZipMap.asMap() as ITMap<W>))
 
-        fun <S: Any, T: Any> emptyZMap(): ITZMap<S,T> = defaultEmptyZipMap
+        internal fun <S: Any, T: Any> emptyZMap(): ITZMap<S,T> = defaultEmptyZipMap
 
-        fun <S: Any, T: Any, W: IMZPair<S, T>> asZMap(k: ITMap<W>?): ITZMap<S, T>? = when {
+        internal fun <S: Any, T: Any, W: IMZPair<S, T>> asZMap(k: ITMap<W>?): ITZMap<S, T>? = when {
             k == null -> null
             k is ZipWrap<*, *, *, W> -> try {
                 fun placateWarn(a: Any): ZipWrap<S, ITMap<S>, T, W> =
@@ -371,7 +371,6 @@ private data class ZipWrap<out S: Any, out U: ITMap<S>, out T: Any, out W: IMZPa
     companion object {
         fun <S: Any, T: Any> toZMap(zr: ZipWrap<S, ITMap<S>, T, IMZPair<S,T>>): ITZMap<S, T> = zr.zmap
     }
-
 }
 
 /*

@@ -1,5 +1,6 @@
 package com.xrpn.imapi
 
+import com.xrpn.bridge.FKSetIterator
 import com.xrpn.immutable.*
 import com.xrpn.immutable.FT
 import java.io.OutputStream
@@ -252,6 +253,7 @@ interface IMKeyedValue<out K, out A: Any>: IMKeyed<K> where K: Any, K: Comparabl
     fun fpickValue(): A?  // peek at one random value
     fun <KK, AA: Any> tibKCommon(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
     fun <KK, AA: Any> tibKWritable(): IMKeyedValueWritable<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK> = tibKCommon()
+    fun <KK, AA: Any> tibKeyedValue(): IMKeyedValueInvariant<KK,AA>? where KK: Any, KK: Comparable<@UnsafeVariance KK>
 
     companion object {
 
@@ -323,9 +325,9 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
     fun fswaph(): IMOrdered<A> // swap head  (A, B, C).fswaph() becomes (B, A, C)
     fun <B: Any> fzip(items: IMOrdered<B>): IMOrdered<Pair<A,B>>
     fun <B: Any> fzipMap(fs: IMOrdered<(A) -> B>): IMOrdered<B>
-    fun <B: Any> tibCommon(): IMCommonInvariant<B>?
     fun <B: Any> tibWritable(): IMWritable<B>? = tibOrdered()
     fun <B: Any> tibOrdered(): IMOrderedInvariant<B>?
+    fun <B: Any> tibCommon(): IMCommonInvariant<B>?
     // return value retyped
     override fun fdropAll(items: IMCommon<@UnsafeVariance A>): IMOrdered<A>
     override fun fdropItem(item: @UnsafeVariance A): IMOrdered<A>
@@ -393,10 +395,14 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
 
             private fun <A : Any> fullScreen(lhs: IMOrdered<A>, rhs: Collection<*>?): Boolean =
                 untypedScreen(lhs, rhs) && (
-                        (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
-                            pairwiseEquals(lhs, it)
-                        } ?: false
-                        )
+                    (@Suppress("UNCHECKED_CAST") (rhs as? Iterable<A>))?.let {
+                        val iter = it.iterator()
+                        when (iter) {
+                            is FKSetIterator<*,*> ->  false /* not ordered */
+                            else -> pairwiseEquals(lhs, it)
+                        }
+                    } ?: false
+                )
 
             override fun equal(lhs: IMOrdered<A>, rhs: IMOrdered<A>): Boolean = when {
                 lhs.fempty() -> rhs.fempty()
@@ -410,7 +416,7 @@ interface IMOrdered<out A: Any>: IMCommon<A> {
                 is IMOrdered<*> -> (@Suppress("UNCHECKED_CAST") (rhs as? IMOrdered<A>)?.let {
                     equal(lhs, it)
                 } ?: false)
-                is LinkedHashSet<*>, is SortedSet<*> -> {
+                is LinkedHashSet<*>, is SortedSet<*> -> /* ordered, if ambiguously so */ {
                     rhs as Collection<*>
                     fullScreen(lhs, rhs)
                 }

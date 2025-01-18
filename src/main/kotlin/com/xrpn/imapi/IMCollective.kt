@@ -90,7 +90,6 @@ interface IMSet<out A: Any>: IMCommon<A>,
     fun asIMVSetNotEmpty(): IMVSetNotEmpty<A>?
     fun <K> asIMCVSetNotEmpty(): IMCVSetNotEmpty<K>? where K: Any, K: Comparable<K>
     fun asIMSetNotEmpty(): IMSetNotEmpty<A>? = if (fempty()) null else (@Suppress("UNCHECKED_CAST") (this as? IMSetNotEmpty<A>))
-    fun <B: Any> tibCommon(): IMCommonInvariant<B>?
     fun <B: Any> tibSet(): IMSetInvariant<B>?
     fun <B: Any> tibWritable(): IMWritable<B>? = tibSet()
 

@@ -529,6 +529,10 @@ open class RBTree<A: Comparable<A>, B: Any>: IMBTree<A, B> {
     override fun <KK, AA : Any> tibKCommon(): IMKeyedValueInvariant<KK, AA>? where KK: Any, KK : Comparable<KK> {
         TODO("Not yet implemented")
     }
+
+    override fun <KK, AA : Any> tibKeyedValue(): IMKeyedValueInvariant<KK, AA>? where KK: Any, KK : Comparable<KK> {
+        TODO("Not yet implemented")
+    }
 }
 
 internal data class RBNode<A: Comparable<A>, B: Any>(

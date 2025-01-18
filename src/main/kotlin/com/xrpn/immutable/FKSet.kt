@@ -771,11 +771,6 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
     }
 
     // type invariant functionality
-    internal val tifc: IMCommonInvariant<@UnsafeVariance A> by lazy {
-        IMCommon.typeInvariantBuilder()
-    }
-
-    // type invariant functionality
     internal val tifk: IMKeyedValueInvariant<@UnsafeVariance K, @UnsafeVariance A> by lazy {
         IMKeyedValue.typeInvariantBuilder()
     }
@@ -785,11 +780,11 @@ sealed class FKSet<out K, out A: Any> constructor (protected val body: FRBTree<K
         IMSet.typeInvariantBuilder()
     }
 
-    override fun <B: Any> tibCommon(): IMCommonInvariant<B>? =
-        @Suppress("UNCHECKED_CAST") (tifc as? IMCommonInvariant<B>)
-
     override fun <KK, AA : Any> tibKCommon(): IMKeyedValueInvariant<KK, AA>? where KK:Any, KK: Comparable<KK>  =
         @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK, AA>)
+
+    override fun <KK, AA: Any> tibKeyedValue(): IMKeyedValueInvariant<KK, AA>? where KK: Any, KK : Comparable<KK> =
+        @Suppress("UNCHECKED_CAST") (tifk as? IMKeyedValueInvariant<KK,AA>)
 
     override fun <B: Any> tibSet(): IMSetInvariant<B>? =
         @Suppress("UNCHECKED_CAST") (tifs as? IMSetInvariant<B>)

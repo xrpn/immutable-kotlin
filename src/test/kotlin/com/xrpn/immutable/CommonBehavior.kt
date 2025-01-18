@@ -78,7 +78,7 @@ interface FunctorKLaw {
 val imbtreeFunctorKLaw = object: FunctorKLaw {}
 val immapFunctorKLaw = object: FunctorKLaw {}
 
-interface CartesianLaw  {
+internal interface CartesianLaw  {
     fun <S: Any, T: Any, X: Any> isZipEqual(lhs: ITZMap<S,T>, rhs: ITMap<X>): Boolean =
         IMZipMap.softEqual(lhs, rhs)
     fun <S: Any, T: Any, X: Any> isKartEqual(lhs: ITZMap<S,T>, rhs: ITMap<ITMap<X>>): Boolean {
@@ -171,11 +171,11 @@ interface CartesianLaw  {
 //    }
 }
 
-val fdisjunctionCartesianLaw = object: CartesianLaw {}
-val fwrapperCartesianLaw = object: CartesianLaw {}
-val fstackCartesianLaw = object: CartesianLaw {}
-val fqueueCartesianLaw = object: CartesianLaw {}
-val flistCartesianLaw = object: CartesianLaw {}
+internal val fdisjunctionCartesianLaw = object: CartesianLaw {}
+internal val fwrapperCartesianLaw = object: CartesianLaw {}
+internal val fstackCartesianLaw = object: CartesianLaw {}
+internal val fqueueCartesianLaw = object: CartesianLaw {}
+internal val flistCartesianLaw = object: CartesianLaw {}
 
 interface ApplicativeLaw  {
     //

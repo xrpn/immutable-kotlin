@@ -2,6 +2,9 @@
 buildscript {
     ext.kotestVersion = '5.1.0'
     ext.jvmTarget = '1.8'
+//    dependencies {
+//        classpath 'io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:2.0'
+//    }
 }
 
 plugins {
@@ -9,6 +12,8 @@ plugins {
     id 'jacoco'
     id 'idea'
     // id 'com.bnorm.power.kotlin-power-assert' version "0.11.0"
+    // apply plugin: 'io.arrow-kt.analysis.kotlin'
+    // id 'io.arrow-kt.analysis.kotlin'
 }
 
 group 'com.xrpn'
@@ -78,10 +83,12 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 }
 
 dependencies {
+//    compile 'io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:2.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.0"
     implementation "io.github.microutils:kotlin-logging-jvm:2.0.11"
     testImplementation "io.kotest:kotest-runner-junit5:$kotestVersion" // for kotest framework
     testImplementation "io.kotest:kotest-assertions-core:$kotestVersion" // for kotest core jvm assertions
     testImplementation "io.kotest:kotest-property:$kotestVersion" // for kotest property test
+    testImplementation "io.kotest:kotest-framework-datatest:$kotestVersion"
 }
